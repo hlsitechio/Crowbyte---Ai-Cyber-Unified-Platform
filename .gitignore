@@ -77,7 +77,11 @@ mcp-servers/
 scripts/
 tools/
 infrastructure/
-docs/
+docs/licensing-research.md
+docs/AUP-RESEARCH.md
+docs/DOCS-BLUEPRINT.md
+docs/EULA-RESEARCH.md
+docs/PRIVACY_POLICY_RESEARCH.md
 supabase/
 backend/
 EULA-RESEARCH.md
