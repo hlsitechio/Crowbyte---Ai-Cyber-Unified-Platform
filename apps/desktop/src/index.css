@@ -1,0 +1,311 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Container queries for split-screen browser panel responsiveness */
+@layer utilities {
+  .main-content-container {
+    container-type: inline-size;
+    container-name: main-content;
+  }
+
+  /* When main content area is narrow (browser panel open), reduce grid columns */
+  @container main-content (max-width: 900px) {
+    .cq-grid-narrow-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .cq-grid-narrow-6 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+    .cq-grid-narrow-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  }
+
+  @container main-content (max-width: 640px) {
+    .cq-grid-narrow-4 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+    .cq-grid-narrow-6 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .cq-grid-narrow-3 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+  }
+
+  /* Webview fills its container */
+  webview {
+    display: flex;
+    flex: 1;
+  }
+
+  /* Hide scrollbar on browser tab bar */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Black Hat Theme - True black with silver gradients */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 2%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 0 0% 75%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 55%;
+
+    --accent: 0 0% 85%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 5%;
+    --ring: 0 0% 70%;
+
+    --radius: 0.125rem;
+
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 0 0% 75%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 4%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: 0 0% 70%;
+
+    /* Silver gradient colors */
+    --silver-light: 0 0% 85%;
+    --silver: 0 0% 75%;
+    --silver-muted: 0 0% 55%;
+    --silver-dark: 0 0% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* Scrollbar styling - Minimal black hat aesthetic */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-black;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/40;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/60;
+  }
+}
+
+@layer utilities {
+  .terminal-text {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    letter-spacing: -0.02em;
+  }
+
+  .text-gradient-silver {
+    background: linear-gradient(135deg, hsl(var(--silver-light)), hsl(var(--silver-muted)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-silver {
+    background: linear-gradient(135deg, hsl(var(--silver)) / 0.1, hsl(var(--silver-dark)) / 0.05);
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(135deg, hsl(var(--silver)) / 0.3, hsl(var(--silver-dark)) / 0.1) 1;
+  }
+}
+
+/* Animations */
+@keyframes stream {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes msg-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes msg-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.animate-stream {
+  animation: stream 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-msg-left {
+  animation: msg-in-left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-msg-right {
+  animation: msg-in-right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* News ticker scroll */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-scroll {
+  animation: ticker-scroll 20s linear infinite;
+}
+
+/* Chat markdown styles */
+.chat-markdown {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: inherit;
+}
+.chat-markdown p {
+  margin-bottom: 0.5em;
+}
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+.chat-markdown strong {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+.chat-markdown em {
+  color: #94a3b8;
+  font-style: italic;
+}
+.chat-markdown code {
+  background: rgba(139, 92, 246, 0.12);
+  color: #c4b5fd;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.82em;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+.chat-markdown pre {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  margin: 0.6em 0;
+  overflow-x: auto;
+  position: relative;
+}
+.chat-markdown pre code {
+  background: none;
+  color: #d4d4d8;
+  padding: 0;
+  font-size: 0.8em;
+  line-height: 1.5;
+}
+.chat-markdown blockquote {
+  border-left: 3px solid rgba(139, 92, 246, 0.4);
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: #94a3b8;
+  font-style: italic;
+}
+.chat-markdown ul, .chat-markdown ol {
+  padding-left: 1.5em;
+  margin: 0.4em 0;
+}
+.chat-markdown li {
+  margin-bottom: 0.2em;
+}
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
+  color: #e2e8f0;
+  font-weight: 600;
+  margin-top: 0.6em;
+  margin-bottom: 0.3em;
+}
+.chat-markdown h1 { font-size: 1.1em; }
+.chat-markdown h2 { font-size: 1em; }
+.chat-markdown h3 { font-size: 0.95em; }
+.chat-markdown a {
+  color: #8b5cf6;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.chat-markdown hr {
+  border-color: rgba(139, 92, 246, 0.2);
+  margin: 0.75em 0;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

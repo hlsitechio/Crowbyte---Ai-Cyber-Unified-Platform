@@ -1,0 +1,120 @@
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Build Output ────────────────────────────────────────────────────────────
+dist/
+dist-electron/
+out/
+build/
+*.tsbuildinfo
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.cert
+*.p12
+
+# ─── IDE & AI Assistants ────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.clinerules/
+.kilocode/
+.roo/
+.windsurf/
+.cursor/
+.kiro/
+.qoder/
+.augment/
+.claude/
+.brv/
+CLAUDE.md
+AGENTS.md
+copilot-instructions.md
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+nul
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ─── Vite ────────────────────────────────────────────────────────────────────
+*.local
+node_modules/.vite/
+
+# ─── Electron Releases ──────────────────────────────────────────────────────
+release/
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.exe
+*.msi
+*.snap
+
+# ─── Coverage ────────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ─── Internal / Development Only ────────────────────────────────────────────
+# These directories are NOT part of the distributed product
+crowbyte_windows/
+apps/website/
+mcp-servers/
+scripts/
+tools/
+infrastructure/
+docs/
+supabase/
+backend/
+EULA-RESEARCH.md
+PRIVACY_POLICY_RESEARCH.md
+THREAT_INTEL_INTEGRATION.md
+migrate-structure.sh
+bun.lock
+bun.lockb
+package-lock.json
+
+# ─── Binary / Media ─────────────────────────────────────────────────────────
+*.mp4
+*.mp3
+*.avi
+*.mov
+*.mkv
+*.png
+!public/favicon.ico
+!public/icon.ico
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.psd
+
+# ─── Test / Debug Files ─────────────────────────────────────────────────────
+**/test-*.cjs
+**/test-*.js
+**/test-*.ts
+**/cache-test.*
+*.bak
+*.tmp
+*.backup
+.cache/
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+social/
+automation/
+packages/

@@ -1,0 +1,46 @@
+{
+  "name": "crowbyt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CrowByt - AI-powered cybersecurity platform by HLSITech",
+  "author": "HLSITech <contact@hlsitech.com>",
+  "homepage": "https://crowbyt.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hlsitech/crowbyt.git"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "mcp-servers/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:desktop",
+    "dev:desktop": "npm -w apps/desktop run electron:dev",
+    "dev:website": "npm -w apps/website run dev",
+    "build": "npm run build:desktop && npm run build:website",
+    "build:desktop": "npm -w apps/desktop run build",
+    "build:website": "npm -w apps/website run build",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "migrate": "bash migrate-structure.sh",
+    "db:push": "cd backend/supabase && npx supabase db push",
+    "db:pull": "cd backend/supabase && npx supabase db pull",
+    "mcp:nvd": "node mcp-servers/nvd/index.js",
+    "mcp:resend": "node mcp-servers/resend/build/index.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.2.4",
+    "typescript": "^5.8.3",
+    "vite": "^7.2.4",
+    "wait-on": "^9.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.10.1"
+  }
+}
