@@ -38,17 +38,14 @@ LABEL version="2.0.0"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# All runtime deps in one layer (X11 + Electron + security tools)
+# All runtime deps in one layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Display stack
     xvfb x11vnc novnc websockify fluxbox \
     x11-utils xauth dbus-x11 \
-    # Electron/Chromium deps
     libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xdg-utils \
     libatspi2.0-0 libdrm2 libgbm1 libasound2 libcups2 \
     libxcomposite1 libxdamage1 libxrandr2 libpango-1.0-0 \
     libcairo2 fonts-liberation2 fonts-noto-color-emoji \
-    # Security tools
     nmap curl git procps iproute2 \
     dnsutils whois net-tools ca-certificates \
     && rm -rf /var/lib/apt/lists/*
