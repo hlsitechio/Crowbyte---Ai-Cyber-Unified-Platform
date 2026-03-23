@@ -1,0 +1,34 @@
+[Unit]
+Description=CrowByte Terminal Server
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=crowbyte
+Group=crowbyte
+WorkingDirectory=/opt/crowbyte/server
+Environment=NODE_ENV=production
+Environment=PORT=3000
+EnvironmentFile=-/etc/crowbyte/crowbyte.env
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=crowbyte-server
+
+# Security hardening
+NoNewPrivileges=false
+ProtectSystem=false
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=4096
+
+# Allow docker socket access
+SupplementaryGroups=docker
+
+[Install]
+WantedBy=multi-user.target

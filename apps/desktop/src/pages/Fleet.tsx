@@ -50,6 +50,18 @@ interface VPSStatus {
   services: { name: string; active: boolean }[];
 }
 
+interface HostMetrics {
+  hostname: string;
+  os: string;
+  uptime: string;
+  cpu: { model: string; cores: number; usage: number; temperature?: number };
+  memory: { total: string; used: string; percent: number };
+  disk: { total: string; used: string; percent: number };
+  network: { rx_rate: string; tx_rate: string; interfaces: number };
+  docker: { running: number; total: number };
+  loadAvg: number[];
+}
+
 const Fleet = () => {
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,6 +73,8 @@ const Fleet = () => {
   const [remoteTarget, setRemoteTarget] = useState<Endpoint | null>(null);
   const [vpsStatus, setVpsStatus] = useState<VPSStatus | null>(null);
   const [vpsLoading, setVpsLoading] = useState(true);
+  const [hostMetrics, setHostMetrics] = useState<HostMetrics | null>(null);
+  const [hostLoading, setHostLoading] = useState(true);
 
   const loadEndpoints = useCallback(async () => {
     setLoading(true);
@@ -168,6 +182,101 @@ const Fleet = () => {
 
     checkVPS();
     const interval = setInterval(checkVPS, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Host server metrics (this server's hardware)
+  useEffect(() => {
+    const fetchHostMetrics = async () => {
+      setHostLoading(true);
+      try {
+        const baseUrl = window.location.origin;
+        const token = localStorage.getItem('crowbyte_server_token');
+        const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const [overviewRes, cpuRes, memRes, diskRes, netRes, dockerRes] = await Promise.allSettled([
+          fetch(`${baseUrl}/api/system/overview`, { headers }),
+          fetch(`${baseUrl}/api/system/cpu`, { headers }),
+          fetch(`${baseUrl}/api/system/memory`, { headers }),
+          fetch(`${baseUrl}/api/system/disk`, { headers }),
+          fetch(`${baseUrl}/api/system/network`, { headers }),
+          fetch(`${baseUrl}/api/system/docker`, { headers }),
+        ]);
+
+        const getJson = (r: PromiseSettledResult<Response>) =>
+          r.status === 'fulfilled' && r.value.ok ? r.value.json() : Promise.resolve(null);
+
+        const [overview, cpu, mem, disk, net, docker] = await Promise.all([
+          getJson(overviewRes), getJson(cpuRes), getJson(memRes),
+          getJson(diskRes), getJson(netRes), getJson(dockerRes),
+        ]);
+
+        if (overview || cpu || mem) {
+          const formatBytes = (bytes: number) => {
+            if (bytes >= 1073741824) return `${(bytes / 1073741824).toFixed(1)} GB`;
+            if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(0)} MB`;
+            return `${(bytes / 1024).toFixed(0)} KB`;
+          };
+
+          const rootDisk = disk?.filesystems?.find((f: any) => f.mount === '/') || disk?.filesystems?.[0];
+
+          // Map API response fields
+          const cpuUsage = cpu?.usage?.total ?? cpu?.currentLoad ?? 0;
+          const memTotal = mem?.total || 0;
+          const memUsed = mem?.used || (memTotal - (mem?.available || mem?.free || 0));
+          const memPercent = mem?.usedPercent ?? (memTotal ? Math.round((memUsed / memTotal) * 100) : 0);
+          const diskPercent = rootDisk?.usedPercent ?? (rootDisk?.size ? Math.round((rootDisk.used / rootDisk.size) * 100) : 0);
+
+          // Network rates from interfaces
+          const ethIface = net?.interfaces?.find((i: any) => i.iface !== 'lo' && i.operstate === 'up') || net?.interfaces?.find((i: any) => i.iface !== 'lo');
+          const rxRate = net?.rxRate ?? ethIface?.rx?.rate;
+          const txRate = net?.txRate ?? ethIface?.tx?.rate;
+
+          // Load avg
+          const la = overview?.loadAvg;
+          const loadArr = la ? [la.load1 ?? la[0] ?? 0, la.load5 ?? la[1] ?? 0, la.load15 ?? la[2] ?? 0] : [];
+
+          setHostMetrics({
+            hostname: overview?.hostname || 'CrowByte Server',
+            os: overview?.distro ? `${overview.distro} ${overview.release || ''}`.trim() : 'Linux',
+            uptime: overview?.uptimeFormatted || '--',
+            cpu: {
+              model: cpu?.model || 'Unknown',
+              cores: cpu?.cores || cpu?.threads || 0,
+              usage: cpuUsage,
+              temperature: cpu?.temperature?.main,
+            },
+            memory: {
+              total: mem?.formatted?.total || formatBytes(memTotal),
+              used: mem?.formatted?.used || formatBytes(memUsed),
+              percent: memPercent,
+            },
+            disk: {
+              total: rootDisk?.formatted?.size || (rootDisk ? formatBytes(rootDisk.size) : '--'),
+              used: rootDisk?.formatted?.used || (rootDisk ? formatBytes(rootDisk.used) : '--'),
+              percent: diskPercent,
+            },
+            network: {
+              rx_rate: rxRate ? formatBytes(rxRate) + '/s' : '--',
+              tx_rate: txRate ? formatBytes(txRate) + '/s' : '--',
+              interfaces: net?.interfaces?.filter((i: any) => i.iface !== 'lo').length || 0,
+            },
+            docker: {
+              running: docker?.running ?? docker?.containers?.filter((c: any) => c.state === 'running').length ?? 0,
+              total: (docker?.running ?? 0) + (docker?.stopped ?? 0) + (docker?.paused ?? 0),
+            },
+            loadAvg: loadArr,
+          });
+        }
+      } catch (err) {
+        console.error('Host metrics fetch failed:', err);
+      } finally {
+        setHostLoading(false);
+      }
+    };
+
+    fetchHostMetrics();
+    const interval = setInterval(fetchHostMetrics, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -428,8 +537,136 @@ const Fleet = () => {
         </CardContent>
       </Card>
 
-      {/* VPS Infrastructure */}
+      {/* Host Server — This Machine */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <Card className="border-2 border-emerald-500/40 bg-gradient-to-br from-card/80 to-emerald-500/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Server className="h-5 w-5 text-emerald-400" />
+                Host Server — {hostMetrics?.hostname || 'CrowByte OS'}
+                <Badge variant="outline" className="text-xs border-emerald-500/30 bg-emerald-500/10 text-emerald-400 ml-2">
+                  This Machine
+                </Badge>
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                {hostLoading && !hostMetrics ? (
+                  <Badge variant="outline" className="text-xs border-yellow-500/30 bg-yellow-500/10 text-yellow-400">
+                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" /> Loading...
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs border-green-500/30 bg-green-500/10 text-green-400">
+                    <CheckCircle className="h-3 w-3 mr-1" /> Online
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <CardDescription className="font-mono text-xs">
+              {hostMetrics?.os || 'Linux'} — {hostMetrics?.cpu?.model || 'Loading...'} — Uptime: {hostMetrics?.uptime || '--'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* CPU */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Cpu className="h-4 w-4 text-blue-400" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase">CPU</span>
+                  </div>
+                  <span className={`text-sm font-bold ${getHealthColor(hostMetrics?.cpu?.usage || 0)}`}>
+                    {hostMetrics?.cpu?.usage?.toFixed(0) || 0}%
+                  </span>
+                </div>
+                <div className="w-full bg-zinc-800 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(hostMetrics?.cpu?.usage || 0)}`}
+                    style={{ width: `${hostMetrics?.cpu?.usage || 0}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {hostMetrics?.cpu?.cores || 0} cores
+                  {hostMetrics?.cpu?.temperature ? ` — ${hostMetrics.cpu.temperature}°C` : ''}
+                  {hostMetrics?.loadAvg?.length ? ` — Load: ${hostMetrics.loadAvg.map(l => l.toFixed(2)).join(', ')}` : ''}
+                </p>
+              </div>
+
+              {/* Memory */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Activity className="h-4 w-4 text-purple-400" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase">Memory</span>
+                  </div>
+                  <span className={`text-sm font-bold ${getHealthColor(hostMetrics?.memory?.percent || 0)}`}>
+                    {hostMetrics?.memory?.percent || 0}%
+                  </span>
+                </div>
+                <div className="w-full bg-zinc-800 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(hostMetrics?.memory?.percent || 0)}`}
+                    style={{ width: `${hostMetrics?.memory?.percent || 0}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {hostMetrics?.memory?.used || '--'} / {hostMetrics?.memory?.total || '--'}
+                </p>
+              </div>
+
+              {/* Disk */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <HardDrive className="h-4 w-4 text-amber-400" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase">Disk</span>
+                  </div>
+                  <span className={`text-sm font-bold ${getHealthColor(hostMetrics?.disk?.percent || 0)}`}>
+                    {hostMetrics?.disk?.percent || 0}%
+                  </span>
+                </div>
+                <div className="w-full bg-zinc-800 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(hostMetrics?.disk?.percent || 0)}`}
+                    style={{ width: `${hostMetrics?.disk?.percent || 0}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {hostMetrics?.disk?.used || '--'} / {hostMetrics?.disk?.total || '--'}
+                </p>
+              </div>
+
+              {/* Network + Docker */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="h-4 w-4 text-cyan-400" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase">Network</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-green-400">RX</span>
+                    <span className="font-mono text-muted-foreground">{hostMetrics?.network?.rx_rate || '--'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-blue-400">TX</span>
+                    <span className="font-mono text-muted-foreground">{hostMetrics?.network?.tx_rate || '--'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-zinc-800">
+                    <span className="text-muted-foreground">Docker</span>
+                    <span className="font-mono text-emerald-400">
+                      {hostMetrics?.docker?.running || 0}/{hostMetrics?.docker?.total || 0} containers
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* VPS Infrastructure */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <Card className={`border-2 ${vpsStatus?.ok ? 'border-green-500/40' : 'border-red-500/40'} bg-gradient-to-br from-card/80 to-primary/5`}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
