@@ -30,7 +30,7 @@ RUN npx vite build
 
 # ─── Stage 2: Runtime ────────────────────────────────────────────────────────
 
-FROM node:20-bookworm-slim
+FROM node:20-bookworm
 
 LABEL maintainer="HLSITech <engineering@crowbyte.io>"
 LABEL description="CrowByte Terminal — Offensive Security Command Center"
@@ -38,22 +38,17 @@ LABEL version="2.0.0"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Display stack: Xvfb + x11vnc + noVNC + window manager
+# All runtime deps in one layer (X11 + Electron + security tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Display stack
     xvfb x11vnc novnc websockify fluxbox \
     x11-utils xauth dbus-x11 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Electron/Chromium runtime deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Electron/Chromium deps
     libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xdg-utils \
     libatspi2.0-0 libdrm2 libgbm1 libasound2 libcups2 \
     libxcomposite1 libxdamage1 libxrandr2 libpango-1.0-0 \
     libcairo2 fonts-liberation2 fonts-noto-color-emoji \
-    && rm -rf /var/lib/apt/lists/*
-
-# Security tools (scanner integrations)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Security tools
     nmap curl git procps iproute2 \
     dnsutils whois net-tools ca-certificates \
     && rm -rf /var/lib/apt/lists/*
