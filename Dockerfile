@@ -58,8 +58,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dnsutils whois net-tools ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Go + ProjectDiscovery tools
-RUN curl -sL https://go.dev/dl/go1.23.6.linux-amd64.tar.gz | tar xz -C /usr/local
+# Go + ProjectDiscovery tools (multi-arch)
+ARG TARGETARCH
+RUN curl -sL "https://go.dev/dl/go1.23.6.linux-${TARGETARCH}.tar.gz" | tar xz -C /usr/local
 ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"
 RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest 2>/dev/null || true && \
     go install github.com/projectdiscovery/httpx/cmd/httpx@latest 2>/dev/null || true && \

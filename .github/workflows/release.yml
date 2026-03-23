@@ -1,0 +1,118 @@
+###############################################################################
+# CrowByte Terminal — Desktop Release Builder
+#
+# Triggers: version tags (v*) or manual dispatch
+# Builds: .AppImage (Linux), .deb (Linux), .exe NSIS (Windows), .dmg (macOS)
+# Publishes: GitHub Releases with all artifacts
+###############################################################################
+
+name: Desktop Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 2.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  # ─── Build Matrix ──────────────────────────────────────────────────────────
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            artifact: crowbyte-linux
+          - os: windows-latest
+            platform: win
+            artifact: crowbyte-windows
+          - os: macos-latest
+            platform: mac
+            artifact: crowbyte-macos
+
+    runs-on: ${{ matrix.os }}
+    name: Build (${{ matrix.platform }})
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/desktop/package.json
+
+      - name: Install dependencies
+        working-directory: apps/desktop
+        run: npm install --legacy-peer-deps
+
+      - name: Build Vite
+        working-directory: apps/desktop
+        run: npx vite build
+
+      - name: Build Electron (Linux)
+        if: matrix.platform == 'linux'
+        working-directory: apps/desktop
+        run: npx electron-builder --linux AppImage deb
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Electron (Windows)
+        if: matrix.platform == 'win'
+        working-directory: apps/desktop
+        run: npx electron-builder --win nsis
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Electron (macOS)
+        if: matrix.platform == 'mac'
+        working-directory: apps/desktop
+        run: npx electron-builder --mac dmg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.yml
+          if-no-files-found: warn
+
+  # ─── Create GitHub Release ─────────────────────────────────────────────────
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: find release-artifacts -type f | sort
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/**/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
