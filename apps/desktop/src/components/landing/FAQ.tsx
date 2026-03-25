@@ -11,12 +11,12 @@ const faqItems: FAQItem[] = [
   {
     question: "Is CrowByte free?",
     answer:
-      "Yes. The community tier is free forever. Pro starts at $29/mo for unlimited scans and all AI models.",
+      "Yes. The community tier is free forever. Pro starts at $29/mo for unlimited scans and custom AI agents.",
   },
   {
-    question: "What AI models are included?",
+    question: "What are custom AI agents?",
     answer:
-      "Claude Opus/Sonnet/Haiku, DeepSeek V3.2, Qwen3 480B, Mistral Large 675B, Kimi K2 \u2014 7+ models accessible through a single chat interface.",
+      "Build your own AI agents with custom instructions, tool access, and personas. Chain them for recon, exploitation, reporting \u2014 or let them run autonomously on your VPS fleet.",
   },
   {
     question: "Can I self-host?",

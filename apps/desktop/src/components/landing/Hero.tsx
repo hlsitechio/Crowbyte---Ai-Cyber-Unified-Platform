@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { GithubLogo } from "@phosphor-icons/react";
+import { BookOpen } from "@phosphor-icons/react";
 
 /* ------------------------------------------------------------------ */
 /*  Terminal typing data                                               */
@@ -149,7 +149,7 @@ export default function Hero() {
           >
             CrowByte unifies AI agents, vulnerability scanners, CVE tracking,
             and fleet management in a single Electron terminal.
-            <span className="text-zinc-400"> 142 MCP tools. 7 AI models. 9 VPS agents.</span>
+            <span className="text-zinc-400"> 142 MCP tools. Custom AI agents. 9 VPS nodes.</span>
             {" "}Zero context switching.
           </motion.p>
 
@@ -165,13 +165,11 @@ export default function Hero() {
               Launch App
             </a>
             <a
-              href="https://github.com/hlsitechio/crowbyte"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/#/documentation"
               className="font-['JetBrains_Mono'] text-sm text-zinc-400 border border-white/20 hover:bg-white/5 px-5 py-2.5 rounded transition-colors inline-flex items-center gap-2"
             >
-              <GithubLogo size={16} weight="bold" />
-              GitHub
+              <BookOpen size={16} weight="bold" />
+              Docs
             </a>
           </motion.div>
         </div>

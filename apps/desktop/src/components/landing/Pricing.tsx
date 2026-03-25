@@ -15,7 +15,7 @@ const plans: PlanTier[] = [
     name: "Free",
     price: "$0",
     features: [
-      "3 AI models",
+      "3 custom agents",
       "50 queries/day",
       "Basic recon tools",
       "Community support",
@@ -27,7 +27,7 @@ const plans: PlanTier[] = [
     name: "Pro",
     price: "$29",
     features: [
-      "All 7+ AI models",
+      "Unlimited custom agents",
       "Unlimited queries",
       "142 MCP tools",
       "3 VPS agents",

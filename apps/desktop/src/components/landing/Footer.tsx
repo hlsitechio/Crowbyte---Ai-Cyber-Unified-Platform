@@ -12,33 +12,28 @@ export default function Footer() {
         </div>
         <div className="flex items-center gap-6">
           <a
-            href="https://github.com/hlsitechio/crowbyte"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-['JetBrains_Mono'] text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            GitHub
-          </a>
-          <a
             href="/#/documentation"
             className="font-['JetBrains_Mono'] text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             Docs
           </a>
           <a
-            href="#"
+            href="#pricing"
             className="font-['JetBrains_Mono'] text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            Status
+            Pricing
+          </a>
+          <a
+            href="mailto:support@crowbyte.io"
+            className="font-['JetBrains_Mono'] text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Contact
           </a>
         </div>
       </div>
-      <div className="mx-auto max-w-5xl border-t border-white/[0.06] py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <span className="font-['JetBrains_Mono'] text-sm text-zinc-500">
+      <div className="mx-auto max-w-5xl border-t border-white/[0.06] py-6 flex items-center justify-center">
+        <span className="font-['JetBrains_Mono'] text-sm text-zinc-600">
           &copy; 2026 HLSITech
-        </span>
-        <span className="font-['JetBrains_Mono'] text-sm text-zinc-500">
-          Montreal, Canada
         </span>
       </div>
     </footer>
