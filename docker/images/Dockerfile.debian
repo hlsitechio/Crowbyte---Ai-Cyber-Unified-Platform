@@ -1,30 +1,20 @@
 ###############################################################################
-# CrowByte Terminal — Ubuntu 24.04 LTS Docker Image
+# CrowByte Terminal — Production Docker Image
 #
-# Multi-stage build: compile → runtime (Ubuntu Noble)
+# Multi-stage build: compile → runtime
 # Runs Electron in Xvfb, accessible via noVNC in browser
-# Optimized for WSL2, Hostinger VPS, and Ubuntu-based hosts
 #
-# Build:  docker build -t crowbyte:ubuntu -f Dockerfile.ubuntu .
-# Run:    docker run -d -p 6080:6080 --shm-size=2g --name crowbyte crowbyte:ubuntu
+# Build:  docker build -t crowbyte:debian -f docker/images/Dockerfile.debian .
+# Run:    docker run -d -p 6080:6080 --shm-size=2g --name crowbyte crowbyte:debian
 # Access: http://localhost:6080
 #
 # With env file:
-#   docker run -d -p 6080:6080 --shm-size=2g --env-file .env --name crowbyte crowbyte:ubuntu
+#   docker run -d -p 6080:6080 --shm-size=2g --env-file .env --name crowbyte crowbyte
 ###############################################################################
 
 # ─── Stage 1: Build ──────────────────────────────────────────────────────────
 
-FROM ubuntu:24.04 AS builder
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Node.js 20
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates gnupg \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
+FROM node:20-bookworm AS builder
 
 WORKDIR /build
 
@@ -40,42 +30,28 @@ RUN npx vite build
 
 # ─── Stage 2: Runtime ────────────────────────────────────────────────────────
 
-FROM ubuntu:24.04
+FROM node:20-bookworm
 
 LABEL maintainer="HLSITech <engineering@crowbyte.io>"
-LABEL description="CrowByte Terminal — Offensive Security Command Center (Ubuntu)"
+LABEL description="CrowByte Terminal — Offensive Security Command Center"
 LABEL version="2.0.0"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Node.js 20
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates gnupg \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
-# Display stack + Electron deps
+# All runtime deps in one layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb x11vnc novnc websockify fluxbox \
     x11-utils xauth dbus-x11 \
-    libgtk-3-0t64 libnotify4 libnss3 libxss1 libxtst6 xdg-utils \
-    libatspi2.0-0t64 libdrm2 libgbm1 libasound2t64 libcups2t64 \
+    libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xdg-utils \
+    libatspi2.0-0 libdrm2 libgbm1 libasound2 libcups2 \
     libxcomposite1 libxdamage1 libxrandr2 libpango-1.0-0 \
     libcairo2 fonts-liberation2 fonts-noto-color-emoji \
-    && rm -rf /var/lib/apt/lists/*
-
-# Network & security tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
     nmap curl git procps iproute2 \
-    dnsutils whois net-tools \
-    python3 python3-pip \
-    && pip3 install --break-system-packages sqlmap 2>/dev/null || true \
+    dnsutils whois net-tools ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Go + ProjectDiscovery tools
-ARG TARGETARCH=amd64
+# Go + ProjectDiscovery tools (multi-arch)
+ARG TARGETARCH
 RUN curl -sL "https://go.dev/dl/go1.23.6.linux-${TARGETARCH}.tar.gz" | tar xz -C /usr/local
 ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"
 RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest 2>/dev/null || true && \
@@ -83,6 +59,11 @@ RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest 2>/dev/nu
     go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest 2>/dev/null || true && \
     go install github.com/ffuf/ffuf/v2@latest 2>/dev/null || true && \
     rm -rf /root/go/pkg /usr/local/go/pkg /tmp/*
+
+# Python tools
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip && \
+    pip3 install --break-system-packages sqlmap 2>/dev/null || true && \
+    rm -rf /var/lib/apt/lists/*
 
 # App files
 WORKDIR /app
@@ -101,7 +82,7 @@ ENV RESOLUTION=1920x1080x24
 ENV NOVNC_PORT=6080
 ENV VNC_PORT=5900
 
-# CrowByte config
+# CrowByte config — all from env vars, no hardcoded secrets
 ENV NODE_ENV=production
 ENV ELECTRON_DISABLE_SECURITY_WARNINGS=true
 

@@ -14,7 +14,9 @@ version: '3.8'
 
 services:
   crowbyte:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/images/Dockerfile.debian
     image: hlsitech/crowbyte:latest
     container_name: crowbyte
     restart: unless-stopped
@@ -85,7 +87,7 @@ services:
   crowbyte-ubuntu:
     build:
       context: .
-      dockerfile: Dockerfile.ubuntu
+      dockerfile: docker/images/Dockerfile.ubuntu
     image: hlsitech/crowbyte:ubuntu
     container_name: crowbyte-ubuntu
     restart: unless-stopped
