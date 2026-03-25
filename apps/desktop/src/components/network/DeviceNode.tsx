@@ -6,27 +6,27 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import {
-  Server, Monitor, Router, ShieldAlert, Layers, Cloud, Database,
-  Scale, Printer, Cpu, Container, ShieldCheck, Wifi, HelpCircle,
-  Globe, Skull, Lock, Unlock,
-} from 'lucide-react';
+  DesktopTower, Monitor, ShareNetwork, ShieldWarning, Stack, Cloud, Database,
+  Scales, Printer, Cpu, Package, ShieldCheck, WifiHigh, Question,
+  Globe, Skull, Lock, LockOpen,
+} from '@phosphor-icons/react';
 import { type NetworkDevice, DEVICE_TYPES } from './types';
 
 const DEVICE_ICONS: Record<string, React.ElementType> = {
-  server: Server,
+  server: DesktopTower,
   workstation: Monitor,
-  router: Router,
-  firewall: ShieldAlert,
-  switch: Layers,
+  router: ShareNetwork,
+  firewall: ShieldWarning,
+  switch: Stack,
   cloud: Cloud,
   database: Database,
-  loadbalancer: Scale,
+  loadbalancer: Scales,
   printer: Printer,
   iot: Cpu,
-  container: Container,
+  container: Package,
   vpn: ShieldCheck,
-  wap: Wifi,
-  unknown: HelpCircle,
+  wap: WifiHigh,
+  unknown: Question,
   internet: Globe,
   attacker: Skull,
 };
@@ -36,7 +36,7 @@ type DeviceNodeData = NetworkDevice & { selected?: boolean };
 function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeData }) {
   const device = data as DeviceNodeData;
   const meta = DEVICE_TYPES[device.type] || DEVICE_TYPES.unknown;
-  const Icon = DEVICE_ICONS[device.type] || HelpCircle;
+  const Icon = DEVICE_ICONS[device.type] || Question;
   const openPorts = device.ports?.filter(p => p.state === 'open').length || 0;
   const isUp = device.status === 'up';
   const isAttacker = device.type === 'attacker';
@@ -62,15 +62,15 @@ function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeD
       >
         {/* Status indicator */}
         <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-zinc-900 ${
-          device.status === 'up' ? 'bg-green-400' :
-          device.status === 'scanning' ? 'bg-yellow-400 animate-pulse' :
-          device.status === 'down' ? 'bg-red-400' : 'bg-zinc-500'
+          device.status === 'up' ? 'bg-emerald-500' :
+          device.status === 'scanning' ? 'bg-amber-500 animate-pulse' :
+          device.status === 'down' ? 'bg-red-500' : 'bg-zinc-500'
         }`} />
 
         {/* Header */}
         <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
           <div className={`p-1.5 rounded-md ${meta.bgColor} ${meta.color}`}>
-            <Icon className="h-4 w-4" />
+            <Icon size={16} weight="bold" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-white truncate leading-tight">{device.label}</p>
@@ -89,7 +89,7 @@ function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeD
           )}
 
           {device.os && (
-            <p className="text-[10px] text-blue-400/70 truncate">{device.os}</p>
+            <p className="text-[10px] text-blue-500/70 truncate">{device.os}</p>
           )}
 
           {/* Port / service badges */}
@@ -100,11 +100,11 @@ function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeD
                   key={i}
                   className={`inline-flex items-center gap-0.5 px-1 py-0 rounded text-[9px] font-mono border ${
                     p.state === 'open'
-                      ? 'text-green-400 bg-green-500/10 border-green-500/20'
-                      : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20'
+                      ? 'text-emerald-500 bg-transparent border-transparent'
+                      : 'text-amber-500 bg-transparent border-transparent'
                   }`}
                 >
-                  {p.state === 'open' ? <Unlock className="h-2 w-2" /> : <Lock className="h-2 w-2" />}
+                  {p.state === 'open' ? <LockOpen size={8} weight="bold" /> : <Lock size={8} weight="bold" />}
                   {p.port}
                 </span>
               ))}
@@ -118,7 +118,7 @@ function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeD
           {device.tags && device.tags.length > 0 && (
             <div className="flex flex-wrap gap-0.5 pt-0.5">
               {device.tags.slice(0, 3).map((tag, i) => (
-                <span key={i} className="text-[8px] px-1 py-0 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                <span key={i} className="text-[8px] px-1 py-0 rounded text-zinc-400 border border-zinc-700">
                   {tag}
                 </span>
               ))}

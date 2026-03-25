@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Server } from "lucide-react";
+import { DesktopTower } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function MCPSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Server} title="MCP Protocol" description="Model Context Protocol — how Claude accesses external tools inside CrowByte" status="ready" />
+      <DocHeader icon={DesktopTower} title="MCP Protocol" description="Model Context Protocol — how Claude accesses external tools inside CrowByte" status="ready" />
 
       <Card><CardHeader><CardTitle>How MCP works in CrowByte</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -19,24 +19,24 @@ export function MCPSection() {
       <Card><CardHeader><CardTitle>MCP Servers</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="p-3 rounded-lg border border-red-500/20 bg-red-500/5">
-              <div className="font-medium text-sm text-red-400 mb-1">D3bugr — 142 security tools</div>
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-red-500 mb-1">D3bugr — 142 security tools</div>
               <p className="text-xs text-muted-foreground">Docker on VPS. Nmap, Nuclei, SQLMap, browser automation (CDP + Stagehand), DNS, SSL, SSRF, XSS, subdomain enum.</p>
             </div>
-            <div className="p-3 rounded-lg border border-blue-500/20 bg-blue-500/5">
-              <div className="font-medium text-sm text-blue-400 mb-1">Shodan — Network intelligence</div>
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-blue-500 mb-1">Shodan — Network intelligence</div>
               <p className="text-xs text-muted-foreground">IP lookup, CVE search, DNS lookup/reverse, CPE lookup, device search. EPSS scores and exploit data.</p>
             </div>
-            <div className="p-3 rounded-lg border border-green-500/20 bg-green-500/5">
-              <div className="font-medium text-sm text-green-400 mb-1">Filesystem — File operations</div>
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-emerald-500 mb-1">Filesystem — File operations</div>
               <p className="text-xs text-muted-foreground">Read, write, search, manage files across /mnt/bounty and /home/rainkode. Includes bigfile tools.</p>
             </div>
-            <div className="p-3 rounded-lg border border-purple-500/20 bg-purple-500/5">
-              <div className="font-medium text-sm text-purple-400 mb-1">Memory Engine — Persistent knowledge</div>
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-violet-500 mb-1">Memory Engine — Persistent knowledge</div>
               <p className="text-xs text-muted-foreground">SQLite-backed brain DB. Full-text + semantic search, topic tracking, session management.</p>
             </div>
-            <div className="p-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5">
-              <div className="font-medium text-sm text-yellow-400 mb-1">Fetch — HTTP requests</div>
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-amber-500 mb-1">Fetch — HTTP requests</div>
               <p className="text-xs text-muted-foreground">HTTP requests to external APIs. Web scraping, API testing, data retrieval.</p>
             </div>
           </div>
@@ -55,7 +55,7 @@ export function MCPSection() {
             <div>&nbsp;</div>
             <div className="text-zinc-500"># In-app MCP server</div>
             <div><span className="text-primary">mcp-supabase-server.ts</span> <span className="text-zinc-500">Exposes Supabase tables as MCP tools</span></div>
-            <div>  <span className="text-green-400">17 tools</span>: CRUD on CVEs, KB, bookmarks, agents, endpoints, analytics</div>
+            <div>  <span className="text-emerald-500">17 tools</span>: CRUD on CVEs, KB, bookmarks, agents, endpoints, analytics</div>
           </CodeBlock>
         </CardContent></Card>
 

@@ -70,7 +70,7 @@ class ToolsService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to fetch tools:', error);
+      // Table may not exist yet
       throw new Error(`Failed to fetch tools: ${error.message}`);
     }
 

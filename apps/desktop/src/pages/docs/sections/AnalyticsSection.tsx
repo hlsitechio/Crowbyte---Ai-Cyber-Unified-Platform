@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3 } from "lucide-react";
+import { ChartBar } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AnalyticsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={BarChart3} title="Analytics" description="Usage metrics, CVE statistics, API health, and Supabase dashboard" status="ready" />
+      <DocHeader icon={ChartBar} title="Analytics" description="Usage metrics, CVE statistics, API health, and Supabase dashboard" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -39,11 +39,11 @@ export function AnalyticsSection() {
           <CodeBlock>
             <div className="text-zinc-500"># analytics.ts — Service API</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">trackToolUse(tool, target)</span>  <span className="text-zinc-500">Record tool execution</span></div>
-            <div><span className="text-green-400">trackApiCall(provider, tokens)</span> <span className="text-zinc-500">Record API usage</span></div>
-            <div><span className="text-green-400">getToolStats()</span>             <span className="text-zinc-500">Tool usage counts</span></div>
-            <div><span className="text-green-400">getActivityLog(limit)</span>      <span className="text-zinc-500">Recent activity entries</span></div>
-            <div><span className="text-green-400">getApiUsageStats()</span>         <span className="text-zinc-500">Provider breakdown</span></div>
+            <div><span className="text-emerald-500">trackToolUse(tool, target)</span>  <span className="text-zinc-500">Record tool execution</span></div>
+            <div><span className="text-emerald-500">trackApiCall(provider, tokens)</span> <span className="text-zinc-500">Record API usage</span></div>
+            <div><span className="text-emerald-500">getToolStats()</span>             <span className="text-zinc-500">Tool usage counts</span></div>
+            <div><span className="text-emerald-500">getActivityLog(limit)</span>      <span className="text-zinc-500">Recent activity entries</span></div>
+            <div><span className="text-emerald-500">getApiUsageStats()</span>         <span className="text-zinc-500">Provider breakdown</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># ActivityLog interface</div>
             <div><span className="text-primary">action</span>     <span className="text-zinc-500">tool_use | api_call | scan | search</span></div>

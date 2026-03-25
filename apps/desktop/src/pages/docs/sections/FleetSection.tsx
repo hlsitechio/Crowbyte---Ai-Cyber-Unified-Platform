@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Monitor } from "lucide-react";
+import { Monitor } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function FleetSection() {
@@ -27,15 +27,15 @@ export function FleetSection() {
             <div><span className="text-primary">server</span>       <span className="text-zinc-500">Generic server endpoint</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># VPS Agent Swarm (9 agents)</div>
-            <div><span className="text-green-400">commander</span>  <span className="text-zinc-500">Central orchestrator</span></div>
-            <div><span className="text-green-400">recon</span>      <span className="text-zinc-500">Reconnaissance specialist</span></div>
-            <div><span className="text-green-400">hunter</span>     <span className="text-zinc-500">Bug bounty hunter</span></div>
-            <div><span className="text-green-400">intel</span>      <span className="text-zinc-500">Threat intelligence</span></div>
-            <div><span className="text-green-400">analyst</span>    <span className="text-zinc-500">Security analyst</span></div>
-            <div><span className="text-green-400">sentinel</span>   <span className="text-zinc-500">Continuous monitoring</span></div>
-            <div><span className="text-green-400">gpt</span>        <span className="text-zinc-500">General purpose assistant</span></div>
-            <div><span className="text-green-400">obsidian</span>   <span className="text-zinc-500">Knowledge management</span></div>
-            <div><span className="text-green-400">main</span>       <span className="text-zinc-500">Default/fallback agent</span></div>
+            <div><span className="text-emerald-500">commander</span>  <span className="text-zinc-500">Central orchestrator</span></div>
+            <div><span className="text-emerald-500">recon</span>      <span className="text-zinc-500">Reconnaissance specialist</span></div>
+            <div><span className="text-emerald-500">hunter</span>     <span className="text-zinc-500">Bug bounty hunter</span></div>
+            <div><span className="text-emerald-500">intel</span>      <span className="text-zinc-500">Threat intelligence</span></div>
+            <div><span className="text-emerald-500">analyst</span>    <span className="text-zinc-500">Security analyst</span></div>
+            <div><span className="text-emerald-500">sentinel</span>   <span className="text-zinc-500">Continuous monitoring</span></div>
+            <div><span className="text-emerald-500">gpt</span>        <span className="text-zinc-500">General purpose assistant</span></div>
+            <div><span className="text-emerald-500">obsidian</span>   <span className="text-zinc-500">Knowledge management</span></div>
+            <div><span className="text-emerald-500">main</span>       <span className="text-zinc-500">Default/fallback agent</span></div>
           </CodeBlock>
         </CardContent></Card>
 

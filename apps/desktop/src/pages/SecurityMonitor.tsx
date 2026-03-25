@@ -1,363 +1,389 @@
 /**
- * Security Monitor - CrowByte Security Monitor
- * Dedicated page for AI-powered security monitoring and threat analysis
+ * Security Monitor — AI-powered threat analysis
+ * Uses DeepSeek V3.1 via monitoring-agent.ts
  */
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Shield,
-  AlertTriangle,
-  Activity,
+  Warning,
+  Pulse,
   Brain,
-  Radio,
+  Broadcast,
   Eye,
-  RefreshCw,
+  ArrowsClockwise,
   CheckCircle,
   XCircle,
   Info,
-} from "lucide-react";
-import { motion } from "framer-motion";
+} from "@phosphor-icons/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { monitoringAgent, type MonitoringReport } from "@/services/monitoring-agent";
+import {
+  monitoringAgent,
+  type MonitoringReport,
+  type IncidentMemory,
+} from "@/services/monitoring-agent";
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+const statusDot = (status: string) => {
+  const color =
+    status === "healthy" || status === "HEALTHY"
+      ? "bg-emerald-500"
+      : status === "warning" || status === "WARNING"
+        ? "bg-amber-500"
+        : status === "critical" || status === "CRITICAL"
+          ? "bg-red-500"
+          : "bg-zinc-500";
+  return (
+    <span
+      className={`inline-block h-2.5 w-2.5 rounded-full ${color} shrink-0`}
+    />
+  );
+};
+
+const statusText = (status: string) => {
+  const color =
+    status === "healthy"
+      ? "text-emerald-400"
+      : status === "warning"
+        ? "text-amber-400"
+        : status === "critical"
+          ? "text-red-400"
+          : "text-zinc-400";
+  return <span className={`font-semibold uppercase ${color}`}>{status}</span>;
+};
+
+/** Try to pull numbered recommendations from the AI text */
+const extractRecommendations = (text: string): string[] => {
+  const lines = text.split("\n");
+  const recs: string[] = [];
+  let inSection = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Detect recommendation / action section headers
+    if (
+      /^#+\s*(recommend|action|suggestion|next\s*step)/i.test(trimmed) ||
+      /^\*{0,2}(RECOMMEND|ACTION|SUGGESTION|NEXT\s*STEP)/i.test(trimmed)
+    ) {
+      inSection = true;
+      continue;
+    }
+    // Another heading ends the section
+    if (inSection && /^#+\s/.test(trimmed) && !/recommend|action/i.test(trimmed)) {
+      inSection = false;
+    }
+    if (inSection) {
+      // Numbered or bulleted items
+      const match = trimmed.match(/^(?:\d+[\.\)]\s*|[-*]\s+)(.+)/);
+      if (match) {
+        recs.push(match[1].replace(/\*\*/g, ""));
+      }
+    }
+  }
+  return recs;
+};
+
+// ── Component ────────────────────────────────────────────────────────────
 
 const SecurityMonitor = () => {
   const { toast } = useToast();
-  const [monitoringReport, setMonitoringReport] = useState<MonitoringReport | null>(null);
+  const [report, setReport] = useState<MonitoringReport | null>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [autoMonitoringEnabled, setAutoMonitoringEnabled] = useState(false);
+  const [autoOn, setAutoOn] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
+  const [history, setHistory] = useState<IncidentMemory[]>([]);
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
-  // Check if running in Electron
+  // Electron check
   useEffect(() => {
-    const checkElectron = () => {
-      // @ts-ignore - window.electron is added by preload script
-      return typeof window !== 'undefined' && window.electron !== undefined;
-    };
-    setIsElectron(checkElectron());
+    // @ts-ignore
+    setIsElectron(typeof window !== "undefined" && window.electron !== undefined);
   }, []);
 
-  // Auto-monitoring interval
+  // Sync auto-monitoring state from service
   useEffect(() => {
-    if (!autoMonitoringEnabled) return;
+    setAutoOn(monitoringAgent.isAutoMonitoringActive());
+  }, []);
 
-    const interval = setInterval(() => {
-      handleManualScan();
-    }, 5 * 60 * 1000); // Every 5 minutes
+  // Refresh history whenever report changes
+  useEffect(() => {
+    setHistory(monitoringAgent.getIncidentMemory().slice(-10).reverse());
+  }, [report]);
 
-    return () => clearInterval(interval);
-  }, [autoMonitoringEnabled]);
+  // Load last report on mount
+  useEffect(() => {
+    const last = monitoringAgent.getLastReport();
+    if (last) setReport(last);
+    setHistory(monitoringAgent.getIncidentMemory().slice(-10).reverse());
+  }, []);
 
-  const handleManualScan = async () => {
+  const handleScan = useCallback(async () => {
     try {
       setIsScanning(true);
+      toast({ title: "Starting AI Security Scan", description: "DeepSeek V3.1 is analyzing..." });
+      const r = await monitoringAgent.performMonitoringScan();
+      setReport(r);
       toast({
-        title: "🔍 Starting AI Security Scan",
-        description: "DeepSeek V3.1 (671B) is analyzing your PC...",
+        title: "Scan Complete",
+        description: `Status: ${r.status.toUpperCase()}`,
+        variant: r.status === "critical" ? "destructive" : "default",
       });
-
-      const report = await monitoringAgent.performMonitoringScan();
-      setMonitoringReport(report);
-
+    } catch (err) {
+      console.error("Scan failed:", err);
       toast({
-        title: "✅ Security Scan Complete",
-        description: `Status: ${report.status.toUpperCase()}`,
-        variant: report.status === 'critical' ? 'destructive' : 'default',
-      });
-    } catch (error) {
-      console.error('Security scan failed:', error);
-      toast({
-        title: "❌ Scan Failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        title: "Scan Failed",
+        description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
       setIsScanning(false);
     }
-  };
+  }, [toast]);
 
-  const toggleAutoMonitoring = () => {
-    setAutoMonitoringEnabled(!autoMonitoringEnabled);
-    toast({
-      title: autoMonitoringEnabled ? "Auto-Monitoring Disabled" : "Auto-Monitoring Enabled",
-      description: autoMonitoringEnabled
-        ? "Automatic scans have been stopped"
-        : "Scanning every 5 minutes",
-    });
-  };
+  // Auto-monitoring interval (page-level, mirrors the service)
+  useEffect(() => {
+    if (!autoOn) return;
+    const id = setInterval(handleScan, 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [autoOn, handleScan]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return 'bg-green-500/20 border-green-500/50 text-green-400';
-      case 'warning':
-        return 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400';
-      case 'critical':
-        return 'bg-red-500/20 border-red-500/50 text-red-400';
-      default:
-        return 'bg-muted border-muted-foreground/50';
+  const toggleAuto = () => {
+    if (autoOn) {
+      monitoringAgent.stopAutoMonitoring();
+      setAutoOn(false);
+      toast({ title: "Auto-Monitoring Disabled", description: "Automatic scans stopped" });
+    } else {
+      monitoringAgent.startAutoMonitoring();
+      setAutoOn(true);
+      toast({ title: "Auto-Monitoring Enabled", description: "Scanning every 5 minutes" });
     }
   };
 
+  const recommendations = report ? extractRecommendations(report.aiAnalysis) : [];
+
+  // ── Render ───────────────────────────────────────────────────────────
+
   return (
     <div className="space-y-6 p-6">
-      {/* Page Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-primary/20 animate-pulse">
-              <Shield className="h-8 w-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                CrowByte Security Monitor
-                <Badge variant="outline" className="text-sm bg-primary/10 border-primary/30">
-                  DeepSeek V3.1 • 671B
-                </Badge>
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                AI-powered security monitoring & threat analysis
-              </p>
-            </div>
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <Shield size={28} weight="duotone" className="text-primary" />
+              Security Monitor
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              AI-powered threat analysis &mdash; DeepSeek V3.1
+            </p>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex items-center gap-2">
             <Button
-              onClick={handleManualScan}
+              onClick={handleScan}
               disabled={isScanning || !isElectron}
-              size="lg"
-              className="bg-primary/20 hover:bg-primary/30 border border-primary/50"
+              size="sm"
+              className="bg-primary/20 hover:bg-primary/30"
             >
               {isScanning ? (
                 <>
-                  <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                  <ArrowsClockwise size={16} weight="bold" className="mr-1.5 animate-spin" />
                   Scanning...
                 </>
               ) : (
                 <>
-                  <Eye className="h-5 w-5 mr-2" />
+                  <Eye size={16} weight="duotone" className="mr-1.5" />
                   Scan Now
                 </>
               )}
             </Button>
+
             <Button
-              onClick={toggleAutoMonitoring}
+              onClick={toggleAuto}
               disabled={!isElectron}
-              size="lg"
-              variant={autoMonitoringEnabled ? "default" : "outline"}
-              className={autoMonitoringEnabled ? "bg-green-500/20 hover:bg-green-500/30 border-green-500/50" : ""}
+              size="sm"
+              variant="ghost"
+              className={autoOn ? "text-emerald-400" : "text-muted-foreground"}
             >
-              <Radio className={`h-5 w-5 mr-2 ${autoMonitoringEnabled ? 'animate-pulse' : ''}`} />
-              {autoMonitoringEnabled ? 'Auto ON' : 'Auto OFF'}
+              <Broadcast size={16} weight="duotone" className={`mr-1.5 ${autoOn ? "animate-pulse" : ""}`} />
+              {autoOn ? "Auto: ON" : "Auto: OFF"}
             </Button>
           </div>
         </div>
       </motion.div>
 
-      {/* Browser Mode Warning */}
+      {/* ── Browser mode info line ─────────────────────────────────── */}
       {!isElectron && (
+        <div className="flex items-center gap-2 text-xs text-amber-400/80">
+          <Info size={14} weight="duotone" />
+          <span>Desktop mode required for system metrics</span>
+        </div>
+      )}
+
+      {/* ── Report content ─────────────────────────────────────────── */}
+      {report ? (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          transition={{ duration: 0.35 }}
+          className="space-y-5"
         >
-          <Card className="border-yellow-500/30 bg-yellow-500/5">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Info className="h-5 w-5 text-yellow-400" />
-                <div>
-                  <CardTitle className="text-yellow-400">Browser Mode Detected</CardTitle>
-                  <CardDescription>
-                    PC monitoring requires the Electron desktop application
-                  </CardDescription>
-                </div>
+          {/* Status bar */}
+          <div className="flex items-center gap-3 text-sm">
+            {statusDot(report.status)}
+            {statusText(report.status)}
+            <span className="text-xs text-muted-foreground ml-auto font-mono">
+              {report.timestamp.toLocaleString()}
+            </span>
+          </div>
+
+          {/* AI Analysis */}
+          <div className="rounded-lg bg-transparent p-4">
+            <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
+              <Brain size={14} weight="duotone" />
+              <span className="uppercase tracking-wide">AI Analysis</span>
+            </div>
+            <ScrollArea className="h-[320px]">
+              <pre className="text-sm text-zinc-300 whitespace-pre-wrap font-mono leading-relaxed">
+                {report.aiAnalysis}
+              </pre>
+            </ScrollArea>
+          </div>
+
+          {/* Threats */}
+          {report.securityThreats.length > 0 && (
+            <div className="rounded-lg bg-transparent p-4">
+              <div className="flex items-center gap-2 mb-3 text-xs text-red-400">
+                <Warning size={14} weight="duotone" />
+                <span className="uppercase tracking-wide">Threats</span>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-3">
-                Real-time system monitoring with <code className="text-xs bg-black/30 px-2 py-1 rounded">mcp-monitor</code> is only available when running the CrowByte Terminal as a desktop application.
-              </p>
-              <div className="bg-black/30 rounded-lg p-3 border border-yellow-500/20">
-                <p className="text-xs text-yellow-300 mb-2">To enable full security monitoring:</p>
-                <ol className="text-xs text-muted-foreground space-y-1 ml-4 list-decimal">
-                  <li>Close this browser tab</li>
-                  <li>Run <code className="bg-black/30 px-1 rounded">npm run electron:dev</code> in your terminal</li>
-                  <li>The desktop application will launch with full PC monitoring capabilities</li>
-                </ol>
+              <ul className="space-y-2">
+                {report.securityThreats.map((t, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-red-300">
+                    <span className="inline-block h-2 w-2 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Anomalies */}
+          {report.anomalies.length > 0 && (
+            <div className="rounded-lg bg-transparent p-4">
+              <div className="flex items-center gap-2 mb-3 text-xs text-amber-400">
+                <Pulse size={14} weight="duotone" />
+                <span className="uppercase tracking-wide">Anomalies</span>
               </div>
-            </CardContent>
-          </Card>
+              <ul className="space-y-2">
+                {report.anomalies.map((a, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-amber-300">
+                    <span className="inline-block h-2 w-2 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                    <span>{a}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Recommendations */}
+          {recommendations.length > 0 && (
+            <div className="rounded-lg bg-transparent p-4">
+              <div className="flex items-center gap-2 mb-3 text-xs text-emerald-400">
+                <CheckCircle size={14} weight="duotone" />
+                <span className="uppercase tracking-wide">Recommendations</span>
+              </div>
+              <ol className="space-y-1.5 list-decimal list-inside">
+                {recommendations.map((r, i) => (
+                  <li key={i} className="text-sm text-zinc-300">
+                    {r}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </motion.div>
+      ) : (
+        /* ── Empty state ──────────────────────────────────────────── */
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center py-20 text-center"
+        >
+          <Shield size={48} weight="duotone" className="text-zinc-600 mb-4" />
+          <p className="text-sm text-muted-foreground">
+            No scan data. Click <span className="text-zinc-300">Scan Now</span> to analyze system security.
+          </p>
         </motion.div>
       )}
 
-      {/* Main Security Terminal */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
-        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-background backdrop-blur">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Brain className="h-6 w-6 text-primary" />
-                <div>
-                  <CardTitle className="text-xl">AI Security Analysis</CardTitle>
-                  <CardDescription>
-                    {isElectron
-                      ? "Real-time threat detection and system monitoring"
-                      : "Desktop mode required for live monitoring"}
-                  </CardDescription>
-                </div>
-              </div>
-              {monitoringReport && (
-                <Badge className={`text-lg px-4 py-1 ${getStatusColor(monitoringReport.status)}`}>
-                  {monitoringReport.status === 'healthy' && <CheckCircle className="h-4 w-4 mr-1 inline" />}
-                  {monitoringReport.status === 'warning' && <AlertTriangle className="h-4 w-4 mr-1 inline" />}
-                  {monitoringReport.status === 'critical' && <XCircle className="h-4 w-4 mr-1 inline" />}
-                  {monitoringReport.status.toUpperCase()}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {monitoringReport ? (
-              <div className="space-y-6">
-                {/* Timestamp */}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Activity className="h-3 w-3" />
-                  Last scan: {monitoringReport.timestamp.toLocaleString()}
-                </div>
-
-                {/* AI Analysis Output */}
-                <div className="bg-black/40 rounded-lg p-4 border border-primary/20">
-                  <ScrollArea className="h-[300px]">
-                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap terminal-text font-mono">
-                      {monitoringReport.aiAnalysis}
-                    </pre>
-                  </ScrollArea>
-                </div>
-
-                {/* Security Threats & Anomalies */}
-                {(monitoringReport.securityThreats.length > 0 || monitoringReport.anomalies.length > 0) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {monitoringReport.securityThreats.length > 0 && (
-                      <Card className="border-red-500/30 bg-red-500/5">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-red-400" />
-                            <CardTitle className="text-sm text-red-400">Security Threats</CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="text-xs text-red-300 space-y-2">
-                            {monitoringReport.securityThreats.map((threat, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-red-500">•</span>
-                                <span>{threat}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {monitoringReport.anomalies.length > 0 && (
-                      <Card className="border-yellow-500/30 bg-yellow-500/5">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center gap-2">
-                            <Activity className="h-5 w-5 text-yellow-400" />
-                            <CardTitle className="text-sm text-yellow-400">Anomalies Detected</CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="text-xs text-yellow-300 space-y-2">
-                            {monitoringReport.anomalies.map((anomaly, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-yellow-500">•</span>
-                                <span>{anomaly}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Brain className="h-16 w-16 mx-auto mb-4 text-primary/50 animate-pulse" />
-                <p className="text-lg font-semibold mb-2">No recent scan data</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {isElectron
-                    ? 'Click "Scan Now" to start an AI security analysis'
-                    : 'Desktop mode required to perform security scans'}
-                </p>
-                {autoMonitoringEnabled && isElectron && (
-                  <div className="inline-flex items-center gap-2 text-sm text-green-400 bg-green-500/10 px-4 py-2 rounded-lg border border-green-500/30">
-                    <Radio className="h-4 w-4 animate-pulse" />
-                    Auto-monitoring active (every 5 minutes)
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Features Info */}
-      {isElectron && (
+      {/* ── Scan History ───────────────────────────────────────────── */}
+      {history.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
+          transition={{ duration: 0.35, delay: 0.1 }}
+          className="rounded-lg bg-transparent p-4"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-primary/20 bg-card/50 backdrop-blur">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-sm">Real-time Monitoring</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">
-                  Continuous system health checks with AI-powered threat detection
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/20 bg-card/50 backdrop-blur">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-sm">DeepSeek V3.1 Analysis</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">
-                  671B parameter AI model for advanced security insights
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/20 bg-card/50 backdrop-blur">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-sm">Anomaly Detection</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">
-                  Identifies unusual patterns and potential security risks
-                </p>
-              </CardContent>
-            </Card>
+          <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground">
+            <ArrowsClockwise size={14} weight="duotone" />
+            <span className="uppercase tracking-wide">Scan History</span>
+            <span className="ml-auto text-[10px] text-zinc-600">{history.length} entries</span>
+          </div>
+
+          <div className="space-y-1">
+            {history.map((entry, idx) => (
+              <div key={idx}>
+                <button
+                  onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.05] transition-colors text-left"
+                >
+                  {statusDot(entry.type)}
+                  <span className="text-xs font-mono text-zinc-500 shrink-0">
+                    {entry.timestamp.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-zinc-400 truncate">
+                    {entry.description}
+                  </span>
+                </button>
+
+                <AnimatePresence>
+                  {expandedIdx === idx && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="ml-5 mb-2 p-3 rounded bg-zinc-900/80 text-xs text-zinc-400 font-mono whitespace-pre-wrap">
+                        <p>
+                          <span className="text-zinc-500">Type:</span> {entry.type}
+                        </p>
+                        <p>
+                          <span className="text-zinc-500">Description:</span> {entry.description}
+                        </p>
+                        {entry.criticalInfo && (
+                          <p>
+                            <span className="text-zinc-500">Critical Info:</span>{" "}
+                            <span className="text-red-400">{entry.criticalInfo}</span>
+                          </p>
+                        )}
+                        {entry.resolution && (
+                          <p>
+                            <span className="text-zinc-500">Resolution:</span> {entry.resolution}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
           </div>
         </motion.div>
       )}

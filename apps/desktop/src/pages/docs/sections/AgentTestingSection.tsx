@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TestTube2 } from "lucide-react";
+import { TestTube } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AgentTestingSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={TestTube2} title="Agent Testing Lab" description="Comprehensive testing dashboard for all AI agents with benchmarking" status="beta" />
+      <DocHeader icon={TestTube} title="Agent Testing Lab" description="Comprehensive testing dashboard for all AI agents with benchmarking" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

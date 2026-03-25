@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plug } from "lucide-react";
+import { Plug } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function MCPPageSection() {

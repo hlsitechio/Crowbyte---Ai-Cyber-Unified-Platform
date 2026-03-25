@@ -26,7 +26,10 @@ export const mcpConfig = {
   // Enable/disable specific servers
   enableCloudSupabase: true,
   enableFilesystem: false,
-  enableMemory: false,
+  enableMemory: true,
+
+  // Memory Engine API (served by CrowByte server)
+  memoryEngineApi: '/api/memory',
 };
 
 export default mcpConfig;

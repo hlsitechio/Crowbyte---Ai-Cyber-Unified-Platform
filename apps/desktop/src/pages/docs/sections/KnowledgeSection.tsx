@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen } from "lucide-react";
+import { BookOpen } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function KnowledgeSection() {
@@ -46,19 +46,19 @@ export function KnowledgeSection() {
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Save an entry</div>
-            <div><span className="text-green-400">kb save</span> "PAN-OS RCE Analysis" \</div>
+            <div><span className="text-emerald-500">kb save</span> "PAN-OS RCE Analysis" \</div>
             <div>  --content "CVE-2024-3400 allows unauthenticated RCE..." \</div>
             <div>  --category vulnerabilities --priority P1 \</div>
             <div>  --tags "paloalto,rce,critical"</div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Pipe command output</div>
-            <div>nmap -sV -sC target.com | <span className="text-green-400">kb pipe</span> "Target.com Full Scan" \</div>
+            <div>nmap -sV -sC target.com | <span className="text-emerald-500">kb pipe</span> "Target.com Full Scan" \</div>
             <div>  --category research --priority P3</div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Search and list</div>
-            <div><span className="text-green-400">kb search</span> "RCE"</div>
-            <div><span className="text-green-400">kb recent</span> -n 10</div>
-            <div><span className="text-green-400">kb list</span> --category tools</div>
+            <div><span className="text-emerald-500">kb search</span> "RCE"</div>
+            <div><span className="text-emerald-500">kb recent</span> -n 10</div>
+            <div><span className="text-emerald-500">kb list</span> --category tools</div>
           </CodeBlock>
         </CardContent></Card>
     </div>

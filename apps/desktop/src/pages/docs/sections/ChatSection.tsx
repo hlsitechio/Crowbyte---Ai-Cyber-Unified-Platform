@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Brain, Zap } from "lucide-react";
+import { ChatDots, Brain, Lightning } from "@phosphor-icons/react";
 import { DocHeader, FeatureList } from "../components";
 
 export function ChatSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={MessageSquare} title="AI Chat" description="Dual-provider AI chat with streaming, tool use, and conversation history" status="ready" />
+      <DocHeader icon={ChatDots} title="AI Chat" description="Dual-provider AI chat with streaming, tool use, and conversation history" status="ready" />
 
-      <Card className="border-blue-500/30"><CardHeader><CardTitle className="flex items-center gap-2"><Brain className="h-5 w-5 text-blue-400" /> Claude Code CLI Provider</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="flex items-center gap-2"><Brain size={20} weight="duotone" className="text-blue-500" /> Claude Code CLI Provider</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             Claude runs <strong className="text-foreground">inside CrowByte</strong> via Electron IPC. The app spawns
@@ -25,7 +25,7 @@ export function ChatSection() {
           ]} />
         </CardContent></Card>
 
-      <Card className="border-green-500/30"><CardHeader><CardTitle className="flex items-center gap-2"><Zap className="h-5 w-5 text-green-400" /> OpenClaw Provider</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="flex items-center gap-2"><Lightning size={20} weight="duotone" className="text-emerald-500" /> OpenClaw Provider</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             OpenClaw connects to a remote VPS agent swarm at <code className="text-primary">your-vps-ip</code> (configured via VITE_OPENCLAW_HOST).

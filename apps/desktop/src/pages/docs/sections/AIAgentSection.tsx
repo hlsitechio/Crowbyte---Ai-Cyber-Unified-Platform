@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain } from "lucide-react";
+import { Brain } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AIAgentSection() {
@@ -25,10 +25,10 @@ export function AIAgentSection() {
             <div><span className="text-primary">academic</span> <span className="text-zinc-500">Research-focused with citation tracking</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># The agent operates in an action-observation loop:</div>
-            <div><span className="text-green-400">1.</span> Parse user query into search terms</div>
-            <div><span className="text-green-400">2.</span> Execute Tavily search (fetch URLs, extract content)</div>
-            <div><span className="text-green-400">3.</span> Observe results, decide if more info needed</div>
-            <div><span className="text-green-400">4.</span> Repeat or synthesize final answer with sources</div>
+            <div><span className="text-emerald-500">1.</span> Parse user query into search terms</div>
+            <div><span className="text-emerald-500">2.</span> Execute Tavily search (fetch URLs, extract content)</div>
+            <div><span className="text-emerald-500">3.</span> Observe results, decide if more info needed</div>
+            <div><span className="text-emerald-500">4.</span> Repeat or synthesize final answer with sources</div>
           </CodeBlock>
         </CardContent></Card>
 

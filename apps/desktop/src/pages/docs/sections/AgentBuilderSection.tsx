@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot } from "lucide-react";
+import { Robot } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AgentBuilderSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Bot} title="Agent Builder" description="Create custom AI agents with specific personas, tools, and capabilities" status="beta" />
+      <DocHeader icon={Robot} title="Agent Builder" description="Create custom AI agents with specific personas, tools, and capabilities" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -20,14 +20,14 @@ export function AgentBuilderSection() {
           <CodeBlock>
             <div className="text-zinc-500"># custom-agents.ts → Supabase service</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">createAgent()</span>  <span className="text-zinc-500">Insert new agent config to custom_agents table</span></div>
-            <div><span className="text-green-400">updateAgent()</span>  <span className="text-zinc-500">Modify existing agent (name, prompt, model, caps)</span></div>
-            <div><span className="text-green-400">deleteAgent()</span>  <span className="text-zinc-500">Remove agent from database</span></div>
-            <div><span className="text-green-400">getAgents()</span>    <span className="text-zinc-500">Fetch all agents for current user</span></div>
+            <div><span className="text-emerald-500">createAgent()</span>  <span className="text-zinc-500">Insert new agent config to custom_agents table</span></div>
+            <div><span className="text-emerald-500">updateAgent()</span>  <span className="text-zinc-500">Modify existing agent (name, prompt, model, caps)</span></div>
+            <div><span className="text-emerald-500">deleteAgent()</span>  <span className="text-zinc-500">Remove agent from database</span></div>
+            <div><span className="text-emerald-500">getAgents()</span>    <span className="text-zinc-500">Fetch all agents for current user</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># custom-agent-executor.ts → Execution engine</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">executeAgent(agent, prompt)</span></div>
+            <div><span className="text-emerald-500">executeAgent(agent, prompt)</span></div>
             <div>  1. Load agent config (system prompt, model, capabilities)</div>
             <div>  2. Build OpenClaw request with injected system prompt</div>
             <div>  3. Stream response back to UI via SSE</div>

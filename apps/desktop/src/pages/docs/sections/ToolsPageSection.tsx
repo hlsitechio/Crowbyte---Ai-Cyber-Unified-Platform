@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wrench } from "lucide-react";
+import { Wrench } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function ToolsPageSection() {
@@ -22,10 +22,10 @@ export function ToolsPageSection() {
             <div className="text-zinc-500"># tools.ts — Tool interface</div>
             <div>&nbsp;</div>
             <div><span className="text-primary">tool_type</span>:</div>
-            <div>  <span className="text-green-400">api_endpoint</span>  <span className="text-zinc-500">External API (URL + headers)</span></div>
-            <div>  <span className="text-green-400">cli_command</span>   <span className="text-zinc-500">Shell command (run via terminal)</span></div>
-            <div>  <span className="text-green-400">mcp_tool</span>      <span className="text-zinc-500">MCP server tool (via d3bugr/shodan)</span></div>
-            <div>  <span className="text-green-400">script</span>        <span className="text-zinc-500">Custom script (Python/Bash)</span></div>
+            <div>  <span className="text-emerald-500">api_endpoint</span>  <span className="text-zinc-500">External API (URL + headers)</span></div>
+            <div>  <span className="text-emerald-500">cli_command</span>   <span className="text-zinc-500">Shell command (run via terminal)</span></div>
+            <div>  <span className="text-emerald-500">mcp_tool</span>      <span className="text-zinc-500">MCP server tool (via d3bugr/shodan)</span></div>
+            <div>  <span className="text-emerald-500">script</span>        <span className="text-zinc-500">Custom script (Python/Bash)</span></div>
             <div>&nbsp;</div>
             <div><span className="text-primary">category</span>:</div>
             <div>  analysis | scanning | exploitation | recon | defense | utility</div>

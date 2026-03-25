@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Database } from "lucide-react";
+import { Database } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function SupabaseSection() {
@@ -49,7 +49,7 @@ export function SupabaseSection() {
             This means each user only sees their own data, even though all instances share the same Supabase project.</p>
           <CodeBlock>
             <div className="text-zinc-500"># Example RLS policy (all tables follow this pattern)</div>
-            <div><span className="text-green-400">CREATE POLICY</span> "Users can only see own data"</div>
+            <div><span className="text-emerald-500">CREATE POLICY</span> "Users can only see own data"</div>
             <div>  ON cves FOR SELECT</div>
             <div>  USING (auth.uid() = user_id);</div>
           </CodeBlock>
@@ -59,10 +59,10 @@ export function SupabaseSection() {
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Dashboard subscribes to 4 channels</div>
-            <div><span className="text-green-400">cves</span>           <span className="text-zinc-500">INSERT → show new CVE alert</span></div>
-            <div><span className="text-green-400">knowledge_base</span> <span className="text-zinc-500">INSERT → show new entry notification</span></div>
-            <div><span className="text-green-400">red_team_ops</span>   <span className="text-zinc-500">UPDATE → refresh operation status</span></div>
-            <div><span className="text-green-400">bookmarks</span>      <span className="text-zinc-500">INSERT → update bookmark count</span></div>
+            <div><span className="text-emerald-500">cves</span>           <span className="text-zinc-500">INSERT → show new CVE alert</span></div>
+            <div><span className="text-emerald-500">knowledge_base</span> <span className="text-zinc-500">INSERT → show new entry notification</span></div>
+            <div><span className="text-emerald-500">red_team_ops</span>   <span className="text-zinc-500">UPDATE → refresh operation status</span></div>
+            <div><span className="text-emerald-500">bookmarks</span>      <span className="text-zinc-500">INSERT → update bookmark count</span></div>
           </CodeBlock>
         </CardContent></Card>
 

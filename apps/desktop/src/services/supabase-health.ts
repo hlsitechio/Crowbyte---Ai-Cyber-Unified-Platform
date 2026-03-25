@@ -552,7 +552,7 @@ class SupabaseHealthMonitor {
   getStatusColor(status: 'healthy' | 'degraded' | 'down' | 'unknown'): string {
     switch (status) {
       case 'healthy':
-        return 'text-green-500';
+        return 'text-emerald-500';
       case 'degraded':
         return 'text-yellow-500';
       case 'down':
@@ -569,7 +569,7 @@ class SupabaseHealthMonitor {
   getUsageColor(percentUsed: number): string {
     if (percentUsed >= 90) return 'text-red-500';
     if (percentUsed >= 70) return 'text-yellow-500';
-    return 'text-green-500';
+    return 'text-emerald-500';
   }
 }
 

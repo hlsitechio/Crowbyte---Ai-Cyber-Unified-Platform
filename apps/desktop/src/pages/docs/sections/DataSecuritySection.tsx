@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { KeyRound } from "lucide-react";
+import { Key } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function DataSecuritySection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={KeyRound} title="Data & Security Layer" description="Encryption at rest, credential vault, key derivation, and device fingerprinting" status="ready" />
+      <DocHeader icon={Key} title="Data & Security Layer" description="Encryption at rest, credential vault, key derivation, and device fingerprinting" status="ready" />
 
       <Card><CardHeader><CardTitle>Encryption Architecture</CardTitle></CardHeader>
         <CardContent>
@@ -27,19 +27,19 @@ export function DataSecuritySection() {
           <CodeBlock>
             <div className="text-zinc-500"># Encrypted credential vault</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">saveCredentials(email, password)</span></div>
+            <div><span className="text-emerald-500">saveCredentials(email, password)</span></div>
             <div>  1. Get device fingerprint (SHA-256 of hardware info)</div>
             <div>  2. Derive encryption key via PBKDF2 (fingerprint as passphrase)</div>
             <div>  3. Encrypt credentials with AES-256-GCM</div>
             <div>  4. Store encrypted blob in localStorage</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">getCredentials()</span></div>
+            <div><span className="text-emerald-500">getCredentials()</span></div>
             <div>  1. Get device fingerprint</div>
             <div>  2. Derive same key via PBKDF2</div>
             <div>  3. Decrypt blob from localStorage</div>
             <div>  4. Return &#123; email, password &#125; or null</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">clearCredentials()</span></div>
+            <div><span className="text-emerald-500">clearCredentials()</span></div>
             <div>  Remove encrypted blob from localStorage</div>
           </CodeBlock>
         </CardContent></Card>

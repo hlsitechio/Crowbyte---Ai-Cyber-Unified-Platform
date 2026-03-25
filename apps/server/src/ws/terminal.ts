@@ -1,6 +1,23 @@
 import type { WebSocket } from 'ws';
 import * as pty from 'node-pty';
 import { v4 as uuidv4 } from 'uuid';
+import { execFile } from 'node:child_process';
+
+// Memory-engine bridge for terminal session logging
+const BRIDGE_PATH = process.env.MEMORY_BRIDGE_PATH || '/opt/crowbyte/memory-engine/bridge.py';
+const PYTHON = process.env.PYTHON_PATH || 'python3';
+
+function saveTerminalToMemory(content: string, role: 'user' | 'assistant', sessionId: string): void {
+  if (!content.trim() || content.trim().length < 3) return;
+  const args = JSON.stringify({
+    content: content.slice(0, 5000), // cap at 5K
+    role,
+    session_id: `terminal-${sessionId}`,
+    source: 'terminal',
+  });
+  // Fire-and-forget — no shell injection risk with execFile
+  execFile(PYTHON, [BRIDGE_PATH, 'chat_save', args], { timeout: 10_000 }, () => {});
+}
 
 interface TerminalSession {
   id: string;
@@ -57,6 +74,10 @@ export function handleTerminalConnection(ws: WebSocket, params: Record<string, s
     pid: ptyProcess.pid,
   }));
 
+  // Terminal output buffer for memory-engine batching
+  let outputBuffer = '';
+  let outputFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
   // Relay pty output to WebSocket
   ptyProcess.onData((data: string) => {
     if (ws.readyState === ws.OPEN) {
@@ -65,6 +86,16 @@ export function handleTerminalConnection(ws: WebSocket, params: Record<string, s
         data,
       }));
     }
+
+    // Buffer output for memory-engine (flush every 3s of inactivity)
+    outputBuffer += data;
+    if (outputFlushTimer) clearTimeout(outputFlushTimer);
+    outputFlushTimer = setTimeout(() => {
+      if (outputBuffer.trim().length > 10) {
+        saveTerminalToMemory(outputBuffer, 'assistant', sessionId);
+      }
+      outputBuffer = '';
+    }, 3000);
   });
 
   ptyProcess.onExit(({ exitCode, signal }) => {
@@ -79,6 +110,9 @@ export function handleTerminalConnection(ws: WebSocket, params: Record<string, s
     sessions.delete(sessionId);
   });
 
+  // Track user command buffer for memory-engine
+  let commandBuffer = '';
+
   // Handle incoming messages from WebSocket
   ws.on('message', (raw: Buffer) => {
     try {
@@ -89,6 +123,19 @@ export function handleTerminalConnection(ws: WebSocket, params: Record<string, s
           // Relay keyboard input to pty
           if (typeof msg.data === 'string') {
             ptyProcess.write(msg.data);
+
+            // Track commands — save on Enter (\r or \n)
+            if (msg.data === '\r' || msg.data === '\n') {
+              if (commandBuffer.trim().length > 2) {
+                saveTerminalToMemory(commandBuffer.trim(), 'user', sessionId);
+              }
+              commandBuffer = '';
+            } else if (msg.data === '\x7f' || msg.data === '\b') {
+              // Backspace
+              commandBuffer = commandBuffer.slice(0, -1);
+            } else if (msg.data.length === 1 && msg.data.charCodeAt(0) >= 32) {
+              commandBuffer += msg.data;
+            }
           }
           break;
 

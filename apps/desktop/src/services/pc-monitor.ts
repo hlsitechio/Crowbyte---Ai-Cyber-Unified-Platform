@@ -108,9 +108,8 @@ class PCMonitorService {
     this.isAvailable = typeof window !== 'undefined' &&
                        window.electronAPI?.mcpCall !== undefined;
 
-    if (!this.isAvailable) {
-      console.warn('⚠️ PC Monitor not available - MCP calls require Electron environment');
-    }
+    // Silent in web/server mode — PC Monitor only works in Electron desktop
+    // No warning needed; callers check isMonitoringAvailable() before use
   }
 
   /**

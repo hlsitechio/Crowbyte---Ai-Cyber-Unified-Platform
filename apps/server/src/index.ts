@@ -3,7 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import helmet from 'helmet';
@@ -16,6 +16,8 @@ import authRoutes from './routes/auth.js';
 import systemRoutes from './routes/system.js';
 import toolsRoutes from './routes/tools.js';
 import dockerRoutes from './routes/docker.js';
+import memoryRoutes from './routes/memory.js';
+import fleetRoutes from './routes/fleet.js';
 import { handleTerminalConnection, getActiveSessions } from './ws/terminal.js';
 import { handleMetricsConnection, getConnectedClientsCount } from './ws/metrics.js';
 import { activeExecutions } from './routes/tools.js';
@@ -52,6 +54,241 @@ app.use('/api/auth', authRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/tools', toolsRoutes);
 app.use('/api/docker', dockerRoutes);
+app.use('/api/memory', memoryRoutes);
+app.use('/api/fleet', fleetRoutes);
+
+// ─── Error Monitoring (in-memory store) ─────────────────────────────────────
+
+interface ErrorEntry {
+  id: string;
+  timestamp: string;
+  type: 'console' | 'uncaught' | 'promise' | 'network';
+  severity: 'critical' | 'warning' | 'info';
+  message: string;
+  stack?: string;
+  url?: string;
+  status?: number;
+  statusText?: string;
+  method?: string;
+  page: string;
+  userAgent: string;
+}
+
+interface NetworkEntry {
+  id: string;
+  timestamp: string;
+  method: string;
+  url: string;
+  status: number;
+  statusText: string;
+  duration: number;
+  size?: number;
+  ok: boolean;
+  page: string;
+}
+
+interface NavigationEntry {
+  timestamp: string;
+  page: string;
+  duration?: number;
+}
+
+const MAX_ERROR_STORE = 500;
+const MAX_NETWORK_STORE = 500;
+const MAX_NAVIGATION_STORE = 200;
+const SLOW_REQUEST_THRESHOLD_MS = 500;
+
+let errorStore: ErrorEntry[] = [];
+let networkStore: NetworkEntry[] = [];
+let navigationStore: NavigationEntry[] = [];
+
+// POST /api/errors -- receive errors, network entries, and navigation from the client
+app.post('/api/errors', (req, res) => {
+  const { errors, network, navigation } = req.body;
+
+  let storedErrors = 0;
+  let storedNetwork = 0;
+  let storedNavigation = 0;
+
+  if (Array.isArray(errors)) {
+    for (const entry of errors) {
+      errorStore.push(entry);
+    }
+    while (errorStore.length > MAX_ERROR_STORE) {
+      errorStore.shift();
+    }
+    storedErrors = errors.length;
+  }
+
+  if (Array.isArray(network)) {
+    for (const entry of network) {
+      networkStore.push(entry);
+    }
+    while (networkStore.length > MAX_NETWORK_STORE) {
+      networkStore.shift();
+    }
+    storedNetwork = network.length;
+  }
+
+  if (Array.isArray(navigation)) {
+    for (const entry of navigation) {
+      navigationStore.push(entry);
+    }
+    while (navigationStore.length > MAX_NAVIGATION_STORE) {
+      navigationStore.shift();
+    }
+    storedNavigation = navigation.length;
+  }
+
+  if (storedErrors === 0 && storedNetwork === 0 && storedNavigation === 0) {
+    res.status(400).json({ error: 'Expected at least one of: errors[], network[], navigation[]' });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    stored: { errors: storedErrors, network: storedNetwork, navigation: storedNavigation },
+    totals: { errors: errorStore.length, network: networkStore.length, navigation: navigationStore.length },
+  });
+});
+
+// GET /api/errors -- return all stored errors (latest first)
+app.get('/api/errors', (_req, res) => {
+  const sorted = [...errorStore].reverse();
+  res.json({ count: sorted.length, errors: sorted });
+});
+
+// GET /api/errors/summary -- grouped summary with network stats and navigation trail
+app.get('/api/errors/summary', (_req, res) => {
+  const byType: Record<string, number> = {};
+  const byPage: Record<string, number> = {};
+  const byMessage: Record<string, number> = {};
+
+  for (const entry of errorStore) {
+    byType[entry.type] = (byType[entry.type] || 0) + 1;
+    byPage[entry.page] = (byPage[entry.page] || 0) + 1;
+    byMessage[entry.message] = (byMessage[entry.message] || 0) + 1;
+  }
+
+  // Most frequent errors (top 20)
+  const mostFrequent = Object.entries(byMessage)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20)
+    .map(([message, count]) => ({ message, count }));
+
+  // Network stats
+  let networkFailed = 0;
+  let networkSlow = 0;
+  let networkTotalDuration = 0;
+
+  // Aggregate endpoint durations for slowEndpoints calculation
+  const endpointAgg: Record<string, { totalDuration: number; count: number }> = {};
+
+  for (const entry of networkStore) {
+    if (!entry.ok) networkFailed++;
+    if (entry.duration > SLOW_REQUEST_THRESHOLD_MS) networkSlow++;
+    networkTotalDuration += entry.duration;
+
+    // Aggregate by URL (strip query params for grouping)
+    let endpointKey: string;
+    try {
+      const parsed = new URL(entry.url, 'http://localhost');
+      endpointKey = `${entry.method} ${parsed.pathname}`;
+    } catch {
+      endpointKey = `${entry.method} ${entry.url}`;
+    }
+
+    if (!endpointAgg[endpointKey]) {
+      endpointAgg[endpointKey] = { totalDuration: 0, count: 0 };
+    }
+    endpointAgg[endpointKey].totalDuration += entry.duration;
+    endpointAgg[endpointKey].count++;
+  }
+
+  const networkAvgLatency = networkStore.length > 0
+    ? Math.round(networkTotalDuration / networkStore.length)
+    : 0;
+
+  // Top 10 slowest endpoints by average duration
+  const slowEndpoints = Object.entries(endpointAgg)
+    .map(([url, agg]) => ({
+      url,
+      avgDuration: Math.round(agg.totalDuration / agg.count),
+      count: agg.count,
+    }))
+    .sort((a, b) => b.avgDuration - a.avgDuration)
+    .slice(0, 10);
+
+  res.json({
+    total: errorStore.length,
+    byType,
+    byPage,
+    mostFrequent,
+    networkStats: {
+      total: networkStore.length,
+      failed: networkFailed,
+      slow: networkSlow,
+      avgLatency: networkAvgLatency,
+    },
+    slowEndpoints,
+    navigation: [...navigationStore],
+    performance: {
+      slowRequests: networkSlow,
+      totalRequests: networkStore.length,
+      avgLatency: networkAvgLatency,
+    },
+  });
+});
+
+// DELETE /api/errors -- clear all stored errors, network, and navigation logs
+app.delete('/api/errors', (_req, res) => {
+  const cleared = {
+    errors: errorStore.length,
+    network: networkStore.length,
+    navigation: navigationStore.length,
+  };
+  errorStore = [];
+  networkStore = [];
+  navigationStore = [];
+  res.json({ ok: true, cleared });
+});
+
+// ─── Setup Status (server-side persistence) ────────────────────────────────
+
+const SETUP_FILE = resolve(new URL('.', import.meta.url).pathname, '../../.setup-complete.json');
+
+app.get('/api/setup/status', (_req, res) => {
+  try {
+    if (existsSync(SETUP_FILE)) {
+      const data = JSON.parse(readFileSync(SETUP_FILE, 'utf-8'));
+      res.json({ setupComplete: true, ...data });
+    } else {
+      res.json({ setupComplete: false });
+    }
+  } catch {
+    res.json({ setupComplete: false });
+  }
+});
+
+app.post('/api/setup/complete', (req, res) => {
+  try {
+    const { setupComplete, licenseTier, supabaseUrl, supabaseAnonKey, completedAt } = req.body;
+    if (!setupComplete) {
+      res.status(400).json({ error: 'Invalid setup data' });
+      return;
+    }
+    writeFileSync(SETUP_FILE, JSON.stringify({
+      setupComplete: true,
+      licenseTier: licenseTier || 'community',
+      supabaseUrl: supabaseUrl || '',
+      supabaseAnonKey: supabaseAnonKey || '',
+      completedAt: completedAt || new Date().toISOString(),
+    }, null, 2));
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save setup status' });
+  }
+});
 
 // Health check (no auth)
 app.get('/api/health', (_req, res) => {
@@ -70,6 +307,14 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/terminal/sessions', (_req, res) => {
   res.json({ sessions: getActiveSessions() });
 });
+
+// ─── Agent Files (static download for fleet installer) ──────────────────────
+
+const AGENT_DIR = process.env.AGENT_DIR || resolve(new URL('.', import.meta.url).pathname, '../../agent');
+if (existsSync(AGENT_DIR)) {
+  app.use('/agent', express.static(AGENT_DIR, { maxAge: 0, etag: true }));
+  console.log(`[+] Serving agent files from ${AGENT_DIR}`);
+}
 
 // ─── Static Files + SPA Fallback ─────────────────────────────────────────────
 

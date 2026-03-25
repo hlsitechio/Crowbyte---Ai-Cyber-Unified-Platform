@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity } from "lucide-react";
+import { Pulse } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function DashboardSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Activity} title="Dashboard" description="Central command overview with real-time system metrics, AI analysis, and quick actions" status="ready" />
+      <DocHeader icon={Pulse} title="Dashboard" description="Central command overview with real-time system metrics, AI analysis, and quick actions" status="ready" />
 
       <Card><CardHeader><CardTitle>What it does</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -28,10 +28,10 @@ export function DashboardSection() {
             <div><span className="text-primary">endpointService</span>   <span className="text-zinc-500">Fleet device registry (auto-register on mount)</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># 4 Supabase Realtime channels for live updates</div>
-            <div><span className="text-green-400">cves</span>             <span className="text-zinc-500">New CVE alerts</span></div>
-            <div><span className="text-green-400">knowledge_base</span>   <span className="text-zinc-500">New KB entries</span></div>
-            <div><span className="text-green-400">red_team_ops</span>     <span className="text-zinc-500">Operation updates</span></div>
-            <div><span className="text-green-400">bookmarks</span>        <span className="text-zinc-500">New bookmarks</span></div>
+            <div><span className="text-emerald-500">cves</span>             <span className="text-zinc-500">New CVE alerts</span></div>
+            <div><span className="text-emerald-500">knowledge_base</span>   <span className="text-zinc-500">New KB entries</span></div>
+            <div><span className="text-emerald-500">red_team_ops</span>     <span className="text-zinc-500">Operation updates</span></div>
+            <div><span className="text-emerald-500">bookmarks</span>        <span className="text-zinc-500">New bookmarks</span></div>
           </CodeBlock>
         </CardContent></Card>
 

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings } from "lucide-react";
+import { GearSix } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function SettingsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Settings} title="Settings" description="Application configuration, API keys, profile management, and preferences" status="ready" />
+      <DocHeader icon={GearSix} title="Settings" description="Application configuration, API keys, profile management, and preferences" status="ready" />
 
       <Card><CardHeader><CardTitle>Settings Categories</CardTitle></CardHeader>
         <CardContent>

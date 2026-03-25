@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HardDrive } from "lucide-react";
+import { HardDrives } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function MemorySection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={HardDrive} title="Memory" description="Key-value fact storage for persistent AI memory across sessions" status="beta" />
+      <DocHeader icon={HardDrives} title="Memory" description="Key-value fact storage for persistent AI memory across sessions" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

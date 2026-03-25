@@ -1,36 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Activity,
-  BarChart3,
-  TrendingUp,
-  Clock,
-  Zap,
-  Database,
-  MessageSquare,
-  Search,
-  BookOpen,
-  Eye,
-  RefreshCw,
-  Shield,
-  AlertTriangle,
-  TrendingDown,
-  Target,
-  Radar,
-  Bug,
-  Server,
-  Globe,
-  Lock,
-  Unlock,
-  Brain,
-  Network,
-  Cpu,
-  HardDrive,
-} from "lucide-react";
+import { Pulse, ChartBar, TrendUp, Clock, Lightning, Database, ChatDots, MagnifyingGlass, BookOpen, Eye, ArrowsClockwise, Shield, Warning, TrendDown, Target, Scan, Bug, DesktopTower, Globe, Lock, LockOpen, Brain, TreeStructure, Cpu, HardDrives } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { analyticsService, type ActivityLog, type ApiUsageStats } from "@/services/analytics";
 import { Button } from "@/components/ui/button";
@@ -89,6 +62,31 @@ interface ThreatMetric {
   severity: number;
 }
 
+interface ServiceStatus {
+  name: string;
+  status: "ONLINE" | "OFFLINE" | "ERROR" | "NOT CONFIGURED";
+  latency: number;
+}
+
+interface SystemMetrics {
+  jsHeap: number;
+  storage: number;
+  domNodes: number;
+}
+
+interface StorageCounts {
+  cves: number;
+  knowledge: number;
+  bookmarks: number;
+  activity: number;
+}
+
+interface AttackVectorEntry {
+  vector: string;
+  count: number;
+  percentage: number;
+}
+
 // Color schemes for monochrome theme
 const SEVERITY_COLORS = {
   CRITICAL: "#ef4444",
@@ -114,6 +112,18 @@ const Analytics = () => {
   const [securityScore, setSecurityScore] = useState(0);
   const [threatLevel, setThreatLevel] = useState<"LOW" | "MEDIUM" | "HIGH" | "CRITICAL">("LOW");
 
+  // Real data state
+  const [threatMetrics, setThreatMetrics] = useState<ThreatMetric[]>([]);
+  const [attackVectorData, setAttackVectorData] = useState<AttackVectorEntry[]>([]);
+  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({ jsHeap: 0, storage: 0, domNodes: 0 });
+  const [serviceStatuses, setServiceStatuses] = useState<ServiceStatus[]>([]);
+  const [storageCounts, setStorageCounts] = useState<StorageCounts>({ cves: 0, knowledge: 0, bookmarks: 0, activity: 0 });
+  const [weeklyUsage, setWeeklyUsage] = useState<{ date: string; calls: number }[]>([]);
+
+  const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const systemMetricsRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const serviceCheckRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const [apiUsage, setApiUsage] = useState({
     count: 0,
     limit: 5000,
@@ -122,63 +132,339 @@ const Analytics = () => {
     percentUsed: 0,
   });
 
+  // ---- REAL DATA FETCHERS ----
+
+  // Fetch attack vector distribution from Supabase CVEs (parsed from cvss_vector)
+  const fetchAttackVectors = useCallback(async () => {
+    try {
+      const { supabase } = await import("@/lib/supabase");
+      const { data, error } = await supabase
+        .from("cves")
+        .select("cvss_vector");
+
+      if (error || !data) {
+        setAttackVectorData([]);
+        return;
+      }
+
+      const counts: Record<string, number> = {};
+      let total = 0;
+      for (const row of data) {
+        // Parse attack vector from CVSS vector string like "CVSS:3.1/AV:N/AC:L/..."
+        const vec = row.cvss_vector || "";
+        const avMatch = vec.match(/AV:([NALP])/);
+        const avMap: Record<string, string> = { N: "NETWORK", A: "ADJACENT", L: "LOCAL", P: "PHYSICAL" };
+        const av = avMatch ? (avMap[avMatch[1]] || "UNKNOWN") : "UNKNOWN";
+        counts[av] = (counts[av] || 0) + 1;
+        total++;
+      }
+
+      const entries: AttackVectorEntry[] = Object.entries(counts)
+        .map(([vector, count]) => ({
+          vector: vector.charAt(0).toUpperCase() + vector.slice(1).toLowerCase(),
+          count,
+          percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      setAttackVectorData(entries.length > 0 ? entries : []);
+    } catch {
+      setAttackVectorData([]);
+    }
+  }, []);
+
+  // Compute threat radar from real CVE + IOC data
+  const computeThreatRadar = useCallback(async (stats: CVELibraryStats | null) => {
+    try {
+      const { supabase } = await import("@/lib/supabase");
+
+      // IOC counts by type
+      let ipCount = 0;
+      let urlDomainCount = 0;
+      let totalIocs = 0;
+      try {
+        const { data: iocData } = await supabase
+          .from("threat_iocs")
+          .select("ioc_type");
+        if (iocData) {
+          totalIocs = iocData.length;
+          for (const row of iocData) {
+            if (row.ioc_type === "ip" || row.ioc_type === "IP") ipCount++;
+            if (row.ioc_type === "url" || row.ioc_type === "domain" || row.ioc_type === "URL" || row.ioc_type === "DOMAIN") urlDomainCount++;
+          }
+        }
+      } catch {
+        // threat_iocs table may not exist yet
+      }
+
+      // CVE-based metrics
+      let authBypassCount = 0;
+      let exploitRiskPct = 0;
+      try {
+        const { data: cveDescData } = await supabase
+          .from("cves")
+          .select("description, severity, cvss_score");
+        if (cveDescData && cveDescData.length > 0) {
+          const total = cveDescData.length;
+          let criticalOrExploit = 0;
+          for (const row of cveDescData) {
+            const desc = (row.description || "").toLowerCase();
+            if (desc.includes("authentication") || desc.includes("auth bypass") || desc.includes("authorization")) {
+              authBypassCount++;
+            }
+            if (row.severity === "CRITICAL" || (row.cvss_score && row.cvss_score >= 9.0)) {
+              criticalOrExploit++;
+            }
+          }
+          exploitRiskPct = Math.round((criticalOrExploit / total) * 100);
+        }
+      } catch {
+        // fallback
+      }
+
+      const totalCves = stats?.total_cves || 0;
+      const clamp = (v: number) => Math.min(100, Math.max(0, v));
+
+      const metrics: ThreatMetric[] = [
+        { category: "Attack Surface", value: clamp(totalIocs > 0 ? Math.min(totalIocs, 100) : (totalCves > 0 ? 20 : 0)), severity: totalIocs > 50 ? 4 : totalIocs > 20 ? 3 : totalIocs > 5 ? 2 : 1 },
+        { category: "Exploit Risk", value: clamp(exploitRiskPct), severity: exploitRiskPct > 60 ? 4 : exploitRiskPct > 40 ? 3 : exploitRiskPct > 20 ? 2 : 1 },
+        { category: "Data Exposure", value: clamp(urlDomainCount > 0 ? Math.min(urlDomainCount * 2, 100) : 0), severity: urlDomainCount > 30 ? 3 : urlDomainCount > 10 ? 2 : 1 },
+        { category: "Auth Bypass", value: clamp(authBypassCount > 0 ? Math.min(authBypassCount * 5, 100) : 0), severity: authBypassCount > 10 ? 4 : authBypassCount > 5 ? 3 : authBypassCount > 0 ? 2 : 1 },
+        { category: "Network Risk", value: clamp(ipCount > 0 ? Math.min(ipCount * 2, 100) : 0), severity: ipCount > 30 ? 4 : ipCount > 10 ? 3 : ipCount > 0 ? 2 : 1 },
+        { category: "System Vuln", value: clamp(totalCves > 0 ? Math.min(Math.round((totalCves / 500) * 100), 100) : 0), severity: totalCves > 200 ? 4 : totalCves > 100 ? 3 : totalCves > 20 ? 2 : 1 },
+      ];
+
+      setThreatMetrics(metrics);
+    } catch {
+      // Keep empty metrics on failure
+    }
+  }, []);
+
+  // Fetch real system metrics (JS heap, storage, DOM nodes)
+  const fetchSystemMetrics = useCallback(async () => {
+    const perf = performance as any;
+    let jsHeap = 0;
+    if (perf.memory) {
+      jsHeap = Math.round((perf.memory.usedJSHeapSize / perf.memory.jsHeapSizeLimit) * 100);
+    }
+
+    let storagePct = 0;
+    try {
+      const estimate = await navigator.storage?.estimate();
+      if (estimate && estimate.quota && estimate.usage) {
+        storagePct = Math.round((estimate.usage / estimate.quota) * 100);
+      }
+    } catch {
+      // storage API not available
+    }
+
+    const domNodes = document.querySelectorAll("*").length;
+    const domPct = Math.min(100, Math.round((domNodes / 5000) * 100));
+
+    setSystemMetrics({ jsHeap, storage: storagePct, domNodes: domPct });
+  }, []);
+
+  // Real service health checks
+  const checkServices = useCallback(async () => {
+    const services: ServiceStatus[] = [];
+    const { supabase } = await import("@/lib/supabase");
+
+    // Supabase / Database check
+    try {
+      const start = performance.now();
+      const { error } = await supabase.from("cves").select("id").limit(1);
+      services.push({
+        name: "Database",
+        status: error ? "ERROR" : "ONLINE",
+        latency: Math.round(performance.now() - start),
+      });
+    } catch {
+      services.push({ name: "Database", status: "OFFLINE", latency: 0 });
+    }
+
+    // NVD API check
+    try {
+      const start = performance.now();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch("https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=1", {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      services.push({
+        name: "NVD API",
+        status: res.ok ? "ONLINE" : "ERROR",
+        latency: Math.round(performance.now() - start),
+      });
+    } catch {
+      services.push({ name: "NVD API", status: "OFFLINE", latency: 0 });
+    }
+
+    // VPS Agent check — use image probe to avoid CORS/cert issues
+    {
+      const vpsIp = (import.meta as any).env?.VITE_VPS_IP;
+      if (vpsIp) {
+        const start = performance.now();
+        const online = await new Promise<boolean>((resolve) => {
+          const img = new Image();
+          const timer = setTimeout(() => { img.src = ""; resolve(false); }, 3000);
+          img.onload = img.onerror = () => { clearTimeout(timer); resolve(true); };
+          img.src = `https://${vpsIp}/favicon.ico?_=${Date.now()}`;
+        });
+        services.push({
+          name: "VPS Agent",
+          status: online ? "ONLINE" : "OFFLINE",
+          latency: Math.round(performance.now() - start),
+        });
+      } else {
+        services.push({ name: "VPS Agent", status: "NOT CONFIGURED", latency: 0 });
+      }
+    }
+
+    setServiceStatuses(services);
+  }, []);
+
+  // Fetch real storage (row counts from Supabase tables)
+  const fetchStorageCounts = useCallback(async () => {
+    try {
+      const { supabase } = await import("@/lib/supabase");
+
+      const [cveRes, kbRes, bmRes, actRes] = await Promise.all([
+        supabase.from("cves").select("*", { count: "exact", head: true }),
+        supabase.from("knowledge_base").select("*", { count: "exact", head: true }),
+        supabase.from("bookmarks").select("*", { count: "exact", head: true }),
+        supabase.from("activity_logs").select("*", { count: "exact", head: true }),
+      ]);
+
+      setStorageCounts({
+        cves: cveRes.count || 0,
+        knowledge: kbRes.count || 0,
+        bookmarks: bmRes.count || 0,
+        activity: actRes.count || 0,
+      });
+    } catch {
+      // keep zeros
+    }
+  }, []);
+
+  // Fetch 7-day usage trend
+  const fetchWeeklyUsage = useCallback(async () => {
+    try {
+      const { supabase } = await import("@/lib/supabase");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 6);
+
+      const { data, error } = await supabase
+        .from("api_usage_stats")
+        .select("date, call_count")
+        .eq("user_id", user.id)
+        .gte("date", startDate.toISOString().split("T")[0])
+        .order("date", { ascending: true });
+
+      if (error || !data) {
+        setWeeklyUsage([]);
+        return;
+      }
+
+      // Group by date
+      const byDate: Record<string, number> = {};
+      for (const row of data) {
+        const d = row.date || "unknown";
+        byDate[d] = (byDate[d] || 0) + (row.call_count || 0);
+      }
+
+      // Fill in missing days
+      const result: { date: string; calls: number }[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        const key = d.toISOString().split("T")[0];
+        const label = d.toLocaleDateString("en-US", { weekday: "short" });
+        result.push({ date: label, calls: byDate[key] || 0 });
+      }
+
+      setWeeklyUsage(result);
+    } catch {
+      setWeeklyUsage([]);
+    }
+  }, []);
+
+  // ---- CVE DATA ----
+
   // Fetch CVE data from Supabase + NVD via Electron proxy
-  const fetchCVEData = async () => {
+  const fetchCVEData = useCallback(async () => {
     setCveLoading(true);
     try {
-      const { supabase } = await import('@/lib/supabase');
+      const { supabase } = await import("@/lib/supabase");
 
-      // Fetch critical CVEs from Supabase
+      // Fetch all CVEs (up to 1000) for stats, top 20 for display
+      const { data: allCveData, error: allError } = await supabase
+        .from("cves")
+        .select("id, severity, cvss_score, published_date, cvss_vector");
+
       const { data: cveData, error: cveError } = await supabase
-        .from('cves')
-        .select('*')
-        .order('cvss_score', { ascending: false })
+        .from("cves")
+        .select("*")
+        .order("cvss_score", { ascending: false })
         .limit(20);
 
       if (!cveError && cveData && cveData.length > 0) {
-        setCriticalCVEs(cveData.map((item: any) => ({
-          id: item.id,
-          cve_id: item.id,
-          description: item.description || 'No description',
-          severity: item.severity || 'UNKNOWN',
-          cvss_score: item.cvss_score || 0,
-          published_date: item.published_date || new Date().toISOString(),
-          last_modified: item.last_modified || new Date().toISOString(),
-          exploit_available: false,
-        })));
+        setCriticalCVEs(
+          cveData.map((item: any) => ({
+            id: item.id,
+            cve_id: item.id,
+            description: item.description || "No description",
+            severity: item.severity || "UNKNOWN",
+            cvss_score: item.cvss_score || 0,
+            published_date: item.published_date || new Date().toISOString(),
+            last_modified: item.last_modified || new Date().toISOString(),
+            attack_vector: item.cvss_vector ? (() => { const m = item.cvss_vector.match(/AV:([NALP])/); const map: Record<string, string> = { N: "NETWORK", A: "ADJACENT", L: "LOCAL", P: "PHYSICAL" }; return m ? map[m[1]] : undefined; })() : undefined,
+            exploit_available: false,
+          }))
+        );
 
-        // Calculate stats from actual data
+        // Calculate stats from ALL data, not just top 20
+        const allData = !allError && allCveData ? allCveData : cveData;
+        const now = new Date();
+        const weekAgo = new Date(now.getTime() - 7 * 86400000);
+
         const stats: CVELibraryStats = {
-          total_cves: cveData.length,
-          critical_count: cveData.filter((c: any) => c.severity === 'CRITICAL').length,
-          high_count: cveData.filter((c: any) => c.severity === 'HIGH').length,
-          medium_count: cveData.filter((c: any) => c.severity === 'MEDIUM').length,
-          low_count: cveData.filter((c: any) => c.severity === 'LOW').length,
-          trending_count: 0,
-          exploitable_count: 0,
+          total_cves: allData.length,
+          critical_count: allData.filter((c: any) => c.severity === "CRITICAL").length,
+          high_count: allData.filter((c: any) => c.severity === "HIGH").length,
+          medium_count: allData.filter((c: any) => c.severity === "MEDIUM").length,
+          low_count: allData.filter((c: any) => c.severity === "LOW").length,
+          trending_count: allData.filter((c: any) => c.published_date && new Date(c.published_date) >= weekAgo).length,
+          exploitable_count: allData.filter((c: any) => c.cvss_score && c.cvss_score >= 9.0).length,
         };
         setCveStats(stats);
         calculateSecurityScore(stats);
+        computeThreatRadar(stats);
       } else {
         // Fallback: fetch from NVD via Electron proxy
-        if (window.electronAPI?.executeCommand) {
+        if ((window as any).electronAPI?.executeCommand) {
           try {
-            const raw = await window.electronAPI.executeCommand(
+            const raw = await (window as any).electronAPI.executeCommand(
               'curl -s "https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=10&cvssV3Severity=CRITICAL" 2>/dev/null | head -c 50000'
             );
             const nvdData = JSON.parse(raw);
             const vulns = nvdData.vulnerabilities || [];
             const cveObjects = vulns.slice(0, 20).map((v: any, i: number) => {
               const cve = v.cve || {};
-              const metrics = cve.metrics?.cvssMetricV31?.[0]?.cvssData || cve.metrics?.cvssMetricV30?.[0]?.cvssData || {};
+              const metrics =
+                cve.metrics?.cvssMetricV31?.[0]?.cvssData || cve.metrics?.cvssMetricV30?.[0]?.cvssData || {};
               return {
                 id: cve.id || `CVE-unknown-${i}`,
                 cve_id: cve.id || `CVE-unknown-${i}`,
-                description: cve.descriptions?.[0]?.value || 'No description',
-                severity: metrics.baseSeverity || 'CRITICAL',
+                description: cve.descriptions?.[0]?.value || "No description",
+                severity: metrics.baseSeverity || "CRITICAL",
                 cvss_score: metrics.baseScore || 9.0,
                 published_date: cve.published || new Date().toISOString(),
                 last_modified: cve.lastModified || new Date().toISOString(),
+                attack_vector: metrics.attackVector || undefined,
                 exploit_available: false,
               };
             });
@@ -186,14 +472,18 @@ const Analytics = () => {
 
             const stats: CVELibraryStats = {
               total_cves: nvdData.totalResults || cveObjects.length,
-              critical_count: cveObjects.filter((c: any) => c.severity === 'CRITICAL').length,
-              high_count: cveObjects.filter((c: any) => c.severity === 'HIGH').length,
-              medium_count: 0, low_count: 0, trending_count: 0, exploitable_count: 0,
+              critical_count: cveObjects.filter((c: any) => c.severity === "CRITICAL").length,
+              high_count: cveObjects.filter((c: any) => c.severity === "HIGH").length,
+              medium_count: 0,
+              low_count: 0,
+              trending_count: 0,
+              exploitable_count: 0,
             };
             setCveStats(stats);
             calculateSecurityScore(stats);
+            computeThreatRadar(stats);
           } catch (e) {
-            console.warn('NVD fetch via Electron failed:', e);
+            console.warn("NVD fetch via Electron failed:", e);
           }
         }
       }
@@ -207,7 +497,7 @@ const Analytics = () => {
     } finally {
       setCveLoading(false);
     }
-  };
+  }, [toast, computeThreatRadar]);
 
   // Calculate security score and threat level
   const calculateSecurityScore = (stats: CVELibraryStats) => {
@@ -225,7 +515,6 @@ const Analytics = () => {
 
     setSecurityScore(Math.round(score));
 
-    // Determine threat level
     if (stats.critical_count > 50 || score < 40) {
       setThreatLevel("CRITICAL");
     } else if (stats.critical_count > 20 || score < 60) {
@@ -237,7 +526,8 @@ const Analytics = () => {
     }
   };
 
-  // Fetch analytics data and subscribe to real-time updates
+  // ---- MAIN EFFECT ----
+
   useEffect(() => {
     const loadAnalytics = async () => {
       try {
@@ -272,6 +562,11 @@ const Analytics = () => {
 
     loadAnalytics();
     fetchCVEData();
+    fetchAttackVectors();
+    fetchSystemMetrics();
+    checkServices();
+    fetchStorageCounts();
+    fetchWeeklyUsage();
 
     let unsubscribeStats: (() => void) | undefined;
     let unsubscribeActivity: (() => void) | undefined;
@@ -302,7 +597,21 @@ const Analytics = () => {
       console.error("Failed to setup real-time subscriptions:", error);
     }
 
-    // Refresh CVE data every 5 minutes
+    // System metrics every 5s
+    systemMetricsRef.current = setInterval(fetchSystemMetrics, 5000);
+
+    // Service health every 30s
+    serviceCheckRef.current = setInterval(checkServices, 30000);
+
+    // Auto-refresh all data every 60s
+    autoRefreshRef.current = setInterval(() => {
+      loadAnalytics();
+      fetchAttackVectors();
+      fetchStorageCounts();
+      fetchWeeklyUsage();
+    }, 60000);
+
+    // CVE refresh every 5 minutes
     const cveInterval = setInterval(fetchCVEData, 5 * 60 * 1000);
 
     return () => {
@@ -310,11 +619,14 @@ const Analytics = () => {
         if (unsubscribeStats) unsubscribeStats();
         if (unsubscribeActivity) unsubscribeActivity();
         clearInterval(cveInterval);
+        if (systemMetricsRef.current) clearInterval(systemMetricsRef.current);
+        if (serviceCheckRef.current) clearInterval(serviceCheckRef.current);
+        if (autoRefreshRef.current) clearInterval(autoRefreshRef.current);
       } catch (error) {
         console.error("Failed to cleanup:", error);
       }
     };
-  }, [toast]);
+  }, [toast, fetchCVEData, fetchAttackVectors, fetchSystemMetrics, checkServices, fetchStorageCounts, fetchWeeklyUsage]);
 
   const handleRefresh = async () => {
     setIsLoading(true);
@@ -333,11 +645,16 @@ const Analytics = () => {
       const activities = await analyticsService.getRecentActivity(50);
       setRecentActivities(activities);
       await fetchCVEData();
+      await fetchAttackVectors();
+      await fetchSystemMetrics();
+      await checkServices();
+      await fetchStorageCounts();
+      await fetchWeeklyUsage();
       toast({
         title: "Analytics Refreshed",
         description: "Latest data loaded successfully",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Refresh Failed",
         description: "Could not fetch latest analytics",
@@ -351,30 +668,30 @@ const Analytics = () => {
   const getActionIcon = (action: string) => {
     switch (action) {
       case "chat_message":
-        return MessageSquare;
+        return ChatDots;
       case "web_search":
-        return Search;
+        return MagnifyingGlass;
       case "knowledge_query":
         return BookOpen;
       case "api_call":
         return Database;
       default:
-        return Activity;
+        return Pulse;
     }
   };
 
   const getActionColor = (action: string) => {
     switch (action) {
       case "chat_message":
-        return "text-blue-400";
+        return "text-blue-500";
       case "web_search":
-        return "text-green-400";
+        return "text-emerald-500";
       case "knowledge_query":
         return "text-primary";
       case "api_call":
-        return "text-orange-400";
+        return "text-orange-500";
       default:
-        return "text-gray-400";
+        return "text-zinc-500";
     }
   };
 
@@ -385,11 +702,37 @@ const Analytics = () => {
       case "HIGH":
         return "text-orange-500";
       case "MEDIUM":
-        return "text-yellow-500";
+        return "text-amber-500";
       case "LOW":
-        return "text-green-500";
+        return "text-emerald-500";
       default:
-        return "text-gray-500";
+        return "text-zinc-500";
+    }
+  };
+
+  const getServiceStatusColor = (status: string) => {
+    switch (status) {
+      case "ONLINE":
+        return "bg-emerald-500";
+      case "OFFLINE":
+        return "bg-red-500";
+      case "ERROR":
+        return "bg-amber-500";
+      default:
+        return "bg-zinc-500";
+    }
+  };
+
+  const getServiceStatusTextColor = (status: string) => {
+    switch (status) {
+      case "ONLINE":
+        return "text-emerald-500";
+      case "OFFLINE":
+        return "text-red-500";
+      case "ERROR":
+        return "text-amber-500";
+      default:
+        return "text-zinc-500";
     }
   };
 
@@ -403,27 +746,31 @@ const Analytics = () => {
       ]
     : [];
 
-  const threatMetrics: ThreatMetric[] = [
-    { category: "Attack Surface", value: 75, severity: 3 },
-    { category: "Exploit Risk", value: 60, severity: 2 },
-    { category: "Data Exposure", value: 45, severity: 1 },
-    { category: "Auth Bypass", value: 30, severity: 1 },
-    { category: "Network Risk", value: 85, severity: 4 },
-    { category: "System Vuln", value: 55, severity: 2 },
-  ];
-
   const cveTimeline = criticalCVEs.slice(0, 10).map((cve) => ({
     date: new Date(cve.published_date).toLocaleDateString(),
     score: cve.cvss_score,
     name: cve.cve_id,
   }));
 
-  const attackVectorData = [
-    { vector: "Network", count: 145, percentage: 45 },
-    { vector: "Local", count: 80, percentage: 25 },
-    { vector: "Adjacent", count: 50, percentage: 15 },
-    { vector: "Physical", count: 48, percentage: 15 },
-  ];
+  // Compute activity trend for predictive insights
+  const todayActivityCount = recentActivities.filter((a) => {
+    const d = new Date(a.created_at || "");
+    const now = new Date();
+    return d.toDateString() === now.toDateString();
+  }).length;
+
+  const yesterdayStart = new Date();
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+  yesterdayStart.setHours(0, 0, 0, 0);
+  const yesterdayEnd = new Date();
+  yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+  yesterdayEnd.setHours(23, 59, 59, 999);
+  const yesterdayActivityCount = recentActivities.filter((a) => {
+    const d = new Date(a.created_at || "");
+    return d >= yesterdayStart && d <= yesterdayEnd;
+  }).length;
+
+  const activityTrend = todayActivityCount >= yesterdayActivityCount ? "up" : "down";
 
   return (
     <div className="space-y-6 p-6">
@@ -436,7 +783,7 @@ const Analytics = () => {
       >
         <div>
           <h1 className="text-4xl font-bold text-gradient-silver flex items-center gap-3">
-            <Shield className="h-10 w-10 text-primary animate-pulse" />
+            <Shield size={40} weight="duotone" className="text-primary animate-pulse" />
             Analytics Dashboard
           </h1>
           <p className="text-sm text-muted-foreground terminal-text mt-2">
@@ -449,7 +796,7 @@ const Analytics = () => {
           variant="outline"
           className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading || cveLoading ? "animate-spin" : ""}`} />
+          <ArrowsClockwise size={16} weight="bold" className={`${isLoading || cveLoading ? "animate-spin" : ""}`} />
           Refresh Data
         </Button>
       </motion.div>
@@ -460,12 +807,12 @@ const Analytics = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="border-primary/30 bg-card/50 backdrop-blur">
+        <Card>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               <div className="flex items-center gap-4">
-                <div className="p-4 rounded-full bg-primary/20 border border-primary/50">
-                  <Radar className="h-8 w-8 text-primary" />
+                <div className="p-4 rounded-full bg-transparent">
+                  <Scan size={32} weight="duotone" className="text-primary" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-mono">THREAT LEVEL</p>
@@ -474,18 +821,18 @@ const Analytics = () => {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="p-4 rounded-full bg-green-500/20 border border-green-500/50">
-                  <Shield className="h-8 w-8 text-green-400" />
+                <div className="p-4 rounded-full bg-transparent">
+                  <Shield size={32} weight="duotone" className="text-emerald-500" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-mono">SECURITY SCORE</p>
-                  <p className="text-3xl font-bold text-green-400">{securityScore}/100</p>
+                  <p className="text-3xl font-bold text-emerald-500">{securityScore}/100</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="p-4 rounded-full bg-primary/20 border border-primary/50">
-                  <Target className="h-8 w-8 text-primary" />
+                <div className="p-4 rounded-full bg-transparent">
+                  <Target size={32} weight="duotone" className="text-primary" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-mono">ACTIVE THREATS</p>
@@ -499,21 +846,21 @@ const Analytics = () => {
 
       {/* Main Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-card/50 border border-primary/30">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-            <Eye className="h-4 w-4 mr-2" />
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">
+            <Eye size={16} weight="bold" className="mr-2" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="cve" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-            <Bug className="h-4 w-4 mr-2" />
+          <TabsTrigger value="cve">
+            <Bug size={16} weight="bold" className="mr-2" />
             CVE Intelligence
           </TabsTrigger>
-          <TabsTrigger value="threats" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-            <AlertTriangle className="h-4 w-4 mr-2" />
+          <TabsTrigger value="threats">
+            <Warning size={16} weight="bold" className="mr-2" />
             Threat Analysis
           </TabsTrigger>
-          <TabsTrigger value="system" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-            <Server className="h-4 w-4 mr-2" />
+          <TabsTrigger value="system">
+            <DesktopTower size={16} weight="bold" className="mr-2" />
             System Metrics
           </TabsTrigger>
         </TabsList>
@@ -527,10 +874,10 @@ const Analytics = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card className="border-primary/20 bg-card/50 backdrop-blur hover:border-primary/50 transition-all">
+              <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Database className="h-4 w-4 text-primary" />
+                    <Database size={16} weight="bold" className="text-primary" />
                     <span className="text-muted-foreground">Total API Calls</span>
                   </CardTitle>
                 </CardHeader>
@@ -546,16 +893,16 @@ const Analytics = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.15 }}
             >
-              <Card className="border-green-500/20 bg-card/50 backdrop-blur hover:border-green-500/50 transition-all">
+              <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-400" />
-                    <span className="text-green-300">Remaining</span>
+                    <TrendUp size={16} weight="bold" className="text-emerald-500" />
+                    <span className="text-emerald-500">Remaining</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-green-400 font-mono">{apiUsage.remaining}</div>
-                  <p className="text-xs text-green-300/50 mt-1 font-mono">OF {apiUsage.limit} LIMIT</p>
+                  <div className="text-3xl font-bold text-emerald-500 font-mono">{apiUsage.remaining}</div>
+                  <p className="text-xs text-emerald-500/50 mt-1 font-mono">OF {apiUsage.limit} LIMIT</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -565,21 +912,21 @@ const Analytics = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <Card className="border-yellow-500/20 bg-card/50 backdrop-blur hover:border-yellow-500/50 transition-all">
+              <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-yellow-400" />
-                    <span className="text-yellow-300">Usage Rate</span>
+                    <Lightning size={16} weight="bold" className="text-amber-500" />
+                    <span className="text-amber-500">Usage Rate</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-yellow-400 font-mono">{apiUsage.percentUsed.toFixed(1)}%</div>
-                  <div className="mt-2 h-2 bg-slate-700/50 rounded-full overflow-hidden border border-yellow-500/30">
+                  <div className="text-3xl font-bold text-amber-500 font-mono">{apiUsage.percentUsed.toFixed(1)}%</div>
+                  <div className="mt-2 h-2 bg-white/[0.03] rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${apiUsage.percentUsed}%` }}
                       transition={{ duration: 1 }}
-                      className="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
+                      className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-500"
                     />
                   </div>
                 </CardContent>
@@ -591,16 +938,16 @@ const Analytics = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
-              <Card className="border-blue-500/20 bg-card/50 backdrop-blur hover:border-blue-500/50 transition-all">
+              <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-blue-400" />
-                    <span className="text-blue-300">Activities</span>
+                    <Pulse size={16} weight="bold" className="text-blue-500" />
+                    <span className="text-blue-500">Activities</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-400 font-mono">{recentActivities.length}</div>
-                  <p className="text-xs text-blue-300/50 mt-1 font-mono">RECENT EVENTS</p>
+                  <div className="text-3xl font-bold text-blue-500 font-mono">{recentActivities.length}</div>
+                  <p className="text-xs text-blue-500/50 mt-1 font-mono">RECENT EVENTS</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -614,10 +961,10 @@ const Analytics = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card className="border-primary/30 bg-card/50 backdrop-blur h-full">
+              <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                    <BarChart3 className="h-5 w-5 text-primary" />
+                    <ChartBar size={20} weight="duotone" className="text-primary" />
                     Usage by Action Type
                   </CardTitle>
                   <CardDescription className="text-muted-foreground/50 font-mono">API calls grouped by service</CardDescription>
@@ -627,7 +974,7 @@ const Analytics = () => {
                     <div className="space-y-4">
                       {usageStats.length === 0 && !isLoading && (
                         <div className="text-center py-8 text-muted-foreground/50">
-                          <BarChart3 className="h-12 w-12 mx-auto mb-3 text-primary/50" />
+                          <ChartBar size={48} weight="duotone" className="mx-auto mb-3 text-primary/50" />
                           <p className="text-sm font-mono">No usage data yet</p>
                           <p className="text-xs font-mono">Start using the app to see statistics</p>
                         </div>
@@ -641,11 +988,11 @@ const Analytics = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3, delay: 0.4 + idx * 0.05 }}
-                            className="border border-primary/20 rounded-lg p-4 hover:border-primary/50 transition-all bg-slate-800/30"
+                            className="rounded-lg p-4 transition-all bg-white/[0.03]"
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-3">
-                                <ActionIcon className={`h-5 w-5 ${getActionColor(stat.service_name)}`} />
+                                <ActionIcon size={20} weight="duotone" className={`${getActionColor(stat.service_name)}`} />
                                 <div>
                                   <span className="font-semibold text-sm text-muted-foreground font-mono">
                                     {stat.service_name.replace("_", " ").toUpperCase()}
@@ -655,11 +1002,9 @@ const Analytics = () => {
                                   </p>
                                 </div>
                               </div>
-                              <Badge variant="secondary" className="text-lg px-3 bg-primary/20 text-muted-foreground border-primary/50">
-                                {stat.call_count}
-                              </Badge>
+                              <span className="text-lg text-muted-foreground font-mono">{stat.call_count}</span>
                             </div>
-                            <div className="mt-2 h-2 bg-slate-700/50 rounded-full overflow-hidden border border-primary/30">
+                            <div className="mt-2 h-2 bg-white/[0.03] rounded-full overflow-hidden">
                               <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${percentage}%` }}
@@ -668,11 +1013,11 @@ const Analytics = () => {
                                   stat.service_name === "chat_message"
                                     ? "bg-blue-500"
                                     : stat.service_name === "web_search"
-                                      ? "bg-green-500"
-                                      : stat.service_name === "knowledge_query"
-                                        ? "bg-primary"
-                                        : "bg-orange-500"
-                                } shadow-[0_0_10px_rgba(148,163,184,0.3)]`}
+                                    ? "bg-emerald-500"
+                                    : stat.service_name === "knowledge_query"
+                                    ? "bg-primary"
+                                    : "bg-orange-500"
+                                }`}
                               />
                             </div>
                             <p className="text-xs text-muted-foreground/50 mt-1 font-mono">{percentage.toFixed(1)}% of total usage</p>
@@ -691,20 +1036,20 @@ const Analytics = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card className="border-blue-500/30 bg-card/50 backdrop-blur h-full">
+              <Card className="h-full">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-300">
-                    <Activity className="h-5 w-5 text-blue-400" />
+                  <CardTitle className="flex items-center gap-2 text-blue-500">
+                    <Pulse size={20} weight="duotone" className="text-blue-500" />
                     Recent Activity
                   </CardTitle>
-                  <CardDescription className="text-blue-300/50 font-mono">Live activity feed from all services</CardDescription>
+                  <CardDescription className="text-blue-500/50 font-mono">Live activity feed from all services</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[400px] pr-4">
                     <div className="space-y-3">
                       {recentActivities.length === 0 && !isLoading && (
                         <div className="text-center py-8 text-muted-foreground/50">
-                          <Activity className="h-12 w-12 mx-auto mb-3 text-primary/50" />
+                          <Pulse size={48} weight="duotone" className="mx-auto mb-3 text-primary/50" />
                           <p className="text-sm font-mono">No recent activity</p>
                           <p className="text-xs font-mono">Activity will appear here as you use the app</p>
                         </div>
@@ -720,21 +1065,21 @@ const Analytics = () => {
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.2, delay: idx * 0.02 }}
-                            className="border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all hover:bg-primary/5 bg-slate-800/30"
+                            className="rounded-lg p-3 transition-all hover:bg-white/[0.05] bg-white/[0.03]"
                           >
                             <div className="flex items-start gap-3">
                               <div
-                                className={`p-2 rounded-lg bg-primary/10 border border-primary/30 ${getActionColor(activity.activity_type)}`}
+                                className={`p-2 rounded-lg bg-transparent ${getActionColor(activity.activity_type)}`}
                               >
-                                <ActionIcon className="h-4 w-4" />
+                                <ActionIcon size={16} weight="bold" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1">
-                                  <Badge variant="outline" className="text-xs border-primary/50 text-muted-foreground font-mono">
+                                  <span className="text-xs text-muted-foreground font-mono">
                                     {activity.activity_type.replace("_", " ")}
-                                  </Badge>
+                                  </span>
                                   <span className="text-xs text-muted-foreground/50 flex items-center gap-1 font-mono">
-                                    <Clock className="h-3 w-3" />
+                                    <Clock size={12} weight="bold" />
                                     {timeAgo}
                                   </span>
                                 </div>
@@ -754,16 +1099,55 @@ const Analytics = () => {
               </Card>
             </motion.div>
           </div>
+
+          {/* 7-Day Usage Trend */}
+          {weeklyUsage.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-muted-foreground">
+                    <TrendUp size={20} weight="duotone" className="text-primary" />
+                    7-Day API Usage Trend
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground/50 font-mono">Daily API call volume over the past week</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={weeklyUsage}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                        <XAxis dataKey="date" stroke="#94a3b8" style={{ fontSize: "11px" }} />
+                        <YAxis stroke="#94a3b8" style={{ fontSize: "11px" }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "rgba(15, 23, 42, 0.9)",
+                            border: "1px solid rgba(148, 163, 184, 0.3)",
+                            borderRadius: "8px",
+                            color: "#94a3b8",
+                          }}
+                        />
+                        <Area type="monotone" dataKey="calls" stroke="#94a3b8" fill="rgba(148, 163, 184, 0.15)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
         </TabsContent>
 
         {/* CVE Intelligence Tab */}
         <TabsContent value="cve" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* CVE Severity Distribution */}
-            <Card className="border-primary/30 bg-card/50 backdrop-blur">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <Target className="h-5 w-5 text-primary" />
+                  <Target size={20} weight="duotone" className="text-primary" />
                   CVE Severity Distribution
                 </CardTitle>
                 <CardDescription className="text-muted-foreground/50 font-mono">Vulnerability breakdown by severity</CardDescription>
@@ -801,10 +1185,10 @@ const Analytics = () => {
             </Card>
 
             {/* CVE Timeline */}
-            <Card className="border-primary/30 bg-card/50 backdrop-blur">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <TrendUp size={20} weight="duotone" className="text-primary" />
                   Critical CVE Timeline
                 </CardTitle>
                 <CardDescription className="text-muted-foreground/50 font-mono">CVSS scores over time</CardDescription>
@@ -832,13 +1216,13 @@ const Analytics = () => {
             </Card>
 
             {/* Critical CVE List */}
-            <Card className="border-red-500/30 bg-card/50 backdrop-blur lg:col-span-2">
+            <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-red-300">
-                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                <CardTitle className="flex items-center gap-2 text-red-500">
+                  <Warning size={20} weight="duotone" className="text-red-500" />
                   Critical CVE Alerts
                 </CardTitle>
-                <CardDescription className="text-red-300/50 font-mono">
+                <CardDescription className="text-red-500/50 font-mono">
                   Most recent critical vulnerabilities detected
                 </CardDescription>
               </CardHeader>
@@ -847,13 +1231,13 @@ const Analytics = () => {
                   <div className="space-y-3">
                     {cveLoading && (
                       <div className="text-center py-8 text-muted-foreground/50">
-                        <RefreshCw className="h-12 w-12 mx-auto mb-3 text-primary/50 animate-spin" />
+                        <ArrowsClockwise size={48} weight="duotone" className="mx-auto mb-3 text-primary/50 animate-spin" />
                         <p className="text-sm font-mono">Loading threat intelligence...</p>
                       </div>
                     )}
                     {!cveLoading && criticalCVEs.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground/50">
-                        <Shield className="h-12 w-12 mx-auto mb-3 text-green-500/50" />
+                        <Shield size={48} weight="duotone" className="mx-auto mb-3 text-emerald-500/50" />
                         <p className="text-sm font-mono">No critical CVEs detected</p>
                       </div>
                     )}
@@ -863,33 +1247,31 @@ const Analytics = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: idx * 0.05 }}
-                        className="border border-red-500/20 rounded-lg p-4 hover:border-red-500/50 transition-all bg-slate-800/30"
+                        className="rounded-lg p-4 transition-all hover:bg-white/[0.05] bg-white/[0.03]"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-3">
-                            <Bug className="h-5 w-5 text-red-400" />
+                            <Bug size={20} weight="duotone" className="text-red-500" />
                             <div>
-                              <span className="font-bold text-red-300 font-mono">{cve.cve_id}</span>
+                              <span className="font-bold text-red-500 font-mono">{cve.cve_id}</span>
                               <p className="text-xs text-muted-foreground/50 font-mono">
                                 Published: {new Date(cve.published_date).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Badge
-                              className={`font-mono ${
+                            <span
+                              className={`text-xs font-mono ${
                                 cve.severity === "CRITICAL"
-                                  ? "bg-red-500/20 text-red-300 border-red-500/50"
+                                  ? "text-red-500"
                                   : cve.severity === "HIGH"
-                                    ? "bg-orange-500/20 text-orange-300 border-orange-500/50"
-                                    : "bg-yellow-500/20 text-yellow-300 border-yellow-500/50"
+                                  ? "text-orange-500"
+                                  : "text-amber-500"
                               }`}
                             >
                               {cve.severity}
-                            </Badge>
-                            <Badge className="bg-primary/20 text-muted-foreground border-primary/50 font-mono">
-                              CVSS: {cve.cvss_score}
-                            </Badge>
+                            </span>
+                            <span className="text-xs text-muted-foreground font-mono">CVSS: {cve.cvss_score}</span>
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground/70 mt-2 font-mono line-clamp-2">{cve.description}</p>
@@ -900,9 +1282,9 @@ const Analytics = () => {
                                 opacity: [1, 0.5, 1],
                               }}
                               transition={{ duration: 1.5, repeat: Infinity }}
-                              className="flex items-center gap-1 text-red-400 text-xs font-mono"
+                              className="flex items-center gap-1 text-red-500 text-xs font-mono"
                             >
-                              <Unlock className="h-3 w-3" />
+                              <LockOpen size={12} weight="bold" />
                               EXPLOIT AVAILABLE
                             </motion.div>
                           </div>
@@ -920,109 +1302,129 @@ const Analytics = () => {
         <TabsContent value="threats" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Threat Radar */}
-            <Card className="border-primary/30 bg-card/50 backdrop-blur">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <Radar className="h-5 w-5 text-primary" />
+                  <Scan size={20} weight="duotone" className="text-primary" />
                   Threat Surface Analysis
                 </CardTitle>
-                <CardDescription className="text-muted-foreground/50 font-mono">Multi-dimensional risk assessment</CardDescription>
+                <CardDescription className="text-muted-foreground/50 font-mono">Multi-dimensional risk assessment from CVE + IOC data</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={threatMetrics}>
-                      <PolarGrid stroke="rgba(148, 163, 184, 0.2)" />
-                      <PolarAngleAxis dataKey="category" stroke="#94a3b8" style={{ fontSize: "12px" }} />
-                      <PolarRadiusAxis stroke="#94a3b8" />
-                      <RechartsRadar name="Risk Level" dataKey="value" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.3} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(15, 23, 42, 0.9)",
-                          border: "1px solid rgba(148, 163, 184, 0.3)",
-                          borderRadius: "8px",
-                          color: "#94a3b8",
-                        }}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                  {threatMetrics.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={threatMetrics}>
+                        <PolarGrid stroke="rgba(148, 163, 184, 0.2)" />
+                        <PolarAngleAxis dataKey="category" stroke="#94a3b8" style={{ fontSize: "12px" }} />
+                        <PolarRadiusAxis stroke="#94a3b8" />
+                        <RechartsRadar name="Risk Level" dataKey="value" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.3} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "rgba(15, 23, 42, 0.9)",
+                            border: "1px solid rgba(148, 163, 184, 0.3)",
+                            borderRadius: "8px",
+                            color: "#94a3b8",
+                          }}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground/50">
+                      <div className="text-center">
+                        <Scan size={48} weight="duotone" className="mx-auto mb-3 text-primary/30" />
+                        <p className="text-sm font-mono">No threat data available</p>
+                        <p className="text-xs font-mono">Add CVEs or IOCs to populate the radar</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Attack Vector Distribution */}
-            <Card className="border-green-500/30 bg-card/50 backdrop-blur">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-300">
-                  <Network className="h-5 w-5 text-green-400" />
+                <CardTitle className="flex items-center gap-2 text-emerald-500">
+                  <TreeStructure size={20} weight="duotone" className="text-emerald-500" />
                   Attack Vector Distribution
                 </CardTitle>
-                <CardDescription className="text-green-300/50 font-mono">Vulnerability entry points</CardDescription>
+                <CardDescription className="text-emerald-500/50 font-mono">Actual attack vectors from CVE database</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={attackVectorData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                      <XAxis dataKey="vector" stroke="#94a3b8" style={{ fontSize: "12px" }} />
-                      <YAxis stroke="#94a3b8" style={{ fontSize: "12px" }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(15, 23, 42, 0.9)",
-                          border: "1px solid rgba(148, 163, 184, 0.3)",
-                          borderRadius: "8px",
-                          color: "#94a3b8",
-                        }}
-                      />
-                      <Bar dataKey="count" fill="url(#colorGradient)" />
-                      <defs>
-                        <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.3} />
-                        </linearGradient>
-                      </defs>
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {attackVectorData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={attackVectorData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                        <XAxis dataKey="vector" stroke="#94a3b8" style={{ fontSize: "12px" }} />
+                        <YAxis stroke="#94a3b8" style={{ fontSize: "12px" }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "rgba(15, 23, 42, 0.9)",
+                            border: "1px solid rgba(148, 163, 184, 0.3)",
+                            borderRadius: "8px",
+                            color: "#94a3b8",
+                          }}
+                        />
+                        <Bar dataKey="count" fill="url(#colorGradient)" />
+                        <defs>
+                          <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.3} />
+                          </linearGradient>
+                        </defs>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground/50">
+                      <div className="text-center">
+                        <TreeStructure size={48} weight="duotone" className="mx-auto mb-3 text-emerald-500/30" />
+                        <p className="text-sm font-mono">No attack vector data</p>
+                        <p className="text-xs font-mono">CVEs with CVSS vector data will appear here</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Anomaly Detection */}
-            <Card className="border-yellow-500/30 bg-card/50 backdrop-blur lg:col-span-2">
+            {/* Real CVE Summary (replaces fake Anomaly Detection) */}
+            <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-yellow-300">
-                  <Brain className="h-5 w-5 text-yellow-400" />
-                  Anomaly Detection & Predictive Analytics
+                <CardTitle className="flex items-center gap-2 text-amber-500">
+                  <Brain size={20} weight="duotone" className="text-amber-500" />
+                  Vulnerability Intelligence Summary
                 </CardTitle>
-                <CardDescription className="text-yellow-300/50 font-mono">AI-powered threat prediction</CardDescription>
+                <CardDescription className="text-amber-500/50 font-mono">Real-time metrics from CVE database</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="border border-yellow-500/20 rounded-lg p-4 bg-slate-800/30">
+                  <div className="rounded-lg p-4 bg-white/[0.03]">
                     <div className="flex items-center gap-3 mb-3">
-                      <TrendingUp className="h-6 w-6 text-yellow-400" />
-                      <span className="font-semibold text-yellow-300 font-mono">EMERGING THREATS</span>
+                      <TrendUp size={24} weight="duotone" className="text-amber-500" />
+                      <span className="font-semibold text-amber-500 font-mono">EMERGING THREATS</span>
                     </div>
-                    <div className="text-3xl font-bold text-yellow-400 mb-2 font-mono">
+                    <div className="text-3xl font-bold text-amber-500 mb-2 font-mono">
                       {cveStats?.trending_count || 0}
                     </div>
-                    <p className="text-xs text-yellow-300/50 font-mono">Trending vulnerabilities detected</p>
+                    <p className="text-xs text-amber-500/50 font-mono">CVEs published in the last 7 days</p>
                   </div>
 
-                  <div className="border border-red-500/20 rounded-lg p-4 bg-slate-800/30">
+                  <div className="rounded-lg p-4 bg-white/[0.03]">
                     <div className="flex items-center gap-3 mb-3">
-                      <Unlock className="h-6 w-6 text-red-400" />
-                      <span className="font-semibold text-red-300 font-mono">EXPLOITABLE</span>
+                      <LockOpen size={24} weight="duotone" className="text-red-500" />
+                      <span className="font-semibold text-red-500 font-mono">EXPLOITABLE</span>
                     </div>
-                    <div className="text-3xl font-bold text-red-400 mb-2 font-mono">
+                    <div className="text-3xl font-bold text-red-500 mb-2 font-mono">
                       {cveStats?.exploitable_count || 0}
                     </div>
-                    <p className="text-xs text-red-300/50 font-mono">Active exploit availability</p>
+                    <p className="text-xs text-red-500/50 font-mono">CVEs with CVSS score 9.0+</p>
                   </div>
 
-                  <div className="border border-primary/20 rounded-lg p-4 bg-slate-800/30">
+                  <div className="rounded-lg p-4 bg-white/[0.03]">
                     <div className="flex items-center gap-3 mb-3">
-                      <Lock className="h-6 w-6 text-primary" />
+                      <Lock size={24} weight="duotone" className="text-primary" />
                       <span className="font-semibold text-muted-foreground font-mono">TOTAL CVEs</span>
                     </div>
                     <div className="text-3xl font-bold text-primary mb-2 font-mono">{cveStats?.total_cves || 0}</div>
@@ -1030,37 +1432,37 @@ const Analytics = () => {
                   </div>
                 </div>
 
-                <Separator className="my-6 bg-primary/20" />
+                <Separator className="my-6 bg-white/[0.06]" />
 
                 <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-muted-foreground font-mono">PREDICTIVE INSIGHTS</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground font-mono">ACTIVITY TRENDS</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="flex items-start gap-3 p-3 border border-primary/20 rounded-lg bg-slate-800/20">
-                      <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="p-2 rounded-full bg-green-500/20"
-                      >
-                        <TrendingDown className="h-4 w-4 text-green-400" />
-                      </motion.div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03]">
+                      <div className="p-2 rounded-full bg-transparent">
+                        {activityTrend === "up" ? (
+                          <TrendUp size={16} weight="bold" className="text-emerald-500" />
+                        ) : (
+                          <TrendDown size={16} weight="bold" className="text-amber-500" />
+                        )}
+                      </div>
                       <div>
-                        <p className="text-xs font-semibold text-green-300 font-mono">LOW RISK PATTERN</p>
+                        <p className={`text-xs font-semibold font-mono ${activityTrend === "up" ? "text-emerald-500" : "text-amber-500"}`}>
+                          {activityTrend === "up" ? "ACTIVITY TRENDING UP" : "ACTIVITY TRENDING DOWN"}
+                        </p>
                         <p className="text-xs text-muted-foreground/50 mt-1 font-mono">
-                          API usage patterns show normal behavior
+                          Today: {todayActivityCount} events | Yesterday: {yesterdayActivityCount} events
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3 p-3 border border-primary/20 rounded-lg bg-slate-800/20">
-                      <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="p-2 rounded-full bg-blue-500/20"
-                      >
-                        <Globe className="h-4 w-4 text-blue-400" />
-                      </motion.div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03]">
+                      <div className="p-2 rounded-full bg-transparent">
+                        <Globe size={16} weight="bold" className="text-blue-500" />
+                      </div>
                       <div>
-                        <p className="text-xs font-semibold text-blue-300 font-mono">THREAT INTELLIGENCE</p>
-                        <p className="text-xs text-muted-foreground/50 mt-1 font-mono">Real-time feeds active and monitoring</p>
+                        <p className="text-xs font-semibold text-blue-500 font-mono">DATABASE STATUS</p>
+                        <p className="text-xs text-muted-foreground/50 mt-1 font-mono">
+                          {(cveStats?.total_cves || 0)} CVEs tracked | {storageCounts.knowledge} knowledge entries
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1073,51 +1475,56 @@ const Analytics = () => {
         {/* System Metrics Tab */}
         <TabsContent value="system" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="border-green-500/30 bg-card/50 backdrop-blur">
+            {/* Real System Load */}
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-300">
-                  <Cpu className="h-5 w-5 text-green-400" />
+                <CardTitle className="flex items-center gap-2 text-emerald-500">
+                  <Cpu size={20} weight="duotone" className="text-emerald-500" />
                   System Load
                 </CardTitle>
+                <CardDescription className="text-emerald-500/50 font-mono">Live browser performance</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm text-green-300 font-mono">CPU</span>
-                      <span className="text-sm text-green-400 font-mono">32%</span>
+                      <span className="text-sm text-emerald-500 font-mono">JS Heap</span>
+                      <span className="text-sm text-emerald-500 font-mono">{systemMetrics.jsHeap}%</span>
                     </div>
-                    <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden border border-green-500/30">
+                    <div className="h-2 bg-white/[0.03] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: "32%" }}
-                        className="h-full bg-gradient-to-r from-green-500 to-emerald-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                        animate={{ width: `${systemMetrics.jsHeap}%` }}
+                        transition={{ duration: 0.5 }}
+                        className={`h-full ${systemMetrics.jsHeap > 80 ? "bg-red-500" : systemMetrics.jsHeap > 50 ? "bg-amber-500" : "bg-emerald-500"}`}
                       />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm text-green-300 font-mono">Memory</span>
-                      <span className="text-sm text-green-400 font-mono">58%</span>
+                      <span className="text-sm text-emerald-500 font-mono">Storage</span>
+                      <span className="text-sm text-emerald-500 font-mono">{systemMetrics.storage}%</span>
                     </div>
-                    <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden border border-green-500/30">
+                    <div className="h-2 bg-white/[0.03] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: "58%" }}
-                        className="h-full bg-gradient-to-r from-green-500 to-yellow-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                        animate={{ width: `${systemMetrics.storage}%` }}
+                        transition={{ duration: 0.5 }}
+                        className={`h-full ${systemMetrics.storage > 80 ? "bg-red-500" : systemMetrics.storage > 50 ? "bg-amber-500" : "bg-emerald-500"}`}
                       />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm text-green-300 font-mono">Network</span>
-                      <span className="text-sm text-green-400 font-mono">21%</span>
+                      <span className="text-sm text-emerald-500 font-mono">DOM Nodes</span>
+                      <span className="text-sm text-emerald-500 font-mono">{systemMetrics.domNodes}%</span>
                     </div>
-                    <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden border border-green-500/30">
+                    <div className="h-2 bg-white/[0.03] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: "21%" }}
-                        className="h-full bg-gradient-to-r from-green-500 to-primary shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                        animate={{ width: `${systemMetrics.domNodes}%` }}
+                        transition={{ duration: 0.5 }}
+                        className={`h-full ${systemMetrics.domNodes > 80 ? "bg-red-500" : systemMetrics.domNodes > 50 ? "bg-amber-500" : "bg-emerald-500"}`}
                       />
                     </div>
                   </div>
@@ -1125,100 +1532,83 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-blue-500/30 bg-card/50 backdrop-blur">
+            {/* Real Storage (row counts) */}
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-300">
-                  <HardDrive className="h-5 w-5 text-blue-400" />
-                  Storage
+                <CardTitle className="flex items-center gap-2 text-blue-500">
+                  <HardDrives size={20} weight="duotone" className="text-blue-500" />
+                  Database Records
                 </CardTitle>
+                <CardDescription className="text-blue-500/50 font-mono">Supabase table row counts</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm text-blue-300 font-mono">Database</span>
-                      <span className="text-sm text-blue-400 font-mono">45 MB</span>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
+                    <div className="flex items-center gap-2">
+                      <Bug size={16} weight="duotone" className="text-red-500" />
+                      <span className="text-sm text-blue-500 font-mono">CVEs</span>
                     </div>
-                    <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden border border-blue-500/30">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "15%" }}
-                        className="h-full bg-gradient-to-r from-blue-500 to-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                      />
-                    </div>
+                    <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.cves.toLocaleString()} rows</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm text-blue-300 font-mono">Cache</span>
-                      <span className="text-sm text-blue-400 font-mono">128 MB</span>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
+                    <div className="flex items-center gap-2">
+                      <BookOpen size={16} weight="duotone" className="text-emerald-500" />
+                      <span className="text-sm text-blue-500 font-mono">Knowledge Base</span>
                     </div>
-                    <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden border border-blue-500/30">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "25%" }}
-                        className="h-full bg-gradient-to-r from-blue-500 to-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                      />
-                    </div>
+                    <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.knowledge.toLocaleString()} rows</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm text-blue-300 font-mono">Logs</span>
-                      <span className="text-sm text-blue-400 font-mono">89 MB</span>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
+                    <div className="flex items-center gap-2">
+                      <Globe size={16} weight="duotone" className="text-amber-500" />
+                      <span className="text-sm text-blue-500 font-mono">Bookmarks</span>
                     </div>
-                    <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden border border-blue-500/30">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "18%" }}
-                        className="h-full bg-gradient-to-r from-blue-500 to-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                      />
+                    <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.bookmarks.toLocaleString()} rows</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
+                    <div className="flex items-center gap-2">
+                      <Pulse size={16} weight="duotone" className="text-violet-500" />
+                      <span className="text-sm text-blue-500 font-mono">Activity Logs</span>
                     </div>
+                    <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.activity.toLocaleString()} rows</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-primary/30 bg-card/50 backdrop-blur">
+            {/* Real Service Status */}
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <Server className="h-5 w-5 text-primary" />
+                  <DesktopTower size={20} weight="duotone" className="text-primary" />
                   Services Status
                 </CardTitle>
+                <CardDescription className="text-muted-foreground/50 font-mono">Live health checks every 30s</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-2 border border-green-500/20 rounded bg-green-500/5">
-                    <div className="flex items-center gap-2">
-                      <motion.div
-                        animate={{ opacity: [1, 0.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="h-2 w-2 bg-green-500 rounded-full"
-                      />
-                      <span className="text-sm text-green-300 font-mono">Database</span>
+                  {serviceStatuses.length === 0 && (
+                    <div className="text-center py-4 text-muted-foreground/50">
+                      <ArrowsClockwise size={24} weight="duotone" className="mx-auto mb-2 animate-spin text-primary/50" />
+                      <p className="text-xs font-mono">Checking services...</p>
                     </div>
-                    <Badge className="bg-green-500/20 text-green-300 border-green-500/50 font-mono">ONLINE</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-2 border border-green-500/20 rounded bg-green-500/5">
-                    <div className="flex items-center gap-2">
-                      <motion.div
-                        animate={{ opacity: [1, 0.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="h-2 w-2 bg-green-500 rounded-full"
-                      />
-                      <span className="text-sm text-green-300 font-mono">CVE API</span>
+                  )}
+                  {serviceStatuses.map((svc) => (
+                    <div key={svc.name} className="flex items-center justify-between p-2 rounded bg-transparent">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full ${getServiceStatusColor(svc.status)}`} />
+                        <span className={`text-sm font-mono ${getServiceStatusTextColor(svc.status)}`}>{svc.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {svc.latency > 0 && (
+                          <span className="text-xs text-muted-foreground/50 font-mono">{svc.latency}ms</span>
+                        )}
+                        <span className={`flex items-center gap-1.5 text-xs`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${getServiceStatusColor(svc.status)}`} />
+                          <span className={`${getServiceStatusTextColor(svc.status)} font-mono`}>{svc.status}</span>
+                        </span>
+                      </div>
                     </div>
-                    <Badge className="bg-green-500/20 text-green-300 border-green-500/50 font-mono">ONLINE</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-2 border border-green-500/20 rounded bg-green-500/5">
-                    <div className="flex items-center gap-2">
-                      <motion.div
-                        animate={{ opacity: [1, 0.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="h-2 w-2 bg-green-500 rounded-full"
-                      />
-                      <span className="text-sm text-green-300 font-mono">Analytics</span>
-                    </div>
-                    <Badge className="bg-green-500/20 text-green-300 border-green-500/50 font-mono">ONLINE</Badge>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -1229,35 +1619,31 @@ const Analytics = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Status Footer with Cyberpunk Theme */}
+      {/* Status Footer */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.5 }}
-        className="flex items-center justify-between text-sm text-muted-foreground/70 border-t border-primary/30 pt-4 font-mono"
+        className="flex items-center justify-between text-sm text-muted-foreground/70 border-t border-white/[0.04] pt-4 font-mono"
       >
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <motion.div
-              animate={{ opacity: [1, 0.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="h-2 w-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.7)]"
-            />
+            <span className="h-2 w-2 bg-emerald-500 rounded-full" />
             <span>REAL-TIME ANALYTICS ACTIVE</span>
           </div>
-          <Separator orientation="vertical" className="h-4 bg-primary/30" />
+          <Separator orientation="vertical" className="h-4 bg-white/[0.06]" />
           <div className="flex items-center gap-2">
-            <Eye className="h-4 w-4 text-primary" />
+            <Eye size={16} weight="bold" className="text-primary" />
             <span>LIVE MONITORING ENABLED</span>
           </div>
-          <Separator orientation="vertical" className="h-4 bg-primary/30" />
+          <Separator orientation="vertical" className="h-4 bg-white/[0.06]" />
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-green-400" />
+            <Shield size={16} weight="bold" className="text-emerald-500" />
             <span>THREAT DETECTION: {threatLevel}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Database className="h-4 w-4 text-primary" />
+          <Database size={16} weight="bold" className="text-primary" />
           <span>LAST UPDATED: {new Date().toLocaleTimeString()}</span>
         </div>
       </motion.div>

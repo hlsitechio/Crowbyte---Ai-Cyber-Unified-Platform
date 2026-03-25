@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Terminal } from "lucide-react";
+import { Terminal } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function TerminalSection() {
@@ -29,9 +29,9 @@ export function TerminalSection() {
             <div><span className="text-primary">renderer</span>:      WebGL (fallback: canvas)</div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Addons loaded</div>
-            <div><span className="text-green-400">FitAddon</span>     <span className="text-zinc-500">Auto-resize to container</span></div>
-            <div><span className="text-green-400">WebLinksAddon</span> <span className="text-zinc-500">Clickable URLs in output</span></div>
-            <div><span className="text-green-400">SearchAddon</span>  <span className="text-zinc-500">Ctrl+F text search</span></div>
+            <div><span className="text-emerald-500">FitAddon</span>     <span className="text-zinc-500">Auto-resize to container</span></div>
+            <div><span className="text-emerald-500">WebLinksAddon</span> <span className="text-zinc-500">Clickable URLs in output</span></div>
+            <div><span className="text-emerald-500">SearchAddon</span>  <span className="text-zinc-500">Ctrl+F text search</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># IPC bridge (Electron main process)</div>
             <div><span className="text-primary">terminal:create</span>   <span className="text-zinc-500">Spawn node-pty process</span></div>

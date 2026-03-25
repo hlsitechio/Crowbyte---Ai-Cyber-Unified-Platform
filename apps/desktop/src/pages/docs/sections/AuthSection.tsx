@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock } from "lucide-react";
+import { Lock } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AuthSection() {
@@ -24,18 +24,18 @@ export function AuthSection() {
           <CodeBlock>
             <div className="text-zinc-500"># Auth.tsx — Login flow</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">1.</span> Check if device has stored credentials (credentialStorage)</div>
-            <div><span className="text-green-400">2.</span> If stored + device recognized → auto-login attempt</div>
-            <div><span className="text-green-400">3.</span> Otherwise → show login/signup form</div>
-            <div><span className="text-green-400">4.</span> On submit → supabase.auth.signInWithPassword()</div>
-            <div><span className="text-green-400">5.</span> If "Remember Me" → encrypt + store credentials</div>
-            <div><span className="text-green-400">6.</span> Navigate to / (Dashboard)</div>
+            <div><span className="text-emerald-500">1.</span> Check if device has stored credentials (credentialStorage)</div>
+            <div><span className="text-emerald-500">2.</span> If stored + device recognized → auto-login attempt</div>
+            <div><span className="text-emerald-500">3.</span> Otherwise → show login/signup form</div>
+            <div><span className="text-emerald-500">4.</span> On submit → supabase.auth.signInWithPassword()</div>
+            <div><span className="text-emerald-500">5.</span> If "Remember Me" → encrypt + store credentials</div>
+            <div><span className="text-emerald-500">6.</span> Navigate to / (Dashboard)</div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># OAuth callback (GitHub)</div>
-            <div><span className="text-green-400">1.</span> supabase.auth.signInWithOAuth(&#123; provider: 'github' &#125;)</div>
-            <div><span className="text-green-400">2.</span> Redirect to GitHub → authorize → callback</div>
-            <div><span className="text-green-400">3.</span> Parse hash params (#access_token=...)</div>
-            <div><span className="text-green-400">4.</span> supabase.auth.setSession(access_token, refresh_token)</div>
+            <div><span className="text-emerald-500">1.</span> supabase.auth.signInWithOAuth(&#123; provider: 'github' &#125;)</div>
+            <div><span className="text-emerald-500">2.</span> Redirect to GitHub → authorize → callback</div>
+            <div><span className="text-emerald-500">3.</span> Parse hash params (#access_token=...)</div>
+            <div><span className="text-emerald-500">4.</span> supabase.auth.setSession(access_token, refresh_token)</div>
           </CodeBlock>
         </CardContent></Card>
 

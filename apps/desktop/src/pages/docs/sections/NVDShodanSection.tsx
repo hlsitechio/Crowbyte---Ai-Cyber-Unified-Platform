@@ -1,11 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search } from "lucide-react";
+import { MagnifyingGlass } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function NVDShodanSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Search} title="NVD & Shodan" description="Dual-source vulnerability intelligence integrated into the CVE workflow" status="ready" />
+      <DocHeader icon={MagnifyingGlass} title="NVD & Shodan" description="Dual-source vulnerability intelligence integrated into the CVE workflow" status="ready" />
 
       <Card><CardHeader><CardTitle>NVD API v2.0</CardTitle><CardDescription>services.nvd.nist.gov/rest/json/cves/2.0</CardDescription></CardHeader>
         <CardContent><FeatureList items={[
@@ -32,10 +32,10 @@ export function NVDShodanSection() {
           <CodeBlock>
             <div className="text-zinc-500"># cve-db lookup runs both APIs in parallel</div>
             <div>&nbsp;</div>
-            <div><span className="text-blue-400">NVD API</span>   <span className="text-green-400">--&gt;</span> CVSS, severity, CWE, CPE, refs, vector</div>
-            <div><span className="text-yellow-400">Shodan</span>    <span className="text-green-400">--&gt;</span> EPSS score, exploit status, extra refs</div>
-            <div><span className="text-purple-400">Merge</span>     <span className="text-green-400">--&gt;</span> NVD primary, Shodan fills gaps + adds EPSS</div>
-            <div><span className="text-primary">Upsert</span>    <span className="text-green-400">--&gt;</span> Save to Supabase (on_conflict=cve_id)</div>
+            <div><span className="text-blue-500">NVD API</span>   <span className="text-emerald-500">--&gt;</span> CVSS, severity, CWE, CPE, refs, vector</div>
+            <div><span className="text-amber-500">Shodan</span>    <span className="text-emerald-500">--&gt;</span> EPSS score, exploit status, extra refs</div>
+            <div><span className="text-violet-500">Merge</span>     <span className="text-emerald-500">--&gt;</span> NVD primary, Shodan fills gaps + adds EPSS</div>
+            <div><span className="text-primary">Upsert</span>    <span className="text-emerald-500">--&gt;</span> Save to Supabase (on_conflict=cve_id)</div>
           </CodeBlock>
         </CardContent></Card>
     </div>

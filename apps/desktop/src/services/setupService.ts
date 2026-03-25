@@ -171,6 +171,29 @@ class SetupService {
     return this.config.setupComplete && this.config.setupVersion === CURRENT_SETUP_VERSION;
   }
 
+  /** Check server-side setup status and sync to localStorage */
+  async checkServerSetup(): Promise<boolean> {
+    try {
+      const res = await fetch(`${window.location.origin}/api/setup/status`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.setupComplete && !this.config.setupComplete) {
+          // Server says setup is done — sync to this browser
+          this.config.setupComplete = true;
+          this.config.setupVersion = CURRENT_SETUP_VERSION;
+          this.config.licenseTier = data.licenseTier || this.config.licenseTier;
+          this.config.supabaseUrl = data.supabaseUrl || this.config.supabaseUrl;
+          this.config.supabaseAnonKey = data.supabaseAnonKey || this.config.supabaseAnonKey;
+          this.config.completedAt = data.completedAt || new Date().toISOString();
+          this.saveConfig();
+          return true;
+        }
+        return data.setupComplete;
+      }
+    } catch { /* server API not available — Electron/offline mode */ }
+    return this.isSetupComplete();
+  }
+
   /** Has the EULA been accepted? */
   isEulaAccepted(): boolean {
     return this.config.eulaAcceptedAt !== null;
@@ -328,6 +351,19 @@ class SetupService {
     this.config.setupComplete = true;
     this.config.completedAt = new Date().toISOString();
     this.saveConfig();
+
+    // Persist to server so other browsers skip the wizard
+    fetch(`${window.location.origin}/api/setup/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        setupComplete: true,
+        licenseTier: this.config.licenseTier,
+        supabaseUrl: this.config.supabaseUrl,
+        supabaseAnonKey: this.config.supabaseAnonKey,
+        completedAt: this.config.completedAt,
+      }),
+    }).catch(() => { /* server API not available — Electron/offline mode */ });
   }
 
   /** Reset setup (for testing or reconfiguration) */

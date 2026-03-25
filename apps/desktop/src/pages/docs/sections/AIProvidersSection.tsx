@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Radio } from "lucide-react";
+import { Broadcast } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AIProvidersSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Radio} title="AI Providers" description="Deep dive into all 6 AI provider implementations" status="ready" />
+      <DocHeader icon={Broadcast} title="AI Providers" description="Deep dive into all 6 AI provider implementations" status="ready" />
 
-      <Card className="border-violet-500/30"><CardHeader><CardTitle className="text-violet-400">1. Claude Code CLI (claude-provider.ts)</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="text-violet-500">1. Claude Code CLI (claude-provider.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Spawns claude -p as child process via Electron IPC</div>
@@ -19,7 +19,7 @@ export function AIProvidersSection() {
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-green-500/30"><CardHeader><CardTitle className="text-green-400">2. OpenClaw (openclaw.ts)</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="text-emerald-500">2. OpenClaw (openclaw.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># VPS agent swarm at your-vps-ip (VITE_OPENCLAW_HOST)</div>
@@ -32,7 +32,7 @@ export function AIProvidersSection() {
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-blue-500/30"><CardHeader><CardTitle className="text-blue-400">3. Venice AI (venice-ai.ts)</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="text-blue-500">3. Venice AI (venice-ai.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Privacy-focused AI — standard provider</div>
@@ -43,7 +43,7 @@ export function AIProvidersSection() {
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-red-500/30"><CardHeader><CardTitle className="text-red-400">4. Venice Uncensored (venice-uncensored.ts)</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="text-red-500">4. Venice Uncensored (venice-uncensored.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Venice with prompt engineering to bypass content filters</div>
@@ -53,7 +53,7 @@ export function AIProvidersSection() {
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-cyan-500/30"><CardHeader><CardTitle className="text-cyan-400">5. Venice Electron (venice-ai-electron.ts)</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="text-cyan-500">5. Venice Electron (venice-ai-electron.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Venice routed through Electron main process</div>
@@ -63,7 +63,7 @@ export function AIProvidersSection() {
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-orange-500/30"><CardHeader><CardTitle className="text-orange-400">6. Ollama Hermes (ollama-hermes.ts)</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="text-orange-500">6. Ollama Hermes (ollama-hermes.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Local Ollama instance</div>

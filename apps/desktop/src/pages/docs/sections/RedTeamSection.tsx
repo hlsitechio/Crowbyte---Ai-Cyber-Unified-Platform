@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Crosshair } from "lucide-react";
+import { Crosshair } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function RedTeamSection() {
@@ -20,9 +20,9 @@ export function RedTeamSection() {
           <CodeBlock>
             <div className="text-zinc-500"># Operation lifecycle (red-team.ts service)</div>
             <div>&nbsp;</div>
-            <div><span className="text-blue-400">planning</span>  <span className="text-zinc-500">→</span> <span className="text-yellow-400">active</span> <span className="text-zinc-500">→</span> <span className="text-green-400">completed</span></div>
+            <div><span className="text-blue-500">planning</span>  <span className="text-zinc-500">→</span> <span className="text-amber-500">active</span> <span className="text-zinc-500">→</span> <span className="text-emerald-500">completed</span></div>
             <div>    <span className="text-zinc-500">↓</span></div>
-            <div>  <span className="text-orange-400">paused</span> <span className="text-zinc-500">(can resume to active)</span></div>
+            <div>  <span className="text-orange-500">paused</span> <span className="text-zinc-500">(can resume to active)</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Operation types</div>
             <div><span className="text-primary">pentest</span>            <span className="text-zinc-500">Standard penetration test</span></div>

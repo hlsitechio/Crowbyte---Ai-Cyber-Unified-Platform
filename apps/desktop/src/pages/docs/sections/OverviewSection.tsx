@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Activity, MessageSquare, Crosshair, Terminal, BookOpen, Monitor, Search, Target, Brain, Zap, Network } from "lucide-react";
+import { Shield, Pulse, ChatDots, Crosshair, Terminal, BookOpen, Monitor, MagnifyingGlass, Target, Brain, Lightning, TreeStructure } from "@phosphor-icons/react";
 import { DocHeader, StatusBadge, CodeBlock } from "../components";
 
 export function OverviewSection() {
@@ -28,7 +28,7 @@ export function OverviewSection() {
 
       <Card className="border-primary/30 bg-card/50 backdrop-blur">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5" /> Status Legend</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Pulse size={20} weight="duotone" /> Status Legend</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3">
           <div className="flex items-center gap-3"><StatusBadge status="ready" /><span className="text-sm">Fully implemented and tested</span></div>
@@ -48,19 +48,19 @@ export function OverviewSection() {
             <div>&nbsp;</div>
             <div><span className="text-primary">Electron App</span> (React + TypeScript + Vite)</div>
             <div>  |</div>
-            <div>  +-- <span className="text-blue-400">Claude Code CLI</span> <span className="text-zinc-500">--- Electron IPC --- claude -p --output-format stream-json</span></div>
+            <div>  +-- <span className="text-blue-500">Claude Code CLI</span> <span className="text-zinc-500">--- Electron IPC --- claude -p --output-format stream-json</span></div>
             <div>  |     Opus 4.6 / Sonnet 4.6 / Haiku 4.5</div>
             <div>  |     Full MCP servers, tools, plugins from .env-unfiltered</div>
             <div>  |</div>
-            <div>  +-- <span className="text-green-400">OpenClaw Gateway</span> <span className="text-zinc-500">--- HTTPS --- VPS your-vps-ip:18789</span></div>
+            <div>  +-- <span className="text-emerald-500">OpenClaw Gateway</span> <span className="text-zinc-500">--- HTTPS --- VPS your-vps-ip:18789</span></div>
             <div>  |     NVIDIA Cloud models (DeepSeek, Qwen, Mistral, Kimi, GLM5)</div>
             <div>  |     9 specialized agents (recon, hunter, intel, analyst...)</div>
             <div>  |     D3bugr MCP (nmap, nuclei, sqlmap, browser automation)</div>
             <div>  |</div>
-            <div>  +-- <span className="text-purple-400">Supabase</span> <span className="text-zinc-500">--- HTTPS --- Cloud PostgreSQL</span></div>
+            <div>  +-- <span className="text-violet-500">Supabase</span> <span className="text-zinc-500">--- HTTPS --- Cloud PostgreSQL</span></div>
             <div>  |     CVEs, knowledge base, agents, bookmarks, auth, settings</div>
             <div>  |</div>
-            <div>  +-- <span className="text-yellow-400">Kali Linux Host</span> <span className="text-zinc-500">--- Local --- 7000+ security tools</span></div>
+            <div>  +-- <span className="text-amber-500">Kali Linux Host</span> <span className="text-zinc-500">--- Local --- 7000+ security tools</span></div>
             <div>        nmap, nuclei, sqlmap, ffuf, burp, metasploit, etc.</div>
             <div>        xterm.js terminal with tmux integration</div>
           </CodeBlock>
@@ -72,21 +72,21 @@ export function OverviewSection() {
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: "AI Chat", desc: "Claude CLI + OpenClaw dual-provider streaming", icon: MessageSquare, status: "ready" as const },
+              { label: "AI Chat", desc: "Claude CLI + OpenClaw dual-provider streaming", icon: ChatDots, status: "ready" as const },
               { label: "Red Team", desc: "Operation tracking, findings, Supabase-backed", icon: Crosshair, status: "ready" as const },
               { label: "Blue Team", desc: "Security monitor, CVE database, threat intel", icon: Shield, status: "ready" as const },
               { label: "Terminal", desc: "xterm.js + tmux, multi-tab, shell presets", icon: Terminal, status: "ready" as const },
               { label: "Knowledge Base", desc: "Cloud-synced entries with file uploads", icon: BookOpen, status: "ready" as const },
               { label: "Fleet", desc: "VPS agent swarm + endpoint monitoring", icon: Monitor, status: "beta" as const },
-              { label: "NVD + Shodan", desc: "Parallel CVE lookup, auto-save to Supabase", icon: Search, status: "ready" as const },
+              { label: "NVD + Shodan", desc: "Parallel CVE lookup, auto-save to Supabase", icon: MagnifyingGlass, status: "ready" as const },
               { label: "Mission Planner", desc: "Phase-based operation planning", icon: Target, status: "beta" as const },
               { label: "Threat Intel", desc: "IOC feeds, enrichment, STIX correlation", icon: Shield, status: "beta" as const },
-              { label: "Analytics", desc: "Usage metrics, CVE stats, Supabase health", icon: Activity, status: "ready" as const },
+              { label: "Analytics", desc: "Usage metrics, CVE stats, Supabase health", icon: Pulse, status: "ready" as const },
               { label: "AI Agents", desc: "Custom agent builder + testing lab", icon: Brain, status: "beta" as const },
-              { label: "Network Scanner", desc: "10 nmap profiles, parsed results", icon: Network, status: "ready" as const },
+              { label: "Network Scanner", desc: "10 nmap profiles, parsed results", icon: TreeStructure, status: "ready" as const },
             ].map((f) => (
               <div key={f.label} className="flex items-start gap-3 p-3 rounded-lg border border-border/50 bg-card/30">
-                <f.icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <f.icon size={20} weight="duotone" className="text-primary mt-0.5 shrink-0" />
                 <div>
                   <div className="text-sm font-medium flex items-center gap-2">{f.label} <StatusBadge status={f.status} /></div>
                   <div className="text-xs text-muted-foreground">{f.desc}</div>

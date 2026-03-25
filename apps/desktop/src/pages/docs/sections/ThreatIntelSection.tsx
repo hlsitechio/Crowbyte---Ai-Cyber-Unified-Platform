@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldAlert } from "lucide-react";
+import { ShieldWarning } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function ThreatIntelSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={ShieldAlert} title="Threat Intelligence" description="IOC feeds, threat enrichment, and indicator correlation" status="beta" />
+      <DocHeader icon={ShieldWarning} title="Threat Intelligence" description="IOC feeds, threat enrichment, and indicator correlation" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

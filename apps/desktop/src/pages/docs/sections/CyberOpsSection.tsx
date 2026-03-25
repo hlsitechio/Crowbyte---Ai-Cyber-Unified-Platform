@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Swords } from "lucide-react";
+import { Sword } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function CyberOpsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Swords} title="Cyber Ops" description="95-tool tactical security toolkit with AI-assisted analysis, caching, and analytics" status="ready" />
+      <DocHeader icon={Sword} title="Cyber Ops" description="95-tool tactical security toolkit with AI-assisted analysis, caching, and analytics" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -20,26 +20,26 @@ export function CyberOpsSection() {
       <Card><CardHeader><CardTitle>Tool Categories (4 Tabs)</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="p-3 rounded-lg border border-blue-500/20 bg-blue-500/5">
-              <div className="font-medium text-sm text-blue-400 mb-2 flex items-center gap-2">
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-blue-500 mb-2 flex items-center gap-2">
                 Scanning <Badge variant="secondary" className="text-[9px]">~25 tools</Badge>
               </div>
               <p className="text-xs text-muted-foreground">nmap, masscan, zmap, nikto, wapiti, arachni, skipfish, w3af, openvas, nessus, qualys, burpsuite, zap, sslyze, testssl, whatweb, wappalyzer, retire.js, snyk, trivy, grype, clair, anchore, dockle, lynis</p>
             </div>
-            <div className="p-3 rounded-lg border border-green-500/20 bg-green-500/5">
-              <div className="font-medium text-sm text-green-400 mb-2 flex items-center gap-2">
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-emerald-500 mb-2 flex items-center gap-2">
                 Recon <Badge variant="secondary" className="text-[9px]">~25 tools</Badge>
               </div>
               <p className="text-xs text-muted-foreground">subfinder, amass, assetfinder, findomain, knockpy, dnsrecon, fierce, theHarvester, recon-ng, spiderfoot, maltego, shodan, censys, zoomeye, fofa, hunter.io, phonebook, crt.sh, securitytrails, dnsdumpster, waybackurls, gau, katana, gospider, hakrawler</p>
             </div>
-            <div className="p-3 rounded-lg border border-red-500/20 bg-red-500/5">
-              <div className="font-medium text-sm text-red-400 mb-2 flex items-center gap-2">
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-red-500 mb-2 flex items-center gap-2">
                 Attack <Badge variant="secondary" className="text-[9px]">~25 tools</Badge>
               </div>
               <p className="text-xs text-muted-foreground">sqlmap, ffuf, gobuster, dirb, dirsearch, feroxbuster, nuclei, dalfox, xsstrike, kxss, commix, tplmap, ssrfmap, crlfuzz, cors-scanner, jwt_tool, arjun, paramspider, wfuzz, hydra, john, hashcat, metasploit, crackmapexec, evil-winrm</p>
             </div>
-            <div className="p-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5">
-              <div className="font-medium text-sm text-yellow-400 mb-2 flex items-center gap-2">
+            <div className="p-3 rounded-lg border border-transparent bg-transparent">
+              <div className="font-medium text-sm text-amber-500 mb-2 flex items-center gap-2">
                 Defence <Badge variant="secondary" className="text-[9px]">~20 tools</Badge>
               </div>
               <p className="text-xs text-muted-foreground">wafw00f, cloudflare-bypass, waf-bypass, modsecurity, fail2ban, snort, suricata, ossec, wazuh, aide, rkhunter, chkrootkit, clamav, yara, sigma, elastic, splunk, graylog, ossim, thehive</p>
@@ -52,14 +52,14 @@ export function CyberOpsSection() {
           <CodeBlock>
             <div className="text-zinc-500"># Tool execution pipeline</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">1.</span> User selects tool + enters target</div>
-            <div><span className="text-green-400">2.</span> Command template auto-fills with target</div>
-            <div><span className="text-green-400">3.</span> Check cacheService for existing results</div>
-            <div><span className="text-green-400">4.</span> If no cache: execute via OpenClaw (VPS) or local shell</div>
-            <div><span className="text-green-400">5.</span> Stream output to result pane</div>
-            <div><span className="text-green-400">6.</span> Cache results (cacheService.set)</div>
-            <div><span className="text-green-400">7.</span> Track usage (analyticsService.trackToolUse)</div>
-            <div><span className="text-green-400">8.</span> Optional: AI analysis via OpenClaw on results</div>
+            <div><span className="text-emerald-500">1.</span> User selects tool + enters target</div>
+            <div><span className="text-emerald-500">2.</span> Command template auto-fills with target</div>
+            <div><span className="text-emerald-500">3.</span> Check cacheService for existing results</div>
+            <div><span className="text-emerald-500">4.</span> If no cache: execute via OpenClaw (VPS) or local shell</div>
+            <div><span className="text-emerald-500">5.</span> Stream output to result pane</div>
+            <div><span className="text-emerald-500">6.</span> Cache results (cacheService.set)</div>
+            <div><span className="text-emerald-500">7.</span> Track usage (analyticsService.trackToolUse)</div>
+            <div><span className="text-emerald-500">8.</span> Optional: AI analysis via OpenClaw on results</div>
           </CodeBlock>
         </CardContent></Card>
 

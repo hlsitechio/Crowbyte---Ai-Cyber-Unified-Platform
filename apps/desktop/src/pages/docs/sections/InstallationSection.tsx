@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download } from "lucide-react";
+import { DownloadSimple } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function InstallationSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Download} title="Installation & Setup" description="Prerequisites, build from source, environment variables, and first run" />
+      <DocHeader icon={DownloadSimple} title="Installation & Setup" description="Prerequisites, build from source, environment variables, and first run" />
 
       <Card><CardHeader><CardTitle>Prerequisites</CardTitle></CardHeader>
         <CardContent><FeatureList items={[
@@ -21,16 +21,16 @@ export function InstallationSection() {
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Clone and install</div>
-            <div><span className="text-green-400">cd</span> /mnt/bounty/Claude/crowbyte/apps/desktop</div>
-            <div><span className="text-green-400">npm install</span></div>
+            <div><span className="text-emerald-500">cd</span> /mnt/bounty/Claude/crowbyte/apps/desktop</div>
+            <div><span className="text-emerald-500">npm install</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Development (hot reload)</div>
-            <div><span className="text-green-400">npm run dev</span></div>
+            <div><span className="text-emerald-500">npm run dev</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Production build</div>
-            <div><span className="text-green-400">npm run build</span>              <span className="text-zinc-500"># Web build (Vite)</span></div>
-            <div><span className="text-green-400">npm run build:electron:linux</span> <span className="text-zinc-500"># Linux Electron package</span></div>
-            <div><span className="text-green-400">npm run build:electron:win</span>   <span className="text-zinc-500"># Windows Electron installer</span></div>
+            <div><span className="text-emerald-500">npm run build</span>              <span className="text-zinc-500"># Web build (Vite)</span></div>
+            <div><span className="text-emerald-500">npm run build:electron:linux</span> <span className="text-zinc-500"># Linux Electron package</span></div>
+            <div><span className="text-emerald-500">npm run build:electron:win</span>   <span className="text-zinc-500"># Windows Electron installer</span></div>
           </CodeBlock>
         </CardContent></Card>
 

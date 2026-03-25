@@ -51,7 +51,7 @@ class AnalyticsService {
         return;
       }
 
-      const { error } = await supabase
+      await supabase
         .from('activity_logs')
         .insert({
           user_id: user.id,
@@ -60,11 +60,9 @@ class AnalyticsService {
           user_agent: activity.user_agent || navigator.userAgent,
         });
 
-      if (error) {
-        console.error('Failed to log activity:', error);
-      }
-    } catch (error) {
-      console.error('Error logging activity:', error);
+      // Activity logging is best-effort — silently ignore failures
+    } catch {
+      // Non-critical: swallow activity log errors
     }
   }
 

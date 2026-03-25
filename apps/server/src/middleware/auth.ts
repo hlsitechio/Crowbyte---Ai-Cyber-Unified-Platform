@@ -27,7 +27,7 @@ declare global {
 const PUBLIC_PATHS = ['/api/auth/login'];
 
 // Prefixes that skip auth (read-only metrics, safe to expose behind nginx)
-const PUBLIC_PREFIXES = ['/api/system/', '/api/docker/', '/api/tools/available'];
+const PUBLIC_PREFIXES = ['/api/system/', '/api/docker/', '/api/tools/available', '/api/setup/', '/api/health', '/api/errors', '/api/memory/', '/api/fleet/register', '/api/fleet/heartbeat'];
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Skip auth for non-API routes (static files, SPA)

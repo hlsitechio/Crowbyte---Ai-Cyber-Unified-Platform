@@ -11,14 +11,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Monitor, MonitorOff, Eye, Mouse, MousePointer2, Maximize2, Minimize2,
-  Copy, ClipboardPaste, Video, VideoOff, X, Wifi, WifiOff, Lock,
-  ShieldCheck, ScreenShare, Keyboard, Gauge, Settings, Volume2, VolumeX,
-  AlertTriangle, CheckCircle2, Clock, RefreshCw, Minus, Square,
-} from 'lucide-react';
+  Monitor, Eye, Mouse, Cursor, ArrowsOut, ArrowsIn,
+  Copy, ClipboardText, VideoCamera, VideoCameraSlash, X, WifiHigh, WifiSlash, Lock,
+  ShieldCheck, Screencast, Keyboard, Gauge, GearSix, SpeakerHigh, SpeakerX,
+  Warning, CheckCircle, Clock, ArrowsClockwise, Minus, Square,
+} from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
@@ -216,6 +216,10 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
         ref={containerRef}
         onMouseMove={handleMouseMove}
       >
+        <VisuallyHidden>
+          <DialogTitle>VNC Remote Desktop</DialogTitle>
+          <DialogDescription>VNC viewer session</DialogDescription>
+        </VisuallyHidden>
         {/* ─── Top Toolbar ─────────────────────────────────────── */}
         <AnimatePresence>
           {showToolbar && (
@@ -229,7 +233,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
               {/* Left — Session info */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <ScreenShare className="h-4 w-4 text-emerald-400" />
+                  <Screencast size={16} weight="bold" className="text-emerald-500" />
                   <span className="text-sm font-medium text-white">{hostLabel}</span>
                   <span className="text-xs text-zinc-500 font-mono">{ipLabel}</span>
                 </div>
@@ -238,15 +242,15 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
 
                 <div className="flex items-center gap-1.5">
                   {status === 'connected' ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                    <CheckCircle size={14} weight="bold" className="text-emerald-500" />
                   ) : status === 'connecting' ? (
-                    <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />
+                    <ArrowsClockwise size={14} weight="bold" className="text-blue-500 animate-spin" />
                   ) : (
-                    <WifiOff className="h-3.5 w-3.5 text-red-400" />
+                    <WifiSlash size={14} weight="bold" className="text-red-500" />
                   )}
                   <span className={`text-xs ${
-                    status === 'connected' ? 'text-green-400' :
-                    status === 'connecting' ? 'text-blue-400' : 'text-red-400'
+                    status === 'connected' ? 'text-emerald-500' :
+                    status === 'connecting' ? 'text-blue-500' : 'text-red-500'
                   }`}>
                     {status === 'connected' ? 'Connected (TLS)' :
                      status === 'connecting' ? 'Connecting...' :
@@ -257,10 +261,10 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
 
                 {status === 'connected' && (
                   <>
-                    <Badge variant="outline" className="text-[10px] h-5 border-zinc-700 text-zinc-400">
-                      <Clock className="h-3 w-3 mr-1" />
+                    <span className="flex items-center gap-1 text-[10px] text-zinc-400">
+                      <Clock size={12} weight="bold" />
                       {formatTime(connectionTime)}
-                    </Badge>
+                    </span>
                   </>
                 )}
               </div>
@@ -271,7 +275,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={sendCtrlAltDel}>
-                        <Keyboard className="h-3.5 w-3.5" />
+                        <Keyboard size={14} weight="bold" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Ctrl+Alt+Del</TooltipContent>
@@ -280,7 +284,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={toggleFullscreen}>
-                        {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                        {isFullscreen ? <ArrowsIn size={14} weight="bold" /> : <ArrowsOut size={14} weight="bold" />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
@@ -289,7 +293,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleReconnect}>
-                        <RefreshCw className="h-3.5 w-3.5" />
+                        <ArrowsClockwise size={14} weight="bold" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Reconnect</TooltipContent>
@@ -299,8 +303,8 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
 
               {/* Right — Encryption badge + Disconnect */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 text-emerald-400">
-                  <Lock className="h-3 w-3" />
+                <div className="flex items-center gap-1 text-emerald-500">
+                  <Lock size={12} weight="bold" />
                   <span className="text-[10px]">TLS Encrypted</span>
                 </div>
                 <Button
@@ -309,7 +313,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   className="h-7 text-xs"
                   onClick={handleDisconnect}
                 >
-                  <X className="h-3.5 w-3.5 mr-1" />
+                  <X size={14} weight="bold" className="mr-1" />
                   Disconnect
                 </Button>
               </div>
@@ -326,7 +330,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   animate={{ rotate: 360 }}
                   transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
                 >
-                  <Wifi className="h-16 w-16 text-blue-400" />
+                  <WifiHigh size={64} weight="duotone" className="text-blue-500" />
                 </motion.div>
                 <p className="text-lg text-zinc-300">Connecting to {hostLabel}...</p>
                 <p className="text-sm text-zinc-500">Establishing encrypted VNC tunnel</p>

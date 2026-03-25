@@ -8,15 +8,21 @@ import { createClient } from '@supabase/supabase-js';
 // Ensure environment variables are loaded
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-// Service role key bypasses RLS — safe in local Electron app
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Missing Supabase environment variables. Some features may not work.');
 }
 
-// Create Supabase client — use service key if available (bypasses RLS), else anon key
-export const supabase = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
+// Suppress Supabase's "Multiple GoTrueClient instances" warning
+// This is a known false positive with single-client setups in Supabase v2
+const _origWarn = console.warn;
+console.warn = (...args: unknown[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('Multiple GoTrueClient')) return;
+  _origWarn.apply(console, args);
+};
+
+// Single Supabase client — anon key for browser auth flows
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,

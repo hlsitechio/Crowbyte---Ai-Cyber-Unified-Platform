@@ -1,578 +1,501 @@
 import { useState, useEffect } from "react";
-import { Brain, Network, Wrench, BookOpen, Shield, Settings, Terminal, Cpu, Activity, Bot, MessageSquare, LogOut, Swords, User, Bookmark, FileText, BarChart3, Crosshair, ShieldAlert, Database, Zap, Monitor, ScrollText, Target, FlaskConical, PanelRight, PlugZap } from "lucide-react";
+import { Brain, TreeStructure, BookOpen, ShieldCheck, GearSix, Terminal, Cpu, Pulse, Robot, ChatDots, SignOut, Sword, User, BookmarkSimple, FileText, ChartBar, Crosshair, ShieldWarning, Monitor, Scroll, Target, SidebarSimple, PlugsConnected } from "@phosphor-icons/react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { useBrowserPanelSafe } from "@/contexts/browser";
 import { useLogs } from "@/contexts/logs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarTrigger,
-  useSidebar,
+ Sidebar,
+ SidebarContent,
+ SidebarGroup,
+ SidebarGroupContent,
+ SidebarGroupLabel,
+ SidebarMenu,
+ SidebarMenuButton,
+ SidebarMenuItem,
+ SidebarHeader,
+ SidebarTrigger,
+ useSidebar,
 } from "@/components/ui/sidebar";
 
-// Organized by security operations categories
+// ─── Glowing Dot Component ──────────────────────────────────────────────────
+
+type DotColor = "silver" | "cyan" | "red" | "blue" | "purple" | "gray" | "green";
+
+const DOT_COLORS: Record<DotColor, { core: string; glow: string; ring: string }> = {
+ silver: { core: "#d4d4d8", glow: "rgba(212,212,216,0.5)", ring: "rgba(212,212,216,0.2)" },
+ cyan: { core: "#22d3ee", glow: "rgba(34,211,238,0.5)", ring: "rgba(34,211,238,0.15)" },
+ red: { core: "#f87171", glow: "rgba(248,113,113,0.5)", ring: "rgba(248,113,113,0.15)" },
+ blue: { core: "#60a5fa", glow: "rgba(96,165,250,0.5)", ring: "rgba(96,165,250,0.15)" },
+ purple: { core: "#c084fc", glow: "rgba(192,132,252,0.5)", ring: "rgba(192,132,252,0.15)" },
+ green: { core: "#4ade80", glow: "rgba(74,222,128,0.5)", ring: "rgba(74,222,128,0.15)" },
+ gray: { core: "#71717a", glow: "rgba(113,113,122,0.3)", ring: "rgba(113,113,122,0.1)" },
+};
+
+function GlowDot({ color, active = false }: { color: DotColor; active?: boolean }) {
+ const c = DOT_COLORS[color];
+ return (
+ <span
+ className="relative flex-shrink-0 flex items-center justify-center"
+ style={{ width: 8, height: 8 }}
+ >
+ {/* Outer glow */}
+ <span
+ className="absolute inset-0 rounded-full"
+ style={{
+ background: `radial-gradient(circle, ${active ? c.glow : c.ring} 0%, transparent 70%)`,
+ transform: active ? "scale(2.5)" : "scale(1.8)",
+ transition: "transform 0.2s ease, background 0.2s ease",
+ }}
+ />
+ {/* Core dot */}
+ <span
+ className="relative rounded-full"
+ style={{
+ width: active ? 6 : 5,
+ height: active ? 6 : 5,
+ background: `radial-gradient(circle at 35% 35%, ${c.core}, ${c.glow})`,
+ boxShadow: active ? `0 0 6px ${c.glow}, 0 0 12px ${c.ring}` : `0 0 3px ${c.ring}`,
+ transition: "all 0.2s ease",
+ }}
+ />
+ </span>
+ );
+}
+
+// ─── Section header dot color mapping ────────────────────────────────────────
+
+const SECTION_DOT: Record<string, DotColor> = {
+ command: "silver",
+ ai: "cyan",
+ red: "red",
+ blue: "blue",
+ intel: "purple",
+ system: "gray",
+ config: "gray",
+};
+
+// ─── Nav items ───────────────────────────────────────────────────────────────
+
 const commandCenterItems = [
-  { title: "Dashboard", url: "/", icon: Activity },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+ { title: "Dashboard", url: "/dashboard", icon: Pulse },
+ { title: "Analytics", url: "/analytics", icon: ChartBar },
 ];
 
 const aiOperationsItems = [
-  { title: "Chat", url: "/chat", icon: MessageSquare },
-  { title: "Search AI Agent", url: "/ai-agent", icon: Brain },
-  { title: "Agent Builder", url: "/agent-builder", icon: Bot },
+ { title: "Chat", url: "/chat", icon: ChatDots },
+ { title: "Search AI Agent", url: "/ai-agent", icon: Brain },
+ { title: "Agent Builder", url: "/agent-builder", icon: Robot },
 ];
 
 const redTeamItems = [
-  { title: "Red Team", url: "/redteam", icon: Crosshair },
-  { title: "Cyber Ops", url: "/cyber-ops", icon: Swords },
-  { title: "Network Map", url: "/network-scanner", icon: Network },
+ { title: "Red Team", url: "/redteam", icon: Crosshair },
+ { title: "Cyber Ops", url: "/cyber-ops", icon: Sword },
+ { title: "Network Map", url: "/network-scanner", icon: TreeStructure },
 ];
 
 const blueTeamItems = [
-  { title: "Connectors", url: "/connectors", icon: PlugZap },
-  { title: "Security Monitor", url: "/security-monitor", icon: Shield },
-  { title: "Fleet Management", url: "/fleet", icon: Monitor },
-  { title: "CVE Database", url: "/cve", icon: ShieldAlert },
-  { title: "Threat Intelligence", url: "/threat-intelligence", icon: ShieldAlert },
+ { title: "Connectors", url: "/connectors", icon: PlugsConnected },
+ { title: "Security Monitor", url: "/security-monitor", icon: ShieldCheck },
+ { title: "Fleet Management", url: "/fleet", icon: Monitor },
+ { title: "CVE Database", url: "/cve", icon: ShieldWarning },
+ { title: "Threat Intelligence", url: "/threat-intelligence", icon: ShieldWarning },
 ];
 
 const intelligenceItems = [
-  { title: "Mission Planner", url: "/mission-planner", icon: Target },
-  { title: "Knowledge Base", url: "/knowledge", icon: BookOpen },
-  { title: "Bookmarks", url: "/bookmarks", icon: Bookmark },
+ { title: "Mission Planner", url: "/mission-planner", icon: Target },
+ { title: "Knowledge Base", url: "/knowledge", icon: BookOpen },
+ { title: "Bookmarks", url: "/bookmarks", icon: BookmarkSimple },
 ];
 
 const systemItems = [
-  { title: "Terminal", url: "/terminal", icon: Terminal },
-  { title: "Logs", url: "/logs", icon: ScrollText },
+ { title: "Terminal", url: "/terminal", icon: Terminal },
+ { title: "Logs", url: "/logs", icon: Scroll },
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  const { unreadErrorCount } = useLogs();
-  const browserPanel = useBrowserPanelSafe();
-  const currentPath = location.pathname;
-  const [workspaceName, setWorkspaceName] = useState(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+ const { state } = useSidebar();
+ const location = useLocation();
+ const navigate = useNavigate();
+ const { user, signOut } = useAuth();
+ const { unreadErrorCount } = useLogs();
+ const browserPanel = useBrowserPanelSafe();
+ const currentPath = location.pathname;
+ const [workspaceName, setWorkspaceName] = useState(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
+ const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
-  const isActive = (path: string) => currentPath === path;
+ const isActive = (path: string) => currentPath === path || (path !== "/" && currentPath.startsWith(path + "/"));
 
-  // Listen for workspace name changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setWorkspaceName(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
-    };
+ // Listen for workspace name changes
+ useEffect(() => {
+ const handleStorageChange = () => {
+ setWorkspaceName(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
+ };
 
-    // Listen for storage events (updates from other tabs/windows)
-    window.addEventListener('storage', handleStorageChange);
+ // Listen for storage events (updates from other tabs/windows)
+ window.addEventListener('storage', handleStorageChange);
 
-    // Listen for custom event for same-tab updates
-    window.addEventListener('workspaceNameChanged', handleStorageChange);
+ // Listen for custom event for same-tab updates
+ window.addEventListener('workspaceNameChanged', handleStorageChange);
 
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('workspaceNameChanged', handleStorageChange);
-    };
-  }, []);
+ return () => {
+ window.removeEventListener('storage', handleStorageChange);
+ window.removeEventListener('workspaceNameChanged', handleStorageChange);
+ };
+ }, []);
 
-  // Load and listen for profile picture changes
-  useEffect(() => {
-    const loadProfilePicture = async () => {
-      if (!user) return;
+ // Load and listen for profile picture changes (cached to avoid repeated Supabase calls)
+ useEffect(() => {
+ const loadProfilePicture = async () => {
+ if (!user) return;
 
-      try {
-        const { supabase } = await import('@/lib/supabase');
-        const { data, error } = await supabase
-          .from('user_settings')
-          .select('profile_picture_url')
-          .eq('user_id', user.id)
-          .single();
+ // Check sessionStorage cache first
+ const cached = sessionStorage.getItem(`profile_pic_${user.id}`);
+ if (cached) {
+ setProfilePictureUrl(cached);
+ return;
+ }
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error loading profile picture:', error);
-          return;
-        }
+ try {
+ const { supabase } = await import('@/lib/supabase');
+ const { data, error } = await supabase
+ .from('user_settings')
+ .select('profile_picture_url')
+ .eq('user_id', user.id)
+ .single();
 
-        if (data?.profile_picture_url) {
-          setProfilePictureUrl(data.profile_picture_url);
-        }
-      } catch (error) {
-        console.error('Failed to load profile picture:', error);
-      }
-    };
+ if (error && error.code !== 'PGRST116') {
+ return;
+ }
 
-    const handleProfilePictureChange = () => {
-      loadProfilePicture();
-    };
+ if (data?.profile_picture_url) {
+ setProfilePictureUrl(data.profile_picture_url);
+ sessionStorage.setItem(`profile_pic_${user.id}`, data.profile_picture_url);
+ }
+ } catch {
+ // Silent fail — profile pic is cosmetic
+ }
+ };
 
-    loadProfilePicture();
+ const handleProfilePictureChange = () => {
+ // Bust cache on explicit change
+ if (user) sessionStorage.removeItem(`profile_pic_${user.id}`);
+ loadProfilePicture();
+ };
 
-    // Listen for profile picture changes
-    window.addEventListener('profilePictureChanged', handleProfilePictureChange);
+ loadProfilePicture();
 
-    return () => {
-      window.removeEventListener('profilePictureChanged', handleProfilePictureChange);
-    };
-  }, [user]);
+ window.addEventListener('profilePictureChanged', handleProfilePictureChange);
 
-  const handleLogoutAndExit = async () => {
-    try {
-      // First logout the user
-      await signOut();
+ return () => {
+ window.removeEventListener('profilePictureChanged', handleProfilePictureChange);
+ };
+ }, [user]);
 
-      // Then quit the app if running in Electron
-      if (window.electronAPI?.quitApp) {
-        await window.electronAPI.quitApp();
-      }
-    } catch (error) {
-      console.error('Logout and exit error:', error);
-    }
-  };
+ const handleLogoutAndExit = async () => {
+ try {
+ // First logout the user
+ await signOut();
 
-  const renderNavItems = (items: typeof commandCenterItems, delayOffset: number = 0) => {
-    return items.map((item, index) => {
-      const isItemActive = isActive(item.url);
-      const showErrorBadge = item.url === '/logs' && unreadErrorCount > 0;
+ // Then quit the app if running in Electron
+ if (window.electronAPI?.quitApp) {
+ await window.electronAPI.quitApp();
+ }
+ } catch (error) {
+ console.error('Logout and exit error:', error);
+ }
+ };
 
-      return (
-        <motion.div
-          key={item.title}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{
-            duration: 0.3,
-            delay: (delayOffset + index) * 0.03,
-            ease: "easeOut"
-          }}
-          whileHover={{ x: 4, scale: 1.01 }}
-          className="relative overflow-hidden"
-        >
-          {isItemActive && (
-            <motion.div
-              layoutId="activeTab"
-              className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border-l-2 border-primary shadow-[0_0_20px_rgba(192,192,192,0.15)]"
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 30
-              }}
-            />
-          )}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-silver-muted/10 to-transparent opacity-0"
-            initial={{ x: "-100%" }}
-            whileHover={{
-              x: "100%",
-              opacity: 1,
-              transition: {
-                x: { duration: 0.6, ease: "easeInOut" },
-                opacity: { duration: 0.3 }
-              }
-            }}
-          />
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink
-                to={item.url}
-                end
-                className="relative hover:bg-gradient-to-r hover:from-primary/5 hover:via-primary/10 hover:to-primary/5 hover:shadow-[0_0_15px_rgba(192,192,192,0.1)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <motion.div
-                  whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                  transition={{ duration: 0.3 }}
-                  className={isItemActive ? "text-primary" : ""}
-                >
-                  <item.icon className="h-4 w-4" />
-                </motion.div>
-                {state === "expanded" && (
-                  <span className={`tracking-wide ${isItemActive ? "text-primary" : ""}`}>
-                    {item.title}
-                  </span>
-                )}
-                {item.badge && state === "expanded" && (
-                  <Badge variant="secondary" className="ml-auto text-xs bg-primary/20 text-primary border-primary/30">
-                    {item.badge}
-                  </Badge>
-                )}
-                {showErrorBadge && (
-                  <Badge variant="destructive" className="ml-auto text-xs bg-red-500/20 text-red-400 border-red-500/30 animate-pulse">
-                    {unreadErrorCount}
-                  </Badge>
-                )}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </motion.div>
-      );
-    });
-  };
+ const renderNavItems = (items: typeof commandCenterItems, dotColor: DotColor, delayOffset: number = 0) => {
+ return items.map((item, index) => {
+ const isItemActive = isActive(item.url);
+ const showErrorBadge = item.url === '/logs' && unreadErrorCount > 0;
 
-  return (
-    <Sidebar collapsible="icon" className="border-r border-border">
-      <SidebarHeader className="border-b border-primary/20 p-4 space-y-3">
-        <motion.div
-          className="flex items-center gap-2 justify-between"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        >
-          <div className="flex items-center gap-2">
-            <motion.div
-              className="flex h-8 w-8 items-center justify-center border border-primary/40 bg-black"
-              whileHover={{ scale: 1.05, borderColor: "hsl(var(--primary))" }}
-              transition={{ duration: 0.2 }}
-            >
-              <Cpu className="h-5 w-5 text-primary" />
-            </motion.div>
-            {state === "expanded" && (
-              <motion.div
-                className="flex flex-col"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-              >
-                <span className="text-sm font-bold text-gradient-silver tracking-wider">{workspaceName}</span>
-              </motion.div>
-            )}
-          </div>
-          <SidebarTrigger className="text-foreground hover:text-primary transition-colors" />
-        </motion.div>
+ return (
+ <motion.div
+ key={item.title}
+ initial={{ opacity: 0, x: -12 }}
+ animate={{ opacity: 1, x: 0 }}
+ transition={{
+ duration: 0.25,
+ delay: (delayOffset + index) * 0.03,
+ ease: "easeOut"
+ }}
+ className="relative"
+ >
+ {isItemActive && (
+ <motion.div
+ layoutId="activeTab"
+ className="absolute inset-0 bg-white/[0.04] rounded-md"
+ transition={{ type: "spring", stiffness: 500, damping: 30 }}
+ />
+ )}
+ <SidebarMenuItem>
+ <SidebarMenuButton asChild>
+ <NavLink
+ to={item.url}
+ end
+ className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}
+ >
+ {state === "expanded" && <GlowDot color={dotColor} active={isItemActive} />}
+ <item.icon size={16} weight="duotone" className={`flex-shrink-0 ${isItemActive ? "text-zinc-200" : "text-zinc-500"}`} />
+ {state === "expanded" && (
+ <span className={`text-[13px] ${isItemActive ? "text-zinc-200 font-medium" : "text-zinc-400"}`}>
+ {item.title}
+ </span>
+ )}
+ {showErrorBadge && (
+ <span className="ml-auto text-[10px] text-red-500">{unreadErrorCount}</span>
+ )}
+ </NavLink>
+ </SidebarMenuButton>
+ </SidebarMenuItem>
+ </motion.div>
+ );
+ });
+ };
 
-        {/* User Info */}
-        {user && state === "expanded" && (
-          <motion.div
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            className="flex items-center gap-2 px-2 py-2 bg-primary/5 rounded-lg border border-primary/20"
-          >
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 border border-primary/40 overflow-hidden">
-              {profilePictureUrl ? (
-                <img
-                  src={profilePictureUrl}
-                  alt="Profile"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <User className="h-3 w-3 text-primary" />
-              )}
-            </div>
-            <div className="flex flex-col flex-1 min-w-0">
-              <span className="text-xs text-muted-foreground">Operator</span>
-              <span className="text-xs font-medium text-foreground truncate" title={user.email || ''}>
-                {user.email}
-              </span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-400 border-green-500/30">
-              ACTIVE
-            </Badge>
-          </motion.div>
-        )}
-        {user && state === "collapsed" && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="flex items-center justify-center"
-            title={user.email || 'User'}
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 border border-primary/40">
-              <User className="h-4 w-4 text-primary" />
-            </div>
-          </motion.div>
-        )}
-      </SidebarHeader>
+ return (
+ <Sidebar collapsible="icon" className="border-r border-white/[0.06]">
+ <SidebarHeader className={`border-b border-white/[0.04] ${state === "collapsed" ? "p-2 space-y-2" : "p-4 space-y-3"}`}>
+ <div className={`flex items-center ${state === "collapsed" ? "flex-col gap-1.5" : "gap-2.5 justify-between"}`}>
+ <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-800/80 flex-shrink-0">
+ <Cpu size={16} weight="duotone" className="text-zinc-300" />
+ </div>
+ {state === "expanded" && (
+ <span className="text-sm font-semibold text-zinc-200 tracking-wide flex-1">{workspaceName}</span>
+ )}
+ <SidebarTrigger className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0" />
+ </div>
 
-      <SidebarContent>
-        {/* Command Center */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-primary/70 uppercase text-xs font-bold tracking-wider"}>
-            Command Center
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderNavItems(commandCenterItems, 0)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+ {/* User Info */}
+ {user && state === "expanded" && (
+ <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md bg-zinc-800/30">
+ <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-700/60 overflow-hidden">
+ {profilePictureUrl ? (
+ <img src={profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
+ ) : (
+ <User size={12} weight="bold" className="text-zinc-400" />
+ )}
+ </div>
+ <div className="flex flex-col flex-1 min-w-0">
+ <span className="text-[11px] text-zinc-500">Operator</span>
+ <span className="text-xs text-zinc-300 truncate" title={user.email || ''}>
+ {user.email}
+ </span>
+ </div>
+ <GlowDot color="green" active={true} />
+ </div>
+ )}
+ {user && state === "collapsed" && (
+ <div className="flex items-center justify-center" title={user.email || 'User'}>
+ <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-700/60">
+ <User size={14} weight="bold" className="text-zinc-400" />
+ </div>
+ </div>
+ )}
+ </SidebarHeader>
 
-        {/* AI Operations */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-blue-400/70 uppercase text-xs font-bold tracking-wider"}>
-            <Zap className="h-3 w-3 inline mr-1" />
-            AI Operations
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderNavItems(aiOperationsItems, 2)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+ <SidebarContent>
+ {/* Command Center */}
+ <SidebarGroup>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ Command Center
+ </SidebarGroupLabel>
+ <SidebarGroupContent>
+ <SidebarMenu>
+ {renderNavItems(commandCenterItems, "silver", 0)}
+ </SidebarMenu>
+ </SidebarGroupContent>
+ </SidebarGroup>
 
-        {/* Red Team (Offensive) */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-red-400/70 uppercase text-xs font-bold tracking-wider"}>
-            <Crosshair className="h-3 w-3 inline mr-1" />
-            Red Team
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderNavItems(redTeamItems, 6)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+ {/* AI Operations */}
+ <SidebarGroup>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ AI Operations
+ </SidebarGroupLabel>
+ <SidebarGroupContent>
+ <SidebarMenu>
+ {renderNavItems(aiOperationsItems, "cyan", 2)}
+ </SidebarMenu>
+ </SidebarGroupContent>
+ </SidebarGroup>
 
-        {/* Blue Team (Defensive) */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-blue-400/70 uppercase text-xs font-bold tracking-wider"}>
-            <ShieldAlert className="h-3 w-3 inline mr-1" />
-            Blue Team
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderNavItems(blueTeamItems, 9)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+ {/* Red Team (Offensive) */}
+ <SidebarGroup>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ Red Team
+ </SidebarGroupLabel>
+ <SidebarGroupContent>
+ <SidebarMenu>
+ {renderNavItems(redTeamItems, "red", 6)}
+ </SidebarMenu>
+ </SidebarGroupContent>
+ </SidebarGroup>
 
-        {/* Intelligence */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-purple-400/70 uppercase text-xs font-bold tracking-wider"}>
-            <Database className="h-3 w-3 inline mr-1" />
-            Intelligence
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderNavItems(intelligenceItems, 11)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+ {/* Blue Team (Defensive) */}
+ <SidebarGroup>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ Blue Team
+ </SidebarGroupLabel>
+ <SidebarGroupContent>
+ <SidebarMenu>
+ {renderNavItems(blueTeamItems, "blue", 9)}
+ </SidebarMenu>
+ </SidebarGroupContent>
+ </SidebarGroup>
 
-        {/* System */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-muted-foreground uppercase text-xs font-bold tracking-wider"}>
-            System
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderNavItems(systemItems, 14)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+ {/* Intelligence */}
+ <SidebarGroup>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ Intelligence
+ </SidebarGroupLabel>
+ <SidebarGroupContent>
+ <SidebarMenu>
+ {renderNavItems(intelligenceItems, "purple", 11)}
+ </SidebarMenu>
+ </SidebarGroupContent>
+ </SidebarGroup>
 
-        {/* Configuration */}
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-muted-foreground uppercase text-xs font-bold tracking-wider"}>
-            <Settings className="h-3 w-3 inline mr-1" />
-            Configuration
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* Documentation */}
-              <motion.div
-                whileHover={{ x: 4, scale: 1.01 }}
-                className="relative overflow-hidden"
-              >
-                {isActive("/documentation") && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border-l-2 border-primary shadow-[0_0_20px_rgba(192,192,192,0.15)]"
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30
-                    }}
-                  />
-                )}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-silver-muted/10 to-transparent opacity-0"
-                  initial={{ x: "-100%" }}
-                  whileHover={{
-                    x: "100%",
-                    opacity: 1,
-                    transition: {
-                      x: { duration: 0.6, ease: "easeInOut" },
-                      opacity: { duration: 0.3 }
-                    }
-                  }}
-                />
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to="/documentation"
-                      className="relative hover:bg-gradient-to-r hover:from-primary/5 hover:via-primary/10 hover:to-primary/5 hover:shadow-[0_0_15px_rgba(192,192,192,0.1)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                        transition={{ duration: 0.3 }}
-                        className={isActive("/documentation") ? "text-primary" : ""}
-                      >
-                        <FileText className="h-4 w-4" />
-                      </motion.div>
-                      {state === "expanded" && (
-                        <span className={`tracking-wide ${isActive("/documentation") ? "text-primary" : ""}`}>
-                          Documentation
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </motion.div>
+ {/* System */}
+ <SidebarGroup>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ System
+ </SidebarGroupLabel>
+ <SidebarGroupContent>
+ <SidebarMenu>
+ {renderNavItems(systemItems, "gray", 14)}
+ </SidebarMenu>
+ </SidebarGroupContent>
+ </SidebarGroup>
 
-              {/* Browser Panel Toggle */}
-              {browserPanel && (
-                <motion.div
-                  whileHover={{ x: 4, scale: 1.01 }}
-                  className="relative overflow-hidden"
-                >
-                  {browserPanel.isOpen && (
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border-l-2 border-primary shadow-[0_0_20px_rgba(192,192,192,0.15)]"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-silver-muted/10 to-transparent opacity-0"
-                    initial={{ x: "-100%" }}
-                    whileHover={{
-                      x: "100%",
-                      opacity: 1,
-                      transition: { x: { duration: 0.6, ease: "easeInOut" }, opacity: { duration: 0.3 } }
-                    }}
-                  />
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <button
-                        onClick={browserPanel.toggle}
-                        className="relative w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gradient-to-r hover:from-primary/5 hover:via-primary/10 hover:to-primary/5 hover:shadow-[0_0_15px_rgba(192,192,192,0.1)] transition-all duration-200"
-                      >
-                        <motion.div
-                          whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                          transition={{ duration: 0.3 }}
-                          className={browserPanel.isOpen ? "text-primary" : ""}
-                        >
-                          <PanelRight className="h-4 w-4" />
-                        </motion.div>
-                        {state === "expanded" && (
-                          <span className={`tracking-wide text-sm ${browserPanel.isOpen ? "text-primary" : ""}`}>
-                            Browser
-                          </span>
-                        )}
-                        {state === "expanded" && (
-                          <span className="ml-auto text-[10px] text-zinc-600">Ctrl+B</span>
-                        )}
-                      </button>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </motion.div>
-              )}
+ {/* Configuration */}
+ <SidebarGroup className="mt-auto">
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ Configuration
+ </SidebarGroupLabel>
+ <SidebarGroupContent>
+ <SidebarMenu>
+ {/* Documentation */}
+ <motion.div
+ whileHover={{ x: 2 }}
+ className="relative"
+ >
+ {isActive("/documentation") && (
+ <motion.div
+ layoutId="activeTab"
+ className="absolute inset-0 bg-white/[0.04] rounded-md"
+ transition={{ type: "spring", stiffness: 500, damping: 30 }}
+ />
+ )}
+ <SidebarMenuItem>
+ <SidebarMenuButton asChild>
+ <NavLink
+ to="/documentation"
+ className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}
+ >
+ {state === "expanded" && <GlowDot color="gray" active={isActive("/documentation")} />}
+ <FileText size={16} weight="duotone" className={`flex-shrink-0 ${isActive("/documentation") ? "text-zinc-200" : "text-zinc-500"}`} />
+ {state === "expanded" && (
+ <span className={`text-[13px] ${isActive("/documentation") ? "text-zinc-200 font-medium" : "text-zinc-400"}`}>
+ Documentation
+ </span>
+ )}
+ </NavLink>
+ </SidebarMenuButton>
+ </SidebarMenuItem>
+ </motion.div>
 
-              {/* Settings */}
-              <motion.div
-                whileHover={{ x: 4, scale: 1.01 }}
-                className="relative overflow-hidden"
-              >
-                {isActive("/settings") && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border-l-2 border-primary shadow-[0_0_20px_rgba(192,192,192,0.15)]"
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30
-                    }}
-                  />
-                )}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-silver-muted/10 to-transparent opacity-0"
-                  initial={{ x: "-100%" }}
-                  whileHover={{
-                    x: "100%",
-                    opacity: 1,
-                    transition: {
-                      x: { duration: 0.6, ease: "easeInOut" },
-                      opacity: { duration: 0.3 }
-                    }
-                  }}
-                />
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to="/settings"
-                      className="relative hover:bg-gradient-to-r hover:from-primary/5 hover:via-primary/10 hover:to-primary/5 hover:shadow-[0_0_15px_rgba(192,192,192,0.1)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                        transition={{ duration: 0.3 }}
-                        className={isActive("/settings") ? "text-primary" : ""}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </motion.div>
-                      {state === "expanded" && (
-                        <span className={`tracking-wide ${isActive("/settings") ? "text-primary" : ""}`}>
-                          Settings
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </motion.div>
+ {/* Browser Panel Toggle */}
+ {browserPanel && (
+ <motion.div
+ whileHover={{ x: 2 }}
+ className="relative"
+ >
+ {browserPanel.isOpen && (
+ <motion.div
+ className="absolute inset-0 bg-white/[0.04] rounded-md"
+ transition={{ type: "spring", stiffness: 500, damping: 30 }}
+ />
+ )}
+ <SidebarMenuItem>
+ <SidebarMenuButton asChild>
+ <button
+ onClick={browserPanel.toggle}
+ className={`relative w-full flex items-center px-2 py-1.5 rounded-md hover:bg-white/[0.03] transition-colors duration-150 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}
+ >
+ {state === "expanded" && <GlowDot color="gray" active={browserPanel.isOpen} />}
+ <SidebarSimple size={16} weight="duotone" className={`flex-shrink-0 ${browserPanel.isOpen ? "text-zinc-200" : "text-zinc-500"}`} />
+ {state === "expanded" && (
+ <span className={`text-[13px] ${browserPanel.isOpen ? "text-zinc-200 font-medium" : "text-zinc-400"}`}>
+ Browser
+ </span>
+ )}
+ {state === "expanded" && (
+ <span className="ml-auto text-[10px] text-zinc-600">Ctrl+B</span>
+ )}
+ </button>
+ </SidebarMenuButton>
+ </SidebarMenuItem>
+ </motion.div>
+ )}
 
-              {/* Exit */}
-              <motion.div
-                whileHover={{ x: 4, scale: 1.01 }}
-                className="relative overflow-hidden"
-              >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent opacity-0"
-                  initial={{ x: "-100%" }}
-                  whileHover={{
-                    x: "100%",
-                    opacity: 1,
-                    transition: {
-                      x: { duration: 0.6, ease: "easeInOut" },
-                      opacity: { duration: 0.3 }
-                    }
-                  }}
-                />
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Button
-                      variant="ghost"
-                      onClick={handleLogoutAndExit}
-                      className="relative w-full justify-start hover:bg-gradient-to-r hover:from-red-500/5 hover:via-red-500/10 hover:to-red-500/5 hover:border-l-2 hover:border-red-500/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.1)] transition-all duration-200 text-foreground hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                        transition={{ duration: 0.3 }}
-                        className="flex items-center gap-2"
-                      >
-                        <LogOut className="h-4 w-4" />
-                      </motion.div>
-                      {state === "expanded" && <span className="tracking-wide">Exit</span>}
-                    </Button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </motion.div>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
+ {/* Settings */}
+ <motion.div
+ whileHover={{ x: 2 }}
+ className="relative"
+ >
+ {isActive("/settings") && (
+ <motion.div
+ layoutId="activeTab"
+ className="absolute inset-0 bg-white/[0.04] rounded-md"
+ transition={{ type: "spring", stiffness: 500, damping: 30 }}
+ />
+ )}
+ <SidebarMenuItem>
+ <SidebarMenuButton asChild>
+ <NavLink
+ to="/settings"
+ className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}
+ >
+ {state === "expanded" && <GlowDot color="gray" active={isActive("/settings")} />}
+ <GearSix size={16} weight="duotone" className={`flex-shrink-0 ${isActive("/settings") ? "text-zinc-200" : "text-zinc-500"}`} />
+ {state === "expanded" && (
+ <span className={`text-[13px] ${isActive("/settings") ? "text-zinc-200 font-medium" : "text-zinc-400"}`}>
+ Settings
+ </span>
+ )}
+ </NavLink>
+ </SidebarMenuButton>
+ </SidebarMenuItem>
+ </motion.div>
+
+ {/* Exit */}
+ <motion.div
+ whileHover={{ x: 2 }}
+ className="relative"
+ >
+ <SidebarMenuItem>
+ <SidebarMenuButton asChild>
+ <Button
+ variant="ghost"
+ onClick={handleLogoutAndExit}
+ className={`relative w-full hover:bg-white/[0.03] transition-colors duration-150 text-foreground hover:text-red-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${state === "collapsed" ? "justify-center gap-0" : "justify-start gap-3"}`}
+ >
+ {state === "expanded" && <GlowDot color="red" active={false} />}
+ <SignOut size={16} weight="duotone" className="text-zinc-500 flex-shrink-0" />
+ {state === "expanded" && <span className="text-[13px] text-zinc-400">Exit</span>}
+ </Button>
+ </SidebarMenuButton>
+ </SidebarMenuItem>
+ </motion.div>
+ </SidebarMenu>
+ </SidebarGroupContent>
+ </SidebarGroup>
+ </SidebarContent>
+ </Sidebar>
+ );
 }

@@ -24,6 +24,7 @@ export interface SearchAgentResponse {
     title: string;
     url: string;
     content: string;
+    score?: number;
   }>;
   steps: Array<{
     action: string;
@@ -87,6 +88,7 @@ class SearchAgentService {
         title: result.title,
         url: result.url,
         content: result.content || '',
+        score: result.score,
       }));
 
       // Step 4: Generate answer

@@ -15,17 +15,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
   Monitor,
   Cpu,
-  HardDrive,
-  MemoryStick,
-  Network,
-  Loader2,
+  HardDrives,
+  Memory,
+  TreeStructure,
+  CircleNotch,
   CheckCircle,
-  AlertCircle,
-} from 'lucide-react';
+  WarningCircle,
+} from '@phosphor-icons/react';
 import { systemMonitor, SystemMetrics } from '@/services/systemMonitor';
 import { endpointService } from '@/services/endpointService';
 import { toast } from 'sonner';
@@ -99,7 +98,7 @@ export function AddEndpointDialog({
       <DialogContent className="sm:max-w-[500px] bg-background/95 backdrop-blur border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Monitor className="h-5 w-5 text-primary" />
+            <Monitor size={20} weight="duotone" className="text-primary" />
             Register This Device
           </DialogTitle>
           <DialogDescription>
@@ -109,12 +108,12 @@ export function AddEndpointDialog({
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-8 gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <CircleNotch size={32} weight="duotone" className="animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Detecting system information...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-8 gap-4">
-            <AlertCircle className="h-8 w-8 text-destructive" />
+            <WarningCircle size={32} weight="duotone" className="text-destructive" />
             <p className="text-sm text-destructive">{error}</p>
             <Button variant="outline" onClick={loadSystemMetrics}>
               Retry
@@ -138,28 +137,28 @@ export function AddEndpointDialog({
 
             <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
               <h4 className="text-sm font-medium flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle size={16} weight="bold" className="text-emerald-500" />
                 System Detected
               </h4>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <Monitor className="h-4 w-4 text-muted-foreground" />
+                  <Monitor size={16} weight="bold" className="text-muted-foreground" />
                   <span className="text-muted-foreground">OS:</span>
                   <span>{metrics.platform} {metrics.osVersion}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Network className="h-4 w-4 text-muted-foreground" />
+                  <TreeStructure size={16} weight="bold" className="text-muted-foreground" />
                   <span className="text-muted-foreground">IP:</span>
                   <span>{metrics.ipAddress}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-muted-foreground" />
+                  <Cpu size={16} weight="bold" className="text-muted-foreground" />
                   <span className="text-muted-foreground">CPU:</span>
                   <span>{metrics.cpuCores} cores</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MemoryStick className="h-4 w-4 text-muted-foreground" />
+                  <Memory size={16} weight="bold" className="text-muted-foreground" />
                   <span className="text-muted-foreground">RAM:</span>
                   <span>{formatBytes(metrics.memoryTotal)}</span>
                 </div>
@@ -191,12 +190,8 @@ export function AddEndpointDialog({
             </div>
 
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {metrics.architecture}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                Agent v1.0.0
-              </Badge>
+              <span className="text-xs text-zinc-400">{metrics.architecture}</span>
+              <span className="text-xs text-zinc-400">Agent v1.0.0</span>
             </div>
           </div>
         ) : null}
@@ -215,7 +210,7 @@ export function AddEndpointDialog({
           >
             {saving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <CircleNotch size={16} weight="bold" className="mr-2 animate-spin" />
                 Adding...
               </>
             ) : (

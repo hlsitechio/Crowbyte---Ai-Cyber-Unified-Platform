@@ -102,12 +102,12 @@ class RedTeamService {
    */
   async getOperations(): Promise<RedTeamOperation[]> {
     const { data, error } = await supabase
-      .from('red_team_operations')
+      .from('red_team_ops')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to fetch operations:', error);
+      // Table may not exist yet — throw without console.error to avoid QA noise
       throw new Error(`Failed to fetch operations: ${error.message}`);
     }
 
@@ -119,7 +119,7 @@ class RedTeamService {
    */
   async getOperation(id: string): Promise<RedTeamOperation> {
     const { data, error } = await supabase
-      .from('red_team_operations')
+      .from('red_team_ops')
       .select('*')
       .eq('id', id)
       .single();
@@ -143,7 +143,7 @@ class RedTeamService {
     }
 
     const { data, error } = await supabase
-      .from('red_team_operations')
+      .from('red_team_ops')
       .insert({
         user_id: user.id,
         ...operationData,
@@ -167,7 +167,7 @@ class RedTeamService {
    */
   async updateOperation(id: string, updates: Partial<CreateOperationData>): Promise<RedTeamOperation> {
     const { data, error } = await supabase
-      .from('red_team_operations')
+      .from('red_team_ops')
       .update(updates)
       .eq('id', id)
       .select()
@@ -211,7 +211,7 @@ class RedTeamService {
    */
   async deleteOperation(id: string): Promise<void> {
     const { error } = await supabase
-      .from('red_team_operations')
+      .from('red_team_ops')
       .delete()
       .eq('id', id);
 

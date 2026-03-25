@@ -257,7 +257,7 @@ class EndpointService {
       .select('*')
       .eq('user_id', user.id)
       .eq('is_current_device', true)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       return null;

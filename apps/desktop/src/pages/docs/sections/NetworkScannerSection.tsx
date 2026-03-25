@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Network } from "lucide-react";
+import { TreeStructure } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function NetworkScannerSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Network} title="Network Scanner" description="10-profile nmap GUI with parsed results and scan history" status="ready" />
+      <DocHeader icon={TreeStructure} title="Network Scanner" description="10-profile nmap GUI with parsed results and scan history" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -39,17 +39,17 @@ export function NetworkScannerSection() {
           <CodeBlock>
             <div className="text-zinc-500"># Parsed result structure</div>
             <div><span className="text-primary">hosts[]</span></div>
-            <div>  <span className="text-green-400">ip</span>        <span className="text-zinc-500">IP address</span></div>
-            <div>  <span className="text-green-400">hostname</span>  <span className="text-zinc-500">Reverse DNS / PTR</span></div>
-            <div>  <span className="text-green-400">os</span>        <span className="text-zinc-500">OS detection result</span></div>
-            <div>  <span className="text-green-400">state</span>     <span className="text-zinc-500">up / down</span></div>
-            <div>  <span className="text-green-400">ports[]</span></div>
-            <div>    <span className="text-yellow-400">port</span>     <span className="text-zinc-500">Port number</span></div>
-            <div>    <span className="text-yellow-400">protocol</span> <span className="text-zinc-500">tcp / udp</span></div>
-            <div>    <span className="text-yellow-400">state</span>    <span className="text-zinc-500">open / filtered / closed</span></div>
-            <div>    <span className="text-yellow-400">service</span>  <span className="text-zinc-500">Service name (http, ssh, etc.)</span></div>
-            <div>    <span className="text-yellow-400">version</span>  <span className="text-zinc-500">Service version string</span></div>
-            <div>    <span className="text-yellow-400">scripts[]</span> <span className="text-zinc-500">NSE script output</span></div>
+            <div>  <span className="text-emerald-500">ip</span>        <span className="text-zinc-500">IP address</span></div>
+            <div>  <span className="text-emerald-500">hostname</span>  <span className="text-zinc-500">Reverse DNS / PTR</span></div>
+            <div>  <span className="text-emerald-500">os</span>        <span className="text-zinc-500">OS detection result</span></div>
+            <div>  <span className="text-emerald-500">state</span>     <span className="text-zinc-500">up / down</span></div>
+            <div>  <span className="text-emerald-500">ports[]</span></div>
+            <div>    <span className="text-amber-500">port</span>     <span className="text-zinc-500">Port number</span></div>
+            <div>    <span className="text-amber-500">protocol</span> <span className="text-zinc-500">tcp / udp</span></div>
+            <div>    <span className="text-amber-500">state</span>    <span className="text-zinc-500">open / filtered / closed</span></div>
+            <div>    <span className="text-amber-500">service</span>  <span className="text-zinc-500">Service name (http, ssh, etc.)</span></div>
+            <div>    <span className="text-amber-500">version</span>  <span className="text-zinc-500">Service version string</span></div>
+            <div>    <span className="text-amber-500">scripts[]</span> <span className="text-zinc-500">NSE script output</span></div>
           </CodeBlock>
         </CardContent></Card>
 

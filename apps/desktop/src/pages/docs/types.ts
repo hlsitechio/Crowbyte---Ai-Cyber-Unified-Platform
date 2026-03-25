@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 
 export type DocSection =
   // Getting Started
@@ -49,13 +49,13 @@ export type DocSection =
 export interface NavItem {
   id: DocSection;
   label: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   badge?: string;
 }
 
 export interface NavGroup {
   label: string;
   color: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   items: NavItem[];
 }

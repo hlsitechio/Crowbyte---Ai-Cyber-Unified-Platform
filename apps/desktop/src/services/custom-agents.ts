@@ -97,7 +97,6 @@ class CustomAgentsService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Failed to fetch agents:', error);
       throw new Error(`Failed to fetch agents: ${error.message}`);
     }
 

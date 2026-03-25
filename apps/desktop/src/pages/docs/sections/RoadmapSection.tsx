@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Target, CaretRight, CheckCircle } from "@phosphor-icons/react";
 import { DocHeader } from "../components";
 
 export function RoadmapSection() {
@@ -8,9 +8,9 @@ export function RoadmapSection() {
     <div className="space-y-6">
       <DocHeader icon={Target} title="Roadmap" description="Completed milestones and planned features" />
 
-      <Card className="border-green-500/30"><CardContent className="pt-6">
-        <div className="text-sm font-medium text-green-400 mb-3 flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4" /> Recently Completed
+      <Card className="border-transparent"><CardContent className="pt-6">
+        <div className="text-sm font-medium text-emerald-500 mb-3 flex items-center gap-2">
+          <CheckCircle size={16} weight="bold" /> Recently Completed
         </div>
         <ul className="space-y-2 text-sm text-muted-foreground">
           {[
@@ -26,15 +26,15 @@ export function RoadmapSection() {
             "10 nmap scan profiles in Network Scanner",
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+              <CheckCircle size={16} weight="bold" className="text-emerald-500 mt-0.5 shrink-0" />
               {item}
             </li>
           ))}
         </ul>
       </CardContent></Card>
 
-      <Card className="border-orange-500/30"><CardContent className="pt-6">
-        <div className="text-sm font-medium text-orange-400 mb-3">Planned Features</div>
+      <Card className="border-transparent"><CardContent className="pt-6">
+        <div className="text-sm font-medium text-orange-500 mb-3">Planned Features</div>
         <ul className="space-y-3 text-sm text-muted-foreground">
           {[
             "Chat history persistence to Supabase (cross-session)",
@@ -54,7 +54,7 @@ export function RoadmapSection() {
             "Remote command execution via Fleet endpoints",
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-2">
-              <ChevronRight className="h-4 w-4 text-orange-400 mt-0.5 shrink-0" />
+              <CaretRight size={16} weight="bold" className="text-orange-500 mt-0.5 shrink-0" />
               {item}
             </li>
           ))}

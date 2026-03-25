@@ -9,13 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import {
-  X, Save, Trash2, Plus, Server, Monitor, Router, ShieldAlert,
-  Layers, Cloud, Database, Scale, Printer, Cpu, Container,
-  ShieldCheck, Wifi, HelpCircle, Globe, Skull, Lock, Unlock,
-  Copy, ExternalLink, Tag,
-} from 'lucide-react';
+  X, FloppyDisk, Trash, Plus, DesktopTower, Monitor, ShareNetwork, ShieldWarning,
+  Stack, Cloud, Database, Scales, Printer, Cpu, Package,
+  ShieldCheck, WifiHigh, Question, Globe, Skull, Lock, LockOpen,
+  Copy, ArrowSquareOut, Tag,
+} from '@phosphor-icons/react';
 import { type NetworkDevice, type DeviceType, type DevicePort, DEVICE_TYPES } from './types';
 
 interface NodeEditorProps {
@@ -27,10 +26,10 @@ interface NodeEditorProps {
 }
 
 const DEVICE_ICONS: Record<string, React.ElementType> = {
-  server: Server, workstation: Monitor, router: Router, firewall: ShieldAlert,
-  switch: Layers, cloud: Cloud, database: Database, loadbalancer: Scale,
-  printer: Printer, iot: Cpu, container: Container, vpn: ShieldCheck,
-  wap: Wifi, unknown: HelpCircle, internet: Globe, attacker: Skull,
+  server: DesktopTower, workstation: Monitor, router: ShareNetwork, firewall: ShieldWarning,
+  switch: Stack, cloud: Cloud, database: Database, loadbalancer: Scales,
+  printer: Printer, iot: Cpu, container: Package, vpn: ShieldCheck,
+  wap: WifiHigh, unknown: Question, internet: Globe, attacker: Skull,
 };
 
 export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEditorProps) {
@@ -113,7 +112,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
     onSave(form);
   };
 
-  const Icon = DEVICE_ICONS[form.type] || HelpCircle;
+  const Icon = DEVICE_ICONS[form.type] || Question;
   const meta = DEVICE_TYPES[form.type];
   const openPorts = form.ports.filter(p => p.state === 'open').length;
 
@@ -123,14 +122,14 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <div className={`p-1 rounded ${meta.bgColor} ${meta.color}`}>
-            <Icon className="h-4 w-4" />
+            <Icon size={16} weight="bold" />
           </div>
           <span className="text-sm font-medium text-white">
             {isNew ? 'Add Device' : 'Edit Device'}
           </span>
         </div>
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
-          <X className="h-3.5 w-3.5" />
+          <X size={14} weight="bold" />
         </Button>
       </div>
 
@@ -141,7 +140,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
           <div className="space-y-1.5">
             <Label className="text-[11px] text-zinc-400">Device Type</Label>
             <Select value={form.type} onValueChange={(v) => updateField('type', v as DeviceType)}>
-              <SelectTrigger className="h-8 text-xs bg-zinc-800/50">
+              <SelectTrigger className="h-8 text-xs bg-transparent">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -150,7 +149,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                   return (
                     <SelectItem key={key} value={key} className="text-xs">
                       <div className="flex items-center gap-2">
-                        <TypeIcon className={`h-3 w-3 ${val.color}`} />
+                        <TypeIcon size={12} weight="bold" className={val.color} />
                         {val.label}
                       </div>
                     </SelectItem>
@@ -167,7 +166,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
               value={form.label}
               onChange={e => updateField('label', e.target.value)}
               placeholder="e.g. web-prod-01"
-              className="h-8 text-xs bg-zinc-800/50 font-mono"
+              className="h-8 text-xs bg-transparent font-mono"
             />
           </div>
 
@@ -179,18 +178,18 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 value={form.ip || ''}
                 onChange={e => updateField('ip', e.target.value)}
                 placeholder="10.0.1.5"
-                className="h-8 text-xs bg-zinc-800/50 font-mono"
+                className="h-8 text-xs bg-transparent font-mono"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[11px] text-zinc-400">Status</Label>
               <Select value={form.status} onValueChange={(v) => updateField('status', v)}>
-                <SelectTrigger className="h-8 text-xs bg-zinc-800/50">
+                <SelectTrigger className="h-8 text-xs bg-transparent">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="up" className="text-xs text-green-400">Up</SelectItem>
-                  <SelectItem value="down" className="text-xs text-red-400">Down</SelectItem>
+                  <SelectItem value="up" className="text-xs text-emerald-500">Up</SelectItem>
+                  <SelectItem value="down" className="text-xs text-red-500">Down</SelectItem>
                   <SelectItem value="unknown" className="text-xs text-zinc-400">Unknown</SelectItem>
                 </SelectContent>
               </Select>
@@ -204,7 +203,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
               value={form.hostname || ''}
               onChange={e => updateField('hostname', e.target.value)}
               placeholder="web-prod-01.corp.local"
-              className="h-8 text-xs bg-zinc-800/50 font-mono"
+              className="h-8 text-xs bg-transparent font-mono"
             />
           </div>
 
@@ -216,7 +215,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 value={form.mac || ''}
                 onChange={e => updateField('mac', e.target.value)}
                 placeholder="AA:BB:CC:..."
-                className="h-8 text-xs bg-zinc-800/50 font-mono"
+                className="h-8 text-xs bg-transparent font-mono"
               />
             </div>
             <div className="space-y-1.5">
@@ -225,7 +224,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 value={form.vendor || ''}
                 onChange={e => updateField('vendor', e.target.value)}
                 placeholder="Dell, Cisco..."
-                className="h-8 text-xs bg-zinc-800/50"
+                className="h-8 text-xs bg-transparent"
               />
             </div>
           </div>
@@ -237,7 +236,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
               value={form.os || ''}
               onChange={e => updateField('os', e.target.value)}
               placeholder="Ubuntu 22.04, Windows Server 2022..."
-              className="h-8 text-xs bg-zinc-800/50"
+              className="h-8 text-xs bg-transparent"
             />
           </div>
 
@@ -248,39 +247,39 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
               value={form.subnet || ''}
               onChange={e => updateField('subnet', e.target.value)}
               placeholder="10.0.1.0/24 or VLAN 100"
-              className="h-8 text-xs bg-zinc-800/50 font-mono"
+              className="h-8 text-xs bg-transparent font-mono"
             />
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-white/[0.06]" />
 
           {/* Ports */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-[11px] text-zinc-400">Open Ports</Label>
-              <Badge variant="outline" className="text-[9px] h-4">{openPorts} open</Badge>
+              <span className="text-[9px] text-zinc-400">{openPorts} open</span>
             </div>
 
             {/* Existing ports */}
             {form.ports.length > 0 && (
               <div className="space-y-0.5">
                 {form.ports.map((p, i) => (
-                  <div key={i} className="flex items-center justify-between px-2 py-1 rounded bg-zinc-800/30 group">
+                  <div key={i} className="flex items-center justify-between px-2 py-1 rounded group">
                     <div className="flex items-center gap-2">
                       {p.state === 'open' ? (
-                        <Unlock className="h-2.5 w-2.5 text-green-400" />
+                        <LockOpen size={10} weight="bold" className="text-emerald-500" />
                       ) : (
-                        <Lock className="h-2.5 w-2.5 text-yellow-400" />
+                        <Lock size={10} weight="bold" className="text-amber-500" />
                       )}
                       <span className="text-[11px] font-mono text-white">{p.port}/{p.protocol}</span>
-                      <span className="text-[10px] text-cyan-400">{p.service}</span>
+                      <span className="text-[10px] text-cyan-500">{p.service}</span>
                     </div>
                     <Button
                       variant="ghost" size="sm"
                       className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100"
                       onClick={() => removePort(i)}
                     >
-                      <X className="h-2.5 w-2.5 text-red-400" />
+                      <X size={10} weight="bold" className="text-red-500" />
                     </Button>
                   </div>
                 ))}
@@ -293,7 +292,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 value={newPort.port}
                 onChange={e => setNewPort(prev => ({ ...prev, port: e.target.value }))}
                 placeholder="Port"
-                className="h-7 text-[11px] bg-zinc-800/50 font-mono w-20"
+                className="h-7 text-[11px] bg-transparent font-mono w-20"
                 type="number"
                 onKeyDown={e => e.key === 'Enter' && addPort()}
               />
@@ -301,16 +300,16 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 value={newPort.service}
                 onChange={e => setNewPort(prev => ({ ...prev, service: e.target.value }))}
                 placeholder="Service"
-                className="h-7 text-[11px] bg-zinc-800/50 flex-1"
+                className="h-7 text-[11px] bg-transparent flex-1"
                 onKeyDown={e => e.key === 'Enter' && addPort()}
               />
               <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={addPort}>
-                <Plus className="h-3 w-3" />
+                <Plus size={12} weight="bold" />
               </Button>
             </div>
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-white/[0.06]" />
 
           {/* Tags */}
           <div className="space-y-2">
@@ -318,14 +317,13 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
             {form.tags && form.tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {form.tags.map((tag, i) => (
-                  <Badge
+                  <span
                     key={i}
-                    variant="outline"
-                    className="text-[9px] h-5 gap-1 cursor-pointer hover:bg-red-500/10"
+                    className="flex items-center gap-1 text-[9px] text-zinc-400 cursor-pointer hover:text-red-500"
                     onClick={() => removeTag(i)}
                   >
-                    <Tag className="h-2 w-2" />{tag}<X className="h-2 w-2" />
-                  </Badge>
+                    <Tag size={8} weight="bold" />{tag}<X size={8} weight="bold" />
+                  </span>
                 ))}
               </div>
             )}
@@ -334,16 +332,16 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 value={newTag}
                 onChange={e => setNewTag(e.target.value)}
                 placeholder="Add tag..."
-                className="h-7 text-[11px] bg-zinc-800/50 flex-1"
+                className="h-7 text-[11px] bg-transparent flex-1"
                 onKeyDown={e => e.key === 'Enter' && addTag()}
               />
               <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={addTag}>
-                <Plus className="h-3 w-3" />
+                <Plus size={12} weight="bold" />
               </Button>
             </div>
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-white/[0.06]" />
 
           {/* Notes */}
           <div className="space-y-1.5">
@@ -352,7 +350,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
               value={form.notes || ''}
               onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
               placeholder="Internal notes, vulns, observations..."
-              className="w-full h-20 text-xs bg-zinc-800/50 border border-zinc-700 rounded-md px-2 py-1.5 resize-none text-zinc-300 focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full h-20 text-xs bg-transparent border border-zinc-700 rounded-md px-2 py-1.5 resize-none text-zinc-300 focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -361,11 +359,11 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
             <div className="flex flex-wrap gap-1">
               <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1"
                 onClick={() => navigator.clipboard.writeText(device.ip || '')}>
-                <Copy className="h-2.5 w-2.5" /> Copy IP
+                <Copy size={10} weight="bold" /> Copy IP
               </Button>
               <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1"
                 onClick={() => window.open(`https://www.shodan.io/host/${device.ip}`, '_blank')}>
-                <ExternalLink className="h-2.5 w-2.5" /> Shodan
+                <ArrowSquareOut size={10} weight="bold" /> Shodan
               </Button>
             </div>
           )}
@@ -377,13 +375,13 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
         {!isNew && onDelete && (
           <Button variant="destructive" size="sm" className="h-8 text-xs gap-1"
             onClick={() => onDelete(form.id)}>
-            <Trash2 className="h-3 w-3" /> Delete
+            <Trash size={12} weight="bold" /> Delete
           </Button>
         )}
         <div className="flex-1" />
         <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={onClose}>Cancel</Button>
         <Button size="sm" className="h-8 text-xs gap-1" onClick={handleSave} disabled={!form.label.trim()}>
-          <Save className="h-3 w-3" /> {isNew ? 'Add' : 'Save'}
+          <FloppyDisk size={12} weight="bold" /> {isNew ? 'Add' : 'Save'}
         </Button>
       </div>
     </div>

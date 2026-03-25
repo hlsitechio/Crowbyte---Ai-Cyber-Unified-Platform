@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bug } from "lucide-react";
+import { Bug } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function CVESection() {
@@ -58,20 +58,20 @@ export function CVESection() {
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Lookup (parallel NVD + Shodan, auto-save)</div>
-            <div><span className="text-green-400">cve-db lookup</span> CVE-2024-3400</div>
+            <div><span className="text-emerald-500">cve-db lookup</span> CVE-2024-3400</div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Individual source queries</div>
-            <div><span className="text-green-400">cve-db nvd</span> CVE-2024-3400</div>
-            <div><span className="text-green-400">cve-db shodan</span> CVE-2024-3400</div>
+            <div><span className="text-emerald-500">cve-db nvd</span> CVE-2024-3400</div>
+            <div><span className="text-emerald-500">cve-db shodan</span> CVE-2024-3400</div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Database operations</div>
-            <div><span className="text-green-400">cve-db search</span> "RCE"</div>
-            <div><span className="text-green-400">cve-db list</span> --severity CRITICAL</div>
-            <div><span className="text-green-400">cve-db list</span> -n 20</div>
-            <div><span className="text-green-400">cve-db stats</span></div>
+            <div><span className="text-emerald-500">cve-db search</span> "RCE"</div>
+            <div><span className="text-emerald-500">cve-db list</span> --severity CRITICAL</div>
+            <div><span className="text-emerald-500">cve-db list</span> -n 20</div>
+            <div><span className="text-emerald-500">cve-db stats</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Manual save</div>
-            <div><span className="text-green-400">cve-db save</span> "CVE-2024-3400" "PAN-OS Command Injection" \</div>
+            <div><span className="text-emerald-500">cve-db save</span> "CVE-2024-3400" "PAN-OS Command Injection" \</div>
             <div>  --cvss 10.0 --severity CRITICAL \</div>
             <div>  --desc "OS command injection in GlobalProtect" \</div>
             <div>  --products "paloaltonetworks:pan-os" \</div>

@@ -8,15 +8,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Monitor, MonitorOff, Eye, Mouse, MousePointer2, Maximize2, Minimize2,
-  Copy, ClipboardPaste, Send, FolderUp, Video, VideoOff, Settings,
-  X, Wifi, WifiOff, Lock, Shield, ShieldCheck, ScreenShare,
-  Keyboard, RotateCcw, Power, Zap, Gauge, MonitorSmartphone,
-  AlertTriangle, CheckCircle2, Clock, Download, Upload, MessageSquare,
-} from 'lucide-react';
+  Monitor, Eye, Mouse, Cursor, ArrowsOut, ArrowsIn,
+  Copy, ClipboardText, PaperPlaneTilt, FolderOpen, VideoCamera, VideoCameraSlash, GearSix,
+  X, WifiHigh, WifiSlash, Lock, Shield, ShieldCheck, Screencast,
+  Keyboard, ArrowCounterClockwise, Power, Lightning, Gauge, DeviceMobile,
+  Warning, CheckCircle, Clock, DownloadSimple, UploadSimple, ChatDots,
+} from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
@@ -297,15 +297,15 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
 
   const getStatusDisplay = () => {
     switch (status) {
-      case 'requesting': return { text: 'Requesting...', color: 'text-blue-400', icon: Wifi };
-      case 'waiting_consent': return { text: 'Waiting for approval', color: 'text-yellow-400', icon: Clock };
-      case 'connecting': return { text: 'Connecting (E2E handshake)', color: 'text-blue-400', icon: Lock };
-      case 'connected': return { text: 'Connected (encrypted)', color: 'text-green-400', icon: ShieldCheck };
-      case 'recording': return { text: 'Recording', color: 'text-red-400', icon: Video };
-      case 'disconnected': return { text: 'Disconnected', color: 'text-gray-400', icon: WifiOff };
-      case 'denied': return { text: 'Access Denied', color: 'text-red-400', icon: MonitorOff };
-      case 'error': return { text: 'Error', color: 'text-red-400', icon: AlertTriangle };
-      default: return { text: status, color: 'text-gray-400', icon: Monitor };
+      case 'requesting': return { text: 'Requesting...', color: 'text-blue-500', icon: WifiHigh };
+      case 'waiting_consent': return { text: 'Waiting for approval', color: 'text-amber-500', icon: Clock };
+      case 'connecting': return { text: 'Connecting (E2E handshake)', color: 'text-blue-500', icon: Lock };
+      case 'connected': return { text: 'Connected (encrypted)', color: 'text-emerald-500', icon: ShieldCheck };
+      case 'recording': return { text: 'Recording', color: 'text-red-500', icon: VideoCamera };
+      case 'disconnected': return { text: 'Disconnected', color: 'text-zinc-500', icon: WifiSlash };
+      case 'denied': return { text: 'Access Denied', color: 'text-red-500', icon: Monitor };
+      case 'error': return { text: 'Error', color: 'text-red-500', icon: Warning };
+      default: return { text: status, color: 'text-zinc-500', icon: Monitor };
     }
   };
 
@@ -322,6 +322,10 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
         ref={containerRef}
         onMouseEnter={() => setShowToolbar(true)}
       >
+        <VisuallyHidden>
+          <DialogTitle>Remote Control Session</DialogTitle>
+          <DialogDescription>Remote desktop viewer</DialogDescription>
+        </VisuallyHidden>
         {/* ─── Top Toolbar ─────────────────────────────────────────── */}
         <AnimatePresence>
           {showToolbar && (
@@ -335,7 +339,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
               {/* Left — Session info */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <ScreenShare className="h-4 w-4 text-emerald-400" />
+                  <Screencast size={16} weight="bold" className="text-emerald-500" />
                   <span className="text-sm font-medium text-white">{endpoint?.hostname}</span>
                   <span className="text-xs text-zinc-500 font-mono">{endpoint?.ip_address}</span>
                 </div>
@@ -343,23 +347,23 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                 <Separator orientation="vertical" className="h-5 bg-zinc-700" />
 
                 <div className="flex items-center gap-1.5">
-                  <StatusIcon className={`h-3.5 w-3.5 ${statusInfo.color}`} />
+                  <StatusIcon size={14} weight="bold" className={statusInfo.color} />
                   <span className={`text-xs ${statusInfo.color}`}>{statusInfo.text}</span>
                 </div>
 
                 {isActive && (
                   <>
-                    <Badge variant="outline" className="text-[10px] h-5 border-zinc-700 text-zinc-400">
-                      <Gauge className="h-3 w-3 mr-1" />
+                    <span className="flex items-center gap-1 text-[10px] text-zinc-400">
+                      <Gauge size={12} weight="bold" />
                       {latency}ms
-                    </Badge>
-                    <Badge variant="outline" className="text-[10px] h-5 border-zinc-700 text-zinc-400">
-                      <Clock className="h-3 w-3 mr-1" />
+                    </span>
+                    <span className="flex items-center gap-1 text-[10px] text-zinc-400">
+                      <Clock size={12} weight="bold" />
                       {formatTime(connectionTime)}
-                    </Badge>
-                    <Badge variant="outline" className="text-[10px] h-5 border-zinc-700 text-zinc-400">
+                    </span>
+                    <span className="text-[10px] text-zinc-400">
                       {formatBytes(bytesTransferred)}
-                    </Badge>
+                    </span>
                   </>
                 )}
               </div>
@@ -369,18 +373,18 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                 <TooltipProvider delayDuration={300}>
                   {/* Permission selector */}
                   <Select value={permission} onValueChange={handlePermissionChange}>
-                    <SelectTrigger className="h-7 w-[140px] bg-zinc-800 border-zinc-700 text-xs">
+                    <SelectTrigger className="h-7 w-[140px] border-zinc-700 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectContent className="border-zinc-700">
                       <SelectItem value="view_only">
-                        <div className="flex items-center gap-1.5"><Eye className="h-3 w-3" /> View Only</div>
+                        <div className="flex items-center gap-1.5"><Eye size={12} weight="bold" /> View Only</div>
                       </SelectItem>
                       <SelectItem value="shared_control">
-                        <div className="flex items-center gap-1.5"><Mouse className="h-3 w-3" /> Shared Control</div>
+                        <div className="flex items-center gap-1.5"><Mouse size={12} weight="bold" /> Shared Control</div>
                       </SelectItem>
                       <SelectItem value="full_control">
-                        <div className="flex items-center gap-1.5"><MousePointer2 className="h-3 w-3" /> Full Control</div>
+                        <div className="flex items-center gap-1.5"><Cursor size={12} weight="bold" /> Full Control</div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -389,10 +393,10 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
 
                   {/* Quality */}
                   <Select value={quality} onValueChange={handleQualityChange}>
-                    <SelectTrigger className="h-7 w-[100px] bg-zinc-800 border-zinc-700 text-xs">
+                    <SelectTrigger className="h-7 w-[100px] border-zinc-700 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectContent className="border-zinc-700">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -406,7 +410,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleClipboardSync} disabled={!isActive}>
-                        <ClipboardPaste className="h-3.5 w-3.5" />
+                        <ClipboardText size={14} weight="bold" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Sync Clipboard</TooltipContent>
@@ -415,7 +419,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCtrlAltDel} disabled={!isActive || permission === 'view_only'}>
-                        <Keyboard className="h-3.5 w-3.5" />
+                        <Keyboard size={14} weight="bold" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Ctrl+Alt+Del</TooltipContent>
@@ -426,11 +430,11 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                       <Button
                         variant="ghost"
                         size="sm"
-                        className={`h-7 w-7 p-0 ${isRecording ? 'text-red-400' : ''}`}
+                        className={`h-7 w-7 p-0 ${isRecording ? 'text-red-500' : ''}`}
                         onClick={toggleRecording}
                         disabled={!isActive}
                       >
-                        {isRecording ? <Video className="h-3.5 w-3.5" /> : <VideoOff className="h-3.5 w-3.5" />}
+                        {isRecording ? <VideoCamera size={14} weight="bold" /> : <VideoCameraSlash size={14} weight="bold" />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>{isRecording ? 'Stop Recording' : 'Start Recording'}</TooltipContent>
@@ -439,7 +443,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={toggleFullscreen}>
-                        {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                        {isFullscreen ? <ArrowsIn size={14} weight="bold" /> : <ArrowsOut size={14} weight="bold" />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
@@ -449,8 +453,8 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
 
               {/* Right — Disconnect */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 text-emerald-400">
-                  <Lock className="h-3 w-3" />
+                <div className="flex items-center gap-1 text-emerald-500">
+                  <Lock size={12} weight="bold" />
                   <span className="text-[10px]">E2E AES-256</span>
                 </div>
                 <Button
@@ -459,7 +463,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                   className="h-7 text-xs"
                   onClick={handleDisconnect}
                 >
-                  <X className="h-3.5 w-3.5 mr-1" />
+                  <X size={14} weight="bold" className="mr-1" />
                   Disconnect
                 </Button>
               </div>
@@ -478,7 +482,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
                   >
-                    <Wifi className="h-16 w-16 text-blue-400" />
+                    <WifiHigh size={64} weight="duotone" className="text-blue-500" />
                   </motion.div>
                   <p className="text-lg text-zinc-300">Connecting to relay server...</p>
                   <p className="text-sm text-zinc-500">Establishing encrypted tunnel</p>
@@ -491,15 +495,15 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                   >
-                    <MonitorSmartphone className="h-16 w-16 text-yellow-400" />
+                    <DeviceMobile size={64} weight="duotone" className="text-amber-500" />
                   </motion.div>
                   <p className="text-lg text-zinc-300">Waiting for user approval...</p>
                   <p className="text-sm text-zinc-500">
                     A consent prompt has been sent to <span className="text-white font-medium">{endpoint?.hostname}</span>
                   </p>
-                  <Badge variant="outline" className="border-yellow-500/30 text-yellow-400">
+                  <span className="text-xs text-amber-500">
                     {permission === 'view_only' ? 'View Only' : permission === 'shared_control' ? 'Shared Control' : 'Full Control'}
-                  </Badge>
+                  </span>
                 </>
               )}
 
@@ -509,7 +513,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
                   >
-                    <Lock className="h-16 w-16 text-emerald-400" />
+                    <Lock size={64} weight="duotone" className="text-emerald-500" />
                   </motion.div>
                   <p className="text-lg text-zinc-300">E2E Key Exchange...</p>
                   <p className="text-sm text-zinc-500">Negotiating AES-256-GCM session keys</p>
@@ -518,7 +522,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
 
               {status === 'denied' && (
                 <>
-                  <MonitorOff className="h-16 w-16 text-red-400" />
+                  <Monitor size={64} weight="duotone" className="text-red-500" />
                   <p className="text-lg text-zinc-300">Access Denied</p>
                   <p className="text-sm text-zinc-500">The remote user declined the connection request</p>
                   <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
@@ -527,7 +531,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
 
               {status === 'error' && (
                 <>
-                  <AlertTriangle className="h-16 w-16 text-red-400" />
+                  <Warning size={64} weight="duotone" className="text-red-500" />
                   <p className="text-lg text-zinc-300">Connection Error</p>
                   <p className="text-sm text-zinc-500">Failed to establish remote connection</p>
                   <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
@@ -536,7 +540,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
 
               {status === 'disconnected' && (
                 <>
-                  <WifiOff className="h-16 w-16 text-zinc-500" />
+                  <WifiSlash size={64} weight="duotone" className="text-zinc-500" />
                   <p className="text-lg text-zinc-300">Session Ended</p>
                   <div className="flex items-center gap-4 text-sm text-zinc-500">
                     <span>Duration: {formatTime(connectionTime)}</span>

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollText } from "lucide-react";
+import { Scroll } from "@phosphor-icons/react";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function LogsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={ScrollText} title="Logs" description="Application event logging with level filtering, search, and error tracking" status="ready" />
+      <DocHeader icon={Scroll} title="Logs" description="Application event logging with level filtering, search, and error tracking" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -21,17 +21,17 @@ export function LogsSection() {
           <CodeBlock>
             <div className="text-zinc-500"># LogsProvider context (contexts/logs.tsx)</div>
             <div>&nbsp;</div>
-            <div><span className="text-green-400">addLog(level, message, source)</span></div>
-            <div><span className="text-green-400">getLogs(filter?)</span></div>
-            <div><span className="text-green-400">clearLogs()</span></div>
-            <div><span className="text-green-400">getErrorCount()</span></div>
-            <div><span className="text-green-400">markAllRead()</span></div>
+            <div><span className="text-emerald-500">addLog(level, message, source)</span></div>
+            <div><span className="text-emerald-500">getLogs(filter?)</span></div>
+            <div><span className="text-emerald-500">clearLogs()</span></div>
+            <div><span className="text-emerald-500">getErrorCount()</span></div>
+            <div><span className="text-emerald-500">markAllRead()</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Log levels</div>
-            <div><span className="text-blue-400">debug</span>    <span className="text-zinc-500">Verbose debugging info</span></div>
-            <div><span className="text-green-400">info</span>     <span className="text-zinc-500">Normal operations</span></div>
-            <div><span className="text-yellow-400">warn</span>     <span className="text-zinc-500">Non-critical issues</span></div>
-            <div><span className="text-red-400">error</span>    <span className="text-zinc-500">Failures and exceptions</span></div>
+            <div><span className="text-blue-500">debug</span>    <span className="text-zinc-500">Verbose debugging info</span></div>
+            <div><span className="text-emerald-500">info</span>     <span className="text-zinc-500">Normal operations</span></div>
+            <div><span className="text-amber-500">warn</span>     <span className="text-zinc-500">Non-critical issues</span></div>
+            <div><span className="text-red-500">error</span>    <span className="text-zinc-500">Failures and exceptions</span></div>
             <div><span className="text-red-600">critical</span> <span className="text-zinc-500">System-level failures</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Log categories (source field)</div>

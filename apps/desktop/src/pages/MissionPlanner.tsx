@@ -1,301 +1,549 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 import {
-  Target,
-  Plus,
-  Play,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Zap,
-  Shield,
-  Swords,
-  Brain,
-  FileText,
-  Trash2,
-  Edit,
-  Copy,
-  BarChart3,
-  Network,
-  Calendar,
-  ListChecks
-} from "lucide-react";
-import { motion } from "framer-motion";
+  Target, Plus, Brain, Warning, CheckCircle, Clock, Shield, Sword,
+  Trash, CaretDown, CaretRight, Lightning, Eye, ArrowsClockwise,
+  Calendar, TreeStructure, Spinner, Robot, Gauge, ShieldCheck,
+  ArrowLeft, Crosshair, ListChecks, X
+} from "@phosphor-icons/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { missionPlannerService, type MissionPlan, type CreateMissionPlanData } from "@/services/mission-planner";
+import { missionPlannerAgent, type GeneratedPlan, type PlanningRequest } from "@/services/mission-planner-agent";
 
-interface MissionPlan {
-  id: string;
-  name: string;
-  type: 'offensive' | 'defensive' | 'pentest' | 'incident_response';
-  status: 'draft' | 'planning' | 'approved' | 'active' | 'completed' | 'failed';
-  objective: string;
-  targetScope: string;
-  timeline: {
-    startDate?: Date;
-    endDate?: Date;
-    phases: Phase[];
-  };
-  risks: Risk[];
-  successCriteria: string[];
-  failureScenarios: string[];
-  aiAssessment: {
-    feasibilityScore: number;
-    riskScore: number;
-    successProbability: number;
-    recommendations: string[];
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
+type PlanStatus = MissionPlan['status'];
 
-interface Phase {
-  id: string;
-  name: string;
-  description: string;
-  duration: number; // hours
-  dependencies: string[];
-  tasks: Task[];
-  status: 'pending' | 'active' | 'completed' | 'failed';
-}
+const STATUS_COLORS: Record<PlanStatus, string> = {
+  draft: 'text-zinc-500',
+  planning: 'text-blue-500',
+  approved: 'text-violet-500',
+  active: 'text-amber-500',
+  completed: 'text-emerald-500',
+  failed: 'text-red-500',
+};
 
-interface Task {
-  id: string;
-  name: string;
-  description: string;
-  assignee?: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-}
+const STATUS_DOT_COLORS: Record<PlanStatus, string> = {
+  draft: 'bg-zinc-500',
+  planning: 'bg-blue-500',
+  approved: 'bg-violet-500',
+  active: 'bg-amber-500',
+  completed: 'bg-emerald-500',
+  failed: 'bg-red-500',
+};
 
-interface Risk {
-  id: string;
-  description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  probability: number; // 0-100
-  impact: number; // 0-100
-  mitigation: string;
-}
+const SEVERITY_COLORS: Record<string, string> = {
+  low: 'bg-blue-500',
+  medium: 'bg-amber-500',
+  high: 'bg-orange-500',
+  critical: 'bg-red-500',
+};
 
-const PLAN_TEMPLATES = [
-  {
-    id: 'web_app_pentest',
-    name: 'Web Application Pentest',
-    type: 'pentest' as const,
-    description: 'Comprehensive web application penetration test',
-    objective: 'Identify and exploit vulnerabilities in web applications',
-    phases: [
-      { name: 'Reconnaissance', duration: 8 },
-      { name: 'Vulnerability Scanning', duration: 4 },
-      { name: 'Exploitation', duration: 16 },
-      { name: 'Post-Exploitation', duration: 8 },
-      { name: 'Reporting', duration: 8 },
-    ]
-  },
-  {
-    id: 'network_attack',
-    name: 'Network Infrastructure Attack',
-    type: 'offensive' as const,
-    description: 'Red team network penetration operation',
-    objective: 'Gain unauthorized access to network infrastructure',
-    phases: [
-      { name: 'External Reconnaissance', duration: 16 },
-      { name: 'Initial Access', duration: 12 },
-      { name: 'Lateral Movement', duration: 16 },
-      { name: 'Privilege Escalation', duration: 8 },
-      { name: 'Persistence', duration: 8 },
-      { name: 'Exfiltration', duration: 8 },
-    ]
-  },
-  {
-    id: 'incident_response',
-    name: 'Incident Response Plan',
-    type: 'defensive' as const,
-    description: 'Security incident response and containment',
-    objective: 'Detect, contain, and remediate security incidents',
-    phases: [
-      { name: 'Detection & Analysis', duration: 2 },
-      { name: 'Containment', duration: 4 },
-      { name: 'Eradication', duration: 8 },
-      { name: 'Recovery', duration: 8 },
-      { name: 'Post-Incident Review', duration: 4 },
-    ]
-  },
-  {
-    id: 'cloud_security_audit',
-    name: 'Cloud Security Audit',
-    type: 'defensive' as const,
-    description: 'Comprehensive cloud infrastructure security assessment',
-    objective: 'Assess and improve cloud security posture',
-    phases: [
-      { name: 'Asset Discovery', duration: 8 },
-      { name: 'Configuration Review', duration: 16 },
-      { name: 'Access Control Audit', duration: 8 },
-      { name: 'Vulnerability Assessment', duration: 16 },
-      { name: 'Remediation Planning', duration: 8 },
-    ]
-  }
-];
+const TYPE_CONFIG: Record<string, { icon: typeof Sword; color: string; label: string }> = {
+  offensive: { icon: Sword, color: 'text-red-500', label: 'Offensive' },
+  defensive: { icon: Shield, color: 'text-blue-500', label: 'Defensive' },
+  pentest: { icon: Target, color: 'text-violet-500', label: 'Pentest' },
+  incident_response: { icon: Warning, color: 'text-amber-500', label: 'IR' },
+};
+
+const ALL_STATUSES: PlanStatus[] = ['draft', 'planning', 'approved', 'active', 'completed', 'failed'];
 
 const MissionPlanner = () => {
   const { toast } = useToast();
   const [plans, setPlans] = useState<MissionPlan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<MissionPlan | null>(null);
+  const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
+
+  // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [aiPlannerDialogOpen, setAiPlannerDialogOpen] = useState(false);
-  const [newPlan, setNewPlan] = useState({
-    name: '',
-    type: 'pentest' as const,
-    objective: '',
-    targetScope: '',
-  });
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
-  useEffect(() => {
-    // Load plans from localStorage for demo
-    const savedPlans = localStorage.getItem('mission_plans');
-    if (savedPlans) {
-      setPlans(JSON.parse(savedPlans));
+  // Create form
+  const [newPlan, setNewPlan] = useState({ name: '', type: 'pentest', objective: '', target_scope: '' });
+
+  // AI form
+  const [aiForm, setAiForm] = useState({ objective: '', type: 'pentest', targetScope: '', constraints: '' });
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiPreview, setAiPreview] = useState<GeneratedPlan | null>(null);
+
+  // AI modify
+  const [modifying, setModifying] = useState<string | null>(null);
+
+  // Stats
+  const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, failed: 0 });
+
+  const loadPlans = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [fetchedPlans, fetchedStats] = await Promise.all([
+        missionPlannerService.getPlans(),
+        missionPlannerService.getPlanStats(),
+      ]);
+      setPlans(fetchedPlans);
+      setStats(fetchedStats);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to load plans", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
-  const savePlans = (updatedPlans: MissionPlan[]) => {
-    localStorage.setItem('mission_plans', JSON.stringify(updatedPlans));
-    setPlans(updatedPlans);
-  };
+  useEffect(() => { loadPlans(); }, [loadPlans]);
 
-  const createPlanFromTemplate = (templateId: string) => {
-    const template = PLAN_TEMPLATES.find(t => t.id === templateId);
-    if (!template) return;
+  // --- CRUD ---
 
-    setNewPlan({
-      name: template.name,
-      type: template.type,
-      objective: template.objective,
-      targetScope: '',
-    });
-    setCreateDialogOpen(true);
-  };
-
-  const handleCreatePlan = () => {
+  const handleCreatePlan = async () => {
     if (!newPlan.name || !newPlan.objective) {
-      toast({
-        title: "Validation Error",
-        description: "Name and objective are required",
-        variant: "destructive",
-      });
+      toast({ title: "Validation", description: "Name and objective required", variant: "destructive" });
       return;
     }
+    try {
+      const created = await missionPlannerService.createPlan({
+        name: newPlan.name,
+        type: newPlan.type,
+        objective: newPlan.objective,
+        target_scope: newPlan.target_scope || undefined,
+      });
+      setPlans(prev => [created, ...prev]);
+      setStats(prev => ({ ...prev, total: prev.total + 1 }));
+      setCreateDialogOpen(false);
+      setNewPlan({ name: '', type: 'pentest', objective: '', target_scope: '' });
+      setSelectedPlan(created);
+      toast({ title: "Plan Created", description: created.name });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
 
-    const plan: MissionPlan = {
-      id: Date.now().toString(),
-      ...newPlan,
-      status: 'draft',
-      timeline: {
-        phases: [],
-      },
-      risks: [],
-      successCriteria: [],
-      failureScenarios: [],
-      aiAssessment: {
-        feasibilityScore: 0,
-        riskScore: 0,
-        successProbability: 0,
-        recommendations: [],
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  const handleDeletePlan = async (id: string) => {
+    try {
+      await missionPlannerService.deletePlan(id);
+      setPlans(prev => prev.filter(p => p.id !== id));
+      if (selectedPlan?.id === id) setSelectedPlan(null);
+      loadPlans(); // refresh stats
+      toast({ title: "Deleted", description: "Plan removed" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
 
-    const updatedPlans = [...plans, plan];
-    savePlans(updatedPlans);
-    setCreateDialogOpen(false);
-    setSelectedPlan(plan);
+  const handleStatusChange = async (id: string, status: PlanStatus) => {
+    try {
+      const updated = await missionPlannerService.updatePlan(id, { status });
+      setPlans(prev => prev.map(p => p.id === id ? updated : p));
+      if (selectedPlan?.id === id) setSelectedPlan(updated);
+      loadPlans();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
 
-    toast({
-      title: "Mission Plan Created",
-      description: `${plan.name} has been created successfully`,
+  // --- AI Generation ---
+
+  const handleAiGenerate = async () => {
+    if (!aiForm.objective) {
+      toast({ title: "Validation", description: "Objective is required", variant: "destructive" });
+      return;
+    }
+    try {
+      setAiGenerating(true);
+      setAiPreview(null);
+      const request: PlanningRequest = {
+        objective: aiForm.objective,
+        type: aiForm.type as PlanningRequest['type'],
+        targetScope: aiForm.targetScope || undefined,
+        constraints: aiForm.constraints ? aiForm.constraints.split('\n').filter(Boolean) : undefined,
+      };
+      const generated = await missionPlannerAgent.generatePlan(request);
+      setAiPreview(generated);
+    } catch (err: any) {
+      toast({ title: "AI Generation Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  const handleAcceptAiPlan = async () => {
+    if (!aiPreview) return;
+    try {
+      const planData: CreateMissionPlanData = {
+        name: aiPreview.name,
+        type: aiForm.type,
+        objective: aiPreview.objective,
+        target_scope: aiForm.targetScope || undefined,
+        strategy: aiPreview.strategy,
+        phases: aiPreview.phases || [],
+        risks: aiPreview.risks || [],
+        success_criteria: aiPreview.successCriteria || [],
+        failure_scenarios: aiPreview.failureScenarios || [],
+        timeline: aiPreview.timeline?.estimatedDuration ? `${aiPreview.timeline.estimatedDuration}h` : undefined,
+        ai_assessment: aiPreview.aiAssessment || undefined,
+        tags: ['ai-generated'],
+      };
+      const created = await missionPlannerService.createPlan(planData);
+      setPlans(prev => [created, ...prev]);
+      setStats(prev => ({ ...prev, total: prev.total + 1 }));
+      setAiDialogOpen(false);
+      setAiPreview(null);
+      setAiForm({ objective: '', type: 'pentest', targetScope: '', constraints: '' });
+      setSelectedPlan(created);
+      toast({ title: "AI Plan Saved", description: created.name });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  // --- AI Modify ---
+
+  const handleModifyPlan = async (modificationType: 'optimize' | 'reduce_risk' | 'accelerate' | 'enhance_stealth') => {
+    if (!selectedPlan) return;
+    try {
+      setModifying(modificationType);
+      const modified = await missionPlannerAgent.modifyPlan({
+        currentPlan: {
+          name: selectedPlan.name,
+          objective: selectedPlan.objective,
+          strategy: selectedPlan.strategy,
+          phases: selectedPlan.phases,
+          risks: selectedPlan.risks,
+          successCriteria: selectedPlan.success_criteria,
+          failureScenarios: selectedPlan.failure_scenarios,
+          aiAssessment: selectedPlan.ai_assessment,
+        },
+        modificationType,
+        requirements: `${modificationType} the plan`,
+      });
+      const updated = await missionPlannerService.updatePlan(selectedPlan.id, {
+        phases: modified.phases || selectedPlan.phases,
+        risks: modified.risks || selectedPlan.risks,
+        success_criteria: modified.successCriteria || selectedPlan.success_criteria,
+        failure_scenarios: modified.failureScenarios || selectedPlan.failure_scenarios,
+        ai_assessment: modified.aiAssessment || selectedPlan.ai_assessment,
+        strategy: modified.strategy || selectedPlan.strategy,
+      });
+      setPlans(prev => prev.map(p => p.id === updated.id ? updated : p));
+      setSelectedPlan(updated);
+      toast({ title: "Plan Modified", description: `${modificationType} applied` });
+    } catch (err: any) {
+      toast({ title: "Modify Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setModifying(null);
+    }
+  };
+
+  // --- Helpers ---
+
+  const togglePhase = (idx: number) => {
+    setExpandedPhases(prev => {
+      const next = new Set(prev);
+      next.has(idx) ? next.delete(idx) : next.add(idx);
+      return next;
     });
   };
 
-  const deletePlan = (id: string) => {
-    const updatedPlans = plans.filter(p => p.id !== id);
-    savePlans(updatedPlans);
-    if (selectedPlan?.id === id) {
-      setSelectedPlan(null);
-    }
-    toast({
-      title: "Plan Deleted",
-      description: "Mission plan has been removed",
-    });
+  const getTypeIcon = (type: string) => {
+    const config = TYPE_CONFIG[type] || TYPE_CONFIG.pentest;
+    const Icon = config.icon;
+    return <Icon size={16} weight="bold" className={config.color} />;
   };
 
-  const getStatusColor = (status: MissionPlan['status']) => {
-    switch (status) {
-      case 'draft': return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-      case 'planning': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'approved': return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'active': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'completed': return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'failed': return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default: return '';
-    }
-  };
+  // ============================================================
+  // DETAIL VIEW
+  // ============================================================
+  if (selectedPlan) {
+    const plan = selectedPlan;
+    const assessment = plan.ai_assessment;
+    const phases = Array.isArray(plan.phases) ? plan.phases : [];
+    const risks = Array.isArray(plan.risks) ? plan.risks : [];
+    const criteria = Array.isArray(plan.success_criteria) ? plan.success_criteria : [];
 
-  const getTypeIcon = (type: MissionPlan['type']) => {
-    switch (type) {
-      case 'offensive': return <Swords className="h-4 w-4 text-red-400" />;
-      case 'defensive': return <Shield className="h-4 w-4 text-blue-400" />;
-      case 'pentest': return <Target className="h-4 w-4 text-purple-400" />;
-      case 'incident_response': return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
-    }
-  };
+    return (
+      <div className="space-y-6 p-6">
+        {/* Back + Header */}
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => { setSelectedPlan(null); setExpandedPhases(new Set()); }}>
+            <ArrowLeft size={16} weight="bold" className="mr-1" />
+            Back
+          </Button>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              {getTypeIcon(plan.type)}
+              <h1 className="text-2xl font-bold text-white">{plan.name}</h1>
+              <span className={`flex items-center gap-1.5 text-xs ${STATUS_COLORS[plan.status as PlanStatus] || 'text-zinc-500'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT_COLORS[plan.status as PlanStatus] || 'bg-zinc-500'}`} />
+                {plan.status}
+              </span>
+            </div>
+            <p className="text-sm text-zinc-500 mt-1">{TYPE_CONFIG[plan.type]?.label || plan.type} &middot; Created {new Date(plan.created_at).toLocaleDateString()}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={plan.status} onValueChange={(v) => handleStatusChange(plan.id, v as PlanStatus)}>
+              <SelectTrigger className="w-[130px] h-8 text-xs bg-transparent">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ALL_STATUSES.map(s => (
+                  <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-400 hover:bg-white/[0.03]" onClick={() => handleDeletePlan(plan.id)}>
+              <Trash size={14} weight="bold" />
+            </Button>
+          </div>
+        </div>
 
+        {/* Overview */}
+        <div className="rounded-lg bg-transparent p-5 space-y-3">
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Overview</h2>
+          {plan.objective && (
+            <div>
+              <span className="text-xs text-zinc-500">Objective</span>
+              <p className="text-sm text-zinc-200 mt-0.5">{plan.objective}</p>
+            </div>
+          )}
+          {plan.target_scope && (
+            <div>
+              <span className="text-xs text-zinc-500">Target Scope</span>
+              <p className="text-sm text-zinc-200 mt-0.5">{plan.target_scope}</p>
+            </div>
+          )}
+          {plan.strategy && (
+            <div>
+              <span className="text-xs text-zinc-500">Strategy</span>
+              <p className="text-sm text-zinc-200 mt-0.5">{plan.strategy}</p>
+            </div>
+          )}
+          {plan.timeline && (
+            <div>
+              <span className="text-xs text-zinc-500">Timeline</span>
+              <p className="text-sm text-zinc-200 mt-0.5">{plan.timeline}</p>
+            </div>
+          )}
+        </div>
+
+        {/* AI Modification Buttons */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-zinc-500 mr-1">AI Modify:</span>
+          {(['optimize', 'reduce_risk', 'accelerate', 'enhance_stealth'] as const).map(mod => (
+            <Button
+              key={mod}
+              variant="outline"
+              size="sm"
+              className="text-xs border-zinc-700 hover:bg-white/[0.05]"
+              disabled={!!modifying}
+              onClick={() => handleModifyPlan(mod)}
+            >
+              {modifying === mod ? <Spinner size={12} className="animate-spin mr-1" /> : <Robot size={12} weight="bold" className="mr-1" />}
+              {mod.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+            </Button>
+          ))}
+        </div>
+
+        {/* Phases */}
+        {phases.length > 0 && (
+          <div className="rounded-lg bg-transparent p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <TreeStructure size={14} weight="bold" />
+              Phases ({phases.length})
+            </h2>
+            <div className="space-y-2">
+              {phases.map((phase: any, idx: number) => {
+                const isOpen = expandedPhases.has(idx);
+                const tasks = Array.isArray(phase.tasks) ? phase.tasks : [];
+                const tools = Array.isArray(phase.tools) ? phase.tools : [];
+                return (
+                  <div key={idx} className="rounded bg-white/[0.03]">
+                    <button
+                      className="w-full flex items-center gap-2 p-3 text-left hover:bg-white/[0.05] transition-colors"
+                      onClick={() => togglePhase(idx)}
+                    >
+                      {isOpen ? <CaretDown size={12} weight="bold" className="text-zinc-500" /> : <CaretRight size={12} weight="bold" className="text-zinc-500" />}
+                      <span className="text-sm font-medium text-zinc-200 flex-1">{phase.name || `Phase ${idx + 1}`}</span>
+                      {phase.duration && <span className="text-xs text-zinc-500">{phase.duration}h</span>}
+                      {tasks.length > 0 && <span className="text-xs text-zinc-600">{tasks.length} tasks</span>}
+                    </button>
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3 pb-3 space-y-2">
+                            {phase.description && <p className="text-xs text-zinc-400">{phase.description}</p>}
+                            {tools.length > 0 && (
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <span className="text-xs text-zinc-600">Tools:</span>
+                                {tools.map((tool: string, ti: number) => (
+                                  <span key={ti} className="text-xs text-zinc-400 px-1.5 py-0.5 rounded">{tool}</span>
+                                ))}
+                              </div>
+                            )}
+                            {tasks.length > 0 && (
+                              <div className="space-y-1 mt-1">
+                                {tasks.map((task: any, ti: number) => (
+                                  <div key={ti} className="flex items-center gap-2 text-xs pl-4">
+                                    <span className={`w-1 h-1 rounded-full ${
+                                      task.priority === 'critical' ? 'bg-red-500' :
+                                      task.priority === 'high' ? 'bg-orange-500' :
+                                      task.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
+                                    }`} />
+                                    <span className="text-zinc-300 flex-1">{task.name || task.description || `Task ${ti + 1}`}</span>
+                                    {task.estimatedTime && <span className="text-zinc-600">{task.estimatedTime}h</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Risks */}
+        {risks.length > 0 && (
+          <div className="rounded-lg bg-transparent p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <Warning size={14} weight="bold" />
+              Risks ({risks.length})
+            </h2>
+            <div className="space-y-2">
+              {risks.map((risk: any, idx: number) => (
+                <div key={idx} className="flex items-start gap-2 text-sm">
+                  <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${SEVERITY_COLORS[risk.severity] || 'bg-zinc-500'}`} />
+                  <div className="flex-1">
+                    <p className="text-zinc-200">{risk.description}</p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
+                      {risk.probability !== undefined && <span>Prob: {risk.probability}%</span>}
+                      {risk.impact !== undefined && <span>Impact: {risk.impact}%</span>}
+                    </div>
+                    {risk.mitigation && <p className="text-xs text-zinc-500 mt-0.5">Mitigation: {risk.mitigation}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Success Criteria */}
+        {criteria.length > 0 && (
+          <div className="rounded-lg bg-transparent p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <CheckCircle size={14} weight="bold" />
+              Success Criteria
+            </h2>
+            <ul className="space-y-1">
+              {criteria.map((c: any, idx: number) => (
+                <li key={idx} className="text-sm text-zinc-300 flex items-start gap-2">
+                  <Crosshair size={12} weight="bold" className="text-emerald-500 mt-1 shrink-0" />
+                  {typeof c === 'string' ? c : JSON.stringify(c)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* AI Assessment */}
+        {assessment && (
+          <div className="rounded-lg bg-transparent p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <Brain size={14} weight="bold" />
+              AI Assessment
+            </h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <span className="text-xs text-zinc-500">Feasibility</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <Gauge size={14} weight="bold" className="text-blue-500" />
+                  <span className="text-lg font-bold text-white">{assessment.feasibilityScore}</span>
+                  <span className="text-xs text-zinc-500">/ 100</span>
+                </div>
+              </div>
+              <div>
+                <span className="text-xs text-zinc-500">Risk Score</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <Warning size={14} weight="bold" className="text-amber-500" />
+                  <span className="text-lg font-bold text-white">{assessment.riskScore}</span>
+                  <span className="text-xs text-zinc-500">/ 100</span>
+                </div>
+              </div>
+              <div>
+                <span className="text-xs text-zinc-500">Success Probability</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <ShieldCheck size={14} weight="bold" className="text-emerald-500" />
+                  <span className="text-lg font-bold text-white">{assessment.successProbability}%</span>
+                </div>
+              </div>
+            </div>
+            {assessment.recommendations && assessment.recommendations.length > 0 && (
+              <div className="mt-3">
+                <span className="text-xs text-zinc-500">Recommendations</span>
+                <ul className="mt-1 space-y-1">
+                  {assessment.recommendations.map((r: string, i: number) => (
+                    <li key={i} className="text-xs text-zinc-400 flex items-start gap-1.5">
+                      <Lightning size={10} weight="bold" className="text-violet-500 mt-0.5 shrink-0" />
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ============================================================
+  // LIST VIEW
+  // ============================================================
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gradient-silver flex items-center gap-3">
-            <Target className="h-10 w-10 text-primary animate-pulse" />
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <Target size={32} weight="duotone" className="text-primary" />
             Mission Planner
           </h1>
-          <p className="text-sm text-muted-foreground terminal-text mt-2">
+          <p className="text-sm text-zinc-500 mt-1">
             Strategic planning for offensive & defensive operations
           </p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => setAiPlannerDialogOpen(true)}
-            className="border-primary/30 hover:bg-primary/10"
+            onClick={() => setAiDialogOpen(true)}
+            className="border-violet-500/30 hover:bg-violet-500/10 text-violet-400"
           >
-            <Brain className="h-4 w-4 mr-2" />
-            AI Planner Agent
+            <Brain size={16} weight="bold" className="mr-2" />
+            AI Generate Plan
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary/20 hover:bg-primary/30 border border-primary/50">
-                <Plus className="h-4 w-4 mr-2" />
-                New Mission Plan
+              <Button className="bg-primary/20 hover:bg-primary/30 ring-1 ring-primary/20">
+                <Plus size={16} weight="bold" className="mr-2" />
+                New Plan
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Create Mission Plan</DialogTitle>
-                <DialogDescription>
-                  Define your operation objectives and parameters
-                </DialogDescription>
+                <DialogDescription>Define operation objectives and parameters</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -308,13 +556,8 @@ const MissionPlanner = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Type</Label>
-                  <Select
-                    value={newPlan.type}
-                    onValueChange={(value: any) => setNewPlan({ ...newPlan, type: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                  <Select value={newPlan.type} onValueChange={(v) => setNewPlan({ ...newPlan, type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="offensive">Offensive (Red Team)</SelectItem>
                       <SelectItem value="defensive">Defensive (Blue Team)</SelectItem>
@@ -335,16 +578,14 @@ const MissionPlanner = () => {
                 <div className="space-y-2">
                   <Label>Target Scope</Label>
                   <Input
-                    value={newPlan.targetScope}
-                    onChange={(e) => setNewPlan({ ...newPlan, targetScope: e.target.value })}
+                    value={newPlan.target_scope}
+                    onChange={(e) => setNewPlan({ ...newPlan, target_scope: e.target.value })}
                     placeholder="IP ranges, domains, systems..."
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
                 <Button onClick={handleCreatePlan}>Create Plan</Button>
               </DialogFooter>
             </DialogContent>
@@ -352,241 +593,271 @@ const MissionPlanner = () => {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-primary/30 bg-card/50 backdrop-blur">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Plans</CardTitle>
-            <FileText className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{plans.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {plans.filter(p => p.status === 'active').length} active
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-500/30 bg-card/50 backdrop-blur">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-400">
-              {plans.filter(p => p.status === 'completed').length}
-            </div>
-            <p className="text-xs text-muted-foreground">Successfully finished</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-yellow-500/30 bg-card/50 backdrop-blur">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-400">
-              {plans.filter(p => p.status === 'active' || p.status === 'planning').length}
-            </div>
-            <p className="text-xs text-muted-foreground">Active operations</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-red-500/30 bg-card/50 backdrop-blur">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-400">
-              {plans.filter(p => p.status === 'failed').length}
-            </div>
-            <p className="text-xs text-muted-foreground">Unsuccessful missions</p>
-          </CardContent>
-        </Card>
+      {/* Stats Row */}
+      <div className="flex items-center gap-6">
+        <div>
+          <p className="text-xs text-zinc-500">Total Plans</p>
+          <p className="text-xl font-bold text-white">{stats.total}</p>
+        </div>
+        <Separator orientation="vertical" className="h-8" />
+        <div>
+          <p className="text-xs text-zinc-500">Active</p>
+          <p className="text-xl font-bold text-amber-500">{stats.active}</p>
+        </div>
+        <Separator orientation="vertical" className="h-8" />
+        <div>
+          <p className="text-xs text-zinc-500">Completed</p>
+          <p className="text-xl font-bold text-emerald-500">{stats.completed}</p>
+        </div>
+        <Separator orientation="vertical" className="h-8" />
+        <div>
+          <p className="text-xs text-zinc-500">Failed</p>
+          <p className="text-xl font-bold text-red-500">{stats.failed}</p>
+        </div>
       </div>
 
-      {/* Plan Templates */}
-      <Card className="border-primary/30 bg-card/50 backdrop-blur">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ListChecks className="h-5 w-5 text-primary" />
-            Quick Start Templates
-          </CardTitle>
-          <CardDescription>Pre-configured mission plans for common scenarios</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {PLAN_TEMPLATES.map((template) => (
-              <Card
-                key={template.id}
-                className="border-primary/20 bg-card/30 hover:border-primary/40 transition-all cursor-pointer group"
-                onClick={() => createPlanFromTemplate(template.id)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    {getTypeIcon(template.type)}
-                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-                      {template.phases.length} phases
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-sm mt-2">{template.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-3">
-                  <p className="text-xs text-muted-foreground mb-3">{template.description}</p>
-                  <Button variant="ghost" size="sm" className="w-full text-xs group-hover:bg-primary/10">
-                    <Plus className="h-3 w-3 mr-1" />
-                    Use Template
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center justify-center py-16">
+          <Spinner size={24} className="animate-spin text-zinc-500" />
+        </div>
+      )}
 
-      {/* Mission Plans List */}
-      {plans.length > 0 && (
-        <Card className="border-primary/30 bg-card/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle>Your Mission Plans</CardTitle>
-            <CardDescription>Manage and execute your operations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {plans.map((plan) => (
-                <motion.div
-                  key={plan.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="border border-primary/20 rounded-lg p-4 hover:border-primary/40 transition-all bg-card/30"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      {getTypeIcon(plan.type)}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-white">{plan.name}</h3>
-                          <Badge variant="outline" className={getStatusColor(plan.status)}>
-                            {plan.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{plan.objective}</p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+      {/* Plans List */}
+      {!loading && plans.length > 0 && (
+        <div className="space-y-2">
+          {plans.map((plan) => {
+            const phases = Array.isArray(plan.phases) ? plan.phases : [];
+            return (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg bg-transparent p-4 cursor-pointer hover:bg-zinc-900/70 transition-colors"
+                onClick={() => setSelectedPlan(plan)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    {getTypeIcon(plan.type)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="font-semibold text-white truncate">{plan.name}</h3>
+                        <span className={`flex items-center gap-1.5 text-xs shrink-0 ${STATUS_COLORS[plan.status as PlanStatus] || 'text-zinc-500'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT_COLORS[plan.status as PlanStatus] || 'bg-zinc-500'}`} />
+                          {plan.status}
+                        </span>
+                      </div>
+                      {plan.objective && (
+                        <p className="text-sm text-zinc-500 truncate">{plan.objective}</p>
+                      )}
+                      <div className="flex items-center gap-4 mt-1.5 text-xs text-zinc-600">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={11} weight="bold" />
+                          {new Date(plan.created_at).toLocaleDateString()}
+                        </span>
+                        {phases.length > 0 && (
                           <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(plan.createdAt).toLocaleDateString()}
+                            <TreeStructure size={11} weight="bold" />
+                            {phases.length} phases
                           </span>
-                          {plan.timeline.phases.length > 0 && (
-                            <span className="flex items-center gap-1">
-                              <Network className="h-3 w-3" />
-                              {plan.timeline.phases.length} phases
-                            </span>
-                          )}
-                        </div>
+                        )}
+                        {plan.ai_assessment && (
+                          <span className="flex items-center gap-1 text-violet-500/70">
+                            <Brain size={11} weight="bold" />
+                            AI
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedPlan(plan)}
-                        className="text-xs"
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deletePlan(plan.id)}
-                        className="text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="flex items-center gap-1 ml-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setSelectedPlan(plan)}>
+                      <Eye size={13} weight="bold" className="text-zinc-500" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-red-500/60 hover:text-red-400 hover:bg-white/[0.03]"
+                      onClick={() => handleDeletePlan(plan.id)}
+                    >
+                      <Trash size={13} weight="bold" />
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       )}
 
       {/* Empty State */}
-      {plans.length === 0 && (
-        <Card className="border-primary/30 bg-card/50 backdrop-blur">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Target className="h-16 w-16 text-primary/50 mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">No Mission Plans Yet</h3>
-            <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
-              Create your first mission plan using a template above or start from scratch
-            </p>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Plan
+      {!loading && plans.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Target size={48} weight="duotone" className="text-zinc-700 mb-3" />
+          <h3 className="text-base font-semibold text-zinc-400 mb-1">No Mission Plans</h3>
+          <p className="text-sm text-zinc-600 text-center mb-4">
+            Create a plan manually or use AI to generate one
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setAiDialogOpen(true)}>
+              <Brain size={14} weight="bold" className="mr-1" />
+              AI Generate
             </Button>
-          </CardContent>
-        </Card>
+            <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+              <Plus size={14} weight="bold" className="mr-1" />
+              New Plan
+            </Button>
+          </div>
+        </div>
       )}
 
-      {/* AI Planner Agent Dialog */}
-      <Dialog open={aiPlannerDialogOpen} onOpenChange={setAiPlannerDialogOpen}>
-        <DialogContent className="max-w-2xl">
+      {/* AI Generate Dialog */}
+      <Dialog open={aiDialogOpen} onOpenChange={(open) => { setAiDialogOpen(open); if (!open) { setAiPreview(null); setAiGenerating(false); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-primary" />
-              AI Mission Planner Agent
+              <Brain size={20} weight="duotone" className="text-violet-500" />
+              AI Mission Planner
             </DialogTitle>
             <DialogDescription>
-              Get AI-powered strategic planning assistance
+              Describe your objective and the AI will generate a full tactical plan
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Card className="border-primary/30 bg-card/30">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3 mb-4">
-                  <Brain className="h-8 w-8 text-primary mt-1" />
+
+          {!aiPreview ? (
+            /* Input Form */
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label>Objective *</Label>
+                <Textarea
+                  value={aiForm.objective}
+                  onChange={(e) => setAiForm({ ...aiForm, objective: e.target.value })}
+                  placeholder="Perform a comprehensive web application pentest on the target domain, focusing on authentication bypass and data exfiltration..."
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select value={aiForm.type} onValueChange={(v) => setAiForm({ ...aiForm, type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="offensive">Offensive</SelectItem>
+                      <SelectItem value="defensive">Defensive</SelectItem>
+                      <SelectItem value="pentest">Penetration Test</SelectItem>
+                      <SelectItem value="incident_response">Incident Response</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Target Scope</Label>
+                  <Input
+                    value={aiForm.targetScope}
+                    onChange={(e) => setAiForm({ ...aiForm, targetScope: e.target.value })}
+                    placeholder="*.target.com, 10.0.0.0/24"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Constraints (one per line, optional)</Label>
+                <Textarea
+                  value={aiForm.constraints}
+                  onChange={(e) => setAiForm({ ...aiForm, constraints: e.target.value })}
+                  placeholder="No denial of service&#10;Business hours only&#10;Avoid production databases"
+                  rows={2}
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAiDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleAiGenerate} disabled={aiGenerating || !aiForm.objective} className="bg-violet-600 hover:bg-violet-700">
+                  {aiGenerating ? (
+                    <>
+                      <Spinner size={14} className="animate-spin mr-2" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Robot size={14} weight="bold" className="mr-2" />
+                      Generate Plan
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            /* Preview */
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg bg-transparent p-4 space-y-2">
+                <h3 className="text-base font-semibold text-white">{aiPreview.name}</h3>
+                <p className="text-sm text-zinc-400">{aiPreview.objective}</p>
+                {aiPreview.strategy && <p className="text-xs text-zinc-500">{aiPreview.strategy}</p>}
+              </div>
+
+              {/* AI Scores */}
+              {aiPreview.aiAssessment && (
+                <div className="flex items-center gap-6 text-sm">
                   <div>
-                    <h4 className="font-semibold text-white mb-2">Strategic Planning AI</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      The AI Planner Agent will analyze your objectives and generate:
-                    </p>
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-400 mt-0.5" />
-                        <span>Comprehensive attack/defense strategies</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-400 mt-0.5" />
-                        <span>Risk assessment and mitigation plans</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-400 mt-0.5" />
-                        <span>Success probability scoring</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-400 mt-0.5" />
-                        <span>Timeline and resource optimization</span>
-                      </li>
-                    </ul>
+                    <span className="text-xs text-zinc-500">Feasibility</span>
+                    <p className="font-bold text-white">{aiPreview.aiAssessment.feasibilityScore}/100</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-500">Risk</span>
+                    <p className="font-bold text-white">{aiPreview.aiAssessment.riskScore}/100</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-500">Success</span>
+                    <p className="font-bold text-emerald-500">{aiPreview.aiAssessment.successProbability}%</p>
                   </div>
                 </div>
-                <Separator className="my-4" />
-                <div className="text-center">
-                  <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50">
-                    Coming Soon — OpenClaw & NVIDIA Free Integration
-                  </Badge>
+              )}
+
+              {/* Phases summary */}
+              {aiPreview.phases && aiPreview.phases.length > 0 && (
+                <div>
+                  <span className="text-xs text-zinc-500">{aiPreview.phases.length} Phases</span>
+                  <div className="mt-1 space-y-1">
+                    {aiPreview.phases.map((p, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <span className="w-5 h-5 rounded flex items-center justify-center text-zinc-400 text-[10px] font-bold">{i + 1}</span>
+                        <span className="text-zinc-300 flex-1">{p.name}</span>
+                        {p.duration && <span className="text-zinc-600">{p.duration}h</span>}
+                        {p.tasks && <span className="text-zinc-600">{p.tasks.length} tasks</span>}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAiPlannerDialogOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
+              )}
+
+              {/* Risks summary */}
+              {aiPreview.risks && aiPreview.risks.length > 0 && (
+                <div>
+                  <span className="text-xs text-zinc-500">{aiPreview.risks.length} Risks Identified</span>
+                  <div className="mt-1 space-y-1">
+                    {aiPreview.risks.slice(0, 3).map((r, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <span className={`w-1.5 h-1.5 rounded-full ${SEVERITY_COLORS[r.severity] || 'bg-zinc-500'}`} />
+                        <span className="text-zinc-400 truncate">{r.description}</span>
+                      </div>
+                    ))}
+                    {aiPreview.risks.length > 3 && (
+                      <span className="text-xs text-zinc-600">+{aiPreview.risks.length - 3} more</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => setAiPreview(null)}>
+                  <ArrowsClockwise size={14} weight="bold" className="mr-1" />
+                  Regenerate
+                </Button>
+                <Button onClick={handleAcceptAiPlan} className="bg-emerald-600 hover:bg-emerald-700">
+                  <CheckCircle size={14} weight="bold" className="mr-1" />
+                  Accept & Save
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

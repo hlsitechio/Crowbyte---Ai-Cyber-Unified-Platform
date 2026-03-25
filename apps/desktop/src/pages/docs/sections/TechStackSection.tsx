@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Layers } from "lucide-react";
+import { Stack } from "@phosphor-icons/react";
 import { DocHeader, CodeBlock } from "../components";
 
 export function TechStackSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Layers} title="Tech Stack" description="Technologies powering CrowByte Terminal" />
+      <DocHeader icon={Stack} title="Tech Stack" description="Technologies powering CrowByte Terminal" />
       <Card><CardHeader><CardTitle>Frontend</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-2 text-sm">
@@ -53,10 +53,10 @@ export function TechStackSection() {
       <Card><CardHeader><CardTitle>Build Commands</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
-            <div><span className="text-green-400">npm run dev</span>                <span className="text-zinc-500"># Vite dev server (hot reload)</span></div>
-            <div><span className="text-green-400">npm run build</span>              <span className="text-zinc-500"># Production web build</span></div>
-            <div><span className="text-green-400">npm run build:electron:win</span> <span className="text-zinc-500"># Windows Electron installer</span></div>
-            <div><span className="text-green-400">npm run build:electron:linux</span> <span className="text-zinc-500"># Linux Electron package</span></div>
+            <div><span className="text-emerald-500">npm run dev</span>                <span className="text-zinc-500"># Vite dev server (hot reload)</span></div>
+            <div><span className="text-emerald-500">npm run build</span>              <span className="text-zinc-500"># Production web build</span></div>
+            <div><span className="text-emerald-500">npm run build:electron:win</span> <span className="text-zinc-500"># Windows Electron installer</span></div>
+            <div><span className="text-emerald-500">npm run build:electron:linux</span> <span className="text-zinc-500"># Linux Electron package</span></div>
           </CodeBlock>
         </CardContent></Card>
     </div>

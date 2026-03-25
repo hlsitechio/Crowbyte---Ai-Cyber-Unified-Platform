@@ -117,13 +117,9 @@ class CacheService {
       // Check expiration
       query = query.or('expires_at.is.null,expires_at.gte.now()');
 
-      const { data, error } = await query.single();
+      const { data, error } = await query.maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No rows found
-          return null;
-        }
         throw error;
       }
 

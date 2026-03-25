@@ -3,6 +3,11 @@
  * Detects current IP, VPN status, and Tor connection
  */
 
+// Debug logging — disabled in production to prevent leaking IP/VPN/ISP data to console
+const IP_DEBUG = import.meta.env.DEV;
+const debugLog = (...args: unknown[]) => { if (IP_DEBUG) debugLog(...args); };
+const debugWarn = (...args: unknown[]) => { if (IP_DEBUG) debugWarn(...args); };
+
 export interface DNSInfo {
   servers: string[]; // DNS server IP addresses
   primaryDNS?: string; // Primary DNS server
@@ -53,90 +58,41 @@ class IPStatusService {
   private lastCheck: Date | null = null;
 
   /**
-   * Fetch IP information from ipapi.co (free, detailed info)
+   * Fetch IP information from ipinfo.io (free, CORS-friendly)
    */
   private async fetchIPInfo(): Promise<Partial<IPStatusData>> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     try {
-      console.log('📡 Attempting to fetch IP from ipapi.co...');
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const response = await fetch('https://ipapi.co/json/', {
+      const response = await fetch('https://ipinfo.io/json', {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
         signal: controller.signal,
+        headers: { 'Accept': 'application/json' },
       });
 
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        console.warn(`ipapi.co returned ${response.status}, trying fallback...`);
-        throw new Error(`HTTP ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-      console.log('✅ ipapi.co response:', data);
 
       return {
         ip: data.ip,
-        country: data.country_name,
+        country: data.country,
         city: data.city,
         region: data.region,
         isp: data.org,
         org: data.org,
         timezone: data.timezone,
-        // ipapi.co provides these flags
-        isVPN: data.asn?.includes('VPN') || data.org?.toLowerCase().includes('vpn') || false,
-        isProxy: data.asn?.includes('Proxy') || false,
-        // @ts-ignore - preserve hostname if available
+        isVPN: data.org?.toLowerCase().includes('vpn') || data.org?.toLowerCase().includes('hosting') || false,
+        isProxy: false,
         hostname: data.hostname,
       };
     } catch (error: unknown) {
-      console.error('❌ ipapi.co fetch error:', error instanceof Error ? error.message : 'Unknown error');
-      // Try ipinfo.io as fallback (free tier, no key required)
-      try {
-        console.log('📡 Trying fallback: ipinfo.io...');
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        const fallbackResponse = await fetch('https://ipinfo.io/json', {
-          method: 'GET',
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json',
-          },
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!fallbackResponse.ok) {
-          throw new Error(`HTTP ${fallbackResponse.status}`);
-        }
-
-        const fallbackData = await fallbackResponse.json();
-        console.log('✅ ipinfo.io response:', fallbackData);
-
-        return {
-          ip: fallbackData.ip,
-          country: fallbackData.country,
-          city: fallbackData.city,
-          region: fallbackData.region,
-          isp: fallbackData.org,
-          org: fallbackData.org,
-          timezone: fallbackData.timezone,
-          isVPN: fallbackData.org?.toLowerCase().includes('vpn') || fallbackData.org?.toLowerCase().includes('hosting') || false,
-          isProxy: false,
-          // @ts-ignore - preserve hostname if available
-          hostname: fallbackData.hostname,
-        };
-      } catch (fallbackError: unknown) {
-        console.error('❌ ipinfo.io fallback error:', fallbackError instanceof Error ? fallbackError.message : 'Unknown error');
-        throw error; // Throw original error
-      }
+      clearTimeout(timeoutId);
+      console.error('IP info fetch failed:', error instanceof Error ? error.message : 'Unknown error');
+      throw error;
     }
   }
 
@@ -145,23 +101,23 @@ class IPStatusService {
    */
   private async fetchIPFromIpify(): Promise<string> {
     try {
-      console.log('📡 Trying ipify.org...');
+      debugLog('📡 Trying ipify.org...');
       const response = await fetch('https://api.ipify.org?format=json', {
         signal: AbortSignal.timeout(5000),
       });
       const data = await response.json();
-      console.log('✅ ipify.org response:', data);
+      debugLog('✅ ipify.org response:', data);
       return data.ip;
     } catch (error: unknown) {
       console.error('❌ ipify.org fetch error:', error instanceof Error ? error.message : 'Unknown error');
       // Last resort: try api64.ipify.org (IPv4 only)
       try {
-        console.log('📡 Trying api64.ipify.org...');
+        debugLog('📡 Trying api64.ipify.org...');
         const response = await fetch('https://api64.ipify.org?format=json', {
           signal: AbortSignal.timeout(5000),
         });
         const data = await response.json();
-        console.log('✅ api64.ipify.org response:', data);
+        debugLog('✅ api64.ipify.org response:', data);
         return data.ip;
       } catch (lastError: unknown) {
         console.error('❌ api64.ipify.org error:', lastError instanceof Error ? lastError.message : 'Unknown error');
@@ -179,7 +135,7 @@ class IPStatusService {
   ): Promise<string | null> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`📡 [${attempt}/${maxRetries}] Trying ${service.name}...`);
+        debugLog(`📡 [${attempt}/${maxRetries}] Trying ${service.name}...`);
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -197,7 +153,7 @@ class IPStatusService {
           clearTimeout(timeoutId);
 
           if (!response.ok) {
-            console.warn(`⚠️ ${service.name} returned HTTP ${response.status}`);
+            debugWarn(`⚠️ ${service.name} returned HTTP ${response.status}`);
             if (attempt < maxRetries) {
               await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
               continue;
@@ -224,17 +180,17 @@ class IPStatusService {
 
           // Validate IP
           if (ip && this.isValidIP(ip)) {
-            console.log(`✅ ${service.name} returned valid IP: ${ip}`);
+            debugLog(`✅ ${service.name} returned valid IP: ${ip}`);
             return ip;
           } else {
-            console.warn(`⚠️ ${service.name} returned invalid IP: ${ip}`);
+            debugWarn(`⚠️ ${service.name} returned invalid IP: ${ip}`);
             return null;
           }
         } catch (fetchError: unknown) {
           clearTimeout(timeoutId);
 
           const errorMsg = fetchError instanceof Error ? fetchError.message : 'Unknown error';
-          console.warn(`⚠️ ${service.name} fetch error (attempt ${attempt}): ${errorMsg}`);
+          debugWarn(`⚠️ ${service.name} fetch error (attempt ${attempt}): ${errorMsg}`);
 
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
@@ -261,7 +217,7 @@ class IPStatusService {
    * Enhanced with retry logic and better error boundaries
    */
   private async fetchIPWithFallbacks(): Promise<string> {
-    console.log('🔄 === STARTING IP FETCH WITH FALLBACKS ===');
+    debugLog('🔄 === STARTING IP FETCH WITH FALLBACKS ===');
 
     const services = [
       // High reliability JSON services
@@ -331,7 +287,7 @@ class IPStatusService {
         const ip = await this.tryServiceWithRetry(service, 2);
 
         if (ip) {
-          console.log(`✅ === IP FETCH SUCCESSFUL: ${ip} from ${service.name} ===`);
+          debugLog(`✅ === IP FETCH SUCCESSFUL: ${ip} from ${service.name} ===`);
           return ip;
         } else {
           errors.push({ service: service.name, error: 'Failed after retries' });
@@ -382,54 +338,30 @@ class IPStatusService {
    */
   private async checkTorStatus(ip: string): Promise<TorCheckResult> {
     try {
-      console.log('🧅 Checking Tor status for IP:', ip);
+      debugLog('🧅 Checking Tor status for IP:', ip);
 
       // PRIMARY: Use Electron proxy to avoid CORS
       if (typeof window !== 'undefined' && window.electronAPI) {
-        console.log('🔌 Using Electron proxy for Tor check...');
+        debugLog('🔌 Using Electron proxy for Tor check...');
 
         const result = await window.electronAPI.checkTor();
 
         if (result.success && result.data) {
-          console.log('✅ Tor check response:', result.data);
+          debugLog('✅ Tor check response:', result.data);
           return {
             isTor: result.data.IsTor === true,
             isExitNode: result.data.IsTor === true,
           };
         } else {
-          console.warn('⚠️ Tor check via Electron failed:', result.error);
+          debugWarn('⚠️ Tor check via Electron failed:', result.error);
         }
       }
 
-      // FALLBACK: Direct fetch (will likely fail due to CORS)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch(`https://check.torproject.org/api/ip`, {
-        method: 'GET',
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Tor check response:', data);
-        return {
-          isTor: data.IsTor === true,
-          isExitNode: data.IsTor === true,
-        };
-      } else {
-        console.warn(`Tor check returned ${response.status}`);
-      }
-
-      // Fallback: Check common Tor indicators
-      console.log('⚠️ Using Tor indicator fallback');
+      // No Electron proxy available — skip direct fetch (CORS-blocked in browser)
+      // Fall back to indicator-based detection
       return this.checkTorIndicators(ip);
     } catch (error: any) {
-      console.error('❌ Tor check error:', error.message);
-      // Fallback to indicator-based detection
-      console.log('⚠️ Using Tor indicator fallback');
+      // Tor check failed — use indicator-based detection
       return this.checkTorIndicators(ip);
     }
   }
@@ -464,10 +396,10 @@ class IPStatusService {
     // @ts-ignore - hostname might exist from some IP APIs
     const hostname = ((ipInfo as any).hostname || '').toLowerCase();
 
-    console.log('🔍 ===== VPN DETECTION DEBUG =====');
-    console.log('🔍 Checking VPN for org/ISP:', org);
-    console.log('🔍 Hostname (if available):', hostname || 'none');
-    console.log('🔍 Full ipInfo received:', JSON.stringify(ipInfo, null, 2));
+    debugLog('🔍 ===== VPN DETECTION DEBUG =====');
+    debugLog('🔍 Checking VPN for org/ISP:', org);
+    debugLog('🔍 Hostname (if available):', hostname || 'none');
+    debugLog('🔍 Full ipInfo received:', JSON.stringify(ipInfo, null, 2));
 
     // Known VPN ASN patterns (Autonomous System Numbers)
     const vpnASNPatterns = [
@@ -503,7 +435,7 @@ class IPStatusService {
     for (const asnPattern of vpnASNPatterns) {
       if (asnPattern.test(org)) {
         indicators.push('ASN match');
-        console.log(`✅ VPN detected by ASN pattern: ${asnPattern}`);
+        debugLog(`✅ VPN detected by ASN pattern: ${asnPattern}`);
 
         // Try to identify provider from ASN
         if (/nord|tesonet|packethub/i.test(org)) vpnProvider = 'NordVPN';
@@ -574,7 +506,7 @@ class IPStatusService {
         if (org.includes(keyword.toLowerCase())) {
           vpnProvider = provider.name;
           indicators.push(keyword);
-          console.log(`✅ VPN Provider detected: ${vpnProvider} (matched: ${keyword})`);
+          debugLog(`✅ VPN Provider detected: ${vpnProvider} (matched: ${keyword})`);
           break;
         }
       }
@@ -592,13 +524,13 @@ class IPStatusService {
 
     // Check hostname for VPN indicators (if available)
     if (hostname) {
-      console.log('🔍 Checking hostname for VPN patterns:', hostname);
+      debugLog('🔍 Checking hostname for VPN patterns:', hostname);
 
       // Check for ProtonVPN hostname patterns
       if (hostname.includes('protonvpn') || hostname.includes('proton-vpn') || hostname.includes('protonmail')) {
         vpnProvider = 'ProtonVPN';
         indicators.push('hostname:proton');
-        console.log('✅ ProtonVPN detected from hostname');
+        debugLog('✅ ProtonVPN detected from hostname');
       }
 
       // Check for other VPN providers in hostname
@@ -607,7 +539,7 @@ class IPStatusService {
           if (hostname.includes(keyword)) {
             vpnProvider = provider.name;
             indicators.push(`hostname:${keyword}`);
-            console.log(`✅ ${provider.name} detected from hostname`);
+            debugLog(`✅ ${provider.name} detected from hostname`);
             break;
           }
         }
@@ -625,17 +557,17 @@ class IPStatusService {
 
     // If already marked as VPN by API
     if (ipInfo.isVPN) {
-      console.log('✅ VPN detected by API flag');
+      debugLog('✅ VPN detected by API flag');
       return { isVPN: true, provider: vpnProvider || 'Unknown VPN' };
     }
 
     // If we found VPN indicators
     if (indicators.length > 0) {
-      console.log(`✅ VPN detected by indicators: ${indicators.join(', ')}`);
+      debugLog(`✅ VPN detected by indicators: ${indicators.join(', ')}`);
       return { isVPN: true, provider: vpnProvider || 'VPN Service' };
     }
 
-    console.log('❌ No VPN detected');
+    debugLog('❌ No VPN detected');
     return { isVPN: false };
   }
 
@@ -649,7 +581,7 @@ class IPStatusService {
     // ========================================
     if (typeof window !== 'undefined' && window.electronAPI?.executeCommand) {
       try {
-        console.log('🐧 PRIMARY: Detecting network via Linux commands...');
+        debugLog('🐧 PRIMARY: Detecting network via Linux commands...');
 
         // Get default route interface
         const routeOutput = await window.electronAPI.executeCommand(
@@ -658,7 +590,7 @@ class IPStatusService {
         const defaultIface = routeOutput.trim();
 
         if (defaultIface) {
-          console.log(`🔍 Default route interface: ${defaultIface}`);
+          debugLog(`🔍 Default route interface: ${defaultIface}`);
           const name = defaultIface.toLowerCase();
 
           let type: NetworkConnectionInfo['type'] = 'unknown';
@@ -685,7 +617,7 @@ class IPStatusService {
             if (speed > 0) downlink = speed;
           } catch { /* ignore */ }
 
-          console.log(`✅ Linux network: ${type} (${defaultIface}), speed: ${downlink || 'unknown'} Mbps`);
+          debugLog(`✅ Linux network: ${type} (${defaultIface}), speed: ${downlink || 'unknown'} Mbps`);
 
           return {
             type,
@@ -703,13 +635,13 @@ class IPStatusService {
     // ========================================
     // FALLBACK: Network Information API (Chromium)
     // ========================================
-    console.log('🔄 FALLBACK: Using Network Information API...');
+    debugLog('🔄 FALLBACK: Using Network Information API...');
 
     const nav: any = navigator;
     const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
     if (!connection) {
-      console.log('❌ Network Information API not available');
+      debugLog('❌ Network Information API not available');
       return {
         type: 'unknown',
         source: 'unavailable',
@@ -734,7 +666,7 @@ class IPStatusService {
         info.type = 'unknown';
       }
 
-      console.log(`✅ Network from API: ${info.type}, Speed: ${connection.effectiveType}, Downlink: ${info.downlink} Mbps`);
+      debugLog(`✅ Network from API: ${info.type}, Speed: ${connection.effectiveType}, Downlink: ${info.downlink} Mbps`);
 
       return {
         ...info,
@@ -756,7 +688,7 @@ class IPStatusService {
   private async getDNSInfo(isVPN: boolean, isp?: string): Promise<DNSInfo> {
     if (typeof window !== 'undefined' && window.electronAPI?.executeCommand) {
       try {
-        console.log('🐧 Fetching DNS info via Linux commands...');
+        debugLog('🐧 Fetching DNS info via Linux commands...');
 
         // Try resolvectl first (systemd-resolved)
         let servers: string[] = [];
@@ -768,7 +700,7 @@ class IPStatusService {
           const resolvectlServers = resolvectlOutput.trim().split('\n').filter((s: string) => s && this.isValidIP(s));
           if (resolvectlServers.length > 0) {
             servers = [...new Set(resolvectlServers)]; // dedupe
-            console.log(`✅ resolvectl: Found ${servers.length} DNS servers`);
+            debugLog(`✅ resolvectl: Found ${servers.length} DNS servers`);
           }
         } catch { /* resolvectl not available */ }
 
@@ -781,7 +713,7 @@ class IPStatusService {
             const resolvServers = resolvConfOutput.trim().split('\n').filter((s: string) => s && this.isValidIP(s));
             if (resolvServers.length > 0) {
               servers = [...new Set(resolvServers)];
-              console.log(`✅ resolv.conf: Found ${servers.length} DNS servers`);
+              debugLog(`✅ resolv.conf: Found ${servers.length} DNS servers`);
             }
           } catch { /* resolv.conf not readable */ }
         }
@@ -799,7 +731,7 @@ class IPStatusService {
           };
         }
 
-        console.warn('⚠️  No DNS servers found via Linux commands');
+        debugWarn('⚠️  No DNS servers found via Linux commands');
       } catch (err) {
         console.error('❌ Linux DNS detection failed:', err);
       }
@@ -808,7 +740,7 @@ class IPStatusService {
     // ========================================
     // FINAL FALLBACK: Unavailable
     // ========================================
-    console.warn('❌ All DNS detection methods failed');
+    debugWarn('❌ All DNS detection methods failed');
     return {
       servers: [],
       source: 'unavailable',
@@ -828,9 +760,9 @@ class IPStatusService {
       return { isLeak: false };
     }
 
-    console.log('🔍 Checking for DNS leaks...');
-    console.log(`🔍 VPN Active: ${isVPN}, ISP: ${isp || 'unknown'}`);
-    console.log(`🔍 DNS Servers: ${dnsServers.join(', ')}`);
+    debugLog('🔍 Checking for DNS leaks...');
+    debugLog(`🔍 VPN Active: ${isVPN}, ISP: ${isp || 'unknown'}`);
+    debugLog(`🔍 DNS Servers: ${dnsServers.join(', ')}`);
 
     // Common ISP DNS patterns
     const ispDNSPatterns = [
@@ -864,21 +796,21 @@ class IPStatusService {
       // Skip public DNS (Google, Cloudflare) - these are neutral
       if (dnsServer === '8.8.8.8' || dnsServer === '8.8.4.4' ||
           dnsServer === '1.1.1.1' || dnsServer === '1.0.0.1') {
-        console.log(`ℹ️  ${dnsServer} - Public DNS (neutral)`);
+        debugLog(`ℹ️  ${dnsServer} - Public DNS (neutral)`);
         continue;
       }
 
       // Check if it matches VPN DNS pattern (GOOD)
       const isVPNDNS = vpnDNSPatterns.some(pattern => pattern.test(dnsServer));
       if (isVPNDNS) {
-        console.log(`✅ ${dnsServer} - VPN DNS (secure)`);
+        debugLog(`✅ ${dnsServer} - VPN DNS (secure)`);
         continue;
       }
 
       // Check if it matches ISP DNS pattern (LEAK)
       const isISPDNS = ispDNSPatterns.some(pattern => pattern.test(dnsServer));
       if (isISPDNS) {
-        console.warn(`🚨 ${dnsServer} - ISP DNS detected (LEAK!)`);
+        debugWarn(`🚨 ${dnsServer} - ISP DNS detected (LEAK!)`);
         leakServers.push(dnsServer);
         continue;
       }
@@ -887,7 +819,7 @@ class IPStatusService {
       if (isp) {
         // This would require reverse DNS lookup or ASN lookup
         // For now, we'll mark unknown DNS as potential leak
-        console.warn(`⚠️  ${dnsServer} - Unknown DNS (possible leak)`);
+        debugWarn(`⚠️  ${dnsServer} - Unknown DNS (possible leak)`);
       }
     }
 
@@ -896,7 +828,7 @@ class IPStatusService {
       return { isLeak: true, leakServers };
     }
 
-    console.log('✅ No DNS leaks detected');
+    debugLog('✅ No DNS leaks detected');
     return { isLeak: false };
   }
 
@@ -928,46 +860,46 @@ class IPStatusService {
         this.lastCheck &&
         Date.now() - this.lastCheck.getTime() < this.cacheTimeout
       ) {
-        console.log('📡 Returning cached IP status');
+        debugLog('📡 Returning cached IP status');
         return this.cachedStatus;
       }
 
-      console.log('🔄 === STARTING FULL IP STATUS FETCH ===');
+      debugLog('🔄 === STARTING FULL IP STATUS FETCH ===');
 
       let ipInfo: Partial<IPStatusData>;
 
       // Phase 1: Try to get full IP info with location data
       try {
-        console.log('📡 Phase 1: Attempting detailed IP info fetch...');
+        debugLog('📡 Phase 1: Attempting detailed IP info fetch...');
         ipInfo = await this.fetchIPInfo();
 
         if (!ipInfo.ip) {
-          console.warn('⚠️ No IP in detailed fetch, moving to Phase 2...');
+          debugWarn('⚠️ No IP in detailed fetch, moving to Phase 2...');
           throw new Error('No IP returned from detailed fetch');
         }
 
-        console.log('✅ Phase 1 successful: Got detailed IP info');
+        debugLog('✅ Phase 1 successful: Got detailed IP info');
       } catch (phase1Error: any) {
-        console.warn('⚠️ Phase 1 failed:', phase1Error.message);
+        debugWarn('⚠️ Phase 1 failed:', phase1Error.message);
 
         // Phase 2: Fallback to simple IP fetch
         try {
-          console.log('📡 Phase 2: Attempting simple IP fetch...');
+          debugLog('📡 Phase 2: Attempting simple IP fetch...');
           const simpleIP = await this.fetchIPWithFallbacks();
           ipInfo = { ip: simpleIP };
-          console.log('✅ Phase 2 successful: Got simple IP');
+          debugLog('✅ Phase 2 successful: Got simple IP');
         } catch (phase2Error: any) {
           console.error('❌ Phase 2 failed:', phase2Error.message);
 
           // Phase 3: Final emergency fallback
-          console.log('📡 Phase 3: Emergency fallback...');
+          debugLog('📡 Phase 3: Emergency fallback...');
           return await this.createEmergencyFallbackStatus(phase2Error.message);
         }
       }
 
       // Phase 4: Enrich with Tor/VPN detection (best effort)
       try {
-        console.log('📡 Phase 4: Enriching with Tor/VPN detection...');
+        debugLog('📡 Phase 4: Enriching with Tor/VPN detection...');
 
         let torStatus: TorCheckResult;
         let vpnStatus: { isVPN: boolean; provider?: string };
@@ -975,14 +907,14 @@ class IPStatusService {
         try {
           torStatus = await this.checkTorStatus(ipInfo.ip!);
         } catch (torError) {
-          console.warn('⚠️ Tor check failed, assuming not Tor');
+          debugWarn('⚠️ Tor check failed, assuming not Tor');
           torStatus = { isTor: false };
         }
 
         try {
           vpnStatus = this.detectVPN(ipInfo);
         } catch (vpnError) {
-          console.warn('⚠️ VPN detection failed, assuming direct connection');
+          debugWarn('⚠️ VPN detection failed, assuming direct connection');
           vpnStatus = { isVPN: false };
         }
 
@@ -996,7 +928,7 @@ class IPStatusService {
         try {
           networkConnection = await this.getNetworkConnectionInfo();
         } catch (netError) {
-          console.warn('⚠️ Network info failed');
+          debugWarn('⚠️ Network info failed');
           networkConnection = { type: 'unknown' };
         }
 
@@ -1004,7 +936,7 @@ class IPStatusService {
         try {
           dnsInfo = await this.getDNSInfo(vpnStatus.isVPN, ipInfo.isp);
         } catch (dnsError) {
-          console.warn('⚠️ DNS info failed');
+          debugWarn('⚠️ DNS info failed');
           dnsInfo = { servers: [], source: 'unavailable' };
         }
 
@@ -1045,11 +977,11 @@ class IPStatusService {
         this.cachedStatus = status;
         this.lastCheck = new Date();
 
-        console.log(`✅ === IP STATUS COMPLETE: ${status.ip} (${status.connectionType}) ===`);
-        if (status.isVPN) console.log(`🔒 VPN: ${status.vpnProvider || 'Unknown Provider'}`);
-        if (status.isTor) console.log('🧅 Tor Connection Detected');
+        debugLog(`✅ === IP STATUS COMPLETE: ${status.ip} (${status.connectionType}) ===`);
+        if (status.isVPN) debugLog(`🔒 VPN: ${status.vpnProvider || 'Unknown Provider'}`);
+        if (status.isTor) debugLog('🧅 Tor Connection Detected');
         if (status.dnsInfo && status.dnsInfo.servers.length > 0) {
-          console.log(`🌐 DNS: ${status.dnsInfo.servers.join(', ')} (${status.dnsInfo.source})`);
+          debugLog(`🌐 DNS: ${status.dnsInfo.servers.join(', ')} (${status.dnsInfo.source})`);
           if (status.dnsInfo.isDNSLeak) {
             console.error(`🚨 DNS LEAK: ${status.dnsInfo.leakServers?.join(', ')}`);
           }
@@ -1057,7 +989,7 @@ class IPStatusService {
 
         return status;
       } catch (enrichmentError: any) {
-        console.warn('⚠️ Enrichment failed, returning basic status:', enrichmentError.message);
+        debugWarn('⚠️ Enrichment failed, returning basic status:', enrichmentError.message);
 
         // Return basic status without enrichment
         const basicStatus: IPStatusData = {
@@ -1099,11 +1031,11 @@ class IPStatusService {
     try {
       // Only available in Electron with PC Monitor MCP
       if (typeof window === 'undefined' || !window.electronAPI) {
-        console.log('ℹ️  Electron API not available for local IP fetch');
+        debugLog('ℹ️  Electron API not available for local IP fetch');
         return null;
       }
 
-      console.log('🖥️  Fetching local IP from PC Monitor MCP...');
+      debugLog('🖥️  Fetching local IP from PC Monitor MCP...');
 
       const networkInfo = await window.electronAPI.mcpCall('get_network_info', {});
 
@@ -1116,7 +1048,7 @@ class IPStatusService {
           if (textContent) {
             try {
               data = JSON.parse(textContent);
-              console.log('✅ PC Monitor MCP response parsed for local IP');
+              debugLog('✅ PC Monitor MCP response parsed for local IP');
             } catch (parseError) {
               console.error('❌ Failed to parse PC Monitor MCP response:', parseError);
               return null;
@@ -1125,7 +1057,7 @@ class IPStatusService {
         }
 
         const interfaces = data.interfaces || [];
-        console.log(`🔍 Analyzing ${interfaces.length} interfaces for local IP`);
+        debugLog(`🔍 Analyzing ${interfaces.length} interfaces for local IP`);
 
         // Prioritize Ethernet > WiFi > Cellular for local IP
         const priorityOrder = ['ethernet', 'wifi', 'cellular', 'other'];
@@ -1167,16 +1099,16 @@ class IPStatusService {
 
               // Validate IP format
               if (this.isValidIP(ip)) {
-                console.log(`✅ PC Monitor MCP: Local IP ${ip} (${iface.name}, Priority: ${priority})`);
+                debugLog(`✅ PC Monitor MCP: Local IP ${ip} (${iface.name}, Priority: ${priority})`);
                 return ip;
               }
             }
           }
         }
 
-        console.warn('⚠️  PC Monitor MCP found no suitable local IP in any interface');
+        debugWarn('⚠️  PC Monitor MCP found no suitable local IP in any interface');
       } else {
-        console.warn('⚠️  PC Monitor MCP returned no network data');
+        debugWarn('⚠️  PC Monitor MCP returned no network data');
       }
 
       return null;
@@ -1213,9 +1145,9 @@ class IPStatusService {
     this.lastCheck = new Date();
 
     if (localIP) {
-      console.log(`⚠️ Returning local IP fallback: ${localIP}`);
+      debugLog(`⚠️ Returning local IP fallback: ${localIP}`);
     } else {
-      console.log('⚠️ Returning emergency fallback status');
+      debugLog('⚠️ Returning emergency fallback status');
     }
 
     return emergencyStatus;
@@ -1260,7 +1192,7 @@ class IPStatusService {
       case 'tor':
         return 'text-purple-500'; // Purple for Tor
       case 'vpn':
-        return 'text-green-500'; // Green for VPN
+        return 'text-emerald-500'; // Green for VPN
       case 'proxy':
         return 'text-blue-500'; // Blue for Proxy
       case 'direct':
@@ -1277,16 +1209,16 @@ class IPStatusService {
   getBadgeColor(connectionType: IPStatusData['connectionType']): string {
     switch (connectionType) {
       case 'tor':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+        return 'bg-purple-500/15 text-violet-500 border-transparent';
       case 'vpn':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
+        return 'bg-emerald-500/15 text-emerald-500 border-transparent';
       case 'proxy':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+        return 'bg-blue-500/15 text-blue-500 border-transparent';
       case 'direct':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
+        return 'bg-red-500/15 text-red-500 border-transparent';
       case 'unknown':
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-gray-500/15 text-zinc-500 border-transparent';
     }
   }
 }
@@ -1298,16 +1230,16 @@ export default ipStatusService;
 // Debug helper - expose to window for console debugging
 if (typeof window !== 'undefined') {
   (window as any).debugIPStatus = async () => {
-    console.log('🔧 === IP STATUS DEBUG ===');
+    debugLog('🔧 === IP STATUS DEBUG ===');
     try {
       const status = await ipStatusService.getIPStatus(true);
-      console.log('📊 Full Status:', status);
-      console.log('🌍 IP:', status.ip);
-      console.log('🏢 ISP/Org:', status.isp, '/', status.org);
-      console.log('🔒 VPN:', status.isVPN, status.vpnProvider);
-      console.log('🧅 Tor:', status.isTor);
-      console.log('📡 Network:', status.networkConnection?.type);
-      console.log('🗺️ Location:', status.city, status.region, status.country);
+      debugLog('📊 Full Status:', status);
+      debugLog('🌍 IP:', status.ip);
+      debugLog('🏢 ISP/Org:', status.isp, '/', status.org);
+      debugLog('🔒 VPN:', status.isVPN, status.vpnProvider);
+      debugLog('🧅 Tor:', status.isTor);
+      debugLog('📡 Network:', status.networkConnection?.type);
+      debugLog('🗺️ Location:', status.city, status.region, status.country);
       return status;
     } catch (error: any) {
       console.error('❌ Debug Error:', error);
