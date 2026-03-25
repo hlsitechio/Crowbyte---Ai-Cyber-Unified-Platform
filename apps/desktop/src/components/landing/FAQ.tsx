@@ -2,23 +2,6 @@ import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { CaretDown } from "@phosphor-icons/react";
 
-/* ------------------------------------------------------------------ */
-/*  Animation variants                                                 */
-/* ------------------------------------------------------------------ */
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 32 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: "easeOut" },
-  }),
-};
-
-/* ------------------------------------------------------------------ */
-/*  FAQ data                                                           */
-/* ------------------------------------------------------------------ */
-
 interface FAQItem {
   question: string;
   answer: string;
@@ -26,68 +9,38 @@ interface FAQItem {
 
 const faqItems: FAQItem[] = [
   {
-    question: "What is CrowByte?",
+    question: "Is CrowByte free?",
     answer:
-      "CrowByte is a platform that combines AI-powered agents, security scanning tools, threat intelligence feeds, and operation management into a unified command center for offensive security professionals.",
+      "Yes. The community tier is free forever. Pro starts at $29/mo for unlimited scans and all AI models.",
   },
   {
-    question: "What operating systems are supported?",
+    question: "What AI models are included?",
     answer:
-      "Linux (Kali, Ubuntu, Debian, Arch). Docker for any platform. Windows and macOS support planned for Q3 2026.",
+      "Claude Opus/Sonnet/Haiku, DeepSeek V3.2, Qwen3 480B, Mistral Large 675B, Kimi K2 \u2014 7+ models accessible through a single chat interface.",
   },
   {
-    question: "Do I need API keys for AI models?",
+    question: "Can I self-host?",
     answer:
-      "CrowByte includes access through our cloud gateway. Pro+ plans include unlimited queries. You can also bring your own API keys.",
+      "Yes. CrowByte runs as an Electron app on Linux (Kali, Ubuntu, Debian) or via Docker. Your data stays on your machine. Supabase backend can be self-hosted too.",
   },
   {
-    question: "Is CrowByte legal to use?",
+    question: "Is this legal?",
     answer:
-      "CrowByte is a dual-use security tool. Only use on systems you own or have written authorization to test. See our Acceptable Use Policy.",
-  },
-  {
-    question: "Can I self-host CrowByte?",
-    answer:
-      "Team plans include self-hosted options. Enterprise supports fully air-gapped, on-premises installations.",
-  },
-  {
-    question: "How does the MCP integration work?",
-    answer:
-      "CrowByte uses Model Context Protocol to connect AI models with security tools. AI agents can execute nmap, nuclei, query Shodan \u2014 all through natural language.",
-  },
-  {
-    question: "Is my data secure?",
-    answer:
-      "All data encrypted in transit (TLS 1.3) and at rest (AES-256). Self-hosted keeps data on your infra. Cloud uses Supabase with row-level security.",
-  },
-  {
-    question: "Can I import/export data?",
-    answer:
-      "Yes. CVEs, findings, knowledge base, and reports export as JSON, CSV, or PDF. Burp Suite and Nessus import on the roadmap.",
+      "CrowByte is a tool. Like Burp Suite or Metasploit, use it only on targets you have explicit authorization to test. We include dual-use warnings and require EULA acceptance.",
   },
 ];
-
-/* ------------------------------------------------------------------ */
-/*  Accordion item                                                     */
-/* ------------------------------------------------------------------ */
 
 function AccordionItem({
   item,
   isOpen,
   onToggle,
-  index,
 }: {
   item: FAQItem;
   isOpen: boolean;
   onToggle: () => void;
-  index: number;
 }) {
   return (
-    <motion.div
-      variants={fadeUp}
-      custom={index + 2}
-      className="border-b border-white/[0.06]"
-    >
+    <div className="border-b border-white/[0.06]">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between py-5 text-left group"
@@ -117,66 +70,46 @@ function AccordionItem({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <p className="pb-5 font-['Inter'] text-zinc-400 text-sm leading-relaxed pr-8">
+            <p className="pb-5 font-['JetBrains_Mono'] text-sm text-zinc-400 leading-relaxed pr-8">
               {item.answer}
             </p>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const inView = useInView(sectionRef, { once: true, margin: "-80px" });
 
-  const handleToggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
     <section ref={sectionRef} className="py-28 px-6">
       <div className="mx-auto max-w-3xl">
-        {/* Header */}
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          className="text-center mb-14"
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="font-['JetBrains_Mono'] text-4xl md:text-5xl font-bold text-white mb-12"
         >
-          <motion.h2
-            variants={fadeUp}
-            custom={0}
-            className="text-3xl md:text-4xl font-bold text-white font-['JetBrains_Mono']"
-          >
-            Frequently Asked Questions
-          </motion.h2>
-          <motion.p
-            variants={fadeUp}
-            custom={1}
-            className="mt-4 text-zinc-400 font-['Inter']"
-          >
-            Everything you need to know about CrowByte.
-          </motion.p>
-        </motion.div>
+          FAQ
+        </motion.h2>
 
-        {/* Accordion */}
         <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
           {faqItems.map((item, i) => (
             <AccordionItem
               key={i}
               item={item}
-              index={i}
               isOpen={openIndex === i}
-              onToggle={() => handleToggle(i)}
+              onToggle={() =>
+                setOpenIndex(openIndex === i ? null : i)
+              }
             />
           ))}
         </motion.div>
