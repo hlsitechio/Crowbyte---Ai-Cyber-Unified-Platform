@@ -21,11 +21,11 @@ RUN Invoke-WebRequest -Uri 'https://nodejs.org/dist/v20.18.1/node-v20.18.1-x64.m
 
 # Copy source and build
 WORKDIR C:\\build
-COPY package.json .
-COPY apps\\desktop\\package.json apps\\desktop\\
+COPY ["package.json", "C:/build/"]
+COPY ["apps/desktop/package.json", "apps/desktop/"]
 RUN npm install --legacy-peer-deps 2>$null; if (-not $?) { npm install }
 
-COPY apps\\desktop\\ apps\\desktop\\
+COPY ["apps/desktop/", "apps/desktop/"]
 WORKDIR C:\\build\\apps\\desktop
 RUN npx vite build
 
@@ -66,13 +66,13 @@ RUN pip install websockify
 
 # App files
 WORKDIR C:\\app
-COPY --from=builder C:\\build\\apps\\desktop\\dist .\\dist
-COPY --from=builder C:\\build\\apps\\desktop\\electron .\\electron
-COPY --from=builder C:\\build\\apps\\desktop\\package.json .
-COPY --from=builder C:\\build\\apps\\desktop\\node_modules .\\node_modules
+COPY --from=builder ["C:/build/apps/desktop/dist", "./dist/"]
+COPY --from=builder ["C:/build/apps/desktop/electron", "./electron/"]
+COPY --from=builder ["C:/build/apps/desktop/package.json", "./"]
+COPY --from=builder ["C:/build/apps/desktop/node_modules", "./node_modules/"]
 
 # Entrypoint
-COPY docker\\entrypoint.ps1 C:\\entrypoint.ps1
+COPY ["docker/entrypoint.ps1", "C:/entrypoint.ps1"]
 
 ENV NODE_ENV=production
 ENV VNC_PORT=5900

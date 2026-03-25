@@ -81,6 +81,62 @@ services:
       retries: 3
       start_period: 15s
 
+  # ─── Ubuntu variant (for WSL2 / Ubuntu VPS) ──────────────────────────────
+  crowbyte-ubuntu:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+    image: hlsitech/crowbyte:ubuntu
+    container_name: crowbyte-ubuntu
+    restart: unless-stopped
+    profiles: ["ubuntu"]
+
+    ports:
+      - "${NOVNC_PORT:-6080}:6080"
+
+    environment:
+      - DISPLAY=:99
+      - RESOLUTION=${RESOLUTION:-1920x1080x24}
+      - VNC_PASSWORD=${VNC_PASSWORD:-}
+      - NODE_ENV=production
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY:-}
+      - VITE_SUPABASE_SERVICE_KEY=${VITE_SUPABASE_SERVICE_KEY:-}
+      - VITE_OPENCLAW_HOST=${VITE_OPENCLAW_HOST:-}
+      - VITE_VPS_IP=${VITE_VPS_IP:-}
+      - VITE_OPENCLAW_GATEWAY_PASSWORD=${VITE_OPENCLAW_GATEWAY_PASSWORD:-}
+      - VITE_NVIDIA_API_KEY=${VITE_NVIDIA_API_KEY:-}
+      - VITE_NVIDIA_PROXY_PORT=${VITE_NVIDIA_PROXY_PORT:-19990}
+      - VITE_VNC_WS_URL=${VITE_VNC_WS_URL:-}
+      - VITE_VNC_PASSWORD=${VITE_VNC_PASSWORD:-}
+      - VITE_SHODAN_API_KEY=${VITE_SHODAN_API_KEY:-}
+      - VITE_NVD_API_KEY=${VITE_NVD_API_KEY:-}
+      - VITE_TAVILY_API_KEY=${VITE_TAVILY_API_KEY:-}
+      - VITE_MCP_CLOUD_URL=${VITE_MCP_CLOUD_URL:-}
+      - VITE_MCP_CLOUD_AUTH=${VITE_MCP_CLOUD_AUTH:-}
+
+    volumes:
+      - crowbyte-data:/root/.config/crowbyte
+      - crowbyte-scans:/root/scans
+
+    shm_size: '2gb'
+
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:6080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
 volumes:
   crowbyte-data:
     name: crowbyte-data
