@@ -1,10 +1,17 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { Check, X } from "@phosphor-icons/react";
+
+interface Feature {
+  label: string;
+  value: string | boolean;
+}
 
 interface PlanTier {
   name: string;
   price: string;
-  features: string[];
+  subtitle: string;
+  features: Feature[];
   cta: string;
   href: string;
   highlight?: boolean;
@@ -14,11 +21,14 @@ const plans: PlanTier[] = [
   {
     name: "Free",
     price: "$0",
+    subtitle: "Get started",
     features: [
-      "3 custom agents",
-      "50 queries/day",
-      "Basic recon tools",
-      "Community support",
+      { label: "Custom Agents", value: "2 agents" },
+      { label: "MCP Tools", value: "Basic set" },
+      { label: "VPS Agents", value: false },
+      { label: "Red Team Ops", value: false },
+      { label: "Fleet Management", value: false },
+      { label: "Support", value: "Community" },
     ],
     cta: "Launch Free",
     href: "/#/auth",
@@ -26,12 +36,14 @@ const plans: PlanTier[] = [
   {
     name: "Pro",
     price: "$29",
+    subtitle: "For serious hunters",
     features: [
-      "Unlimited custom agents",
-      "Unlimited queries",
-      "142 MCP tools",
-      "3 VPS agents",
-      "Priority support",
+      { label: "Custom Agents", value: "10 agents" },
+      { label: "MCP Tools", value: "All 142" },
+      { label: "VPS Agents", value: "3 agents" },
+      { label: "Red Team Ops", value: "5 ops" },
+      { label: "Fleet Management", value: "5 endpoints" },
+      { label: "Support", value: "Priority email" },
     ],
     cta: "Start Pro",
     href: "/#/auth",
@@ -40,17 +52,57 @@ const plans: PlanTier[] = [
   {
     name: "Team",
     price: "$79",
+    subtitle: "Collaborate at scale",
     features: [
-      "Everything in Pro",
-      "9 VPS agents",
-      "Fleet management",
-      "Shared findings",
-      "RBAC + audit logs",
+      { label: "Custom Agents", value: "Unlimited" },
+      { label: "MCP Tools", value: "All 142" },
+      { label: "VPS Agents", value: "9 agents" },
+      { label: "Red Team Ops", value: "Unlimited" },
+      { label: "Fleet Management", value: "50 endpoints" },
+      { label: "Support", value: "Priority + chat" },
     ],
     cta: "Start Team",
     href: "/#/auth",
   },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    subtitle: "On-prem + air-gapped",
+    features: [
+      { label: "Custom Agents", value: "Unlimited" },
+      { label: "MCP Tools", value: "All + custom" },
+      { label: "VPS Agents", value: "Unlimited" },
+      { label: "Red Team Ops", value: "Unlimited" },
+      { label: "Fleet Management", value: "Unlimited" },
+      { label: "Support", value: "Dedicated SLA" },
+    ],
+    cta: "Contact Sales",
+    href: "mailto:support@crowbyte.io",
+  },
 ];
+
+function FeatureRow({ feature }: { feature: Feature }) {
+  const isFalse = feature.value === false;
+  return (
+    <li className="flex items-center gap-2.5 py-1.5">
+      {isFalse ? (
+        <X size={14} weight="bold" className="text-zinc-600 shrink-0" />
+      ) : (
+        <Check size={14} weight="bold" className="text-emerald-500 shrink-0" />
+      )}
+      <span
+        className={`font-['JetBrains_Mono'] text-xs ${
+          isFalse ? "text-zinc-600" : "text-zinc-400"
+        }`}
+      >
+        {feature.label}:{" "}
+        <span className={isFalse ? "text-zinc-600" : "text-zinc-300"}>
+          {isFalse ? "—" : feature.value}
+        </span>
+      </span>
+    </li>
+  );
+}
 
 const cardVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -58,7 +110,7 @@ const cardVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      delay: i * 0.1,
+      delay: i * 0.08,
       duration: 0.5,
       ease: "easeOut",
     },
@@ -71,7 +123,7 @@ export default function Pricing() {
 
   return (
     <section id="pricing" ref={sectionRef} className="py-28 px-6">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -84,46 +136,46 @@ export default function Pricing() {
         <motion.div
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
         >
           {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
               variants={cardVariants}
               custom={i}
-              className={`rounded-2xl p-6 flex flex-col ${
+              className={`rounded-xl p-5 flex flex-col ${
                 plan.highlight
-                  ? "bg-white/[0.03] border border-emerald-500/30"
+                  ? "bg-white/[0.04] border border-emerald-500/30"
                   : "bg-white/[0.03] border border-white/[0.06]"
               }`}
             >
-              <h3 className="font-['JetBrains_Mono'] text-lg font-semibold text-white">
+              <h3 className="font-['JetBrains_Mono'] text-base font-semibold text-white">
                 {plan.name}
               </h3>
+              <p className="font-['JetBrains_Mono'] text-xs text-zinc-500 mt-0.5">
+                {plan.subtitle}
+              </p>
 
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white font-['JetBrains_Mono']">
+                <span className="text-3xl font-bold text-white font-['JetBrains_Mono']">
                   {plan.price}
                 </span>
-                <span className="text-sm text-zinc-500 font-['JetBrains_Mono']">
-                  /mo
-                </span>
+                {plan.price !== "Custom" && (
+                  <span className="text-xs text-zinc-500 font-['JetBrains_Mono']">
+                    /mo
+                  </span>
+                )}
               </div>
 
-              <ul className="mt-6 space-y-3 flex-1">
+              <ul className="mt-5 flex-1">
                 {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="text-sm text-zinc-400 font-['JetBrains_Mono']"
-                  >
-                    {feature}
-                  </li>
+                  <FeatureRow key={feature.label} feature={feature} />
                 ))}
               </ul>
 
               <a
                 href={plan.href}
-                className={`mt-8 w-full rounded-lg py-2.5 text-sm text-center block font-['JetBrains_Mono'] font-medium transition-colors ${
+                className={`mt-6 w-full rounded-lg py-2 text-sm text-center block font-['JetBrains_Mono'] font-medium transition-colors ${
                   plan.highlight
                     ? "bg-emerald-500 hover:bg-emerald-400 text-black"
                     : "border border-white/20 hover:bg-white/5 text-white"
