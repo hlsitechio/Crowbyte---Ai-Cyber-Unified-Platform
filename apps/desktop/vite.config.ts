@@ -15,7 +15,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Pin React to single copy — prevents duplicate React in monorepo/Electron
+      "react": path.resolve(__dirname, "../../node_modules/react"),
+      "react-dom": path.resolve(__dirname, "../../node_modules/react-dom"),
     },
+    dedupe: ['react', 'react-dom'],
   },
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
