@@ -148,10 +148,9 @@ export default function Hero() {
             variants={fadeUp}
             className="font-['JetBrains_Mono'] text-sm md:text-base text-zinc-500 max-w-2xl mx-auto mt-6 leading-relaxed"
           >
-            CrowByte unifies AI agents, vulnerability scanners, CVE tracking,
-            and fleet management in a single Electron terminal.
-            <span className="text-zinc-400"> 142 MCP tools. Custom AI agents. 9 VPS nodes.</span>
-            {" "}Zero context switching.
+            Finds subdomains. Scans for vulns. Writes the report.
+            <br />
+            <span className="text-zinc-400">AI does the hunting, you collect the bounty.</span>
           </motion.p>
 
           {/* CTAs */}

@@ -6,7 +6,6 @@ import TerminalDemo from "@/components/landing/TerminalDemo";
 import Solutions from "@/components/landing/Solutions";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
-import Comparison from "@/components/landing/Comparison";
 import FAQ from "@/components/landing/FAQ";
 import CTABanner from "@/components/landing/CTABanner";
 import Footer from "@/components/landing/Footer";
@@ -22,7 +21,6 @@ const LandingPage = () => {
       <Solutions />
       <HowItWorks />
       <Pricing />
-      <Comparison />
       <FAQ />
       <CTABanner />
       <Footer />
