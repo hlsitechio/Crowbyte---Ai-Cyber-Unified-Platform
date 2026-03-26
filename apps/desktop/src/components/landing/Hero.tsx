@@ -4,82 +4,158 @@ import { BookOpen } from "@phosphor-icons/react";
 import LaunchAppButton from "./LaunchAppButton";
 
 /* ------------------------------------------------------------------ */
-/*  Terminal typing data                                               */
+/*  Agent pane data — each pane is an agent doing its thing            */
 /* ------------------------------------------------------------------ */
 
-interface TerminalLine {
+interface AgentLine {
   text: string;
-  color?: string;
+  color: string;
 }
 
-const terminalLines: TerminalLine[] = [
-  { text: "$ crowbyte recon --target acme.com --deep" },
-  { text: "" },
-  { text: "[*] Resolving subdomains via passive sources...", color: "text-zinc-500" },
-  { text: "[+] 142 subdomains found", color: "text-emerald-400" },
-  { text: "[+] 38 live hosts (HTTP 200/301/403)", color: "text-emerald-400" },
-  { text: "[*] Running nuclei templates (critical+high)...", color: "text-zinc-500" },
-  { text: "" },
-  { text: "[!] CVE-2024-21762  FortiOS out-of-bound write  10.0.1.5:443", color: "text-red-400" },
-  { text: "[!] CVE-2024-3400   PAN-OS command injection     10.0.2.11:443", color: "text-red-400" },
-  { text: "[+] Open admin panel (no auth) at 10.0.3.7:8080", color: "text-yellow-400" },
-  { text: "" },
-  { text: "[*] Dispatching hunter agent for exploit verification...", color: "text-zinc-500" },
-  { text: "[+] 2 confirmed critical, 1 high — report generated", color: "text-emerald-400" },
-  { text: "[>] Saved: ./reports/acme-com-2025-03-24.md", color: "text-zinc-400" },
+interface AgentPane {
+  name: string;
+  status: string;
+  statusColor: string;
+  lines: AgentLine[];
+}
+
+const agentPanes: AgentPane[] = [
+  {
+    name: "recon",
+    status: "scanning",
+    statusColor: "text-emerald-400",
+    lines: [
+      { text: "$ subfinder -d acme.com -silent", color: "text-zinc-400" },
+      { text: "[+] 142 subdomains found", color: "text-emerald-400" },
+      { text: "[+] 38 live hosts responding", color: "text-emerald-400" },
+      { text: "[*] Feeding targets to hunter...", color: "text-zinc-500" },
+    ],
+  },
+  {
+    name: "hunter",
+    status: "exploiting",
+    statusColor: "text-red-400",
+    lines: [
+      { text: "$ nuclei -severity critical,high", color: "text-zinc-400" },
+      { text: "[!] CVE-2024-21762 FortiOS RCE", color: "text-red-400" },
+      { text: "[!] CVE-2024-3400 PAN-OS cmdi", color: "text-red-400" },
+      { text: "[+] 2 confirmed critical", color: "text-emerald-400" },
+    ],
+  },
+  {
+    name: "intel",
+    status: "enriching",
+    statusColor: "text-violet-400",
+    lines: [
+      { text: "$ shodan search ssl.cert.subject", color: "text-zinc-400" },
+      { text: "[+] 47,312 exposed instances", color: "text-emerald-400" },
+      { text: "[+] CISA KEV: yes | EPSS: 0.97", color: "text-orange-400" },
+      { text: "[*] Cross-referencing NVD...", color: "text-zinc-500" },
+    ],
+  },
+  {
+    name: "sentinel",
+    status: "monitoring",
+    statusColor: "text-blue-400",
+    lines: [
+      { text: "$ crowbyte monitor --live", color: "text-zinc-400" },
+      { text: "[+] 12 endpoints tracked", color: "text-emerald-400" },
+      { text: "[!] New port 8080 on 10.0.3.7", color: "text-yellow-400" },
+      { text: "[+] Admin panel — no auth!", color: "text-red-400" },
+    ],
+  },
+  {
+    name: "analyst",
+    status: "reporting",
+    statusColor: "text-amber-400",
+    lines: [
+      { text: "$ crowbyte report --format h1", color: "text-zinc-400" },
+      { text: "[+] 4 findings triaged", color: "text-emerald-400" },
+      { text: "[+] Report: acme-2025-03.pdf", color: "text-emerald-400" },
+      { text: "[>] Ready for submission", color: "text-violet-400" },
+    ],
+  },
+  {
+    name: "commander",
+    status: "orchestrating",
+    statusColor: "text-emerald-400",
+    lines: [
+      { text: "$ crowbyte fleet status", color: "text-zinc-400" },
+      { text: "[+] 6/6 agents online", color: "text-emerald-400" },
+      { text: "[+] 3 active | 2 idle | 1 reporting", color: "text-emerald-400" },
+      { text: "[>] Mission 87% complete", color: "text-violet-400" },
+    ],
+  },
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Typing animation hook                                              */
+/*  Staggered line reveal per pane                                     */
 /* ------------------------------------------------------------------ */
 
-function useTypingAnimation(lines: TerminalLine[], active: boolean) {
-  const [displayedLines, setDisplayedLines] = useState<string[]>([]);
-  const [currentLine, setCurrentLine] = useState(0);
-  const [currentChar, setCurrentChar] = useState(0);
-  const [done, setDone] = useState(false);
+function useStaggeredReveal(totalLines: number, active: boolean, delay: number) {
+  const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
-    if (!active || done) return;
+    if (!active) return;
 
-    if (currentLine >= lines.length) {
-      setDone(true);
-      return;
-    }
-
-    const line = lines[currentLine].text;
-
-    if (line === "") {
-      setDisplayedLines((prev) => [...prev, ""]);
-      const t = setTimeout(() => {
-        setCurrentLine((l) => l + 1);
-        setCurrentChar(0);
-      }, 80);
-      return () => clearTimeout(t);
-    }
-
-    if (currentChar < line.length) {
-      const speed = currentLine === 0 ? 30 : 18;
-      const t = setTimeout(() => {
-        setDisplayedLines((prev) => {
-          const copy = [...prev];
-          copy[currentLine] = line.slice(0, currentChar + 1);
-          return copy;
+    const startDelay = setTimeout(() => {
+      const interval = setInterval(() => {
+        setVisibleCount((c) => {
+          if (c >= totalLines) {
+            clearInterval(interval);
+            return c;
+          }
+          return c + 1;
         });
-        setCurrentChar((c) => c + 1);
-      }, speed);
-      return () => clearTimeout(t);
-    }
+      }, 400 + Math.random() * 300);
 
-    const t = setTimeout(() => {
-      setCurrentLine((l) => l + 1);
-      setCurrentChar(0);
-      setDisplayedLines((prev) => [...prev, ""]);
-    }, 300);
-    return () => clearTimeout(t);
-  }, [active, currentLine, currentChar, lines, done]);
+      return () => clearInterval(interval);
+    }, delay);
 
-  return { displayedLines, done };
+    return () => clearTimeout(startDelay);
+  }, [active, totalLines, delay]);
+
+  return visibleCount;
+}
+
+function AgentPaneComponent({ pane, active, delay }: { pane: AgentPane; active: boolean; delay: number }) {
+  const visibleCount = useStaggeredReveal(pane.lines.length, active, delay);
+
+  return (
+    <div className="flex flex-col border border-white/[0.06] rounded-md overflow-hidden bg-black/40">
+      {/* Pane header — agent name + status */}
+      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] border-b border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          <span className={`h-1.5 w-1.5 rounded-full ${pane.statusColor.replace('text-', 'bg-')} animate-pulse`} />
+          <span className="font-['JetBrains_Mono'] text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+            {pane.name}
+          </span>
+        </div>
+        <span className={`font-['JetBrains_Mono'] text-[9px] ${pane.statusColor}`}>
+          {pane.status}
+        </span>
+      </div>
+
+      {/* Pane content */}
+      <div className="px-3 py-2.5 font-['JetBrains_Mono'] text-[10px] md:text-[11px] leading-[1.6] min-h-[90px] flex flex-col justify-start">
+        {pane.lines.map((line, i) => (
+          <div
+            key={i}
+            className={`transition-all duration-300 ${
+              i < visibleCount
+                ? `${line.color} opacity-100 translate-y-0`
+                : "opacity-0 translate-y-1"
+            }`}
+          >
+            {line.text}
+          </div>
+        ))}
+        {visibleCount < pane.lines.length && (
+          <span className="inline-block w-[6px] h-[11px] bg-emerald-500/60 animate-pulse mt-0.5" />
+        )}
+      </div>
+    </div>
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -103,7 +179,6 @@ const fadeUp = {
 export default function Hero() {
   const termRef = useRef<HTMLDivElement>(null);
   const termInView = useInView(termRef, { once: true, margin: "-60px" });
-  const { displayedLines, done } = useTypingAnimation(terminalLines, termInView);
 
   return (
     <section
@@ -176,34 +251,35 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Terminal — the hero */}
+        {/* Multi-Agent Terminal — tmux-style split panes */}
         <motion.div ref={termRef} variants={fadeUp} className="w-full">
-          <div className="rounded-lg border border-white/[0.06] overflow-hidden bg-white/[0.03]">
+          <div className="rounded-lg border border-white/[0.08] overflow-hidden bg-black/60 backdrop-blur-sm">
             {/* Window chrome */}
-            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.06]">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#EF4444]/80" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#EAB308]/80" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#22C55E]/80" />
-              <span className="ml-3 font-['JetBrains_Mono'] text-[11px] text-zinc-600">
-                crowbyte@kali ~/bounty
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#EF4444]/80" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#EAB308]/80" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#22C55E]/80" />
+              </div>
+              <span className="font-['JetBrains_Mono'] text-[11px] text-zinc-600">
+                crowbyte@kali ~/bounty — 6 agents active
               </span>
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-['JetBrains_Mono'] text-[9px] text-emerald-500">LIVE</span>
+              </div>
             </div>
 
-            {/* Terminal body */}
-            <div className="px-5 py-4 font-['JetBrains_Mono'] text-[12.5px] md:text-[13px] leading-[1.7] min-h-[280px] md:min-h-[340px]">
-              {displayedLines.map((text, i) => {
-                if (text === "" && i < displayedLines.length - 1) {
-                  return <div key={i} className="h-3" />;
-                }
-                const lineData = terminalLines[i];
-                return (
-                  <div key={i} className={lineData?.color || "text-zinc-300"}>
-                    {text}
-                  </div>
-                );
-              })}
-              {/* Cursor */}
-              <span className="inline-block w-[7px] h-[14px] bg-emerald-500/80 animate-pulse mt-0.5" />
+            {/* Agent grid — 2x3 on desktop, 1 col on mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.04] p-2">
+              {agentPanes.map((pane, i) => (
+                <AgentPaneComponent
+                  key={pane.name}
+                  pane={pane}
+                  active={termInView}
+                  delay={i * 600}
+                />
+              ))}
             </div>
           </div>
         </motion.div>
