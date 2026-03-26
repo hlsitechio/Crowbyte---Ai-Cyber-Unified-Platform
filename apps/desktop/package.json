@@ -3,7 +3,7 @@
   "productName": "CrowByt",
   "description": "AI-powered cybersecurity terminal by HLSITech",
   "author": "HLSITech <contact@hlsitech.com>",
-  "homepage": "https://github.com/hlsitechio/crowbyte",
+  "homepage": "https://crowbyte.io",
   "private": true,
   "type": "module",
   "version": "2.0.0",
