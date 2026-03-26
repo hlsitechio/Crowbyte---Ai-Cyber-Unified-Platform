@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/HLSITech-CrowByte-0a0a0a?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMGI5ODEiIHN0cm9rZS13aWR0aD0iMiI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAxIDAgMTAgMTBBMTAgMTAgMCAwIDAgMTIgMloiLz48L3N2Zz4=&logoColor=10b981" alt="HLSITech" />
-  <img src="https://img.shields.io/badge/Version-2.0.0-10b981?style=for-the-badge" alt="Version" />
-  <img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=for-the-badge" alt="License" />
-  <img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-3b82f6?style=for-the-badge" alt="Platform" />
+  <a href="https://crowbyt.io"><img src="https://img.shields.io/badge/HLSITech-CrowByte-0a0a0a?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMGI5ODEiIHN0cm9rZS13aWR0aD0iMiI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAxIDAgMTAgMTBBMTAgMTAgMCAwIDAgMTIgMloiLz48L3N2Zz4=&logoColor=10b981" alt="HLSITech" /></a>
+  <a href="https://github.com/hlsitechio/crowbyte/releases/tag/v2.0.0"><img src="https://img.shields.io/badge/Version-2.0.0-10b981?style=for-the-badge" alt="Version" /></a>
+  <a href="https://github.com/hlsitechio/crowbyte/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/hlsitechio/crowbyte/releases/latest"><img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-3b82f6?style=for-the-badge" alt="Platform" /></a>
 </p>
 
 ---
