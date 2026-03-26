@@ -333,11 +333,13 @@ export default function Hero() {
 
           <motion.p
             variants={fadeUp}
-            className="font-['JetBrains_Mono'] text-sm md:text-lg text-zinc-400 max-w-2xl mx-auto mt-6 leading-relaxed"
+            className="font-['JetBrains_Mono'] text-[13px] md:text-base text-zinc-400 max-w-2xl mx-auto mt-6 leading-[1.8]"
           >
-            15 AI agents running simultaneously. Every Kali Linux tool.
-            <br />
-            <span className="text-zinc-500">One command. Full attack surface covered.</span>
+            CrowByte unifies <span className="text-white">AI agents</span> and <span className="text-white">hackers</span> into
+            a new era of cyber warfare. One terminal spawns <span className="text-emerald-400">15 AI agents
+            simultaneously</span> — running recon, exploitation, defense, and reporting
+            all at the same time. Every <span className="text-white">Kali Linux</span> tool.
+            Every <span className="text-white">MCP server</span>. One command.
           </motion.p>
 
           <motion.div
