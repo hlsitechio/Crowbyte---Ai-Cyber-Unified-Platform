@@ -2,9 +2,9 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 
 const stats = [
-  { value: "142", label: "Security Tools" },
-  { value: "9", label: "AI Agents" },
-  { value: "7", label: "Report Formats" },
+  { value: "15", label: "AI Agents" },
+  { value: "142", label: "MCP Tools" },
+  { value: "7000+", label: "Kali Binaries" },
   { value: "<30s", label: "Full Recon" },
 ];
 

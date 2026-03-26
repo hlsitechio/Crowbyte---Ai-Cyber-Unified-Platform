@@ -7,25 +7,25 @@ const steps = [
     icon: DownloadSimple,
     num: "01",
     title: "Install",
-    desc: "Download for Linux, Windows, or macOS. One binary, zero config.",
+    desc: "One binary. Linux, Windows, macOS. You're live in 30 seconds.",
   },
   {
     icon: Terminal,
     num: "02",
-    title: "Point",
-    desc: "Enter your target. CrowByte chains subdomain enum, port scan, tech detect.",
+    title: "Target",
+    desc: "Give it a domain. CrowByte spawns 15 agents across your attack surface.",
   },
   {
     icon: Crosshair,
     num: "03",
     title: "Hunt",
-    desc: "AI agents scan for vulns, verify exploits, flag critical findings.",
+    desc: "Agents find vulns, chain exploits, verify everything. You watch.",
   },
   {
     icon: FileText,
     num: "04",
-    title: "Report",
-    desc: "One click. Professional report. Submit to HackerOne or Bugcrowd.",
+    title: "Collect",
+    desc: "Auto-generated report. Submit. Get paid.",
   },
 ];
 
@@ -46,7 +46,7 @@ export default function HowItWorks() {
             how it works.
           </h2>
           <p className="font-['JetBrains_Mono'] text-zinc-500 text-sm mt-3">
-            target to report in four steps
+            from target to payout in four steps
           </p>
         </motion.div>
 

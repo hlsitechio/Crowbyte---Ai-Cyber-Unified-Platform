@@ -20,11 +20,13 @@ export default function CTABanner() {
         </div>
 
         <h2 className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-bold text-white mb-4">
-          ready to hunt?
+          stop switching tools.
         </h2>
 
         <p className="font-['JetBrains_Mono'] text-sm text-zinc-500 mb-8 max-w-lg mx-auto">
-          Download CrowByte. Point it at a target. Let AI find what humans miss.
+          One terminal. 15 AI agents. Every tool you need.
+          <br />
+          Your next bounty is waiting.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

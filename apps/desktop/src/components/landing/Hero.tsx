@@ -135,22 +135,29 @@ export default function Hero() {
       >
         {/* Text block */}
         <div className="text-center mb-12">
+          <motion.p
+            variants={fadeUp}
+            className="font-['JetBrains_Mono'] text-[11px] md:text-xs text-emerald-500/80 uppercase tracking-[0.3em] mb-4"
+          >
+            A New Era of Cyber Warfare
+          </motion.p>
+
           <motion.h1
             variants={fadeUp}
             className="font-['JetBrains_Mono'] text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight"
           >
-            Recon. Exploit. Report.
+            Recon. Exploit. Defense.
             <br />
-            <span className="text-zinc-500">One terminal.</span>
+            <span className="text-emerald-400">One Terminal.</span>
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
-            className="font-['JetBrains_Mono'] text-sm md:text-base text-zinc-500 max-w-2xl mx-auto mt-6 leading-relaxed"
+            className="font-['JetBrains_Mono'] text-sm md:text-lg text-zinc-400 max-w-2xl mx-auto mt-6 leading-relaxed"
           >
-            Finds subdomains. Scans for vulns. Writes the report.
+            15 AI agents running simultaneously. Every Kali Linux tool.
             <br />
-            <span className="text-zinc-400">AI does the hunting, you collect the bounty.</span>
+            <span className="text-zinc-500">One command. Full attack surface covered.</span>
           </motion.p>
 
           {/* CTAs */}
