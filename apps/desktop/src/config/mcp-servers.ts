@@ -1,13 +1,13 @@
 /**
- * MCP Server Configuration for CrowByt App
+ * MCP Server Configuration for CrowByte App
  *
  * IMPORTANT: This is COMPLETELY SEPARATE from Claude CLI's MCP config.
  *
  * - Claude CLI uses: C:\Users\{username}\.claude.json
- * - CrowByt App uses: This file + environment variables
+ * - CrowByte App uses: This file + environment variables
  *
  * To add MCPs to Claude CLI: `claude mcp add <name> <command/url>`
- * To add MCPs to CrowByt: Edit this file and restart the app
+ * To add MCPs to CrowByte: Edit this file and restart the app
  */
 
 export interface MCPServerConfig {
@@ -30,7 +30,7 @@ export interface MCPServerConfig {
 }
 
 /**
- * MCP Servers available to CrowByt
+ * MCP Servers available to CrowByte
  * These are used by the app's AI features, NOT by Claude CLI
  */
 export const MCP_SERVERS: MCPServerConfig[] = [

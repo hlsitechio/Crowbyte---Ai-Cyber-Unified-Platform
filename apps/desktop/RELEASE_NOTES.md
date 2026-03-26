@@ -34,8 +34,8 @@ AI-powered offensive security terminal. Recon. Exploit. Report. One terminal.
 
 | Platform | File | Size |
 |----------|------|------|
-| Windows x64 | `CrowByt-Setup-2.0.0.exe` | ~85 MB |
-| Linux x64 (AppImage) | `CrowByt-2.0.0.AppImage` | ~90 MB |
+| Windows x64 | `CrowByte-Setup-2.0.0.exe` | ~85 MB |
+| Linux x64 (AppImage) | `CrowByte-2.0.0.AppImage` | ~90 MB |
 | Linux x64 (Ubuntu/Debian) | `crowbyt_2.0.0_amd64.deb` | ~85 MB |
 
 ## Install
@@ -45,8 +45,8 @@ Download and run the `.exe` installer. Creates desktop shortcut and registers `c
 
 ### Linux (AppImage)
 ```bash
-chmod +x CrowByt-2.0.0.AppImage
-./CrowByt-2.0.0.AppImage
+chmod +x CrowByte-2.0.0.AppImage
+./CrowByte-2.0.0.AppImage
 ```
 
 ### Linux (Ubuntu/Debian)

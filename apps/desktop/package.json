@@ -1,6 +1,6 @@
 {
-  "name": "crowbyt",
-  "productName": "CrowByt",
+  "name": "crowbyte",
+  "productName": "CrowByte",
   "description": "AI-powered cybersecurity terminal by HLSITech",
   "author": "HLSITech <contact@hlsitech.com>",
   "homepage": "https://crowbyte.io",
@@ -39,8 +39,8 @@
     "@npmcli/move-file": "npm:@npmcli/fs@^3.1.1"
   },
   "build": {
-    "appId": "com.hlsitech.crowbyt",
-    "productName": "CrowByt",
+    "appId": "com.hlsitech.crowbyte",
+    "productName": "CrowByte",
     "copyright": "Copyright © 2025 HLSITech",
     "protocols": [
       {
@@ -90,7 +90,7 @@
       "installerHeaderIcon": "public/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "CrowByt",
+      "shortcutName": "CrowByte",
       "perMachine": false,
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": true,

@@ -2,7 +2,7 @@
 
 ## Overview
 
-CrowByt uses Model Context Protocol (MCP) servers to extend AI capabilities with external tools.
+CrowByte uses Model Context Protocol (MCP) servers to extend AI capabilities with external tools.
 
 ## MCP Configuration
 
@@ -16,7 +16,7 @@ claude mcp add <name>    # Add new MCP
 claude mcp remove <name> # Remove MCP
 ```
 
-### CrowByt App (Production)
+### CrowByte App (Production)
 Located in: `apps/desktop/src/config/mcp-servers.ts`
 
 The app has its own MCP client implementation separate from Claude CLI.

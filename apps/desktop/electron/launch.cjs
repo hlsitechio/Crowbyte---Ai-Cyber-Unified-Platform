@@ -18,7 +18,7 @@ const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
 env.NODE_ENV = 'development';
 
-console.log('🚀 Launching CrowByt...');
+console.log('🚀 Launching CrowByte...');
 console.log('Electron path:', electronPath);
 
 // Spawn electron with our main script

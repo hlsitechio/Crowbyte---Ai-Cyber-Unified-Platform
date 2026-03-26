@@ -1614,7 +1614,7 @@ ipcMain.handle('fetch-cves', async (event, year) => {
         method: 'GET',
         timeout: 15000,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CrowByt/1.0',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) CrowByte/1.0',
           'Accept': 'application/json',
         },
       }, (res) => {

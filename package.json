@@ -1,13 +1,13 @@
 {
-  "name": "crowbyt",
+  "name": "crowbyte",
   "version": "1.0.0",
   "private": true,
-  "description": "CrowByt - AI-powered cybersecurity platform by HLSITech",
+  "description": "CrowByte - AI-powered cybersecurity platform by HLSITech",
   "author": "HLSITech <contact@hlsitech.com>",
-  "homepage": "https://crowbyt.io",
+  "homepage": "https://crowbyte.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hlsitech/crowbyt.git"
+    "url": "https://github.com/hlsitech/crowbyte.git"
   },
   "workspaces": [
     "apps/*",

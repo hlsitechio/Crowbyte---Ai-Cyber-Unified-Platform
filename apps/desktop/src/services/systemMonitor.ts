@@ -115,7 +115,7 @@ class SystemMonitorService {
    */
   private getHostname(): string {
     // Try to get from localStorage if user set it
-    const savedHostname = localStorage.getItem('crowbyt-hostname');
+    const savedHostname = localStorage.getItem('crowbyte-hostname');
     if (savedHostname) return savedHostname;
 
     // Default hostname
@@ -126,7 +126,7 @@ class SystemMonitorService {
    * Set hostname for this machine
    */
   setHostname(hostname: string): void {
-    localStorage.setItem('crowbyt-hostname', hostname);
+    localStorage.setItem('crowbyte-hostname', hostname);
   }
 
   /**

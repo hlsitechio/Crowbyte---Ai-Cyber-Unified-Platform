@@ -1,5 +1,5 @@
 /**
- * CrowByt Services Index
+ * CrowByte Services Index
  * Exports all core services for easy importing
  */
 

@@ -1,7 +1,7 @@
 /**
- * CrowByt - Electron Main Process
+ * CrowByte - Electron Main Process
  * AI-Powered Cybersecurity Terminal by HLSITech
- * https://crowbyt.io
+ * https://crowbyte.io
  */
 
 import { app, BrowserWindow } from 'electron';
@@ -46,8 +46,8 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   console.log('\n' + '='.repeat(70));
-  console.log('🦅 CrowByt - AI-Powered Cybersecurity Terminal');
-  console.log('   by HLSITech | https://crowbyt.io');
+  console.log('🦅 CrowByte - AI-Powered Cybersecurity Terminal');
+  console.log('   by HLSITech | https://crowbyte.io');
   console.log('='.repeat(70) + '\n');
 
   createWindow();

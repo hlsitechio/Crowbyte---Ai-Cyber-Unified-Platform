@@ -1,7 +1,7 @@
 /**
  * Electron Local Cache Manager
  * File-based caching system for the Electron app
- * Stores cache in .cache directory inside crowbyt
+ * Stores cache in .cache directory inside crowbyte
  */
 
 import * as fs from 'fs';

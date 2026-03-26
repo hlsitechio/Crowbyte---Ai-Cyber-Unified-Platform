@@ -1,5 +1,5 @@
 /**
- * Encryption Service for CrowByt
+ * Encryption Service for CrowByte
  * Provides AES-256-GCM encryption for secure conversation storage
  *
  * Security Features:
@@ -168,7 +168,7 @@ export class EncryptionService {
    */
   private async computeKeyId(salt: string): Promise<string> {
     const encoder = new TextEncoder();
-    const data = encoder.encode(`crowbyt-key-${salt}-v${ENCRYPTION_CONFIG.version}`);
+    const data = encoder.encode(`crowbyte-key-${salt}-v${ENCRYPTION_CONFIG.version}`);
     const hash = await crypto.subtle.digest('SHA-256', data);
     return arrayBufferToBase64(hash).substring(0, 16);
   }
@@ -244,7 +244,7 @@ export class EncryptionService {
 
     // Derive HMAC key from master key
     const encoder = new TextEncoder();
-    const keyMaterial = encoder.encode('crowbyt-hmac-key');
+    const keyMaterial = encoder.encode('crowbyte-hmac-key');
 
     const hmacKey = await crypto.subtle.importKey(
       'raw',

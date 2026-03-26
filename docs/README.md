@@ -1,4 +1,4 @@
-# CrowByt Documentation
+# CrowByte Documentation
 
 ## Table of Contents
 
@@ -35,8 +35,8 @@
 
 | Resource | Link |
 |----------|------|
-| Website | [crowbyt.io](https://crowbyt.io) |
-| Discord | [Join Server](https://discord.gg/crowbyt) |
-| GitHub | [hlsitech/crowbyt](https://github.com/hlsitech/crowbyt) |
+| Website | [crowbyte.io](https://crowbyte.io) |
+| Discord | [Join Server](https://discord.gg/crowbyte) |
+| GitHub | [hlsitech/crowbyte](https://github.com/hlsitech/crowbyte) |
 | Supabase | [Dashboard](https://supabase.com/dashboard/project/<PROJECT_REF>) |
 | Netlify | [Dashboard](https://app.netlify.com) |

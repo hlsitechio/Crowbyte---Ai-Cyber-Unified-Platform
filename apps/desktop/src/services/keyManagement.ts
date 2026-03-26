@@ -1,5 +1,5 @@
 /**
- * Key Management Service for CrowByt
+ * Key Management Service for CrowByte
  * Handles encryption key lifecycle, storage, and recovery
  *
  * Features:
@@ -13,8 +13,8 @@ import { encryptionService, generateSalt } from './encryption';
 
 // Key management configuration
 const KEY_CONFIG = {
-  saltStorageKey: 'crowbyt-encryption-salt',
-  keyIdStorageKey: 'crowbyt-key-id',
+  saltStorageKey: 'crowbyte-encryption-salt',
+  keyIdStorageKey: 'crowbyte-key-id',
   recoveryKeyLength: 32,
   minPasswordLength: 8,
 } as const;

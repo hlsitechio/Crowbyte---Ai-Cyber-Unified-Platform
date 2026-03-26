@@ -1,5 +1,5 @@
 /**
- * Encrypted Conversation Storage Service for CrowByt
+ * Encrypted Conversation Storage Service for CrowByte
  * Provides secure conversation storage with shareable links (like ChatGPT)
  *
  * Features:
@@ -19,9 +19,9 @@ const CROWBYT_NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 
 // Storage configuration
 const STORAGE_CONFIG = {
-  localStorageKey: 'crowbyt-conversations',
+  localStorageKey: 'crowbyte-conversations',
   maxLocalConversations: 100,
-  shareUrlBase: 'https://crowbyt.io/c/',
+  shareUrlBase: 'https://crowbyte.io/c/',
   version: 1,
 } as const;
 

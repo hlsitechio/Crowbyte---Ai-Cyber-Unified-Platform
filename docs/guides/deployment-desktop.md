@@ -437,8 +437,8 @@ electron-builder is configured in the `build` section of `apps/desktop/package.j
 ```json
 {
   "build": {
-    "appId": "com.hlsitech.crowbyt",
-    "productName": "CrowByt",
+    "appId": "com.hlsitech.crowbyte",
+    "productName": "CrowByte",
     "copyright": "Copyright 2025 HLSITech",
     "directories": {
       "output": "release"
@@ -457,7 +457,7 @@ electron-builder is configured in the `build` section of `apps/desktop/package.j
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "CrowByt"
+      "shortcutName": "CrowByte"
     },
     "mac": {
       "target": ["dmg"],

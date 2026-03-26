@@ -10,8 +10,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/hlsitech/crowbyt.git
-cd crowbyt
+git clone https://github.com/hlsitech/crowbyte.git
+cd crowbyte
 
 # Install dependencies
 npm install
