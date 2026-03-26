@@ -742,6 +742,62 @@ function createWindow() {
   });
 }
 
+// ─── Deep Link Protocol Handler ──────────────────────────────────────
+const PROTOCOL = 'crowbyte';
+
+// Register as default protocol handler (crowbyte://)
+if (process.defaultApp) {
+  // Dev mode — register with path to electron + script
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  // Production — register normally
+  app.setAsDefaultProtocolClient(PROTOCOL);
+}
+
+// Single instance lock — prevent multiple windows, forward deep links
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (_event, commandLine) => {
+    // Windows/Linux: deep link URL is in commandLine args
+    const deepUrl = commandLine.find(arg => arg.startsWith(`${PROTOCOL}://`));
+    if (deepUrl) handleDeepLink(deepUrl);
+    // Focus existing window
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
+// macOS: open-url event fires when protocol link is clicked
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleDeepLink(url);
+});
+
+function handleDeepLink(url) {
+  // Parse crowbyte://route/path?params
+  try {
+    const parsed = new URL(url);
+    const route = parsed.hostname + parsed.pathname; // e.g. "launch", "dashboard", "findings"
+    console.log(`[*] Deep link: ${url} → route: ${route}`);
+
+    if (mainWindow) {
+      // Navigate to the requested route
+      const hash = route === 'launch' ? '#/dashboard' : `#/${route}`;
+      mainWindow.webContents.executeJavaScript(`window.location.hash = '${hash}'`);
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  } catch (err) {
+    console.error('[!] Deep link parse error:', err.message);
+  }
+}
+
 // App lifecycle
 app.whenReady().then(async () => {
   // Disable GPU cache to prevent cache errors

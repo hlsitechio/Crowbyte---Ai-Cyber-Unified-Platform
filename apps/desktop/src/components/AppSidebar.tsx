@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Brain, TreeStructure, BookOpen, ShieldCheck, GearSix, Terminal, Cpu, Pulse, Robot, ChatDots, SignOut, Sword, User, BookmarkSimple, FileText, ChartBar, Crosshair, ShieldWarning, Monitor, Scroll, Target, SidebarSimple, PlugsConnected } from "@phosphor-icons/react";
+import { Brain, TreeStructure, BookOpen, ShieldCheck, GearSix, Terminal, Cpu, Pulse, Robot, ChatDots, SignOut, Sword, User, BookmarkSimple, FileText, ChartBar, Crosshair, ShieldWarning, Monitor, Scroll, Target, SidebarSimple, PlugsConnected, Funnel, Notebook, Lightning, Rocket, Bell, Cloud } from "@phosphor-icons/react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -93,11 +93,17 @@ const aiOperationsItems = [
 
 const redTeamItems = [
  { title: "Red Team", url: "/redteam", icon: Crosshair },
+ { title: "Missions", url: "/missions", icon: Rocket },
  { title: "Cyber Ops", url: "/cyber-ops", icon: Sword },
  { title: "Network Map", url: "/network-scanner", icon: TreeStructure },
 ];
 
 const blueTeamItems = [
+ { title: "Findings", url: "/findings", icon: Funnel },
+ { title: "Reports", url: "/reports", icon: Notebook },
+ { title: "Detection Lab", url: "/detection-lab", icon: Lightning },
+ { title: "Alert Center", url: "/alert-center", icon: Bell },
+ { title: "Cloud Security", url: "/cloud-security", icon: Cloud },
  { title: "Connectors", url: "/connectors", icon: PlugsConnected },
  { title: "Security Monitor", url: "/security-monitor", icon: ShieldCheck },
  { title: "Fleet Management", url: "/fleet", icon: Monitor },

@@ -5,8 +5,7 @@
 <h1 align="center">CrowByte Terminal</h1>
 
 <p align="center">
-  <strong>Offensive Security Command Center</strong><br>
-  Penetration testing, bug bounty hunting, and red team operations — unified.
+  <strong>Recon. Exploit. Report. One terminal.</strong>
 </p>
 
 <p align="center">
@@ -16,29 +15,13 @@
   <img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-3b82f6?style=for-the-badge" alt="Platform" />
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black" />
-  <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white" />
-  <img src="https://img.shields.io/badge/Vite-7-646CFF?style=flat-square&logo=vite&logoColor=white" />
-  <img src="https://img.shields.io/badge/Electron-39-47848F?style=flat-square&logo=electron&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
-  <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white" />
-</p>
-
 ---
 
 ## What is CrowByte?
 
-CrowByte Terminal is a unified command center for penetration testing, bug bounty hunting, and red team operations. It consolidates security tooling, AI-assisted analysis, fleet management, and intelligence gathering into a single interface.
+CrowByte Terminal is an AI-powered offensive security platform that unifies penetration testing, bug bounty hunting, and red team operations into a single command center. Stop context-switching between dozens of tools -- everything you need lives in one interface.
 
-- **Web-based or Desktop** -- Access from any browser via CrowByte OS, or run natively as an Electron desktop application.
-- **Built-in AI Agents** -- Dual-provider AI chat powered by Claude Code CLI and the OpenClaw agent swarm (DeepSeek, Qwen, Mistral, Kimi, GLM on NVIDIA inference).
-- **Integrated Security Toolkit** -- GUI wrappers for nuclei, nmap, sqlmap, ffuf, and dozens more tools. No context switching.
-- **Fleet Management** -- Monitor endpoints and VPS infrastructure in real time with live hardware metrics, Docker container management, and agent deployment.
-- **CVE Database** -- NVD and Shodan-enriched vulnerability tracking with severity grouping, exploit status, and product correlation.
-- **Mission Planner** -- Phase-based operation planning with objective tracking and automated reporting.
-- **Knowledge Base** -- Searchable research database with categories, tagging, and priority levels.
-- **Real-time Hardware Monitoring** -- CPU, RAM, disk, network, GPU, and Docker metrics streamed over WebSocket.
+Available as a **desktop application** for Linux, Windows, and macOS, or as a **server appliance** accessible from any browser.
 
 <p align="center">
   <img src="docs/assets/screenshot-dashboard.png" alt="Dashboard" width="800" />
@@ -46,226 +29,103 @@ CrowByte Terminal is a unified command center for penetration testing, bug bount
 
 ---
 
-## Deployment Options
+## Features
 
-### 1. CrowByte OS (Recommended)
+### Unified Findings Management
+Centralized tracking for all your security findings across engagements. Severity grouping, evidence attachments, and status workflows in one place.
 
-Native Ubuntu 24.04 server appliance. Full web UI accessible from any browser.
+### AI-Powered Triage
+Built-in AI assistant that helps analyze vulnerabilities, correlate findings, and prioritize based on impact. Supports multiple inference providers.
 
-- Hardware monitoring (CPU, RAM, disk, network, GPU, Docker, services)
-- Docker and security tools pre-installed
-- systemd service with nginx reverse proxy and SSL
-- 7-phase automated installer
+### Automated Report Generation
+Generate professional penetration test and bug bounty reports from your findings. Export-ready formats for HackerOne, Bugcrowd, and custom templates.
 
-```bash
-# One-line install
-curl -sL https://raw.githubusercontent.com/hlsitechio/crowbyte/main/crowbyte-os-setup.sh | sudo bash
+### Detection Rule Lab
+Author, test, and manage detection rules across multiple formats:
+- SIGMA rules
+- KQL (Kusto Query Language)
+- YARA rules
+- Snort / Suricata signatures
 
-# Or clone and run locally
-git clone https://github.com/hlsitechio/crowbyte.git
-cd crowbyte
-sudo bash crowbyte-os-setup.sh
-```
+### Mission Pipeline
+Phase-based operation planning from reconnaissance through exploitation to reporting. Objective tracking, task dependencies, and automated status updates.
 
-### 2. Docker
+### Alert Center (SIEM Bridge)
+Connect to your existing SIEM infrastructure. Pre-built connectors for leading security platforms with real-time alert ingestion and correlation.
 
-Containerized deployment with multi-architecture support (amd64 + arm64).
+### Cloud Security
+Cloud Security Posture Management (CSPM), Software Bill of Materials (SBOM) generation, and compliance checks across major cloud providers.
 
-```bash
-# Quick start
-docker run -d -p 6080:6080 --shm-size=2g hlsitech/crowbyte:latest
+### Built-in Terminal
+Full-featured embedded terminal with session management. Run your security tools without leaving the platform.
 
-# With docker-compose
-docker-compose up -d
-```
+### Fleet Management
+Monitor and manage endpoints, servers, and infrastructure in real time. Hardware metrics, container management, and agent deployment from a single dashboard.
 
-### 3. Desktop (Electron)
+### CVE Database
+Enriched vulnerability database with severity tracking, exploit status, product correlation, and CVSS scoring. Search, filter, and bookmark CVEs relevant to your engagements.
 
-Native desktop application for Kali Linux, Ubuntu, Windows, and macOS.
+### Knowledge Base
+Searchable research database for storing techniques, tool notes, methodology references, and engagement-specific intelligence.
 
-```bash
-cd apps/desktop
-npm install
-npx vite build
-npx electron .
-```
-
-Direct terminal access via node-pty. Full Electron IPC bridge for spawning Claude Code CLI and security tools as child processes.
+### Connectors & Integrations
+Pre-built integrations with leading security platforms, cloud providers, and SIEM solutions.
 
 ---
 
-## Tech Stack
+## Screenshots
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React 18, TypeScript 5.8, Vite 7, Tailwind CSS 3, shadcn/ui (Radix), Framer Motion, Lucide icons |
-| **Server** | Express, WebSocket, node-pty, systeminformation, dockerode |
-| **Desktop** | Electron 39 with custom title bar, WebContentsView browser panel, IPC bridge |
-| **Database** | Supabase (PostgreSQL, RLS, Auth, Realtime, Storage, Edge Functions) |
-| **AI** | Claude Code CLI (Opus/Sonnet/Haiku), OpenClaw gateway (NVIDIA Cloud inference) |
-| **Visualization** | ReactFlow (network topology), Recharts (analytics), xterm.js (terminal) |
-| **Security** | E2E AES-256-GCM encryption, ECDH P-256 key exchange, TLS 1.3 WebSocket relay |
-| **Infrastructure** | Docker, systemd, nginx, websockify, Traefik |
+<p align="center">
+  <em>Screenshots coming soon.</em>
+</p>
 
 ---
 
-## Pages and Features
+## Download
 
-| Page | Description |
-|------|-------------|
-| **Dashboard** | Home screen with metrics, quick actions, and system overview |
-| **Chat** | Dual-provider AI chat -- Claude Code CLI and OpenClaw agent swarm |
-| **Terminal** | Embedded xterm.js terminal with tmux session support and node-pty |
-| **Red Team** | Operation planning, findings tracking, and automated reporting |
-| **Cyber Ops** | Tactical security toolkit -- recon, exploitation, OSINT, payload generation |
-| **Network Scanner** | nmap GUI with 9 scan profiles -- Quick, Stealth, Vuln, OS detect, Full port |
-| **Security Monitor** | AI-powered security monitoring and alerting |
-| **Fleet Management** | Endpoint monitoring, host server metrics, Docker container management, agent deployment |
-| **CVE Database** | NVD + Shodan-enriched vulnerability database with severity tracking and exploit status |
-| **Threat Intelligence** | CVE correlation, exploit tracking, product vulnerability mapping |
-| **Mission Planner** | Phase-based operation planning with objective tracking |
-| **Knowledge Base** | Searchable research database with categories and tagging |
-| **Bookmarks** | URL bookmarks with categories, tags, and favicons |
-| **Agent Builder** | Custom AI agent creation with configurable capabilities |
-| **AI Agent** | Tavily-powered autonomous search and analysis agent |
-| **Analytics** | Usage statistics and tool metrics |
-| **Connectors** | 19 pre-built integrations -- Sentinel, CrowdStrike, Elastic, Wazuh, AWS, Azure, and more |
-| **MCP** | Model Context Protocol server management |
-| **Settings** | Preferences, profile, workspace configuration |
-| **Setup Wizard** | 5-step onboarding -- EULA, License, Database, VPS, Workspace |
-| **Documentation** | In-app documentation with dedicated sidebar |
-| **Logs** | Application and audit logging |
-| **LLM** | Language model configuration and testing |
-| **Memory** | AI memory and context management |
+Download the latest release for your platform:
 
----
+| Platform | Format |
+|----------|--------|
+| **Linux** | AppImage, .deb |
+| **Windows** | Installer (.exe) |
+| **macOS** | .dmg |
 
-## Architecture
-
-```
-crowbyte/
-  apps/
-    desktop/                 # Electron 39 desktop application
-      src/
-        pages/               # 29 application pages
-        components/          # UI components (shadcn/ui + custom)
-        services/            # Backend service layer
-        contexts/            # React context providers
-        hooks/               # Custom React hooks
-        connectors/          # Security platform integrations
-      electron/              # Main process + preload
-    server/                  # CrowByte Server (Express + WebSocket)
-      src/
-        routes/              # REST API (auth, system, docker, tools)
-        ws/                  # WebSocket handlers (terminal, metrics)
-        middleware/           # JWT auth middleware
-      deploy.sh              # Server deployment script
-      nginx-crowbyte.conf    # nginx reverse proxy config
-      crowbyte-server.service # systemd unit file
-  docker/                    # Docker entrypoints (Linux + Windows)
-  legal/                     # EULA, Terms of Service, Privacy Policy, Acceptable Use Policy
-  supabase/                  # Database migrations + edge functions
-  mcp-servers/               # AI tool servers (NVD, CIRCL, Resend)
-  tools/                     # CLI utilities (cve-db, kb)
-  infrastructure/            # VPS setup scripts, remote control
-  scripts/                   # Build, deploy, automation
-  docs/                      # Documentation + assets
-```
-
----
-
-## Quick Start
-
-### Ubuntu Server (CrowByte OS)
-
-```bash
-curl -sL https://raw.githubusercontent.com/hlsitechio/crowbyte/main/crowbyte-os-setup.sh | sudo bash
-```
-
-### Docker
-
-```bash
-docker run -d -p 6080:6080 --shm-size=2g hlsitech/crowbyte:latest
-```
-
-### From Source
-
-```bash
-git clone https://github.com/hlsitechio/crowbyte.git
-cd crowbyte
-
-# Install dependencies
-bun install
-
-# Desktop app
-cd apps/desktop
-cp .env.example .env    # Configure Supabase keys
-npx vite build
-npx electron .
-
-# Server (headless)
-cd apps/server
-cp .env.example .env    # Configure JWT secret, credentials
-npm start
-```
-
-### Package for Distribution
-
-```bash
-cd apps/desktop
-npx electron-builder --linux --win --mac
-```
-
----
-
-## Database
-
-CrowByte uses Supabase (PostgreSQL) with Row Level Security. Key tables:
-
-| Table | Purpose |
-|-------|---------|
-| `cves` | CVE tracking -- severity, CVSS, description, products, CWE, exploit status |
-| `knowledge_base` | Research entries with categories, priority, tags, file attachments |
-| `bookmarks` | Saved URLs with categories, tags, favicons |
-| `custom_agents` | Agent Builder configurations -- model, instructions, capabilities |
-| `red_team_ops` | Operations and findings -- target, type, status, findings array |
-| `endpoints` | Fleet device registry |
-| `user_settings` | Preferences, workspace name, profile picture |
-| `analytics` | Tool usage statistics |
-
-```bash
-supabase db push
-```
+[View Releases](https://github.com/hlsitechio/crowbyte/releases)
 
 ---
 
 ## Security
 
-- E2E AES-256-GCM encryption for remote sessions
-- ECDH P-256 key exchange with perfect forward secrecy
-- TLS 1.3 for all WebSocket connections
-- Row Level Security on all database tables
-- Content Security Policy enforced in Electron renderer
-- JWT authentication with rate limiting on server endpoints
-- Tool execution whitelist prevents arbitrary command injection
-- No plaintext credential storage
-- Full audit trail for remote access sessions
+If you discover a security vulnerability, please report it responsibly.
 
-See [SECURITY.md](SECURITY.md) for vulnerability reporting.
+**Email**: security@hlsitech.io
+
+Do **not** open a public GitHub issue for security vulnerabilities.
+
+See [SECURITY.md](SECURITY.md) for details.
 
 ---
 
 ## License
 
-Proprietary Software -- HLSITech Inc. All rights reserved.
+**Proprietary Software** -- HLSITech Inc. All rights reserved.
 
-Unauthorized copying, modification, distribution, or use of this software is strictly prohibited. See [LICENSE](LICENSE) for details.
+Unauthorized copying, modification, distribution, or use of this software is strictly prohibited. See [LICENSE](LICENSE) for full terms.
 
-Legal documents are available in the [legal/](legal/) directory:
+Legal documents:
 - [EULA](legal/EULA.md)
 - [Terms of Service](legal/TERMS_OF_SERVICE.md)
 - [Privacy Policy](legal/PRIVACY_POLICY.md)
 - [Acceptable Use Policy](legal/ACCEPTABLE_USE_POLICY.md)
+
+---
+
+## Contact
+
+- **Support**: support@crowbyte.io
+- **Security**: security@hlsitech.io
+- **Website**: [hlsitech.io](https://hlsitech.io)
 
 ---
 

@@ -27,7 +27,7 @@ export default function Auth() {
  useEffect(() => {
  // Redirect if already authenticated
  if (isAuthenticated) {
- navigate("/");
+ navigate("/dashboard");
  }
  }, [isAuthenticated, navigate]);
 
@@ -85,9 +85,9 @@ export default function Auth() {
  console.log('✅ OAuth session established');
  toast.success('Logged in successfully!');
 
- // Clean the hash and navigate
- window.location.hash = '#/';
- navigate('/');
+ // Clean the hash and navigate to dashboard
+ window.location.hash = '#/dashboard';
+ navigate('/dashboard');
  } catch (err) {
  console.error('❌ Failed to set session:', err);
  toast.error('Authentication failed', {
@@ -278,10 +278,12 @@ export default function Auth() {
  checked={rememberMe}
  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
  disabled={loading}
+ className="h-5 w-5"
+ aria-label="Remember me on this device"
  />
  <label
  htmlFor="remember"
- className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+ className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer select-none"
  >
  Remember me on this device
  </label>

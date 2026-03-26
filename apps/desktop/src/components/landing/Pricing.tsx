@@ -31,7 +31,7 @@ const plans: PlanTier[] = [
       { label: "Support", value: "Community" },
     ],
     cta: "Launch Free",
-    href: "/#/auth",
+    href: "#/auth",
   },
   {
     name: "Pro",
@@ -46,7 +46,7 @@ const plans: PlanTier[] = [
       { label: "Support", value: "Priority email" },
     ],
     cta: "Start Pro",
-    href: "/#/auth",
+    href: "#/auth",
     highlight: true,
   },
   {
@@ -62,7 +62,7 @@ const plans: PlanTier[] = [
       { label: "Support", value: "Priority + chat" },
     ],
     cta: "Start Team",
-    href: "/#/auth",
+    href: "#/auth",
   },
   {
     name: "Enterprise",
@@ -173,16 +173,16 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <a
-                href={plan.href}
-                className={`mt-6 w-full rounded-lg py-2 text-sm text-center block font-['JetBrains_Mono'] font-medium transition-colors ${
+              <button
+                onClick={() => { window.location.hash = plan.href; }}
+                className={`mt-6 w-full rounded-lg py-2 text-sm text-center block font-['JetBrains_Mono'] font-medium transition-colors cursor-pointer ${
                   plan.highlight
                     ? "bg-emerald-500 hover:bg-emerald-400 text-black"
                     : "border border-white/20 hover:bg-white/5 text-white"
                 }`}
               >
                 {plan.cta}
-              </a>
+              </button>
             </motion.div>
           ))}
         </motion.div>

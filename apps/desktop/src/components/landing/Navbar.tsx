@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { List, X } from "@phosphor-icons/react";
+import LaunchAppButton from "./LaunchAppButton";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -59,12 +60,7 @@ export default function Navbar() {
           </div>
 
           {/* Right — desktop */}
-          <a
-            href="/#/auth"
-            className="hidden md:inline-block font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/20 hover:bg-white/5 px-4 py-1.5 rounded transition-colors"
-          >
-            Launch App
-          </a>
+          <LaunchAppButton className="hidden md:inline-block font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/20 hover:bg-white/5 px-4 py-1.5 rounded transition-colors cursor-pointer" />
 
           {/* Hamburger — mobile */}
           <button
@@ -108,13 +104,7 @@ export default function Navbar() {
                   {link.label}
                 </motion.button>
               ))}
-              <a
-                href="/#/auth"
-                onClick={() => setMobileOpen(false)}
-                className="mt-4 font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/20 hover:bg-white/5 px-6 py-2 rounded transition-colors"
-              >
-                Launch App
-              </a>
+              <LaunchAppButton className="mt-4 font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/20 hover:bg-white/5 px-6 py-2 rounded transition-colors cursor-pointer" />
             </nav>
           </motion.div>
         )}

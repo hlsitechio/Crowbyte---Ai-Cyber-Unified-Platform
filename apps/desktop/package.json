@@ -6,7 +6,7 @@
   "homepage": "https://crowbyt.io",
   "private": true,
   "type": "module",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
@@ -42,12 +42,20 @@
     "appId": "com.hlsitech.crowbyt",
     "productName": "CrowByt",
     "copyright": "Copyright © 2025 HLSITech",
+    "protocols": [
+      {
+        "name": "CrowByte Protocol",
+        "schemes": [
+          "crowbyte"
+        ]
+      }
+    ],
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*",
+      "electron/**/*",
       "node_modules/**/*"
     ],
     "win": {
@@ -57,9 +65,21 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "msi",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "public/icon.ico"
+    },
+    "msi": {
+      "oneClick": false,
+      "perMachine": true,
+      "runAfterFinish": true,
+      "artifactName": "${productName}-${version}-x64.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -74,15 +94,9 @@
       "perMachine": false,
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": true,
-      "displayLanguageSelector": false,
-      "installerHeader": "build/installer-header.bmp",
-      "installerSidebar": "build/installer-sidebar.bmp",
-      "uninstallerSidebar": "build/uninstaller-sidebar.bmp",
-      "artifactName": "${productName} Setup ${version}.${ext}",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
       "unicode": true,
-      "warningsAsErrors": false,
-      "multiLanguageInstaller": false,
-      "language": "1033"
+      "warningsAsErrors": false
     },
     "mac": {
       "target": [
@@ -93,10 +107,15 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "deb"
       ],
       "icon": "public/icon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "synopsis": "AI-powered cybersecurity terminal",
+      "mimeTypes": [
+        "x-scheme-handler/crowbyte"
+      ]
     }
   },
   "dependencies": {
@@ -185,7 +204,7 @@
     "autoprefixer": "^10.4.22",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "^39.2.4",
+    "electron": "39.2.4",
     "electron-builder": "^26.0.12",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
@@ -209,5 +228,5 @@
     "wait-on": "^9.0.3"
   },
   "keywords": [],
-  "license": "ISC"
+  "license": "SEE LICENSE IN LICENSE"
 }

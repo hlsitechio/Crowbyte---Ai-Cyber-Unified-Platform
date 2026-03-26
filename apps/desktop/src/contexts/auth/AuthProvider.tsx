@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       loggingService.addLog('success', 'auth', 'User login successful', `Email: ${email}`);
       // Navigate to dashboard on success
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: unknown) {
       console.error('Sign in error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Failed to sign in';

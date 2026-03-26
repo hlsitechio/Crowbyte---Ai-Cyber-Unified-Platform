@@ -51,6 +51,12 @@ import CyberOps from "./pages/CyberOps";
 import Documentation from "./pages/Documentation";
 import Fleet from "./pages/Fleet";
 import Connectors from "./pages/Connectors";
+import Findings from "./pages/Findings";
+import Reports from "./pages/Reports";
+import DetectionLab from "./pages/DetectionLab";
+import Missions from "./pages/Missions";
+import AlertCenter from "./pages/AlertCenter";
+import CloudSecurity from "./pages/CloudSecurity";
 import Logs from "./pages/Logs";
 import SecurityMonitor from "./pages/SecurityMonitor";
 import NotFound from "./pages/NotFound";
@@ -92,6 +98,12 @@ const AppWithTitleBar = () => (
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/fleet" element={<Fleet />} />
+                    <Route path="/findings" element={<Findings />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/detection-lab" element={<DetectionLab />} />
+                    <Route path="/missions" element={<Missions />} />
+                    <Route path="/alert-center" element={<AlertCenter />} />
+                    <Route path="/cloud-security" element={<CloudSecurity />} />
                     <Route path="/connectors" element={<Connectors />} />
                     <Route path="/chat" element={<Chat />} />
                     <Route path="/ai-agent" element={<AIAgent />} />
@@ -175,8 +187,11 @@ const App = () => {
   if (!setupComplete) {
     return (
       <QueryClientProvider client={queryClient}>
+        <TitleBar />
         <Sonner />
-        <SetupWizard onComplete={() => setSetupComplete(true)} />
+        <div className="pt-8">
+          <SetupWizard onComplete={() => setSetupComplete(true)} />
+        </div>
       </QueryClientProvider>
     );
   }

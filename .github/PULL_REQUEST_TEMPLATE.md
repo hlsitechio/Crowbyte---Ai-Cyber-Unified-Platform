@@ -16,5 +16,5 @@ Brief description of changes.
 - [ ] `npx tsc --noEmit` passes (zero errors)
 - [ ] Tested in Electron desktop app
 - [ ] No hardcoded secrets or credentials
-- [ ] UI matches existing design system (shadcn/ui, Tailwind)
+- [ ] UI matches existing design system
 - [ ] Database migrations included (if applicable)

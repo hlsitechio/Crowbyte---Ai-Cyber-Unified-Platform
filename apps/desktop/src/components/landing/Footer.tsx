@@ -11,12 +11,12 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex items-center gap-6">
-          <a
-            href="/#/documentation"
-            className="font-['JetBrains_Mono'] text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+          <button
+            onClick={() => { window.location.hash = '#/documentation'; }}
+            className="font-['JetBrains_Mono'] text-sm text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
           >
             Docs
-          </a>
+          </button>
           <a
             href="#pricing"
             className="font-['JetBrains_Mono'] text-sm text-zinc-500 hover:text-zinc-300 transition-colors"

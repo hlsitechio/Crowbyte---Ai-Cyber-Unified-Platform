@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { BookOpen } from "@phosphor-icons/react";
+import LaunchAppButton from "./LaunchAppButton";
 
 /* ------------------------------------------------------------------ */
 /*  Terminal typing data                                               */
@@ -158,19 +159,14 @@ export default function Hero() {
             variants={fadeUp}
             className="mt-8 flex items-center justify-center gap-3"
           >
-            <a
-              href="/#/auth"
-              className="font-['JetBrains_Mono'] text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-black px-6 py-2.5 rounded transition-colors"
-            >
-              Launch App
-            </a>
-            <a
-              href="/#/documentation"
-              className="font-['JetBrains_Mono'] text-sm text-zinc-400 border border-white/20 hover:bg-white/5 px-5 py-2.5 rounded transition-colors inline-flex items-center gap-2"
+            <LaunchAppButton className="font-['JetBrains_Mono'] text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-black px-6 py-2.5 rounded transition-colors cursor-pointer" />
+            <button
+              onClick={() => { window.location.hash = '#/documentation'; }}
+              className="font-['JetBrains_Mono'] text-sm text-zinc-400 border border-white/20 hover:bg-white/5 px-5 py-2.5 rounded transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
               <BookOpen size={16} weight="bold" />
               Docs
-            </a>
+            </button>
           </motion.div>
         </div>
 

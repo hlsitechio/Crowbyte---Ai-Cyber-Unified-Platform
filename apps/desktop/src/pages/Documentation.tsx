@@ -185,7 +185,7 @@ export default function Documentation() {
  <Button
  variant="ghost"
  size="sm"
- onClick={() => navigate("/")}
+ onClick={() => navigate("/dashboard")}
  className="h-8 w-8 p-0 hover:bg-primary/10"
  >
  <ArrowLeft size={16} weight="bold" />

@@ -87,6 +87,12 @@ backend/
 EULA-RESEARCH.md
 PRIVACY_POLICY_RESEARCH.md
 THREAT_INTEL_INTEGRATION.md
+competitor-analysis-*.md
+HTB-DESIGN-ANALYSIS.md
+INTRUDER_ANALYSIS.md
+WEBSITE_README.md
+WEBSITE_SPEC.md
+CHANGELOG.md
 migrate-structure.sh
 bun.lock
 bun.lockb

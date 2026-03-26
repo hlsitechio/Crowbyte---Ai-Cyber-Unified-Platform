@@ -27,8 +27,7 @@ What actually happens.
 
 - **OS**:
 - **CrowByte Version**:
-- **Electron Version**:
-- **Node Version**:
+- **Deployment** (Desktop / Server / Docker):
 
 ## Screenshots
 

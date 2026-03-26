@@ -55,6 +55,32 @@ export interface SetupConfig {
 const SETUP_STORAGE_KEY = 'crowbyte_setup_config';
 const CURRENT_SETUP_VERSION = 1;
 
+// Electron IPC helpers for disk persistence
+const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
+
+/** Write setup marker to disk via Electron IPC (survives localStorage wipes) */
+async function writeSetupMarker(config: SetupConfig): Promise<void> {
+  try {
+    if (isElectron && (window as any).electronAPI?.writeFile) {
+      await (window as any).electronAPI.writeFile(
+        '.crowbyte-setup.json',
+        JSON.stringify(config, null, 2)
+      );
+    }
+  } catch { /* not available */ }
+}
+
+/** Read setup marker from disk */
+async function readSetupMarker(): Promise<SetupConfig | null> {
+  try {
+    if (isElectron && (window as any).electronAPI?.readFile) {
+      const data = await (window as any).electronAPI.readFile('.crowbyte-setup.json');
+      if (data) return JSON.parse(data);
+    }
+  } catch { /* not available */ }
+  return null;
+}
+
 // Feature limits per tier
 const TIER_FEATURES: Record<SetupConfig['licenseTier'], SetupConfig['features']> = {
   community: {
@@ -168,7 +194,18 @@ class SetupService {
 
   /** Has the setup wizard been completed? */
   isSetupComplete(): boolean {
-    return this.config.setupComplete && this.config.setupVersion === CURRENT_SETUP_VERSION;
+    // Check localStorage first
+    if (this.config.setupComplete && this.config.setupVersion === CURRENT_SETUP_VERSION) {
+      return true;
+    }
+    // Fallback: check cookie (survives port changes in dev)
+    if (typeof document !== 'undefined' && document.cookie.includes('crowbyte_setup=done')) {
+      this.config.setupComplete = true;
+      this.config.setupVersion = CURRENT_SETUP_VERSION;
+      this.saveConfig();
+      return true;
+    }
+    return false;
   }
 
   /** Check server-side setup status and sync to localStorage */
@@ -191,6 +228,17 @@ class SetupService {
         return data.setupComplete;
       }
     } catch { /* server API not available — Electron/offline mode */ }
+
+    // Try disk marker as last resort (Electron)
+    if (!this.isSetupComplete()) {
+      const diskConfig = await readSetupMarker();
+      if (diskConfig?.setupComplete) {
+        this.config = { ...this.config, ...diskConfig };
+        this.saveConfig();
+        return true;
+      }
+    }
+
     return this.isSetupComplete();
   }
 
@@ -351,6 +399,14 @@ class SetupService {
     this.config.setupComplete = true;
     this.config.completedAt = new Date().toISOString();
     this.saveConfig();
+
+    // Set cookie (survives localStorage clears, works across ports)
+    if (typeof document !== 'undefined') {
+      document.cookie = 'crowbyte_setup=done; max-age=315360000; path=/; SameSite=Lax';
+    }
+
+    // Write disk marker via Electron IPC (survives everything)
+    writeSetupMarker(this.config);
 
     // Persist to server so other browsers skip the wizard
     fetch(`${window.location.origin}/api/setup/complete`, {
