@@ -4,6 +4,10 @@
   "description": "AI-powered cybersecurity terminal by HLSITech",
   "author": "HLSITech <contact@hlsitech.com>",
   "homepage": "https://crowbyte.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hlsitechio/crowbyte.git"
+  },
   "private": true,
   "type": "module",
   "version": "2.0.0",
