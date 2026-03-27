@@ -422,7 +422,7 @@ export default function Hero() {
 
               {/* Secondary CTA — ghost pill */}
               <a
-                href="https://github.com/hlsitechio/crowbyte"
+                href="https://crowbyte.io/download"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] px-6 py-3 rounded-full transition-all duration-300 inline-flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] overflow-hidden"

@@ -32,7 +32,7 @@ export default function CTABanner() {
             Get Started Free
           </LaunchAppButton>
           <a
-            href="https://github.com/hlsitechio/crowbyte/releases/latest"
+            href="https://crowbyte.io/download"
             target="_blank"
             rel="noopener noreferrer"
             className="font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] px-8 py-3 rounded-full transition-all inline-flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
