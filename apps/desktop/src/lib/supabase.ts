@@ -168,7 +168,7 @@ export const settingsService = {
         user_id: userId,
         ...settings,
         updated_at: new Date().toISOString(),
-      });
+      }, { onConflict: 'user_id' });
 
     if (error) {
       console.error('Error updating user settings:', error);

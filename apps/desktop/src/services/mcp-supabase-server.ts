@@ -618,7 +618,7 @@ class SupabaseMCPServer {
       .upsert({
         user_id: args.userId,
         ...args.settings,
-      })
+      }, { onConflict: 'user_id' })
       .select()
       .single();
 

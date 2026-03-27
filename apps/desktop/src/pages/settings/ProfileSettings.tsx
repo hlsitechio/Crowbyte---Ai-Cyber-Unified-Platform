@@ -90,7 +90,7 @@ export default function ProfileSettings() {
           user_id: user.id,
           profile_picture_url: publicUrl,
           updated_at: new Date().toISOString(),
-        });
+        }, { onConflict: 'user_id' });
 
       setProfilePictureUrl(publicUrl);
       window.dispatchEvent(new Event('profilePictureChanged'));
