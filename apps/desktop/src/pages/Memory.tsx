@@ -6,6 +6,7 @@ import { Label } from"@/components/ui/label";
 import { Textarea } from"@/components/ui/textarea";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
+import { Badge } from"@/components/ui/badge";
 import { useToast } from"@/hooks/use-toast";
 import { Brain, MagnifyingGlass, Database, BookOpen, Clock, TrendUp, Plus, FloppyDisk, X, CircleNotch, ArrowsClockwise, Hash, ChatDots, FolderOpen, Sparkle, WarningCircle } from "@phosphor-icons/react";
 import { memoryEngine } from"@/services/memory-engine";
@@ -534,7 +535,7 @@ export default function Memory() {
  </Badge>
  )}
  {healthy === true && (
- <Badge variant="default" className="ml-auto bg-emerald-600/80">
+ <Badge variant="default" className="ml-auto bg-blue-600/80">
  Connected
  </Badge>
  )}
