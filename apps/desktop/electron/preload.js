@@ -150,6 +150,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // System monitoring for Fleet Management
   getSystemMetrics: () => ipcRenderer.invoke('get-system-metrics'),
 
+  // Onboarding (Discord-style first-run)
+  onboardingComplete: () => ipcRenderer.invoke('onboarding:complete'),
+  onboardingSkip: () => ipcRenderer.invoke('onboarding:skip'),
+
   // Claude Code CLI
   claudeChat: (options) => ipcRenderer.invoke('claude-chat', options),
   claudeStop: () => ipcRenderer.invoke('claude-stop'),

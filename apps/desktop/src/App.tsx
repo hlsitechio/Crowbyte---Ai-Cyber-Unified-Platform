@@ -61,6 +61,7 @@ import Logs from "./pages/Logs";
 import SecurityMonitor from "./pages/SecurityMonitor";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
+import Onboarding from "./pages/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -205,6 +206,9 @@ const App = () => {
         }}
       >
         <Routes>
+          {/* Onboarding — Discord-style first-run, frameless window */}
+          <Route path="/onboarding" element={<Onboarding />} />
+
           {/* Landing page — web/marketing only, Electron skips to dashboard */}
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/" element={

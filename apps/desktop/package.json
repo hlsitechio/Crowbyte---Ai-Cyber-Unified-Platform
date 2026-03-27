@@ -86,12 +86,10 @@
       "artifactName": "${productName}-${version}-x64.${ext}"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
       "allowElevation": true,
       "installerIcon": "public/icon.ico",
       "uninstallerIcon": "public/icon.ico",
-      "installerHeaderIcon": "public/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "CrowByte",
@@ -99,10 +97,7 @@
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": true,
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "unicode": true,
-      "warningsAsErrors": false,
-      "include": "installer/installer.nsh",
-      "license": "installer/license.txt"
+      "unicode": true
     },
     "mac": {
       "target": [
