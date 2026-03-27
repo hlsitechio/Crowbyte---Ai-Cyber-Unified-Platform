@@ -63,8 +63,8 @@ export default function LaunchAppButton({ className, children }: LaunchAppButton
 
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-3">
-                  <Desktop size={24} weight="duotone" className="text-emerald-500" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 mb-3">
+                  <Desktop size={24} weight="duotone" className="text-blue-500" />
                 </div>
                 <h3 className="font-['JetBrains_Mono'] text-lg font-bold text-white">
                   Open CrowByte
@@ -79,11 +79,11 @@ export default function LaunchAppButton({ className, children }: LaunchAppButton
                 {/* Desktop App Option */}
                 <button
                   onClick={() => setShowNotInstalled(true)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors text-left group"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-md border border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10 transition-colors text-left group"
                 >
-                  <Desktop size={20} weight="duotone" className="text-emerald-500 flex-shrink-0" />
+                  <Desktop size={20} weight="duotone" className="text-blue-500 flex-shrink-0" />
                   <div className="flex-1">
-                    <div className="font-['JetBrains_Mono'] text-sm font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                    <div className="font-['JetBrains_Mono'] text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
                       Desktop App
                     </div>
                     <div className="font-['JetBrains_Mono'] text-[10px] text-zinc-500">

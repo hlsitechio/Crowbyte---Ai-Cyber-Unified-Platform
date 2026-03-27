@@ -5,6 +5,7 @@ import LaunchAppButton from "./LaunchAppButton";
 
 const navLinks = [
   { label: "Features", href: "#features" },
+  { label: "Solutions", href: "#solutions" },
   { label: "Pricing", href: "#pricing" },
   { label: "Docs", href: "#docs" },
 ];
@@ -29,38 +30,42 @@ export default function Navbar() {
       <motion.nav
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? "bg-black/80 backdrop-blur-md border-b border-white/[0.06]"
+            ? "bg-black/60 backdrop-blur-xl border-b border-white/[0.06]"
             : "bg-transparent"
         }`}
       >
-        <div className="mx-auto max-w-6xl flex items-center justify-between px-6 h-14">
-          {/* Logo — text only */}
+        <div className="mx-auto max-w-6xl flex items-center justify-between px-6 h-16">
+          {/* Logo */}
           <button
             onClick={() => scrollTo("#hero")}
-            className="font-['JetBrains_Mono'] text-lg font-bold tracking-tight"
+            className="font-['JetBrains_Mono'] text-lg font-bold tracking-tight flex items-center gap-2"
           >
             <span className="text-white">Crow</span>
-            <span className="text-emerald-500">Byte</span>
+            <span className="text-blue-400">Byte</span>
           </button>
 
           {/* Center links — desktop */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <button
                 key={link.label}
                 onClick={() => scrollTo(link.href)}
-                className="font-['JetBrains_Mono'] text-xs tracking-wide text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="font-['JetBrains_Mono'] text-[13px] text-zinc-500 hover:text-white transition-colors duration-200 px-4 py-2 rounded-full hover:bg-white/[0.05]"
               >
                 {link.label}
               </button>
             ))}
           </div>
 
-          {/* Right — desktop */}
-          <LaunchAppButton className="hidden md:inline-block font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/20 hover:bg-white/5 px-4 py-1.5 rounded transition-colors cursor-pointer" />
+          {/* Right — CTA pill with glow */}
+          <LaunchAppButton className="hidden md:inline-flex relative font-['JetBrains_Mono'] text-[13px] font-medium text-white px-5 py-2 rounded-full border border-white/[0.15] bg-white/[0.05] hover:bg-white/[0.08] transition-all duration-300 cursor-pointer overflow-hidden group">
+            {/* Glow streak on top edge */}
+            <span className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[1px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+            <span className="relative z-10">Launch App</span>
+          </LaunchAppButton>
 
           {/* Hamburger — mobile */}
           <button
@@ -85,13 +90,13 @@ export default function Navbar() {
           >
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-4 right-6 text-zinc-400 hover:text-white transition-colors"
+              className="absolute top-5 right-6 text-zinc-400 hover:text-white transition-colors"
               aria-label="Close menu"
             >
               <X size={24} />
             </button>
 
-            <nav className="flex flex-col items-center gap-6">
+            <nav className="flex flex-col items-center gap-4">
               {navLinks.map((link, i) => (
                 <motion.button
                   key={link.label}
@@ -104,7 +109,10 @@ export default function Navbar() {
                   {link.label}
                 </motion.button>
               ))}
-              <LaunchAppButton className="mt-4 font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/20 hover:bg-white/5 px-6 py-2 rounded transition-colors cursor-pointer" />
+              <LaunchAppButton className="mt-6 relative font-['JetBrains_Mono'] text-sm font-medium text-white px-6 py-2.5 rounded-full border border-white/[0.15] bg-white/[0.05] transition-all cursor-pointer overflow-hidden">
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[1px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+                <span className="relative z-10">Launch App</span>
+              </LaunchAppButton>
             </nav>
           </motion.div>
         )}

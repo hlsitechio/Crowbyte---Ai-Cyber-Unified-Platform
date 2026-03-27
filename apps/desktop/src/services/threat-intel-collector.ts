@@ -290,28 +290,41 @@ async function fetchFeed(feed: FeedConfig): Promise<NormalizedIOC[]> {
     opts.body = JSON.stringify(feed.body);
   }
 
-  const response = await fetch(feed.url, opts);
+  let response: Response;
+  try {
+    response = await fetch(feed.url, opts);
+  } catch {
+    console.debug(`[threat-intel] Feed unavailable in desktop mode: ${feed.name} (${feed.url})`);
+    return [];
+  }
+
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    console.debug(`[threat-intel] Feed ${feed.name} returned HTTP ${response.status} — skipping`);
+    return [];
   }
 
-  if (feed.parser === 'plaintext_ip') {
-    const text = await response.text();
-    return parsePlaintextIPs(text, feed.name);
-  }
+  try {
+    if (feed.parser === 'plaintext_ip') {
+      const text = await response.text();
+      return parsePlaintextIPs(text, feed.name);
+    }
 
-  const data = await response.json();
+    const data = await response.json();
 
-  switch (feed.parser) {
-    case 'urlhaus':
-      return parseUrlhaus(data);
-    case 'feodo':
-      return parseFeodo(data);
-    case 'threatfox':
-      return parseThreatfox(data);
-    default:
-      console.warn(`Unknown parser: ${feed.parser}`);
-      return [];
+    switch (feed.parser) {
+      case 'urlhaus':
+        return parseUrlhaus(data);
+      case 'feodo':
+        return parseFeodo(data);
+      case 'threatfox':
+        return parseThreatfox(data);
+      default:
+        console.warn(`Unknown parser: ${feed.parser}`);
+        return [];
+    }
+  } catch {
+    console.debug(`[threat-intel] Failed to parse response from ${feed.name} — skipping`);
+    return [];
   }
 }
 

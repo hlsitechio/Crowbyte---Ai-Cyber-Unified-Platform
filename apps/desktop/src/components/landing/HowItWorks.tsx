@@ -1,16 +1,16 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { DownloadSimple, Terminal, Crosshair, FileText } from "@phosphor-icons/react";
+import { Download, TerminalSquare, Crosshair, FileText } from "lucide-react";
 
 const steps = [
   {
-    icon: DownloadSimple,
+    icon: Download,
     num: "01",
     title: "Install",
     desc: "One binary. Linux, Windows, macOS. You're live in 30 seconds.",
   },
   {
-    icon: Terminal,
+    icon: TerminalSquare,
     num: "02",
     title: "Target",
     desc: "Give it a domain. CrowByte spawns 15 agents across your attack surface.",
@@ -64,16 +64,16 @@ export default function HowItWorks() {
                 <div className="hidden md:block absolute top-5 left-[calc(100%+2px)] w-[calc(100%-20px)] h-px bg-white/[0.06]" />
               )}
 
-              <div className="font-['JetBrains_Mono'] text-[10px] text-emerald-500 font-bold tracking-widest mb-3">
+              <div className="font-['JetBrains_Mono'] text-xs text-blue-500 font-bold tracking-widest mb-3">
                 {step.num}
               </div>
               <div className="flex items-center gap-3 mb-2">
-                <step.icon size={20} weight="duotone" className="text-emerald-400" />
+                <step.icon size={20} strokeWidth={1.5} className="text-blue-400" />
                 <h3 className="font-['JetBrains_Mono'] text-base font-bold text-white">
                   {step.title}
                 </h3>
               </div>
-              <p className="font-['JetBrains_Mono'] text-[12px] text-zinc-500 leading-relaxed">
+              <p className="font-['JetBrains_Mono'] text-xs text-zinc-500 leading-relaxed">
                 {step.desc}
               </p>
             </motion.div>

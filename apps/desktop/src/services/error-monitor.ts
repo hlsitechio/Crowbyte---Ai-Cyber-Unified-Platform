@@ -1374,3 +1374,80 @@ class ErrorMonitor {
 
 // Singleton -- auto-initializes on import
 export const errorMonitor = new ErrorMonitor();
+
+// ---------------------------------------------------------------------------
+// Claude Code Bridge — allows external control of QA Agent
+// Call from Chrome DevTools or mcp__claude-in-chrome__javascript_tool
+// ---------------------------------------------------------------------------
+
+if (typeof window !== 'undefined') {
+  (window as any).__qaAgent = {
+    /** Get current error count by severity */
+    status() {
+      const errors = errorMonitor.getErrors();
+      const critical = errors.filter(e => e.severity === 'critical').length;
+      const warning = errors.filter(e => e.severity === 'warning').length;
+      const network = errorMonitor.getNetworkLog().filter(n => n.failed).length;
+      return { total: errors.length, critical, warning, networkFailed: network, ok: critical === 0 };
+    },
+
+    /** Get all current errors as JSON */
+    errors() {
+      return errorMonitor.getErrors().map(e => ({
+        severity: e.severity,
+        message: e.message.slice(0, 200),
+        source: e.source,
+        page: e.page,
+        timestamp: e.timestamp,
+      }));
+    },
+
+    /** Get failed network requests */
+    failedRequests() {
+      return errorMonitor.getNetworkLog()
+        .filter(n => n.failed || (n.status && n.status >= 400))
+        .map(n => ({ url: n.url, status: n.status, method: n.method, failed: n.failed }));
+    },
+
+    /** Clear all errors and re-audit current page (fresh check) */
+    recheck() {
+      errorMonitor.clearAll();
+      // Force re-audit after a short delay to let the page settle
+      setTimeout(() => {
+        const status = (window as any).__qaAgent.status();
+        console.log('[QA Bridge] Recheck complete:', JSON.stringify(status));
+      }, 3000);
+      return 'Cleared. Rechecking in 3s — call __qaAgent.status() after.';
+    },
+
+    /** Check if a specific error pattern still exists */
+    verify(pattern: string) {
+      const errors = errorMonitor.getErrors();
+      const matches = errors.filter(e =>
+        e.message.toLowerCase().includes(pattern.toLowerCase())
+      );
+      if (matches.length === 0) {
+        return { resolved: true, pattern, message: `No errors matching "${pattern}"` };
+      }
+      return {
+        resolved: false,
+        pattern,
+        count: matches.length,
+        errors: matches.map(e => ({ severity: e.severity, message: e.message.slice(0, 150), page: e.page })),
+      };
+    },
+
+    /** Get compact summary for Claude Code consumption */
+    report() {
+      const s = (window as any).__qaAgent.status();
+      const failed = (window as any).__qaAgent.failedRequests();
+      return {
+        ...s,
+        failedUrls: failed.map((f: any) => f.url),
+        perf: errorMonitor.getPerformanceMetrics(),
+      };
+    },
+  };
+
+  console.log('[QA Bridge] __qaAgent ready — status(), errors(), verify(pattern), recheck(), report()');
+}

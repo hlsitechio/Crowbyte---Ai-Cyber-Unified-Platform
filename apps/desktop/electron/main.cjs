@@ -651,16 +651,15 @@ function createWindow() {
     });
   });
 
-  // Load the app - always use dev server for now
-  mainWindow.loadURL('http://localhost:8081');
-  // Dev tools can be opened manually with Ctrl+Shift+I if needed
-
-  // Production mode (commented out for now)
-  // if (process.env.NODE_ENV === 'development') {
-  //   mainWindow.loadURL('http://localhost:8082');
-  // } else {
-  //   mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-  // }
+  // Load the app — dev server in development, built files in production
+  const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:8081');
+    console.log('[*] Loading from dev server: http://localhost:8081');
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    console.log('[*] Loading from built files: dist/index.html');
+  }
 
   // Setup context menu (right-click menu)
   mainWindow.webContents.on('context-menu', (event, params) => {

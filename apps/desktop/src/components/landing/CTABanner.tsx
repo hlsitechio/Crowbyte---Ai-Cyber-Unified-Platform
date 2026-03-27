@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Lightning } from "@phosphor-icons/react";
+import { Zap } from "lucide-react";
 import LaunchAppButton from "./LaunchAppButton";
 
 export default function CTABanner() {
@@ -15,9 +15,7 @@ export default function CTABanner() {
         transition={{ duration: 0.6 }}
         className="max-w-3xl mx-auto text-center"
       >
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
-          <Lightning size={28} weight="duotone" className="text-emerald-400" />
-        </div>
+        <Zap size={28} strokeWidth={1.5} className="text-blue-400 mx-auto mb-6" />
 
         <h2 className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-bold text-white mb-4">
           stop switching tools.
@@ -30,20 +28,20 @@ export default function CTABanner() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <LaunchAppButton className="font-['JetBrains_Mono'] text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-black px-8 py-3 rounded transition-colors cursor-pointer">
+          <LaunchAppButton className="font-['JetBrains_Mono'] text-sm font-semibold bg-orange-500 hover:bg-orange-400 text-black px-8 py-3 rounded-full transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]">
             Get Started Free
           </LaunchAppButton>
           <a
             href="https://github.com/hlsitechio/crowbyte/releases/latest"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-['JetBrains_Mono'] text-sm text-zinc-400 border border-white/20 hover:bg-white/5 px-8 py-3 rounded transition-colors inline-flex items-center gap-2"
+            className="font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] px-8 py-3 rounded-full transition-all inline-flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
           >
             Download Desktop
           </a>
         </div>
 
-        <p className="font-['JetBrains_Mono'] text-[10px] text-zinc-600 mt-4">
+        <p className="font-['JetBrains_Mono'] text-xs text-zinc-600 mt-4">
           Free tier. No credit card. Linux / Windows / macOS.
         </p>
       </motion.div>

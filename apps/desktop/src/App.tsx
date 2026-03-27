@@ -205,8 +205,13 @@ const App = () => {
         }}
       >
         <Routes>
-          {/* Landing page — root route, fully standalone, NO auth required */}
-          <Route path="/" element={<LandingPage />} />
+          {/* Landing page — web/marketing only, Electron skips to dashboard */}
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/" element={
+            typeof window !== 'undefined' && (window as any).electronAPI
+              ? <Navigate to="/dashboard" replace />
+              : <LandingPage />
+          } />
 
           {/* All other routes need auth context */}
           <Route path="/*" element={

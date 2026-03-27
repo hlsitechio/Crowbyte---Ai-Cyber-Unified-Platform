@@ -7,8 +7,6 @@
 import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
 
-// __dirname is available in CommonJS (ts-node default)
-
 let mainWindow: BrowserWindow | null;
 
 function createWindow(): void {
@@ -25,18 +23,22 @@ function createWindow(): void {
     icon: path.join(__dirname, '../public/icon.png'),
   });
 
-  // Load from Vite dev server
-  const devServerUrl = 'http://localhost:8081';
+  // Dev server in development, built files in production
+  const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
 
-  console.log(`🚀 Loading app from: ${devServerUrl}`);
-
-  mainWindow.loadURL(devServerUrl).catch((err) => {
-    console.error('❌ Failed to load URL:', err);
-  });
-
-  // Open DevTools in development
-  if (process.env.NODE_ENV === 'development') {
+  if (isDev) {
+    const devServerUrl = 'http://localhost:8081';
+    console.log(`[*] Loading from dev server: ${devServerUrl}`);
+    mainWindow.loadURL(devServerUrl).catch((err) => {
+      console.error('[!] Failed to load dev server:', err);
+    });
     mainWindow.webContents.openDevTools();
+  } else {
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    console.log(`[*] Loading from built files: ${indexPath}`);
+    mainWindow.loadFile(indexPath).catch((err) => {
+      console.error('[!] Failed to load index.html:', err);
+    });
   }
 
   mainWindow.on('closed', () => {
@@ -46,8 +48,8 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   console.log('\n' + '='.repeat(70));
-  console.log('🦅 CrowByte - AI-Powered Cybersecurity Terminal');
-  console.log('   by HLSITech | https://crowbyte.io');
+  console.log('  CrowByte - AI-Powered Cybersecurity Terminal');
+  console.log('  by HLSITech | https://crowbyte.io');
   console.log('='.repeat(70) + '\n');
 
   createWindow();

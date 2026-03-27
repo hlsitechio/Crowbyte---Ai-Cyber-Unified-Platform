@@ -194,6 +194,10 @@ class SetupService {
 
   /** Has the setup wizard been completed? */
   isSetupComplete(): boolean {
+    // Dev mode — always skip setup wizard
+    if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+      return true;
+    }
     // Check localStorage first
     if (this.config.setupComplete && this.config.setupVersion === CURRENT_SETUP_VERSION) {
       return true;

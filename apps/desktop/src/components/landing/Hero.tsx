@@ -1,7 +1,38 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, useInView } from "framer-motion";
-import { BookOpen } from "@phosphor-icons/react";
+import { DownloadSimple } from "@phosphor-icons/react";
 import LaunchAppButton from "./LaunchAppButton";
+
+/* ------------------------------------------------------------------ */
+/*  Framer Motion variants                                             */
+/* ------------------------------------------------------------------ */
+
+const container = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.2 },
+  },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.95, y: 30 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 /* ------------------------------------------------------------------ */
 /*  Agent output pools — each agent cycles through these endlessly     */
@@ -15,178 +46,189 @@ interface AgentConfig {
 
 const agents: AgentConfig[] = [
   {
+    // STORY: Scanning GitHub repos, finds leaked API keys, validates them
     name: "RECON",
     statusCycle: [
-      { text: "scanning", color: "text-emerald-400" },
-      { text: "enumerating", color: "text-blue-400" },
-      { text: "probing", color: "text-violet-400" },
+      { text: "scanning repos", color: "text-blue-400" },
+      { text: "scraping secrets", color: "text-yellow-400" },
+      { text: "validating keys", color: "text-violet-400" },
     ],
     outputPool: [
-      { text: "$ subfinder -d acme.com -silent", color: "text-zinc-500" },
-      { text: "[+] api.acme.com", color: "text-emerald-400" },
-      { text: "[+] staging.acme.com", color: "text-emerald-400" },
-      { text: "[+] dev-portal.acme.com", color: "text-emerald-400" },
-      { text: "[+] admin.acme.com", color: "text-yellow-400" },
-      { text: "[*] 142 subdomains found", color: "text-zinc-400" },
-      { text: "$ httpx -silent -sc -title", color: "text-zinc-500" },
-      { text: "[200] api.acme.com [API Gateway]", color: "text-emerald-400" },
-      { text: "[403] admin.acme.com [Forbidden]", color: "text-orange-400" },
-      { text: "[301] staging.acme.com -> prod", color: "text-zinc-400" },
-      { text: "[+] 38 live hosts responding", color: "text-emerald-400" },
-      { text: "$ nmap -sV -p- --top-ports 1000", color: "text-zinc-500" },
-      { text: "[+] 22/tcp ssh OpenSSH 8.9", color: "text-emerald-400" },
-      { text: "[+] 443/tcp https nginx/1.18", color: "text-emerald-400" },
-      { text: "[+] 8080/tcp http-proxy open", color: "text-yellow-400" },
-      { text: "[+] 3306/tcp mysql 8.0.32", color: "text-orange-400" },
-      { text: "[*] Feeding 38 targets to hunter", color: "text-zinc-500" },
-      { text: "$ nuclei -t dns/ -silent", color: "text-zinc-500" },
-      { text: "[+] Zone transfer possible!", color: "text-red-400" },
-      { text: "[+] CNAME dangling: old.acme.com", color: "text-yellow-400" },
+      { text: "$ github-dorker -d acme.com", color: "text-zinc-500" },
+      { text: "[*] Scanning 847 public repos...", color: "text-zinc-400" },
+      { text: "[+] acme/backend-api — 2.3k stars", color: "text-blue-400" },
+      { text: "[+] acme/deploy-scripts — 89 stars", color: "text-blue-400" },
+      { text: "[!] .env found in commit history", color: "text-red-400" },
+      { text: "    AWS_SECRET_KEY=AKIA3E...", color: "text-red-400" },
+      { text: "[*] Testing API key validity...", color: "text-zinc-500" },
+      { text: "$ aws sts get-caller-identity", color: "text-zinc-500" },
+      { text: "[!] KEY IS VALID — arn:aws:iam::", color: "text-red-400" },
+      { text: "    Account: 491823017442", color: "text-orange-400" },
+      { text: "[+] Role: deploy-admin (FULL S3)", color: "text-red-400" },
+      { text: "[*] Enumerating S3 buckets...", color: "text-zinc-500" },
+      { text: "[+] acme-prod-backups (public!)", color: "text-red-400" },
+      { text: "[+] acme-user-uploads (writable)", color: "text-yellow-400" },
+      { text: "[!] 14GB database dump in bucket", color: "text-red-400" },
+      { text: "[*] Saving to findings vault...", color: "text-zinc-500" },
+      { text: "[+] CRITICAL: AWS key → full S3", color: "text-blue-400" },
+      { text: "[>] Forwarding to analyst agent", color: "text-violet-400" },
     ],
   },
   {
+    // STORY: Shodan finds Windows Server, scans it, exploits RDP vuln
     name: "HUNTER",
     statusCycle: [
       { text: "exploiting", color: "text-red-400" },
-      { text: "verifying", color: "text-orange-400" },
-      { text: "chaining", color: "text-red-400" },
+      { text: "pivoting", color: "text-orange-400" },
+      { text: "pwning", color: "text-red-400" },
     ],
     outputPool: [
-      { text: "$ nuclei -severity critical,high", color: "text-zinc-500" },
-      { text: "[!] CVE-2024-21762 FortiOS RCE", color: "text-red-400" },
-      { text: "    CVSS: 9.8 | RCE confirmed", color: "text-red-400" },
-      { text: "[!] CVE-2024-3400 PAN-OS cmdi", color: "text-red-400" },
-      { text: "    CVSS: 10.0 | Auth bypass", color: "text-red-400" },
-      { text: "[+] 2 confirmed critical vulns", color: "text-emerald-400" },
-      { text: "$ sqlmap -u /api/users?id=1", color: "text-zinc-500" },
-      { text: "[!] SQLi found: boolean-based", color: "text-red-400" },
-      { text: "[+] Backend: MySQL 8.0.32", color: "text-emerald-400" },
-      { text: "[+] 14 databases enumerated", color: "text-emerald-400" },
-      { text: "$ dalfox url /search?q=test", color: "text-zinc-500" },
-      { text: "[!] Reflected XSS confirmed", color: "text-red-400" },
-      { text: "    Payload: <img/src=x onerror>", color: "text-orange-400" },
-      { text: "[+] DOM sink: innerHTML", color: "text-yellow-400" },
-      { text: "$ ffuf -w seclists -u /FUZZ", color: "text-zinc-500" },
-      { text: "[+] /admin [200] 4832 bytes", color: "text-emerald-400" },
-      { text: "[+] /.env [200] 1204 bytes", color: "text-red-400" },
-      { text: "[!] AWS keys exposed in .env", color: "text-red-400" },
-      { text: "[*] Chaining SQLi + IDOR...", color: "text-zinc-500" },
-      { text: "[!] Full account takeover PoC", color: "text-red-400" },
+      { text: "$ shodan search org:acme port:3389", color: "text-zinc-500" },
+      { text: "[+] 10.42.1.87 — Windows Server 2019", color: "text-blue-400" },
+      { text: "[+] RDP open, NLA disabled", color: "text-yellow-400" },
+      { text: "[!] BlueKeep candidate detected", color: "text-red-400" },
+      { text: "$ nmap -sV -p 3389,445,135", color: "text-zinc-500" },
+      { text: "[+] 445/tcp SMBv1 enabled", color: "text-orange-400" },
+      { text: "[!] MS17-010 EternalBlue vuln!", color: "text-red-400" },
+      { text: "[*] AI says: chain RDP + SMB...", color: "text-cyan-400" },
+      { text: "$ msfconsole -x 'use eternalblue'", color: "text-zinc-500" },
+      { text: "[+] Session 1 opened (meterpreter)", color: "text-blue-400" },
+      { text: "[+] SYSTEM shell acquired", color: "text-red-400" },
+      { text: "$ hashdump", color: "text-zinc-500" },
+      { text: "[+] Admin:500:aad3b...:7ce21...", color: "text-red-400" },
+      { text: "[*] Pivoting to internal network", color: "text-zinc-500" },
+      { text: "[+] Found DC at 10.42.1.1", color: "text-blue-400" },
+      { text: "[!] Domain Admin hash captured", color: "text-red-400" },
+      { text: "[+] Full domain compromise PoC", color: "text-blue-400" },
+      { text: "[>] Handing off to analyst...", color: "text-violet-400" },
     ],
   },
   {
+    // STORY: d3bugr browser automation, takes control of Chrome, steals session
     name: "INTEL",
     statusCycle: [
-      { text: "enriching", color: "text-violet-400" },
-      { text: "correlating", color: "text-blue-400" },
-      { text: "mapping", color: "text-cyan-400" },
+      { text: "browser hijack", color: "text-violet-400" },
+      { text: "session theft", color: "text-red-400" },
+      { text: "cookie extract", color: "text-cyan-400" },
     ],
     outputPool: [
-      { text: "$ shodan search ssl:acme.com", color: "text-zinc-500" },
-      { text: "[+] 47,312 exposed instances", color: "text-emerald-400" },
-      { text: "[+] CISA KEV: yes | EPSS: 0.97", color: "text-orange-400" },
-      { text: "[*] Cross-referencing NVD...", color: "text-zinc-500" },
-      { text: "[+] CVE linked to APT-29", color: "text-red-400" },
-      { text: "$ whois acme.com", color: "text-zinc-500" },
-      { text: "[+] Registrar: Cloudflare", color: "text-emerald-400" },
-      { text: "[+] NS: ns1.cloudflare.com", color: "text-zinc-400" },
-      { text: "$ crt.sh %.acme.com", color: "text-zinc-500" },
-      { text: "[+] 89 certificates found", color: "text-emerald-400" },
-      { text: "[+] Wildcard: *.dev.acme.com", color: "text-yellow-400" },
-      { text: "[+] Expired cert on staging", color: "text-orange-400" },
-      { text: "$ amass intel -d acme.com", color: "text-zinc-500" },
-      { text: "[+] ASN: AS13335 Cloudflare", color: "text-emerald-400" },
-      { text: "[+] CIDR: 104.16.0.0/12", color: "text-zinc-400" },
-      { text: "[*] Building attack graph...", color: "text-zinc-500" },
-      { text: "[+] 3 attack paths identified", color: "text-violet-400" },
-      { text: "[+] Shortest: 2 hops to RCE", color: "text-red-400" },
+      { text: "$ d3bugr cdp connect :9222", color: "text-zinc-500" },
+      { text: "[+] Chrome DevTools connected", color: "text-blue-400" },
+      { text: "[+] 7 tabs open in target browser", color: "text-blue-400" },
+      { text: "[*] Navigating to admin panel...", color: "text-zinc-500" },
+      { text: "$ d3bugr navigate admin.acme.com", color: "text-zinc-500" },
+      { text: "[+] Admin dashboard loaded", color: "text-blue-400" },
+      { text: "[*] Extracting session cookies...", color: "text-zinc-500" },
+      { text: "[!] SESSION_TOKEN=eyJhbGciOi...", color: "text-red-400" },
+      { text: "[!] CSRF_TOKEN=a8f2e91b...", color: "text-red-400" },
+      { text: "[+] JWT decoded: role=superadmin", color: "text-yellow-400" },
+      { text: "[*] Injecting JS keylogger...", color: "text-zinc-500" },
+      { text: "$ d3bugr exec 'document.forms'", color: "text-zinc-500" },
+      { text: "[+] 3 forms with password fields", color: "text-blue-400" },
+      { text: "[!] Autofill leaked: root@acme", color: "text-red-400" },
+      { text: "[*] Screenshotting evidence...", color: "text-zinc-500" },
+      { text: "[+] admin-panel-poc.png saved", color: "text-blue-400" },
+      { text: "[+] Full admin takeover via CDP", color: "text-red-400" },
+      { text: "[>] PoC chain ready for report", color: "text-violet-400" },
     ],
   },
   {
+    // STORY: Finds exposed GraphQL, introspects, dumps PII
     name: "SENTINEL",
     statusCycle: [
-      { text: "monitoring", color: "text-blue-400" },
-      { text: "alerting", color: "text-yellow-400" },
-      { text: "watching", color: "text-blue-400" },
+      { text: "API hunting", color: "text-blue-400" },
+      { text: "introspecting", color: "text-yellow-400" },
+      { text: "data exfil", color: "text-red-400" },
     ],
     outputPool: [
-      { text: "$ crowbyte monitor --live", color: "text-zinc-500" },
-      { text: "[+] 12 endpoints tracked", color: "text-emerald-400" },
-      { text: "[!] New port 8080 on 10.0.3.7", color: "text-yellow-400" },
-      { text: "[!] Admin panel \u2014 no auth!", color: "text-red-400" },
-      { text: "[+] WAF detected: Cloudflare", color: "text-zinc-400" },
-      { text: "[*] Bypass attempt #3...", color: "text-zinc-500" },
-      { text: "[+] WAF bypassed via H2 smuggle", color: "text-emerald-400" },
-      { text: "[!] Rate limit disabled on /api", color: "text-yellow-400" },
-      { text: "[+] Response time: 12ms avg", color: "text-emerald-400" },
-      { text: "[!] SSL cert expires in 3 days", color: "text-orange-400" },
-      { text: "[+] New subdomain detected", color: "text-emerald-400" },
-      { text: "    beta.acme.com [200]", color: "text-zinc-400" },
-      { text: "[*] Scanning new target...", color: "text-zinc-500" },
-      { text: "[!] Debug mode enabled on beta", color: "text-red-400" },
-      { text: "[+] Stack trace leaking paths", color: "text-yellow-400" },
-      { text: "[*] Alerting hunter agent...", color: "text-zinc-500" },
+      { text: "$ ffuf -u acme.com/FUZZ -w api.txt", color: "text-zinc-500" },
+      { text: "[+] /graphql [200] 892 bytes", color: "text-blue-400" },
+      { text: "[!] Introspection is ENABLED", color: "text-red-400" },
+      { text: "[*] Dumping full schema...", color: "text-zinc-500" },
+      { text: "[+] 47 types, 213 fields found", color: "text-blue-400" },
+      { text: "[!] Query: allUsers (no auth!)", color: "text-red-400" },
+      { text: "[!] Mutation: deleteUser (IDOR)", color: "text-red-400" },
+      { text: "$ gqlmap -e acme.com/graphql", color: "text-zinc-500" },
+      { text: "[+] allUsers returned 12,847 rows", color: "text-blue-400" },
+      { text: "[!] PII exposed: email, SSN, DOB", color: "text-red-400" },
+      { text: "[+] Admin emails in response", color: "text-yellow-400" },
+      { text: "[*] Testing deleteUser mutation...", color: "text-zinc-500" },
+      { text: "[!] User id=1 deleted (no auth)", color: "text-red-400" },
+      { text: "[*] AI says: mass PII + IDOR", color: "text-cyan-400" },
+      { text: "[+] Impact: 12k users PII leaked", color: "text-red-400" },
+      { text: "[>] P1 critical — flagging now", color: "text-violet-400" },
     ],
   },
   {
+    // STORY: Writes the full bounty report, calculates payout
     name: "ANALYST",
     statusCycle: [
-      { text: "reporting", color: "text-amber-400" },
-      { text: "triaging", color: "text-emerald-400" },
-      { text: "scoring", color: "text-violet-400" },
+      { text: "writing report", color: "text-amber-400" },
+      { text: "calculating $", color: "text-blue-400" },
+      { text: "final review", color: "text-violet-400" },
     ],
     outputPool: [
       { text: "$ crowbyte report --format h1", color: "text-zinc-500" },
-      { text: "[+] Finding: FortiOS RCE", color: "text-emerald-400" },
-      { text: "    Severity: CRITICAL (9.8)", color: "text-red-400" },
-      { text: "    Impact: Full server control", color: "text-red-400" },
-      { text: "[+] Finding: SQL Injection", color: "text-emerald-400" },
-      { text: "    Severity: HIGH (8.6)", color: "text-orange-400" },
-      { text: "    Impact: Database dump", color: "text-orange-400" },
-      { text: "[+] Finding: Stored XSS", color: "text-emerald-400" },
-      { text: "    Severity: HIGH (7.4)", color: "text-orange-400" },
-      { text: "[+] Finding: IDOR on /api/user", color: "text-emerald-400" },
-      { text: "    Severity: HIGH (7.1)", color: "text-orange-400" },
-      { text: "[*] Generating PoC videos...", color: "text-zinc-500" },
-      { text: "[+] 4 PoCs recorded", color: "text-emerald-400" },
-      { text: "[+] Report: acme-2025-03.pdf", color: "text-emerald-400" },
-      { text: "[>] Ready for submission", color: "text-violet-400" },
-      { text: "[+] Estimated payout: $12,500", color: "text-emerald-400" },
-    ],
-  },
-  {
-    name: "COMMANDER",
-    statusCycle: [
-      { text: "orchestrating", color: "text-emerald-400" },
-      { text: "dispatching", color: "text-cyan-400" },
-      { text: "coordinating", color: "text-emerald-400" },
-    ],
-    outputPool: [
-      { text: "$ crowbyte fleet status", color: "text-zinc-500" },
-      { text: "[+] 6/6 agents online", color: "text-emerald-400" },
-      { text: "[+] recon    scanning  acme.com", color: "text-emerald-400" },
-      { text: "[+] hunter   exploiting target", color: "text-red-400" },
-      { text: "[+] intel    enriching  CVEs", color: "text-violet-400" },
-      { text: "[+] sentinel monitoring fleet", color: "text-blue-400" },
-      { text: "[+] analyst  writing    report", color: "text-amber-400" },
-      { text: "[>] Mission progress: 73%", color: "text-violet-400" },
-      { text: "[*] Dispatching to new target", color: "text-zinc-500" },
-      { text: "[+] Queue: 3 targets remaining", color: "text-zinc-400" },
-      { text: "[>] Mission progress: 87%", color: "text-violet-400" },
-      { text: "[+] 4 critical vulns confirmed", color: "text-red-400" },
-      { text: "[+] 7 high vulns confirmed", color: "text-orange-400" },
-      { text: "[>] Mission progress: 94%", color: "text-violet-400" },
-      { text: "[+] All agents reporting done", color: "text-emerald-400" },
-      { text: "[>] Mission COMPLETE \u2014 100%", color: "text-emerald-400" },
+      { text: "[+] Compiling 4 agent findings...", color: "text-blue-400" },
+      { text: "", color: "text-zinc-600" },
+      { text: "  #1 AWS Key Leak via GitHub", color: "text-white" },
+      { text: "     CVSS: 9.8 | $5,000-$15,000", color: "text-red-400" },
+      { text: "  #2 Domain Compromise (RDP+SMB)", color: "text-white" },
+      { text: "     CVSS: 10.0 | $10,000-$25,000", color: "text-red-400" },
+      { text: "  #3 Admin Takeover via CDP", color: "text-white" },
+      { text: "     CVSS: 9.1 | $3,000-$8,000", color: "text-orange-400" },
+      { text: "  #4 GraphQL PII + Mass IDOR", color: "text-white" },
+      { text: "     CVSS: 9.6 | $5,000-$12,000", color: "text-red-400" },
+      { text: "", color: "text-zinc-600" },
+      { text: "[+] 4 PoC videos attached", color: "text-blue-400" },
+      { text: "[+] Report: acme-bounty-2025.pdf", color: "text-blue-400" },
+      { text: "[*] Estimated total payout:", color: "text-zinc-400" },
+      { text: "[!] $23,000 - $60,000", color: "text-blue-400" },
+      { text: "[>] Ready to submit on HackerOne", color: "text-violet-400" },
     ],
   },
 ];
+
+// Orchestrator — full-width command pane above the grid
+const orchestrator: AgentConfig = {
+  name: "CROWBYTE ORCHESTRATOR",
+  statusCycle: [
+    { text: "commanding 6 agents", color: "text-blue-400" },
+    { text: "dispatching tasks", color: "text-cyan-400" },
+    { text: "mission control", color: "text-blue-400" },
+    { text: "coordinating swarm", color: "text-violet-400" },
+  ],
+  outputPool: [
+    { text: "$ crowbyte hunt acme.com --agents all --mode aggressive", color: "text-zinc-500" },
+    { text: "[+] Deploying 6 AI agents to target: acme.com", color: "text-blue-400" },
+    { text: "[>] RECON    → github-dorker acme.com (scanning repos for secrets)", color: "text-zinc-400" },
+    { text: "[>] HUNTER   → shodan search org:acme port:3389 (find Windows hosts)", color: "text-zinc-400" },
+    { text: "[>] INTEL    → d3bugr cdp connect :9222 (hijack browser session)", color: "text-zinc-400" },
+    { text: "[>] SENTINEL → ffuf -u acme.com/FUZZ (hunt exposed APIs)", color: "text-zinc-400" },
+    { text: "[>] ANALYST  → standing by for findings...", color: "text-zinc-400" },
+    { text: "", color: "text-zinc-600" },
+    { text: "[!] RECON reports: AWS_SECRET_KEY found in GitHub commit history!", color: "text-red-400" },
+    { text: "[*] Commanding RECON: validate key with aws sts get-caller-identity", color: "text-cyan-400" },
+    { text: "[!] HUNTER reports: Windows Server 2019 — EternalBlue vulnerable!", color: "text-red-400" },
+    { text: "[*] Commanding HUNTER: exploit and pivot to domain controller", color: "text-cyan-400" },
+    { text: "[!] INTEL reports: admin session token stolen via Chrome DevTools!", color: "text-red-400" },
+    { text: "[*] Commanding INTEL: extract all cookies + screenshot admin panel", color: "text-cyan-400" },
+    { text: "[!] SENTINEL reports: GraphQL introspection enabled — 12k users PII!", color: "text-red-400" },
+    { text: "[*] Commanding SENTINEL: test IDOR on deleteUser mutation", color: "text-cyan-400" },
+    { text: "", color: "text-zinc-600" },
+    { text: "[+] All 4 attack chains verified. Commanding ANALYST: compile report.", color: "text-blue-400" },
+    { text: "[>] Mission progress: ████████████████████░░ 94%", color: "text-violet-400" },
+    { text: "[+] ANALYST: report generated — 4 criticals, $23k-$60k estimated", color: "text-amber-400" },
+    { text: "[>] ██████████████████████ MISSION COMPLETE — acme.com fully owned", color: "text-blue-400" },
+    { text: "[*] Rotating to next target in queue...", color: "text-zinc-500" },
+  ],
+};
 
 /* ------------------------------------------------------------------ */
 /*  Streaming agent pane                                               */
 /* ------------------------------------------------------------------ */
 
-const MAX_VISIBLE = 6;
+const MAX_VISIBLE = 9;
 
 function AgentPane({ config, active, startDelay }: { config: AgentConfig; active: boolean; startDelay: number }) {
   const [lines, setLines] = useState<{ text: string; color: string; id: number }[]>([]);
@@ -232,22 +274,22 @@ function AgentPane({ config, active, startDelay }: { config: AgentConfig; active
   const status = config.statusCycle[statusIdx];
 
   return (
-    <div className="flex flex-col border border-white/[0.06] rounded-md overflow-hidden bg-black/60">
+    <div className="flex flex-col border border-white/[0.06] rounded-md overflow-hidden bg-zinc-950/60">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-3 py-2 bg-white/[0.03] border-b border-white/[0.06]">
         <div className="flex items-center gap-2">
-          <span className={`h-1.5 w-1.5 rounded-full ${status.color.replace("text-", "bg-")} animate-pulse`} />
-          <span className="font-['JetBrains_Mono'] text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+          <span className={`h-2 w-2 rounded-full ${status.color.replace("text-", "bg-")} animate-pulse`} />
+          <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
             {config.name}
           </span>
         </div>
-        <span className={`font-['JetBrains_Mono'] text-[9px] ${status.color} transition-colors duration-500`}>
+        <span className={`font-['JetBrains_Mono'] text-[10px] ${status.color} transition-colors duration-500`}>
           {status.text}
         </span>
       </div>
 
       {/* Output */}
-      <div className="px-3 py-2 font-['JetBrains_Mono'] text-[10px] md:text-[11px] leading-[1.55] h-[110px] overflow-hidden relative">
+      <div className="px-3 py-3 font-['JetBrains_Mono'] text-[11px] md:text-[12px] leading-[1.6] h-[180px] overflow-hidden relative">
         <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-black/60 to-transparent z-10 pointer-events-none" />
         <div className="flex flex-col justify-end h-full">
           {lines.map((line) => (
@@ -262,25 +304,11 @@ function AgentPane({ config, active, startDelay }: { config: AgentConfig; active
             </motion.div>
           ))}
         </div>
-        <span className="inline-block w-[6px] h-[11px] bg-emerald-500/70 animate-pulse" />
+        <span className="inline-block w-[6px] h-[11px] bg-blue-500/70 animate-pulse" />
       </div>
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  Variants                                                           */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.12 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
 
 /* ------------------------------------------------------------------ */
 /*  Hero                                                               */
@@ -295,6 +323,7 @@ export default function Hero() {
       id="hero"
       className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-16 overflow-hidden"
     >
+      {/* Background grid */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -308,57 +337,111 @@ export default function Hero() {
         }}
       />
 
+      {/* Ambient glows */}
       <motion.div
-        className="relative z-10 mx-auto max-w-5xl w-full"
-        variants={stagger}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2.5, delay: 0.3 }}
+        className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[900px] h-[700px] bg-blue-500/[0.05] rounded-full blur-[140px] pointer-events-none"
+      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2.5, delay: 0.8 }}
+        className="absolute top-[20%] left-[40%] w-[400px] h-[400px] bg-orange-500/[0.03] rounded-full blur-[100px] pointer-events-none"
+      />
+
+      {/* Staggered content */}
+      <motion.div
+        className="relative z-10 mx-auto max-w-7xl w-full"
+        variants={container}
         initial="hidden"
         animate="visible"
       >
-        <div className="text-center mb-12">
-          <motion.p
-            variants={fadeUp}
-            className="font-['JetBrains_Mono'] text-[11px] md:text-xs text-emerald-500/80 uppercase tracking-[0.3em] mb-4"
-          >
-            A New Era of Cyber Warfare
-          </motion.p>
-
-          <motion.h1
-            variants={fadeUp}
-            className="font-['JetBrains_Mono'] text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight"
-          >
-            Recon. Exploit. Defense.
-            <br />
-            <span className="text-emerald-400">One Terminal.</span>
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            className="font-['JetBrains_Mono'] text-[13px] md:text-base text-zinc-400 max-w-2xl mx-auto mt-6 leading-[1.8]"
-          >
-            CrowByte unifies <span className="text-white">AI agents</span> and <span className="text-white">hackers</span> into
-            a new era of cyber warfare. One terminal spawns <span className="text-emerald-400">15 AI agents
-            simultaneously</span> — running recon, exploitation, defense, and reporting
-            all at the same time. Every <span className="text-white">Kali Linux</span> tool.
-            Every <span className="text-white">MCP server</span>. One command.
-          </motion.p>
-
-          <motion.div
-            variants={fadeUp}
-            className="mt-8 flex items-center justify-center gap-3"
-          >
-            <LaunchAppButton className="font-['JetBrains_Mono'] text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-black px-6 py-2.5 rounded transition-colors cursor-pointer" />
-            <button
-              onClick={() => { window.location.hash = "#/documentation"; }}
-              className="font-['JetBrains_Mono'] text-sm text-zinc-400 border border-white/20 hover:bg-white/5 px-5 py-2.5 rounded transition-colors inline-flex items-center gap-2 cursor-pointer"
-            >
-              <BookOpen size={16} weight="bold" />
-              Docs
-            </button>
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 mb-14">
+          {/* Crow logo — left */}
+          <motion.div variants={fadeUp} className="flex-shrink-0">
+            <motion.img
+              src="/crowbyte-crow.png"
+              alt="CrowByte"
+              className="w-[200px] sm:w-[260px] md:w-[320px] lg:w-[380px] drop-shadow-[0_0_40px_rgba(59,130,246,0.3)]"
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
           </motion.div>
+
+          {/* Text — right */}
+          <div className="text-center md:text-left">
+            {/* Badge pill */}
+            <motion.div variants={fadeUp} className="flex justify-center md:justify-start mb-6">
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] backdrop-blur-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                </span>
+                <span className="font-['JetBrains_Mono'] text-xs text-zinc-300 tracking-wide">
+                  15 AI Agents. One Command.
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Main headline — gradient text */}
+            <motion.h1
+              variants={fadeUp}
+              className="font-['JetBrains_Mono'] text-4xl sm:text-5xl md:text-[56px] font-bold leading-[1.08] tracking-tight bg-clip-text text-transparent"
+              style={{
+                backgroundImage: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 20%, #a78bfa 35%, #c084fc 45%, #f59e0b 60%, #f97316 80%, #ea580c 100%)",
+              }}
+            >
+              CrowByte
+              <br />
+              A New Era of
+              <br />
+              CyberWarfare.
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              variants={fadeUp}
+              className="font-['JetBrains_Mono'] text-[14px] md:text-[15px] text-white/70 max-w-lg mt-6 leading-[1.8]"
+            >
+              Deploy autonomous agent swarms across your attack surface.
+              Recon, exploit, and report — simultaneously.
+            </motion.p>
+
+            {/* CTA buttons */}
+            <motion.div
+              variants={fadeUp}
+              className="mt-8 flex items-center justify-center md:justify-start gap-3"
+            >
+              {/* Primary CTA — orange pill with glow */}
+              <LaunchAppButton className="relative font-['JetBrains_Mono'] text-sm font-semibold bg-orange-500 hover:bg-orange-400 text-black px-7 py-3 rounded-full transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:scale-[1.02] active:scale-[0.98] overflow-hidden group">
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+                <span className="relative z-10">Get Started</span>
+              </LaunchAppButton>
+
+              {/* Secondary CTA — ghost pill */}
+              <a
+                href="https://github.com/hlsitechio/crowbyte"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] px-6 py-3 rounded-full transition-all duration-300 inline-flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+              >
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                <DownloadSimple size={16} weight="bold" />
+                <span>Download Now</span>
+              </a>
+            </motion.div>
+          </div>
         </div>
 
-        <motion.div ref={termRef} variants={fadeUp} className="w-full">
-          <div className="rounded-lg border border-white/[0.08] overflow-hidden bg-black/80 backdrop-blur-sm shadow-2xl shadow-emerald-500/5">
+        {/* Terminal — scale + fade in */}
+        <motion.div
+          ref={termRef}
+          variants={scaleIn}
+          className="w-full"
+        >
+          <div className="rounded-lg border border-white/[0.08] overflow-hidden bg-zinc-950/80 backdrop-blur-sm shadow-2xl shadow-blue-500/[0.08] hover:shadow-blue-500/[0.15] transition-shadow duration-500">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02]">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#EF4444]/80" />
@@ -366,23 +449,33 @@ export default function Hero() {
                 <span className="h-2.5 w-2.5 rounded-full bg-[#22C55E]/80" />
               </div>
               <span className="font-['JetBrains_Mono'] text-[11px] text-zinc-600">
-                crowbyte@kali ~/bounty — 6 agents active
+                crowbyte@kali ~/bounty — 7 agents active
               </span>
               <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-['JetBrains_Mono'] text-[9px] text-emerald-500 font-bold">LIVE</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                <span className="font-['JetBrains_Mono'] text-[11px] text-blue-500 font-bold">LIVE</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-white/[0.03] p-1.5">
-              {agents.map((agent, i) => (
-                <AgentPane
-                  key={agent.name}
-                  config={agent}
-                  active={termInView}
-                  startDelay={i * 400 + Math.random() * 300}
-                />
-              ))}
+            <div className="bg-white/[0.03] p-1.5 space-y-[1px]">
+              {/* Orchestrator — full width command pane */}
+              <AgentPane
+                config={orchestrator}
+                active={termInView}
+                startDelay={0}
+              />
+
+              {/* Agent grid — 5 agents below */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[1px]">
+                {agents.map((agent, i) => (
+                  <AgentPane
+                    key={agent.name}
+                    config={agent}
+                    active={termInView}
+                    startDelay={800 + i * 400 + Math.random() * 300}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </motion.div>

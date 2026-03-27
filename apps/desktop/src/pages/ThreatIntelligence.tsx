@@ -242,10 +242,13 @@ const ThreatIntelligence = () => {
       const totalAdded = results.reduce((sum, r) => sum + r.added, 0);
       const failed = results.filter(r => !r.success);
 
-      if (failed.length === 0) {
+      if (failed.length === 0 && totalAdded > 0) {
         toast.success(`Synced ${succeeded} feeds — ${totalAdded.toLocaleString()} IOCs ingested`);
-      } else {
+      } else if (succeeded > 0 && totalAdded > 0) {
         toast.warning(`Synced ${succeeded}/${results.length} feeds — ${failed.length} failed`);
+      } else {
+        // All feeds unavailable (likely CORS in desktop mode) — fail silently
+        console.debug('[threat-intel] Feeds unavailable in desktop mode — skipping toast');
       }
 
       // Refresh all data
@@ -265,14 +268,15 @@ const ThreatIntelligence = () => {
 
     try {
       const result = await threatIntelCollector.syncFeed(feedName);
-      if (result.success) {
+      if (result.success && result.added > 0) {
         toast.success(`${feedName.replace(/_/g, ' ')}: ${result.added} IOCs ingested (${result.duration_ms}ms)`);
-      } else {
-        toast.error(`${feedName.replace(/_/g, ' ')} failed: ${result.error}`);
+      } else if (!result.success) {
+        // Feed unavailable in desktop mode — fail silently
+        console.debug(`[threat-intel] Feed unavailable: ${feedName} — ${result.error}`);
       }
       await loadAll();
     } catch (err) {
-      toast.error(`Failed to sync ${feedName}`);
+      console.debug(`[threat-intel] Feed unavailable in desktop mode: ${feedName}`);
     } finally {
       setSyncingFeed(null);
     }

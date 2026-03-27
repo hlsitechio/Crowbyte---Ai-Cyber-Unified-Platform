@@ -5,8 +5,8 @@
 
 // Debug logging — disabled in production to prevent leaking IP/VPN/ISP data to console
 const IP_DEBUG = import.meta.env.DEV;
-const debugLog = (...args: unknown[]) => { if (IP_DEBUG) debugLog(...args); };
-const debugWarn = (...args: unknown[]) => { if (IP_DEBUG) debugWarn(...args); };
+const debugLog = (...args: unknown[]) => { if (IP_DEBUG) console.debug('[IP]', ...args); };
+const debugWarn = (...args: unknown[]) => { if (IP_DEBUG) console.warn('[IP]', ...args); };
 
 export interface DNSInfo {
   servers: string[]; // DNS server IP addresses
@@ -850,9 +850,26 @@ class IPStatusService {
    * Get current IP status with VPN and Tor detection
    * Enhanced with comprehensive error boundaries
    */
+  private _fetching = false;
+
   async getIPStatus(forceRefresh = false): Promise<IPStatusData> {
+    // Recursion guard — prevent stack overflow
+    if (this._fetching) {
+      return this.cachedStatus ?? {
+        ip: 'Unavailable',
+        isVPN: false,
+        isTor: false,
+        isProxy: false,
+        connectionType: 'unknown' as const,
+        lastChecked: new Date(),
+        error: 'Recursive call blocked',
+      };
+    }
+
     // Error boundary wrapper
     try {
+      this._fetching = true;
+
       // Return cached data if available and fresh
       if (
         !forceRefresh &&
@@ -1014,13 +1031,33 @@ class IPStatusService {
         return basicStatus;
       }
     } catch (outerError: any) {
-      // Absolute final fallback - should never reach here
-      console.error('❌ === CATASTROPHIC IP FETCH FAILURE ===');
-      console.error('Error:', outerError);
+      // Final fallback — suppress noisy logs, just debug
+      console.debug('[IP] Fetch failed:', outerError?.message || 'unknown');
 
-      return await this.createEmergencyFallbackStatus(
+      // Don't call createEmergencyFallbackStatus if it was a stack overflow
+      // — any further calls might re-trigger it
+      const isStackOverflow = outerError?.message?.includes('call stack');
+      if (isStackOverflow) {
+        const safe: IPStatusData = {
+          ip: 'Unavailable',
+          isVPN: false,
+          isTor: false,
+          isProxy: false,
+          connectionType: 'unknown',
+          lastChecked: new Date(),
+          error: 'Network unavailable',
+        };
+        this.cachedStatus = safe;
+        this.lastCheck = new Date();
+        return safe;
+      }
+
+      const fallback = await this.createEmergencyFallbackStatus(
         outerError.message || 'Complete IP fetch failure'
       );
+      return fallback;
+    } finally {
+      this._fetching = false;
     }
   }
 
@@ -1113,7 +1150,7 @@ class IPStatusService {
 
       return null;
     } catch (error) {
-      console.error('❌ Failed to get local IP from PC Monitor MCP:', error);
+      console.debug('[IP] Local network info unavailable');
       return null;
     }
   }
@@ -1123,10 +1160,21 @@ class IPStatusService {
    * Try to get local IP from MCP as last resort
    */
   private async createEmergencyFallbackStatus(errorMessage: string): Promise<IPStatusData> {
-    console.error('🚨 Creating emergency fallback status');
+    console.debug('[IP] Emergency fallback — network unavailable');
 
-    // Try to get local IP from MCP monitoring tools
-    const localIP = await this.getLocalNetworkInfo();
+    // Skip MCP call here — it can cause stack overflow when electronAPI is broken
+    let localIP: string | null = null;
+    try {
+      if (typeof window !== 'undefined' && window.electronAPI?.executeCommand) {
+        const out = await window.electronAPI.executeCommand(
+          "ip -4 route get 1.1.1.1 2>/dev/null | grep -oP 'src \\K[0-9.]+' || hostname -I 2>/dev/null | awk '{print $1}'"
+        );
+        const ip = out?.trim().split('\n')[0]?.trim();
+        if (ip && /^\d+\.\d+\.\d+\.\d+$/.test(ip) && !ip.startsWith('127.')) {
+          localIP = ip;
+        }
+      }
+    } catch { /* no local IP available */ }
 
     const emergencyStatus: IPStatusData = {
       ip: localIP || 'Unavailable',

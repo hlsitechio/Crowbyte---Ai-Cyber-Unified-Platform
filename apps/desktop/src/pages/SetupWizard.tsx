@@ -65,7 +65,7 @@ function WelcomeStep({ onNext }: StepProps) {
  initial={{ scale: 0 }}
  animate={{ scale: 1 }}
  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
- className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+ className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
  >
  <Shield className="w-10 h-10 text-white" />
  </motion.div>
@@ -85,8 +85,8 @@ function WelcomeStep({ onNext }: StepProps) {
  <p className="text-xs text-zinc-500">HLSITech — Proprietary License</p>
  </div>
  <span className="flex items-center gap-1.5 text-xs">
- <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
- <span className="text-emerald-500">First Run</span>
+ <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+ <span className="text-blue-400">First Run</span>
  </span>
  </div>
 
@@ -142,7 +142,7 @@ function WelcomeStep({ onNext }: StepProps) {
  className="mt-0.5"
  />
  <span className="text-sm text-zinc-300 group-hover:text-white transition-colors">
- I have read and accept the <span className="text-emerald-500 underline">End User License Agreement</span> and <span className="text-emerald-500 underline">Privacy Policy</span>
+ I have read and accept the <span className="text-blue-400 underline">End User License Agreement</span> and <span className="text-blue-400 underline">Privacy Policy</span>
  </span>
  </label>
 
@@ -153,14 +153,14 @@ function WelcomeStep({ onNext }: StepProps) {
  className="mt-0.5"
  />
  <span className="text-sm text-zinc-300 group-hover:text-white transition-colors">
- I accept the <span className="text-emerald-500 underline">Acceptable Use Policy</span> and confirm I will only use CrowByte for <span className="text-amber-500">authorized security testing</span>
+ I accept the <span className="text-blue-400 underline">Acceptable Use Policy</span> and confirm I will only use CrowByte for <span className="text-amber-500">authorized security testing</span>
  </span>
  </label>
  </div>
  </div>
 
  <Button
- className="w-full bg-emerald-600 hover:bg-emerald-500 text-white"
+ className="w-full bg-blue-600 hover:bg-blue-500 text-white"
  disabled={!eulaAccepted || !aupAccepted}
  onClick={handleAccept}
  >
@@ -262,7 +262,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  <ul className="text-[10px] text-zinc-500 space-y-0.5">
  {tier.features.map((f) => (
  <li key={f} className="flex items-center gap-1">
- <Check size={10} weight="bold" className="text-emerald-500 flex-shrink-0" />
+ <Check size={10} weight="bold" className="text-blue-400 flex-shrink-0" />
  {f}
  </li>
  ))}
@@ -297,7 +297,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  <Button
  onClick={handleActivate}
  disabled={!licenseKey || loading}
- className="bg-emerald-600 hover:bg-emerald-500"
+ className="bg-blue-600 hover:bg-blue-500"
  >
  {loading ? <CircleNotch size={16} weight="bold" className="animate-spin" /> : 'Activate'}
  </Button>
@@ -309,7 +309,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  initial={{ opacity: 0, y: -10 }}
  animate={{ opacity: 1, y: 0 }}
  className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg ${
- result.valid ? 'bg-transparent text-emerald-500' : 'bg-transparent text-red-500'
+ result.valid ? 'bg-transparent text-blue-400' : 'bg-transparent text-red-500'
  }`}
  >
  {result.valid ? <CheckCircle size={16} weight="bold" /> : <XCircle size={16} weight="bold" />}
@@ -318,7 +318,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  )}
 
  <p className="text-xs text-zinc-600">
- Don't have a key? <button className="text-emerald-500 hover:underline" onClick={handleCommunity}>Start with Community (free)</button> or <a href="https://crowbyte.io/pricing" target="_blank" className="text-emerald-500 hover:underline">purchase a license</a>.
+ Don't have a key? <button className="text-blue-400 hover:underline" onClick={handleCommunity}>Start with Community (free)</button> or <a href="https://crowbyte.io/pricing" target="_blank" className="text-blue-400 hover:underline">purchase a license</a>.
  </p>
  </div>
 
@@ -330,7 +330,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  <Button
  onClick={onNext}
  disabled={!result?.valid}
- className="bg-emerald-600 hover:bg-emerald-500"
+ className="bg-blue-600 hover:bg-blue-500"
  >
  Continue <CaretRight size={16} weight="bold" className="ml-2" />
  </Button>
@@ -386,14 +386,14 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  {/* Options */}
  <div className="grid grid-cols-2 gap-3">
  <Card
- className={`cursor-pointer transition-all ${useHosted ? 'border-emerald-500 bg-transparent' : ' hover:'}`}
+ className={`cursor-pointer transition-all ${useHosted ? 'border-blue-500 bg-transparent' : ' hover:'}`}
  onClick={handleHosted}
  >
  <CardContent className="p-4 text-center space-y-2">
- <Sparkle size={32} weight="duotone" className="text-emerald-500 mx-auto" />
+ <Sparkle size={32} weight="duotone" className="text-blue-400 mx-auto" />
  <p className="text-sm font-semibold text-white">CrowByte Hosted</p>
  <p className="text-[10px] text-zinc-500">We manage everything. Zero config.</p>
- <span className="text-[10px] text-emerald-500">Recommended</span>
+ <span className="text-[10px] text-blue-400">Recommended</span>
  </CardContent>
  </Card>
 
@@ -453,7 +453,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
  className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg ${
- status === 'success' ? 'bg-transparent text-emerald-500' : 'bg-transparent text-red-500'
+ status === 'success' ? 'bg-transparent text-blue-400' : 'bg-transparent text-red-500'
  }`}
  >
  {status === 'success' ? <CheckCircle size={16} weight="bold" /> : <XCircle size={16} weight="bold" />}
@@ -468,7 +468,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  <Button
  onClick={onNext}
  disabled={status !== 'success'}
- className="bg-emerald-600 hover:bg-emerald-500"
+ className="bg-blue-600 hover:bg-blue-500"
  >
  Continue <CaretRight size={16} weight="bold" className="ml-2" />
  </Button>
@@ -579,7 +579,7 @@ function VpsStep({ onNext, onBack, config }: StepProps) {
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
  className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg ${
- status === 'success' ? 'bg-transparent text-emerald-500' :
+ status === 'success' ? 'bg-transparent text-blue-400' :
  status === 'warning' ? 'bg-transparent text-amber-500' :
  'bg-transparent text-red-500'
  }`}
@@ -602,7 +602,7 @@ function VpsStep({ onNext, onBack, config }: StepProps) {
  <Button
  onClick={onNext}
  disabled={isPro && !vpsHost && !vpsIp && status === 'idle'}
- className="bg-emerald-600 hover:bg-emerald-500"
+ className="bg-blue-600 hover:bg-blue-500"
  >
  Continue <CaretRight size={16} weight="bold" className="ml-2" />
  </Button>
@@ -667,7 +667,7 @@ function WorkspaceStep({ onNext, onBack }: StepProps) {
  <Button
  onClick={handleContinue}
  disabled={!workspaceName}
- className="bg-emerald-600 hover:bg-emerald-500"
+ className="bg-blue-600 hover:bg-blue-500"
  >
  Continue <CaretRight size={16} weight="bold" className="ml-2" />
  </Button>
@@ -698,7 +698,7 @@ function ReadyStep({ onNext, config }: StepProps) {
  initial={{ scale: 0, rotate: -180 }}
  animate={{ scale: 1, rotate: 0 }}
  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
- className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+ className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
  >
  <Rocket className="w-10 h-10 text-white" />
  </motion.div>
@@ -717,7 +717,7 @@ function ReadyStep({ onNext, config }: StepProps) {
  <Separator className="bg-white/[0.06]" />
  <div className="flex justify-between items-center">
  <span className="text-sm text-zinc-500">Database</span>
- <span className="text-sm text-emerald-500">
+ <span className="text-sm text-blue-400">
  {config.supabaseUrl ? 'Connected' : 'Hosted'}
  </span>
  </div>
@@ -736,7 +736,7 @@ function ReadyStep({ onNext, config }: StepProps) {
  </div>
 
  <Button
- className="w-full h-12 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white text-lg font-semibold shadow-lg shadow-emerald-500/20"
+ className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-lg font-semibold shadow-lg shadow-blue-500/20"
  onClick={handleLaunch}
  >
  <Rocket size={20} weight="duotone" className="mr-2" />
@@ -787,7 +787,7 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  return (
  <div className="min-h-screen bg-black flex items-center justify-center p-4">
  {/* Background grid effect */}
- <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.05),transparent_70%)]" />
+ <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_70%)]" />
  <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
  <motion.div
@@ -805,8 +805,8 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  return (
  <div key={step.id} className="flex items-center">
  <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all ${
- isActive ? 'bg-transparent text-emerald-500' :
- isDone ? 'text-emerald-500' : 'text-zinc-600'
+ isActive ? 'bg-transparent text-blue-400' :
+ isDone ? 'text-blue-400' : 'text-zinc-600'
  }`}>
  {isDone ? (
  <Check size={14} weight="bold" />
@@ -816,7 +816,7 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  <span className="hidden sm:inline">{step.label}</span>
  </div>
  {i < STEPS.length - 1 && (
- <div className={`w-4 sm:w-8 h-px mx-1 ${isDone ? 'bg-emerald-500' : 'bg-white/[0.08]'}`} />
+ <div className={`w-4 sm:w-8 h-px mx-1 ${isDone ? 'bg-blue-500' : 'bg-white/[0.08]'}`} />
  )}
  </div>
  );
@@ -825,7 +825,7 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  {/* Progress line */}
  <div className="h-0.5 bg-white/[0.08] rounded-full overflow-hidden">
  <motion.div
- className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500"
+ className="h-full bg-gradient-to-r from-blue-500 to-blue-400"
  animate={{ width: `${((currentStep) / (STEPS.length - 1)) * 100}%` }}
  transition={{ duration: 0.3 }}
  />

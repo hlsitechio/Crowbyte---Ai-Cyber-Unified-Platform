@@ -500,9 +500,9 @@ class OpenClawService {
    * Health check — test connectivity to NVIDIA proxy
    */
   async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
-    // Skip health check if host is localhost and we're in web/server mode (no Electron)
+    // Skip health check if host is localhost — no NVIDIA proxy runs locally
     const host = import.meta.env.VITE_OPENCLAW_HOSTNAME || this.config.vpsHost;
-    if ((host === 'localhost' || host === '127.0.0.1') && !window.electronAPI) {
+    if (host === 'localhost' || host === '127.0.0.1') {
       return { ok: false, latencyMs: 0, error: 'OpenClaw not configured (set VITE_OPENCLAW_HOSTNAME)' };
     }
 

@@ -45,7 +45,7 @@ function AccordionItem({
         onClick={onToggle}
         className="w-full flex items-center justify-between py-5 text-left group"
       >
-        <span className="font-['JetBrains_Mono'] text-base text-white pr-4 group-hover:text-emerald-400 transition-colors">
+        <span className="font-['JetBrains_Mono'] text-base text-white pr-4 group-hover:text-blue-400 transition-colors">
           {item.question}
         </span>
         <motion.span
@@ -92,9 +92,9 @@ export default function FAQ() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="font-['JetBrains_Mono'] text-4xl md:text-5xl font-bold text-white mb-12"
+          className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-bold text-white mb-12"
         >
-          FAQ
+          faq.
         </motion.h2>
 
         <motion.div

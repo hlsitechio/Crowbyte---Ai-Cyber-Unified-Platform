@@ -88,7 +88,7 @@ function FeatureRow({ feature }: { feature: Feature }) {
       {isFalse ? (
         <X size={14} weight="bold" className="text-zinc-600 shrink-0" />
       ) : (
-        <Check size={14} weight="bold" className="text-emerald-500 shrink-0" />
+        <Check size={14} weight="bold" className="text-blue-500 shrink-0" />
       )}
       <span
         className={`font-['JetBrains_Mono'] text-xs ${
@@ -128,9 +128,9 @@ export default function Pricing() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="font-['JetBrains_Mono'] text-4xl md:text-5xl font-bold text-white mb-14"
+          className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-bold text-white mb-14"
         >
-          Pricing
+          pricing.
         </motion.h2>
 
         <motion.div
@@ -145,7 +145,7 @@ export default function Pricing() {
               custom={i}
               className={`rounded-xl p-5 flex flex-col ${
                 plan.highlight
-                  ? "bg-white/[0.04] border border-emerald-500/30"
+                  ? "bg-white/[0.04] border border-blue-500/30"
                   : "bg-white/[0.03] border border-white/[0.06]"
               }`}
             >
@@ -175,10 +175,10 @@ export default function Pricing() {
 
               <button
                 onClick={() => { window.location.hash = plan.href; }}
-                className={`mt-6 w-full rounded-lg py-2 text-sm text-center block font-['JetBrains_Mono'] font-medium transition-colors cursor-pointer ${
+                className={`mt-6 w-full rounded-full py-3 text-sm text-center block font-['JetBrains_Mono'] font-medium transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
                   plan.highlight
-                    ? "bg-emerald-500 hover:bg-emerald-400 text-black"
-                    : "border border-white/20 hover:bg-white/5 text-white"
+                    ? "bg-orange-500 hover:bg-orange-400 text-black"
+                    : "border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] text-white"
                 }`}
               >
                 {plan.cta}

@@ -12,7 +12,7 @@ import Footer from "@/components/landing/Footer";
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden font-['Inter']">
+    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden font-['JetBrains_Mono']">
       <Navbar />
       <Hero />
       <SocialProof />

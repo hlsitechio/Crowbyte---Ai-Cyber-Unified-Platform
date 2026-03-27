@@ -272,7 +272,7 @@ export default function Auth() {
 
  {/* Remember Me checkbox (only show for login) */}
  {isLogin && (
- <div className="flex items-center space-x-2">
+ <div className="flex items-center space-x-2" role="group" aria-label="Remember me on this device">
  <Checkbox
  id="remember"
  checked={rememberMe}

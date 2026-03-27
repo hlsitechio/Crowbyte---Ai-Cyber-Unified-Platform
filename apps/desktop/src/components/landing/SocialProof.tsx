@@ -23,10 +23,10 @@ export default function SocialProof() {
             transition={{ delay: i * 0.1, duration: 0.4 }}
             className="text-center"
           >
-            <div className="font-['JetBrains_Mono'] text-2xl md:text-3xl font-bold text-emerald-400">
+            <div className="font-['JetBrains_Mono'] text-2xl md:text-3xl font-bold text-blue-400">
               {stat.value}
             </div>
-            <div className="font-['JetBrains_Mono'] text-[11px] text-zinc-500 mt-1 uppercase tracking-wider">
+            <div className="font-['JetBrains_Mono'] text-xs text-zinc-500 mt-1 uppercase tracking-wider">
               {stat.label}
             </div>
           </motion.div>

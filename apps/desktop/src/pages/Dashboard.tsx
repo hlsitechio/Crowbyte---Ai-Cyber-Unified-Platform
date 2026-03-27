@@ -342,14 +342,15 @@ const Dashboard = () => {
  vpsLatency = result.latencyMs;
  } catch { /* renderer fetch failed */ }
 
- if (!vpsOk && window.electronAPI?.executeCommand) {
+ const openClawHost = import.meta.env.VITE_OPENCLAW_HOSTNAME;
+ if (!vpsOk && openClawHost && openClawHost !== 'localhost' && openClawHost !== '127.0.0.1' && window.electronAPI?.executeCommand) {
  try {
  const start = Date.now();
  const output = await window.electronAPI.executeCommand(
- `curl -sk -o /dev/null -w %{http_code} https://${import.meta.env.VITE_OPENCLAW_HOSTNAME || 'localhost'}/nvidia/v1/models --connect-timeout 5`
+ `curl -sk -o /dev/null -w %{http_code} https://${openClawHost}/nvidia/v1/models --connect-timeout 5`
  );
  vpsLatency = Date.now() - start;
- // Output may contain"Exit code: N\n..." prefix if non-zero exit, or just"200"
+ // Output may contain "Exit code: N\n..." prefix if non-zero exit, or just "200"
  vpsOk = output.includes('200');
  } catch { /* curl failed too */ }
  }

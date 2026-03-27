@@ -1,225 +1,204 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { X, Check, Clock, Zap } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
-/*  Terminal line data                                                  */
+/*  Data                                                                */
 /* ------------------------------------------------------------------ */
 
-interface DemoLine {
-  text: string;
-  indent?: boolean;
-  color: string;
-}
+const manualSteps = [
+  { task: "Subdomain enumeration", time: "15 min", tools: "subfinder, amass, crt.sh" },
+  { task: "HTTP probing", time: "8 min", tools: "httpx, manual curl" },
+  { task: "Port scanning", time: "25 min", tools: "nmap, masscan" },
+  { task: "Vulnerability scan", time: "40 min", tools: "nuclei, nikto" },
+  { task: "Manual exploitation", time: "2+ hrs", tools: "burp, sqlmap, ffuf" },
+  { task: "Report writing", time: "1+ hr", tools: "markdown, screenshots" },
+];
 
-const demoLines: DemoLine[] = [
-  {
-    text: 'crowbyte@kali ~/bounty $ crowbyte scan --target vulnerable.app --profile full',
-    color: 'text-zinc-300',
-  },
-  { text: '', color: '' },
-  {
-    text: '[*] Loading scan profile: full',
-    color: 'text-zinc-400',
-  },
-  {
-    text: '[*] Initializing 6 modules...',
-    color: 'text-zinc-400',
-  },
-  { text: '', color: '' },
-  {
-    text: '[+] Subdomain enumeration: 47 discovered',
-    color: 'text-emerald-400',
-  },
-  {
-    text: '[+] HTTP probe: 23 live hosts',
-    color: 'text-emerald-400',
-  },
-  {
-    text: '[+] Port scan: 156 open ports across 23 hosts',
-    color: 'text-emerald-400',
-  },
-  {
-    text: '[+] Tech detection: nginx/1.18, Apache/2.4, Node.js',
-    color: 'text-emerald-400',
-  },
-  { text: '', color: '' },
-  {
-    text: '[!] CRITICAL: CVE-2024-21762 \u2014 FortiOS RCE (10.0.1.5:443)',
-    color: 'text-red-400',
-  },
-  {
-    text: '[!] HIGH: Exposed admin panel \u2014 no authentication (10.0.1.12:8080)',
-    color: 'text-orange-400',
-  },
-  {
-    text: '[!] HIGH: SQL injection \u2014 /api/users?id=1 (10.0.1.8:443)',
-    color: 'text-orange-400',
-  },
-  {
-    text: '[!] MEDIUM: Missing CSP headers (*.vulnerable.app)',
-    color: 'text-amber-400',
-  },
-  { text: '', color: '' },
-  {
-    text: '[>] 4 findings | 1 critical | 2 high | 1 medium',
-    color: 'text-violet-400',
-  },
-  {
-    text: '[+] Report generated: vulnerable-app-2025-03-24.pdf',
-    color: 'text-emerald-400',
-  },
-  {
-    text: '[+] Findings synced to CrowByte dashboard',
-    color: 'text-emerald-400',
-  },
+const crowbyteSteps = [
+  { task: "Full recon pipeline", time: "12s", agents: "RECON + SENTINEL" },
+  { task: "Vuln detection + exploit", time: "8s", agents: "HUNTER + INTEL" },
+  { task: "Evidence collection", time: "3s", agents: "INTEL (CDP)" },
+  { task: "Report generation", time: "2s", agents: "ANALYST" },
+];
+
+const stats = [
+  { label: "Faster", value: "180x", sub: "avg speed improvement" },
+  { label: "Tools", value: "142", sub: "integrated via MCP" },
+  { label: "Agents", value: "15", sub: "concurrent AI agents" },
+  { label: "Coverage", value: "100%", sub: "automated pipeline" },
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Typing animation hook                                              */
+/*  Animation variants                                                  */
 /* ------------------------------------------------------------------ */
 
-function useTypingDemo(lines: DemoLine[], active: boolean) {
-  const [displayedLines, setDisplayedLines] = useState<string[]>([]);
-  const [lineIndex, setLineIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [done, setDone] = useState(false);
+const container = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.2 },
+  },
+};
 
-  useEffect(() => {
-    if (!active || done) return;
-
-    if (lineIndex >= lines.length) {
-      setDone(true);
-      return;
-    }
-
-    const line = lines[lineIndex].text;
-
-    // Empty lines appear instantly
-    if (line === '') {
-      setDisplayedLines((prev) => {
-        const copy = [...prev];
-        copy[lineIndex] = '';
-        return copy;
-      });
-      const t = setTimeout(() => {
-        setLineIndex((l) => l + 1);
-        setCharIndex(0);
-      }, 120);
-      return () => clearTimeout(t);
-    }
-
-    if (charIndex < line.length) {
-      const t = setTimeout(
-        () => {
-          setDisplayedLines((prev) => {
-            const copy = [...prev];
-            copy[lineIndex] = line.slice(0, charIndex + 1);
-            return copy;
-          });
-          setCharIndex((c) => c + 1);
-        },
-        // First line (command) types slower, output prints faster
-        lineIndex === 0 ? 30 : 12
-      );
-      return () => clearTimeout(t);
-    }
-
-    // Line complete, pause before next
-    const t = setTimeout(
-      () => {
-        setLineIndex((l) => l + 1);
-        setCharIndex(0);
-        setDisplayedLines((prev) => [...prev, '']);
-      },
-      lineIndex === 0 ? 600 : 300
-    );
-    return () => clearTimeout(t);
-  }, [active, lineIndex, charIndex, lines, done]);
-
-  // Initialize first slot
-  useEffect(() => {
-    if (active && displayedLines.length === 0) {
-      setDisplayedLines(['']);
-    }
-  }, [active]);
-
-  return { displayedLines, done };
-}
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 /* ------------------------------------------------------------------ */
-/*  Component                                                          */
+/*  Component                                                           */
 /* ------------------------------------------------------------------ */
 
 export default function TerminalDemo() {
-  const termRef = useRef<HTMLDivElement>(null);
-  const termInView = useInView(termRef, { once: true, margin: '-60px' });
-
-  const { displayedLines, done } = useTypingDemo(demoLines, termInView);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <section id="demo" className="py-28 px-6">
-      {/* Subtle divider */}
-      <div className="mx-auto max-w-5xl mb-16">
-        <div className="h-px bg-white/[0.06]" />
-      </div>
-
-      <div className="mx-auto max-w-5xl">
-        {/* One-liner above terminal */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={termInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.6 }}
-          className="font-['JetBrains_Mono'] text-sm text-zinc-500 mb-6"
-        >
-          full recon pipeline in 30 seconds.
-        </motion.p>
-
-        {/* Terminal window */}
+    <section id="demo" ref={ref} className="py-24 px-6">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
         <motion.div
-          ref={termRef}
-          initial={{ opacity: 0, y: 24 }}
-          animate={termInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.1 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="mb-14"
         >
-          <div className="rounded-xl border border-white/[0.08] overflow-hidden bg-black">
-            {/* Window chrome */}
-            <div className="flex items-center justify-between px-4 py-3 bg-white/[0.03] border-b border-white/[0.05]">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-[#EF4444]" />
-                <span className="h-3 w-3 rounded-full bg-[#EAB308]" />
-                <span className="h-3 w-3 rounded-full bg-[#22C55E]" />
-              </div>
-              <span className="text-xs text-zinc-600 font-['JetBrains_Mono']">
-                crowbyte@kali ~/bounty
+          <h2 className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-bold text-white">
+            why CrowByte.
+          </h2>
+          <p className="font-['JetBrains_Mono'] text-zinc-500 text-sm mt-3">
+            4 hours of manual work in under 30 seconds
+          </p>
+        </motion.div>
+
+        {/* Before / After grid */}
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+        >
+          {/* BEFORE — Manual */}
+          <motion.div
+            variants={fadeUp}
+            className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden"
+          >
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+              <Clock size={14} className="text-zinc-500" />
+              <span className="font-['JetBrains_Mono'] text-xs text-zinc-500 uppercase tracking-wider">
+                Manual Workflow
               </span>
-              <div className="w-14" />
+              <span className="ml-auto font-['JetBrains_Mono'] text-xs text-red-400/80">
+                ~4 hours
+              </span>
             </div>
-
-            {/* Terminal content */}
-            <div className="px-6 py-6 font-['JetBrains_Mono'] text-[13px] leading-[1.8] min-h-[440px] overflow-x-auto">
-              {displayedLines.map((text, i) => {
-                const lineData = demoLines[i];
-                if (!lineData) return null;
-
-                if (text === '' && lineData.text === '') {
-                  return <div key={i} className="h-3" />;
-                }
-
-                return (
-                  <div key={i} className={lineData.color}>
-                    {text}
+            <div className="p-4 space-y-1">
+              {manualSteps.map((step, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
+                >
+                  <X size={14} strokeWidth={2} className="text-red-400/60 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-['JetBrains_Mono'] text-xs text-zinc-400">
+                      {step.task}
+                    </span>
+                    <span className="font-['JetBrains_Mono'] text-xs text-zinc-600 ml-2">
+                      ({step.tools})
+                    </span>
                   </div>
-                );
-              })}
-
-              {/* Blinking cursor */}
-              <span
-                className={`inline-block w-[8px] h-[15px] mt-1 align-middle ${
-                  done ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-500 animate-pulse'
-                }`}
-              />
+                  <span className="font-['JetBrains_Mono'] text-xs text-zinc-600 flex-shrink-0">
+                    {step.time}
+                  </span>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
+
+          {/* AFTER — CrowByte */}
+          <motion.div
+            variants={fadeUp}
+            className="rounded-xl border border-blue-500/20 bg-blue-500/[0.03] overflow-hidden"
+          >
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-blue-500/10 bg-blue-500/[0.03]">
+              <Zap size={14} className="text-blue-400" />
+              <span className="font-['JetBrains_Mono'] text-xs text-blue-400 uppercase tracking-wider">
+                CrowByte
+              </span>
+              <span className="ml-auto font-['JetBrains_Mono'] text-xs text-blue-400">
+                ~25 seconds
+              </span>
+            </div>
+            <div className="p-4 space-y-1">
+              {crowbyteSteps.map((step, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
+                >
+                  <Check size={14} strokeWidth={2.5} className="text-blue-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-['JetBrains_Mono'] text-xs text-zinc-300">
+                      {step.task}
+                    </span>
+                    <span className="font-['JetBrains_Mono'] text-xs text-blue-400/60 ml-2">
+                      {step.agents}
+                    </span>
+                  </div>
+                  <span className="font-['JetBrains_Mono'] text-xs text-orange-400 flex-shrink-0">
+                    {step.time}
+                  </span>
+                </motion.div>
+              ))}
+
+              {/* Visual spacer to balance height with left column */}
+              <div className="pt-3 mt-3 border-t border-blue-500/10">
+                <div className="flex items-center gap-2 px-3">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+                  </span>
+                  <span className="font-['JetBrains_Mono'] text-xs text-zinc-500">
+                    All agents run simultaneously — not sequentially
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"
+        >
+          {stats.map((stat) => (
+            <motion.div
+              key={stat.label}
+              variants={fadeUp}
+              className="text-center py-6 rounded-xl border border-white/[0.06] bg-white/[0.02]"
+            >
+              <div
+                className="font-['JetBrains_Mono'] text-2xl md:text-3xl font-bold bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 40%, #f97316 100%)",
+                }}
+              >
+                {stat.value}
+              </div>
+              <div className="font-['JetBrains_Mono'] text-xs text-zinc-500 mt-1">
+                {stat.sub}
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
