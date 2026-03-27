@@ -247,9 +247,9 @@ export function AppSidebar() {
  className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}
  >
  {state === "expanded" && <GlowDot color={dotColor} active={isItemActive} />}
- <item.icon size={16} weight="duotone" className={`flex-shrink-0 ${isItemActive ? "text-zinc-200" : "text-zinc-500"}`} />
+ <item.icon size={16} weight="duotone" className={`flex-shrink-0 ${isItemActive ? "text-zinc-100" : "text-zinc-400"}`} />
  {state === "expanded" && (
- <span className={`text-[13px] ${isItemActive ? "text-zinc-200 font-medium" : "text-zinc-400"}`}>
+ <span className={`text-[13px] ${isItemActive ? "text-zinc-100 font-medium" : "text-zinc-300"}`}>
  {item.title}
  </span>
  )}
@@ -272,14 +272,14 @@ export function AppSidebar() {
  <Cpu size={16} weight="duotone" className="text-zinc-300" />
  </div>
  {state === "expanded" && (
- <span className="text-sm font-semibold text-zinc-200 tracking-wide flex-1">{workspaceName}</span>
+ <span className="text-sm font-semibold text-zinc-100 tracking-wide flex-1">{workspaceName}</span>
  )}
  <SidebarTrigger className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0" />
  </div>
 
  {/* User Info */}
  {user && state === "expanded" && (
- <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md bg-zinc-800/30">
+ <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md bg-white/[0.04]">
  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-700/60 overflow-hidden">
  {profilePictureUrl ? (
  <img src={profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
@@ -288,7 +288,7 @@ export function AppSidebar() {
  )}
  </div>
  <div className="flex flex-col flex-1 min-w-0">
- <span className="text-[11px] text-zinc-500">Operator</span>
+ <span className="text-[11px] text-zinc-400">Operator</span>
  <span className="text-xs text-zinc-300 truncate" title={user.email || ''}>
  {user.email}
  </span>
@@ -308,7 +308,7 @@ export function AppSidebar() {
  <SidebarContent>
  {/* Command Center */}
  <SidebarGroup>
- <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
  Command Center
  </SidebarGroupLabel>
  <SidebarGroupContent>
@@ -320,7 +320,7 @@ export function AppSidebar() {
 
  {/* AI Operations */}
  <SidebarGroup>
- <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
  AI Operations
  </SidebarGroupLabel>
  <SidebarGroupContent>
@@ -332,7 +332,7 @@ export function AppSidebar() {
 
  {/* Red Team (Offensive) */}
  <SidebarGroup>
- <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
  Red Team
  </SidebarGroupLabel>
  <SidebarGroupContent>
@@ -344,7 +344,7 @@ export function AppSidebar() {
 
  {/* Blue Team (Defensive) */}
  <SidebarGroup>
- <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
  Blue Team
  </SidebarGroupLabel>
  <SidebarGroupContent>
@@ -356,7 +356,7 @@ export function AppSidebar() {
 
  {/* Intelligence */}
  <SidebarGroup>
- <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
  Intelligence
  </SidebarGroupLabel>
  <SidebarGroupContent>
@@ -368,7 +368,7 @@ export function AppSidebar() {
 
  {/* System */}
  <SidebarGroup>
- <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
  System
  </SidebarGroupLabel>
  <SidebarGroupContent>
@@ -380,7 +380,7 @@ export function AppSidebar() {
 
  {/* Configuration */}
  <SidebarGroup className="mt-auto">
- <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-600 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+ <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
  Configuration
  </SidebarGroupLabel>
  <SidebarGroupContent>

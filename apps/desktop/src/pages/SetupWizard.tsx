@@ -785,7 +785,7 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  const CurrentStepComponent = stepComponents[currentStep];
 
  return (
- <div className="min-h-screen bg-black flex items-center justify-center p-4">
+ <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
  {/* Background grid effect */}
  <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_70%)]" />
  <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />

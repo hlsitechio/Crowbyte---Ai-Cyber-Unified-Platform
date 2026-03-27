@@ -72,7 +72,7 @@ export function TitleBar() {
  >
  {/* Draggable area */}
  <div
- className="h-8 bg-black/95 backdrop-blur-md border-b border-primary/20 flex items-center justify-between px-4"
+ className="h-8 bg-[hsl(0,0%,6%)]/95 backdrop-blur-md border-b border-white/[0.08] flex items-center justify-between px-4"
  style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
  >
  {/* Left side - App title */}
