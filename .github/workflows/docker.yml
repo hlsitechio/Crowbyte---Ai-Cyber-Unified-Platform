@@ -1,8 +1,8 @@
 ###############################################################################
 # CrowByte Terminal — Docker Build & Push
 #
-# Triggers: push to main, version tags (v*)
-# Builds: Linux (amd64 + arm64)
+# Triggers: version tags (v*), manual dispatch
+# Builds: Linux (amd64) on self-hosted VPS runner (162GB disk)
 # Registry: GHCR (ghcr.io/hlsitechio/crowbyte)
 ###############################################################################
 
@@ -18,23 +18,12 @@ env:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, crowbyte]
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -49,9 +38,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -72,5 +58,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.GHCR_REPO }}:buildcache
+          cache-to: type=registry,ref=${{ env.GHCR_REPO }}:buildcache,mode=max
+
+      - name: Cleanup
+        if: always()
+        run: docker system prune -f --filter "until=24h"
