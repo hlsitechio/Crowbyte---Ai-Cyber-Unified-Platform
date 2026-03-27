@@ -24,6 +24,8 @@ import {
 
 type Step = "install" | "welcome" | "account" | "tier" | "provision" | "ready";
 
+const ONBOARD_API = "https://srv1459982.hstgr.cloud:18795";
+
 interface TierOption {
   id: string;
   name: string;
@@ -248,22 +250,50 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
   );
 }
 
-function AccountStep({ onNext }: { onNext: () => void }) {
+function AccountStep({ onNext }: { onNext: (data?: Record<string, unknown>) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleCreate = async () => {
     if (!email || !password) return;
+    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
     setLoading(true);
-    // TODO: Call VPS onboarding API to create account
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
-    onNext();
+    setError("");
+    try {
+      const res = await fetch(`${ONBOARD_API}/api/onboard`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Account creation failed");
+        setLoading(false);
+        return;
+      }
+      // Store config locally
+      localStorage.setItem("crowbyte_onboard", JSON.stringify(data));
+      if (data.supabase?.url) localStorage.setItem("supabase_url", data.supabase.url);
+      if (data.supabase?.anon_key) localStorage.setItem("supabase_anon_key", data.supabase.anon_key);
+      setLoading(false);
+      onNext(data);
+    } catch {
+      setError("Can't reach server. Check your connection.");
+      setLoading(false);
+    }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    try {
+      const res = await fetch(`${ONBOARD_API}/api/onboard/skip`, { method: "POST" });
+      const data = await res.json();
+      localStorage.setItem("crowbyte_onboard", JSON.stringify(data));
+      if (data.supabase?.url) localStorage.setItem("supabase_url", data.supabase.url);
+      if (data.supabase?.anon_key) localStorage.setItem("supabase_anon_key", data.supabase.anon_key);
+    } catch { /* offline — skip silently */ }
     onNext();
   };
 
@@ -332,6 +362,10 @@ function AccountStep({ onNext }: { onNext: () => void }) {
             <>Create Account <ArrowRight size={14} /></>
           )}
         </button>
+
+        {error && (
+          <div className="text-xs text-red-400 text-center px-2">{error}</div>
+        )}
 
         <button
           onClick={handleSkip}
