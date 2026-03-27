@@ -586,6 +586,78 @@ class VeniceAIService {
 const mcpClient = new MCPClientService();
 let veniceAI = null;
 let mainWindow = null;
+const fs = require('fs');
+
+// ─── First-Run Detection (Discord-style) ────────────────────────────────────
+
+function getConfigPath() {
+  return path.join(app.getPath('userData'), 'crowbyte-config.json');
+}
+
+function isFirstRun() {
+  if (process.argv.includes('--squirrel-firstrun')) return true;
+  try {
+    const config = JSON.parse(fs.readFileSync(getConfigPath(), 'utf-8'));
+    return !config.onboardingComplete;
+  } catch {
+    return true;
+  }
+}
+
+function markOnboardingComplete() {
+  const configPath = getConfigPath();
+  let config = {};
+  try { config = JSON.parse(fs.readFileSync(configPath, 'utf-8')); } catch {}
+  config.onboardingComplete = true;
+  config.onboardingCompletedAt = new Date().toISOString();
+  config.version = app.getVersion();
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
+function createOnboardingWindow() {
+  mainWindow = new BrowserWindow({
+    width: 660,
+    height: 500,
+    frame: false,
+    resizable: false,
+    center: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+    icon: path.join(__dirname, '../public/icon.png'),
+    backgroundColor: '#0a0a0a',
+    titleBarStyle: 'hidden',
+  });
+
+  const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:8081/#/onboarding');
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: '/onboarding' });
+  }
+
+  mainWindow.on('closed', () => { mainWindow = null; });
+}
+
+// IPC: Onboarding complete → transition to main app
+ipcMain.handle('onboarding:complete', () => {
+  markOnboardingComplete();
+  if (mainWindow) { mainWindow.close(); mainWindow = null; }
+  createWindow();
+  browserMgr.init();
+  return { success: true };
+});
+
+ipcMain.handle('onboarding:skip', () => {
+  markOnboardingComplete();
+  if (mainWindow) { mainWindow.close(); mainWindow = null; }
+  createWindow();
+  browserMgr.init();
+  return { success: true };
+});
 
 // Create main window
 function createWindow() {
@@ -601,7 +673,7 @@ function createWindow() {
       // Allow fetch to external IP services
       allowRunningInsecureContent: false,
     },
-    backgroundColor: '#000000',
+    backgroundColor: '#0a0a0a',
     icon: path.join(__dirname, '../public/icon.png'),
     frame: false, // Remove window decorations
     titleBarStyle: 'hidden',
@@ -815,12 +887,15 @@ app.whenReady().then(async () => {
   // Initialize MCP servers before creating window
   // await mcpClient.initialize(); // Disabled - MCP loads on-demand
 
-  console.log('🪟 Creating application window...\n');
-  createWindow();
-
-  // Initialize browser manager (needs app.ready + mainWindow)
-  browserMgr.init();
-  console.log('🌐 Browser manager initialized (WebContentsView + extensions)');
+  if (isFirstRun()) {
+    console.log('[*] First run detected — launching onboarding');
+    createOnboardingWindow();
+  } else {
+    console.log('[*] Returning user — launching main app');
+    createWindow();
+    browserMgr.init();
+    console.log('[+] Browser manager initialized');
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
