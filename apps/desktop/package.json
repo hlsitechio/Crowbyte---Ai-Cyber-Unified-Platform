@@ -100,7 +100,9 @@
       "deleteAppDataOnUninstall": true,
       "artifactName": "${productName}-Setup-${version}.${ext}",
       "unicode": true,
-      "warningsAsErrors": false
+      "warningsAsErrors": false,
+      "include": "installer/installer.nsh",
+      "license": "installer/license.txt"
     },
     "mac": {
       "target": [

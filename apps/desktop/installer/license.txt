@@ -1,0 +1,63 @@
+END USER LICENSE AGREEMENT (EULA)
+CrowByte Terminal v2.0.0
+Copyright (c) 2025 HLSITech. All rights reserved.
+
+================================================================================
+
+1. DUAL-USE SOFTWARE NOTICE
+
+CrowByte Terminal is offensive security software designed for authorized
+penetration testing, vulnerability assessment, and red team operations.
+
+This software contains tools that can:
+- Scan networks and enumerate services
+- Detect and exploit vulnerabilities
+- Automate reconnaissance and attack chains
+- Control browser sessions and extract data
+- Execute system commands remotely
+
+YOU MUST OBTAIN EXPLICIT WRITTEN AUTHORIZATION from system owners before
+conducting any security testing. Unauthorized use is a criminal offense.
+
+2. ACCEPTABLE USE
+
+You agree to:
+- Only test systems you own or have written authorization to test
+- Comply with all applicable laws (CFAA, CMA, GDPR, etc.)
+- Not use CrowByte for unauthorized access, surveillance, or malware
+- Accept full liability for any damage caused by your use
+- Not redistribute, reverse engineer, or modify CrowByte without permission
+
+3. NETWORK & DATA DISCLOSURE
+
+CrowByte connects to external services during normal operation:
+- Shodan API (network intelligence)
+- NVD/NIST (vulnerability database)
+- Supabase (cloud database for CVEs, findings, bookmarks)
+- Optional: Remote VPS for AI agent orchestration
+
+Your IP address and queries may be logged by these third-party services.
+Scan results, AI conversations, and findings are stored locally and/or
+in your configured Supabase instance.
+
+4. NO WARRANTY
+
+CrowByte is provided "AS IS" without warranty of any kind. HLSITech is
+not liable for any damages arising from the use of this software,
+including but not limited to: system damage, data loss, legal liability,
+or unauthorized access resulting from misuse.
+
+5. EXPORT CONTROLS
+
+This software may be subject to U.S. export controls (EAR/ECCN 5D002).
+You are responsible for compliance with all export regulations.
+
+6. AGREEMENT
+
+By installing CrowByte Terminal, you acknowledge that you have read,
+understood, and agree to be bound by this agreement.
+
+For the full legal text, visit: https://crowbyte.io/legal
+
+================================================================================
+HLSITech | https://hlsitech.com | contact@hlsitech.com
