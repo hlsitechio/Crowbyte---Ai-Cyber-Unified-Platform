@@ -24,6 +24,25 @@ const CLAUDE_MODELS: ClaudeModel[] = [
   { id: 'haiku', name: 'Claude Haiku 4.5', provider: 'Anthropic' },
 ];
 
+function formatStreamError(error: string): string {
+  const normalized = error.trim();
+  const lower = normalized.toLowerCase();
+
+  const copilotRateLimitMatch = normalized.match(/please try again in\s+(.+)$/i);
+  if (lower.includes('copilot') && lower.includes('rate limit') && copilotRateLimitMatch) {
+    const waitTime = copilotRateLimitMatch[1].trim();
+    return waitTime
+      ? `Copilot rate limit reached. Please try again in ${waitTime}.`
+      : 'Copilot rate limit reached. Please wait a few minutes and try again.';
+  }
+
+  if (lower.includes('rate limit') || lower.includes('too many requests') || lower.includes('http 429')) {
+    return 'Rate limit reached. Please wait a few minutes and try again.';
+  }
+
+  return normalized || 'An unexpected error occurred. Please try again.';
+}
+
 class ClaudeProvider {
   private currentModel = 'sonnet';
   private sessionId: string | null = null;
@@ -82,7 +101,7 @@ class ClaudeProvider {
 
       window.electronAPI!.onClaudeStreamError!((error: string) => {
         for (const listener of this.listeners) {
-          listener({ type: 'error', content: error });
+          listener({ type: 'error', content: formatStreamError(error) });
         }
         this.active = false;
         window.electronAPI!.removeClaudeListeners!();
