@@ -29,9 +29,9 @@ function formatStreamError(error: string): string {
   const normalized = error.trim();
   const lower = normalized.toLowerCase();
 
-  const copilotRateLimitPrefix = "sorry, you've hit a rate limit that restricts the number of copilot model requests you can make within a specific time period. please try again in";
-  if (lower.startsWith(copilotRateLimitPrefix)) {
-    const waitTime = normalized.slice(copilotRateLimitPrefix.length).trim();
+  const copilotRateLimitMatch = normalized.match(/please try again in\s+(.+)$/i);
+  if (lower.includes('copilot') && lower.includes('rate limit') && copilotRateLimitMatch) {
+    const waitTime = copilotRateLimitMatch[1].trim();
     return waitTime
       ? `Copilot rate limit reached. Please try again in ${waitTime}.`
       : 'Copilot rate limit reached. Please wait a few minutes and try again.';
