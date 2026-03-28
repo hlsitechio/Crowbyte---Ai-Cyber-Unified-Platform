@@ -23,6 +23,8 @@ interface Tool {
  endpoint: string;
 }
 
+const MAX_DISPLAYED_AGENTS = 5;
+
 const AgentBuilder = () => {
  const { toast } = useToast();
  const [activeTab, setActiveTab] = useState("configure");
@@ -51,19 +53,34 @@ const AgentBuilder = () => {
  loadAgents();
  }, []);
 
- const loadAgents = async () => {
- // TODO: Enable when custom_agents table exists in Supabase
- // CREATE TABLE custom_agents (id uuid PK, user_id uuid, name text, description text,
- // system_prompt text, model text, category text, example_prompts text[], capabilities jsonb,
- // enable_web_search bool, enable_code_execution bool, enable_file_upload bool,
- // status text DEFAULT 'active', created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());
- //
- // Uncomment when table is created:
- // try {
- // const data = await customAgentsService.getAgents();
- // setAgents(data);
- // } catch { /* silent */ }
- };
+  const loadAgents = async () => {
+  try {
+  const data = await customAgentsService.getAgents();
+  setAgents(data);
+  } catch (error) {
+  console.warn('[AgentBuilder] Failed to load agents:', error);
+  }
+  };
+
+  const loadAgentIntoBuilder = (agent: CustomAgent) => {
+  setAgentName(agent.name);
+  setDescription(agent.description || "");
+  setInstructions(agent.system_prompt);
+  setSelectedModel(agent.model);
+  setCategory(agent.category || "security");
+  setConversationStarters(agent.example_prompts.length > 0 ? agent.example_prompts : [""]);
+  setCapabilities({
+  webSearch: agent.enable_web_search,
+  codeExecution: agent.enable_code_execution,
+  mcpTools: agent.enable_mcp,
+  fileAccess: agent.enable_file_access,
+  });
+  setActiveTab("configure");
+  toast({
+  title:"Agent Loaded",
+  description:`Loaded ${agent.name} into builder`,
+  });
+  };
 
  const handleSaveAgent = async () => {
  try {
@@ -294,18 +311,49 @@ const AgentBuilder = () => {
  </ul>
  </Card>
 
- <div className="space-y-3">
- <Input
- placeholder="Describe your AI agent..."
- className="bg-background border-border terminal-text"
+  <div className="space-y-3">
+  <Input
+  placeholder="Describe your AI agent..."
+  className="bg-background border-border terminal-text"
  />
- <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
- Generate Configuration
- </Button>
- </div>
- </div>
- </ScrollArea>
- </TabsContent>
+  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+  Generate Configuration
+  </Button>
+  </div>
+
+  <Card className="p-4 ring-1 ring-white/[0.06]">
+  <div className="flex items-center justify-between mb-3">
+  <h3 className="text-sm font-medium text-white">Saved Agents</h3>
+  <Badge variant="secondary">{agents.length}</Badge>
+  </div>
+  {agents.length === 0 ? (
+  <p className="text-sm text-muted-foreground">
+  No saved agents yet. Configure and save one to reuse it here.
+  </p>
+  ) : (
+  <div className="space-y-2">
+  {agents.slice(0, MAX_DISPLAYED_AGENTS).map((agent) => (
+  <div key={agent.id} className="flex items-center justify-between rounded-md bg-background/50 px-3 py-2">
+  <div className="min-w-0">
+  <p className="text-sm text-white truncate">{agent.name}</p>
+  <p className="text-xs text-muted-foreground truncate">{agent.category || "general"} • {agent.model}</p>
+  </div>
+  <Button
+  variant="outline"
+  size="sm"
+  onClick={() => loadAgentIntoBuilder(agent)}
+  className="border-border text-white hover:bg-primary/10"
+  >
+  Load
+  </Button>
+  </div>
+  ))}
+  </div>
+  )}
+  </Card>
+  </div>
+  </ScrollArea>
+  </TabsContent>
 
  <TabsContent value="configure" className="flex-1 mt-0">
  <ScrollArea className="h-full p-6">
