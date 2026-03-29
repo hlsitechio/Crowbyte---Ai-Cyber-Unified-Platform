@@ -1,6 +1,6 @@
 /**
  * IP Address & Connection Status Service
- * Detects current IP, VPN status, and Tor connection
+ * Detects current IP and VPN status
  */
 
 // Debug logging — disabled in production to prevent leaking IP/VPN/ISP data to console
@@ -36,10 +36,9 @@ export interface IPStatusData {
   org?: string;
   timezone?: string;
   isVPN: boolean;
-  isTor: boolean;
   isProxy: boolean;
   vpnProvider?: string;
-  connectionType: 'direct' | 'vpn' | 'tor' | 'proxy' | 'unknown';
+  connectionType: 'direct' | 'vpn' | 'proxy' | 'unknown';
   networkConnection?: NetworkConnectionInfo;
   dnsInfo?: DNSInfo; // DNS servers and leak detection
   localIP?: string; // Local/WiFi IP (e.g. 192.168.x.x)
@@ -47,10 +46,6 @@ export interface IPStatusData {
   error?: string;
 }
 
-export interface TorCheckResult {
-  isTor: boolean;
-  isExitNode?: boolean;
-}
 
 class IPStatusService {
   private cachedStatus: IPStatusData | null = null;
@@ -345,58 +340,6 @@ class IPStatusService {
     return ipv4Regex.test(ip) || ipv6Regex.test(ip);
   }
 
-  /**
-   * Check if IP is a Tor exit node
-   * Uses Tor Project's bulk exit list or check service
-   */
-  private async checkTorStatus(ip: string): Promise<TorCheckResult> {
-    try {
-      debugLog('🧅 Checking Tor status for IP:', ip);
-
-      // PRIMARY: Use Electron proxy to avoid CORS
-      if (typeof window !== 'undefined' && window.electronAPI) {
-        debugLog('🔌 Using Electron proxy for Tor check...');
-
-        const result = await window.electronAPI.checkTor();
-
-        if (result.success && result.data) {
-          debugLog('✅ Tor check response:', result.data);
-          return {
-            isTor: result.data.IsTor === true,
-            isExitNode: result.data.IsTor === true,
-          };
-        } else {
-          debugWarn('⚠️ Tor check via Electron failed:', result.error);
-        }
-      }
-
-      // No Electron proxy available — skip direct fetch (CORS-blocked in browser)
-      // Fall back to indicator-based detection
-      return this.checkTorIndicators(ip);
-    } catch (error: any) {
-      // Tor check failed — use indicator-based detection
-      return this.checkTorIndicators(ip);
-    }
-  }
-
-  /**
-   * Fallback Tor detection using common indicators
-   */
-  private async checkTorIndicators(ip: string): Promise<TorCheckResult> {
-    try {
-      // Check if we can reach Tor check endpoint
-      const response = await fetch('https://check.torproject.org/', {
-        method: 'HEAD',
-        mode: 'no-cors',
-      });
-
-      // If we can reach Tor check, we might be on Tor
-      // This is a weak indicator, but better than nothing
-      return { isTor: false }; // Conservative default
-    } catch (error) {
-      return { isTor: false };
-    }
-  }
 
   /**
    * Enhanced VPN detection with ASN-based detection
@@ -850,17 +793,15 @@ class IPStatusService {
    */
   private determineConnectionType(
     isVPN: boolean,
-    isTor: boolean,
     isProxy: boolean
   ): IPStatusData['connectionType'] {
-    if (isTor) return 'tor';
     if (isVPN) return 'vpn';
     if (isProxy) return 'proxy';
     return 'direct';
   }
 
   /**
-   * Get current IP status with VPN and Tor detection
+   * Get current IP status with VPN detection
    * Enhanced with comprehensive error boundaries
    */
   private _fetching = false;
@@ -871,7 +812,7 @@ class IPStatusService {
       return this.cachedStatus ?? {
         ip: 'Unavailable',
         isVPN: false,
-        isTor: false,
+
         isProxy: false,
         connectionType: 'unknown' as const,
         lastChecked: new Date(),
@@ -927,19 +868,11 @@ class IPStatusService {
         }
       }
 
-      // Phase 4: Enrich with Tor/VPN detection (best effort)
+      // Phase 4: Enrich with VPN detection (best effort)
       try {
-        debugLog('📡 Phase 4: Enriching with Tor/VPN detection...');
+        debugLog('📡 Phase 4: Enriching with VPN detection...');
 
-        let torStatus: TorCheckResult;
         let vpnStatus: { isVPN: boolean; provider?: string };
-
-        try {
-          torStatus = await this.checkTorStatus(ipInfo.ip!);
-        } catch (torError) {
-          debugWarn('⚠️ Tor check failed, assuming not Tor');
-          torStatus = { isTor: false };
-        }
 
         try {
           vpnStatus = this.detectVPN(ipInfo);
@@ -950,7 +883,6 @@ class IPStatusService {
 
         const connectionType = this.determineConnectionType(
           vpnStatus.isVPN,
-          torStatus.isTor,
           ipInfo.isProxy || false
         );
 
@@ -993,7 +925,6 @@ class IPStatusService {
           org: ipInfo.org,
           timezone: ipInfo.timezone,
           isVPN: vpnStatus.isVPN,
-          isTor: torStatus.isTor,
           isProxy: ipInfo.isProxy || false,
           vpnProvider: vpnStatus.provider,
           connectionType,
@@ -1009,7 +940,6 @@ class IPStatusService {
 
         debugLog(`✅ === IP STATUS COMPLETE: ${status.ip} (${status.connectionType}) ===`);
         if (status.isVPN) debugLog(`🔒 VPN: ${status.vpnProvider || 'Unknown Provider'}`);
-        if (status.isTor) debugLog('🧅 Tor Connection Detected');
         if (status.dnsInfo && status.dnsInfo.servers.length > 0) {
           debugLog(`🌐 DNS: ${status.dnsInfo.servers.join(', ')} (${status.dnsInfo.source})`);
           if (status.dnsInfo.isDNSLeak) {
@@ -1031,7 +961,7 @@ class IPStatusService {
           org: ipInfo.org,
           timezone: ipInfo.timezone,
           isVPN: false,
-          isTor: false,
+  
           isProxy: false,
           connectionType: 'unknown',
           lastChecked: new Date(),
@@ -1054,7 +984,7 @@ class IPStatusService {
         const safe: IPStatusData = {
           ip: 'Unavailable',
           isVPN: false,
-          isTor: false,
+  
           isProxy: false,
           connectionType: 'unknown',
           lastChecked: new Date(),
@@ -1192,7 +1122,6 @@ class IPStatusService {
     const emergencyStatus: IPStatusData = {
       ip: localIP || 'Unavailable',
       isVPN: false,
-      isTor: false,
       isProxy: false,
       connectionType: 'unknown',
       lastChecked: new Date(),
@@ -1223,14 +1152,6 @@ class IPStatusService {
   }
 
   /**
-   * Check only if Tor is connected (quick check)
-   */
-  async isTorConnected(): Promise<boolean> {
-    const status = await this.getIPStatus();
-    return status.isTor;
-  }
-
-  /**
    * Get cached status without fetching
    */
   getCachedStatus(): IPStatusData | null {
@@ -1250,8 +1171,6 @@ class IPStatusService {
    */
   getConnectionColor(connectionType: IPStatusData['connectionType']): string {
     switch (connectionType) {
-      case 'tor':
-        return 'text-purple-500'; // Purple for Tor
       case 'vpn':
         return 'text-emerald-500'; // Green for VPN
       case 'proxy':
@@ -1269,8 +1188,6 @@ class IPStatusService {
    */
   getBadgeColor(connectionType: IPStatusData['connectionType']): string {
     switch (connectionType) {
-      case 'tor':
-        return 'bg-purple-500/15 text-violet-500 border-transparent';
       case 'vpn':
         return 'bg-emerald-500/15 text-emerald-500 border-transparent';
       case 'proxy':
@@ -1298,7 +1215,6 @@ if (typeof window !== 'undefined') {
       debugLog('🌍 IP:', status.ip);
       debugLog('🏢 ISP/Org:', status.isp, '/', status.org);
       debugLog('🔒 VPN:', status.isVPN, status.vpnProvider);
-      debugLog('🧅 Tor:', status.isTor);
       debugLog('📡 Network:', status.networkConnection?.type);
       debugLog('🗺️ Location:', status.city, status.region, status.country);
       return status;

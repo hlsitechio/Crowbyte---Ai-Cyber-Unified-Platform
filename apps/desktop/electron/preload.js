@@ -91,9 +91,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Run system command (for DNS detection, etc.)
   runCommand: (command, args) => ipcRenderer.invoke('run-command', command, args),
 
-  // Tor check proxy (avoid CORS)
-  checkTor: () => ipcRenderer.invoke('check-tor'),
-
   // NVD CVE API proxy (avoid CORS)
   fetchCVEs: (year) => ipcRenderer.invoke('fetch-cves', year),
 
