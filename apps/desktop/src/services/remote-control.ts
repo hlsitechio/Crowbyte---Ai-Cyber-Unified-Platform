@@ -113,23 +113,40 @@ class E2ECrypto {
   private sharedSecret: CryptoKey | null = null;
   private encryptionKey: CryptoKey | null = null;
   private sequenceCounter = 0;
+  // Per-session random salt for HKDF — generated in generateKeyPair(), shared during key exchange
+  sessionSalt: Uint8Array = crypto.getRandomValues(new Uint8Array(32));
 
   /**
-   * Generate X25519 ECDH key pair for this session
+   * Generate X25519 ECDH key pair for this session.
+   * Also regenerates the per-session HKDF salt.
    */
-  async generateKeyPair(): Promise<JsonWebKey> {
+  async generateKeyPair(): Promise<{ publicKey: JsonWebKey; sessionSalt: string }> {
+    this.sessionSalt = crypto.getRandomValues(new Uint8Array(32));
     this.localKeyPair = await crypto.subtle.generateKey(
       { name: 'ECDH', namedCurve: 'P-256' }, // P-256 as WebCrypto X25519 fallback
       true,
       ['deriveBits']
     );
-    return await crypto.subtle.exportKey('jwk', this.localKeyPair.publicKey);
+    const publicKey = await crypto.subtle.exportKey('jwk', this.localKeyPair.publicKey);
+    return {
+      publicKey,
+      sessionSalt: btoa(String.fromCharCode(...this.sessionSalt)),
+    };
   }
 
   /**
-   * Derive shared secret from remote public key
+   * Derive shared secret from remote public key and (optionally) remote session salt.
+   * If remoteSessionSalt is provided, it is XOR-combined with our local salt so that
+   * both sides contribute entropy to the HKDF salt.
    */
-  async deriveSharedSecret(remotePublicKeyJwk: JsonWebKey): Promise<void> {
+  async deriveSharedSecret(remotePublicKeyJwk: JsonWebKey, remoteSessionSaltB64?: string): Promise<void> {
+    if (remoteSessionSaltB64) {
+      const remoteSalt = Uint8Array.from(atob(remoteSessionSaltB64), c => c.charCodeAt(0));
+      // XOR local and remote salts so both sides contribute
+      for (let i = 0; i < this.sessionSalt.length; i++) {
+        this.sessionSalt[i] ^= remoteSalt[i % remoteSalt.length];
+      }
+    }
     const remotePublicKey = await crypto.subtle.importKey(
       'jwk',
       remotePublicKeyJwk,
@@ -157,7 +174,7 @@ class E2ECrypto {
       {
         name: 'HKDF',
         hash: 'SHA-256',
-        salt: new Uint8Array(32), // In production: use session-specific salt
+        salt: this.sessionSalt, // Random per-session salt, included in key exchange
         info: new TextEncoder().encode('crowbyte-remote-control-v1'),
       },
       keyMaterial,
@@ -333,10 +350,10 @@ class RemoteControlService {
     this.emit('session:created', session);
 
     // Generate E2E encryption keys
-    const publicKey = await this.crypto.generateKeyPair();
+    const { publicKey, sessionSalt } = await this.crypto.generateKeyPair();
 
-    // Connect to relay server
-    await this.connectToRelay(session, publicKey);
+    // Connect to relay server (publicKey and sessionSalt are sent during handshake)
+    await this.connectToRelay(session, publicKey, sessionSalt);
 
     return session;
   }
@@ -344,7 +361,7 @@ class RemoteControlService {
   /**
    * Connect to WebSocket relay server
    */
-  private async connectToRelay(session: RemoteSession, publicKey: JsonWebKey): Promise<void> {
+  private async connectToRelay(session: RemoteSession, publicKey: JsonWebKey, sessionSalt: string): Promise<void> {
     return new Promise((resolve, reject) => {
       this.updateStatus('connecting');
 
@@ -355,7 +372,7 @@ class RemoteControlService {
         this.ws.onopen = () => {
           console.log('[RC] Connected to relay');
 
-          // Send session init with our public key
+          // Send session init with our public key and session salt
           this.wsSend({
             type: 'session_init',
             sessionId: session.id,
@@ -363,6 +380,7 @@ class RemoteControlService {
             targetIp: session.targetIp,
             permission: session.permission,
             publicKey,
+            sessionSalt,
             config: {
               maxFrameRate: this.config.maxFrameRate,
               quality: this.config.quality,
@@ -385,7 +403,7 @@ class RemoteControlService {
           if (this.currentSession?.status === 'connected' && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             console.log(`[RC] Reconnecting... attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-            setTimeout(() => this.connectToRelay(session, publicKey), 1000 * this.reconnectAttempts);
+            setTimeout(() => this.connectToRelay(session, publicKey, sessionSalt), 1000 * this.reconnectAttempts);
           } else {
             this.updateStatus('disconnected');
           }
@@ -427,9 +445,9 @@ class RemoteControlService {
           this.currentSession!.consentStatus = msg.autoApproved ? 'auto_approved' : 'approved';
           this.currentSession!.consentGivenBy = msg.approvedBy;
           this.emit('consent:approved', msg);
-          // Perform key exchange
+          // Perform key exchange — include remote session salt if provided
           if (msg.publicKey) {
-            await this.crypto.deriveSharedSecret(msg.publicKey);
+            await this.crypto.deriveSharedSecret(msg.publicKey, msg.sessionSalt);
             this.updateStatus('connected');
             this.currentSession!.startedAt = new Date().toISOString();
             this.emit('session:connected', this.currentSession);

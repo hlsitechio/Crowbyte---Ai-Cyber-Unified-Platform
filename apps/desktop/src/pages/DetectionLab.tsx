@@ -621,6 +621,7 @@ function DetectionLab() {
                     onChange={(e) => setGenDescription(e.target.value)}
                     className="bg-zinc-950 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 min-h-[100px] text-sm resize-none"
                   />
+                  <p className="text-xs text-muted-foreground mt-1.5">Pattern-based generation. AI-powered generation coming soon.</p>
                 </div>
 
                 {/* Controls row */}

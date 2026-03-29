@@ -37,13 +37,30 @@ const Tools = () => {
  loadData();
  }, []);
 
+ const [loadError, setLoadError] = useState<string | null>(null);
+
  const loadData = async () => {
- // TODO: Enable when tools table exists in Supabase
- // CREATE TABLE tools (id uuid PK DEFAULT gen_random_uuid(), user_id uuid,
- // name text NOT NULL, description text, category text, command text,
- // is_active bool DEFAULT true, execution_count int DEFAULT 0,
- // created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());
+ setLoading(true);
+ setLoadError(null);
+ try {
+ const data = await toolsService.getTools();
+ setTools(data);
+ const active = data.filter((t) => t.status === 'active').length;
+ const totalExec = data.reduce((sum, t) => sum + (t.execution_count ?? 0), 0);
+ const totalSuccess = data.reduce((sum, t) => sum + (t.success_count ?? 0), 0);
+ setStats({
+ totalTools: data.length,
+ activeTools: active,
+ totalExecutions: totalExec,
+ successRate: totalExec > 0 ? (totalSuccess / totalExec) * 100 : 0,
+ });
+ } catch (error: unknown) {
+ // Table may not exist yet — show empty state instead of crashing
+ setTools([]);
+ setLoadError(error instanceof Error ? error.message : 'Could not load tools');
+ } finally {
  setLoading(false);
+ }
  };
 
  const handleAddTool = async () => {
@@ -299,9 +316,15 @@ const Tools = () => {
  <CardContent className="flex flex-col items-center justify-center py-12">
  <Wrench size={64} weight="duotone" className="text-muted-foreground mb-4" />
  <h3 className="text-lg font-semibold text-white mb-2">No AI Tools Configured</h3>
+ {loadError ? (
+ <p className="text-yellow-400 text-center mb-4 text-sm">
+ Tools table not available yet — create it in Supabase to enable this feature.
+ </p>
+ ) : (
  <p className="text-muted-foreground text-center mb-4">
  Add security testing and analysis tools to enhance AI capabilities
  </p>
+ )}
  <Button
  variant="outline"
  className="border-border text-white hover:bg-primary/10"

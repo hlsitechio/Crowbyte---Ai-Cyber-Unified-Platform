@@ -72,28 +72,107 @@ export function getDeviceId(): string {
 
 // ─── Cache (localStorage fallback, safeStorage preferred) ───────────────────
 
-function saveTicket(status: LicenseStatus): void {
-  try {
-    const encrypted = btoa(JSON.stringify(status));
-    localStorage.setItem(CACHE_KEY, encrypted);
-    // Also try Electron safeStorage if available
-    window.electronAPI?.storeCredentials?.({
-      deviceId: CACHE_KEY,
-      data: JSON.stringify(status),
-    });
-  } catch {
-    // Silent fail
+// ─── AES-GCM ticket encryption using device fingerprint as key material ────
+
+async function deriveTicketKey(): Promise<CryptoKey> {
+  const deviceId = getDeviceId();
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(deviceId),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+  // Use a per-installation salt stored in localStorage; generate on first use
+  let salt = localStorage.getItem('crowbyte_ticket_salt');
+  if (!salt) {
+    const randomSalt = crypto.getRandomValues(new Uint8Array(32));
+    salt = btoa(String.fromCharCode(...randomSalt));
+    localStorage.setItem('crowbyte_ticket_salt', salt);
   }
+  const saltBytes = Uint8Array.from(atob(salt), c => c.charCodeAt(0));
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptTicket(status: LicenseStatus): Promise<string> {
+  const key = await deriveTicketKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plaintext = new TextEncoder().encode(JSON.stringify(status));
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
+  const combined = new Uint8Array(12 + ciphertext.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(ciphertext), 12);
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptTicket(raw: string): Promise<LicenseStatus> {
+  const key = await deriveTicketKey();
+  const combined = Uint8Array.from(atob(raw), c => c.charCodeAt(0));
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
+  const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+  return JSON.parse(new TextDecoder().decode(plaintext)) as LicenseStatus;
+}
+
+function saveTicket(status: LicenseStatus): void {
+  // Fire-and-forget async save; also try Electron safeStorage
+  encryptTicket(status).then(encrypted => {
+    try {
+      localStorage.setItem(CACHE_KEY, encrypted);
+    } catch {
+      // Silent fail
+    }
+  }).catch(() => {});
+  // Also try Electron safeStorage if available
+  window.electronAPI?.storeCredentials?.({
+    deviceId: CACHE_KEY,
+    data: JSON.stringify(status),
+  });
 }
 
 function loadTicket(): LicenseStatus | null {
+  // Synchronous path — returns null; callers that need the ticket should use loadTicketAsync
   try {
-    // Try Electron safeStorage first
-    // Fallback to localStorage
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
-    const decoded = JSON.parse(atob(raw));
-    return decoded as LicenseStatus;
+    // Attempt legacy btoa decode for migration from old format
+    try {
+      const legacy = JSON.parse(atob(raw));
+      if (legacy && typeof legacy.valid === 'boolean') return legacy as LicenseStatus;
+    } catch {
+      // Not legacy format — fall through to return null; async path will decrypt
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function loadTicketAsync(): Promise<LicenseStatus | null> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    // Try AES-GCM decrypt first
+    try {
+      return await decryptTicket(raw);
+    } catch {
+      // Fall back to legacy btoa for one-time migration
+      try {
+        const legacy = JSON.parse(atob(raw)) as LicenseStatus;
+        // Re-save in new encrypted format
+        saveTicket(legacy);
+        return legacy;
+      } catch {
+        return null;
+      }
+    }
   } catch {
     return null;
   }
@@ -280,7 +359,7 @@ export async function verifyLicense(): Promise<LicenseStatus> {
     return status;
   } catch {
     // Offline — use cached ticket
-    const cached = loadTicket();
+    const cached = await loadTicketAsync();
     if (!cached) {
       return {
         valid: false, tier: 'unknown', status: 'offline',
@@ -307,10 +386,19 @@ export async function verifyLicense(): Promise<LicenseStatus> {
 }
 
 /**
- * Quick check using cache only (non-blocking).
+ * Quick check using cache only (non-blocking). Returns null synchronously;
+ * use getCachedLicenseAsync for the decrypted value.
  */
 export function getCachedLicense(): LicenseStatus | null {
-  const cached = loadTicket();
+  // Synchronous stub retained for API compatibility — returns null when ticket is encrypted
+  return loadTicket();
+}
+
+/**
+ * Async version of getCachedLicense — decrypts AES-GCM ticket.
+ */
+export async function getCachedLicenseAsync(): Promise<LicenseStatus | null> {
+  const cached = await loadTicketAsync();
   if (!cached) return null;
   const age = Date.now() - cached.lastCheck;
   if (age > CACHE_TTL_MS) return null;

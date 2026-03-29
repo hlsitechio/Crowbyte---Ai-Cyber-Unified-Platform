@@ -242,14 +242,22 @@ export class EncryptionService {
       throw new Error('Encryption service not initialized');
     }
 
-    // Derive HMAC key from master key
+    // Derive HMAC key via HKDF using keyId as input keying material.
+    // keyId is derived from the user's salt (see computeKeyId), so the HMAC key
+    // is bound to the user's key material rather than a hardcoded constant.
     const encoder = new TextEncoder();
-    const keyMaterial = encoder.encode('crowbyte-hmac-key');
-
-    const hmacKey = await crypto.subtle.importKey(
-      'raw',
-      keyMaterial,
-      { name: 'HMAC', hash: 'SHA-256' },
+    // Derive a proper HMAC key via HKDF bound to the keyId
+    const ikmBytes = encoder.encode(`crowbyte-hmac-ikm-${this.keyId}`);
+    const ikmKey = await crypto.subtle.importKey('raw', ikmBytes, 'HKDF', false, ['deriveKey']);
+    const hmacKey = await crypto.subtle.deriveKey(
+      {
+        name: 'HKDF',
+        hash: 'SHA-256',
+        salt: encoder.encode('crowbyte-hmac-salt-v1'),
+        info: encoder.encode('crowbyte-hmac'),
+      },
+      ikmKey,
+      { name: 'HMAC', hash: 'SHA-256', length: 256 },
       false,
       ['sign']
     );

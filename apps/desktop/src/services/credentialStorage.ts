@@ -84,8 +84,14 @@ class CredentialStorageService {
       ['deriveKey']
     );
 
-    // Derive AES key
-    const salt = encoder.encode('ghost-ai-terminal-salt-v1');
+    // Per-device salt: generated on first use, persisted in localStorage
+    let storedSalt = localStorage.getItem('crowbyte_cred_salt');
+    if (!storedSalt) {
+      const randomSalt = crypto.getRandomValues(new Uint8Array(32));
+      storedSalt = btoa(String.fromCharCode(...randomSalt));
+      localStorage.setItem('crowbyte_cred_salt', storedSalt);
+    }
+    const salt = Uint8Array.from(atob(storedSalt), c => c.charCodeAt(0));
 
     return await crypto.subtle.deriveKey(
       {

@@ -562,8 +562,8 @@ class InoreaderService {
 
 // Singleton instance
 export const inoreaderService = new InoreaderService(
-  '1000003037',
-  '9IZsLbiEd26EI8ZJNFWYw9KdI4baQWGu'
+  import.meta.env.VITE_INOREADER_CLIENT_ID || '1000003037',
+  import.meta.env.VITE_INOREADER_CLIENT_SECRET || ''
 );
 
 export default inoreaderService;
