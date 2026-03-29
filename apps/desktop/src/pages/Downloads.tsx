@@ -25,6 +25,7 @@ interface PackageInfo {
   platform: string;
   ext: string;
   description: string;
+  comingSoon?: boolean;
 }
 
 interface Manifest {
@@ -146,11 +147,12 @@ export default function Downloads() {
     {
       name: "macOS",
       file: `macos/CrowByte-${version}-arm64.dmg`,
-      size: FILE_SIZES[`CrowByte-${version}-arm64.dmg`] || "~130 MB",
+      size: "Coming Soon",
       icon: AppleLogo,
       platform: "macOS 12+ (Apple Silicon)",
       ext: ".dmg",
-      description: "Drag & drop install",
+      description: "Coming soon — macOS build in testing",
+      comingSoon: true,
     },
   ];
 
@@ -353,11 +355,13 @@ function PackageCard({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       className={`group flex items-center gap-4 px-4 py-3.5 rounded-lg border transition-all duration-200 ${
-        isPaid
-          ? "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04] cursor-pointer"
-          : "border-white/[0.04] bg-white/[0.01] opacity-60 cursor-not-allowed"
+        pkg.comingSoon
+          ? "border-yellow-500/20 bg-yellow-500/[0.03] opacity-70 cursor-not-allowed"
+          : isPaid
+            ? "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04] cursor-pointer"
+            : "border-white/[0.04] bg-white/[0.01] opacity-60 cursor-not-allowed"
       }`}
-      onClick={isPaid ? onDownload : undefined}
+      onClick={!pkg.comingSoon && isPaid ? onDownload : undefined}
     >
       {/* Platform icon */}
       <div

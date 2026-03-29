@@ -11,7 +11,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ShieldCheck, ShieldWarning, UserCheck, Laptop, Bird, Fire, MagnifyingGlass, Stack, Eye, Bug, Plug, PlugsConnected, CaretRight, GearSix, Pulse, Robot, Lock, LockOpen, Warning, CheckCircle, XCircle, Clock, Lightning, ArrowRight, ArrowSquareOut, Key, Globe, DesktopTower, Database, ChartBar, Users, FileX, Funnel, GridFour, ListBullets, Monitor, Terminal, ShippingContainer, TreeStructure } from "@phosphor-icons/react";
+import { Shield, ShieldCheck, ShieldWarning, UserCheck, Laptop, Bird, Fire, MagnifyingGlass, Stack, Eye, Bug, Plug, PlugsConnected, CaretRight, GearSix, Pulse, Robot, Lock, LockOpen, Warning, CheckCircle, XCircle, Clock, Lightning, ArrowRight, ArrowSquareOut, Key, Globe, DesktopTower, Database, ChartBar, Users, FileX, Funnel, GridFour, ListBullets, Monitor, Terminal, ShippingContainer, TreeStructure, HardHat } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -251,6 +251,12 @@ export default function Connectors() {
  {/* Content */}
  <ScrollArea className="flex-1">
  <div className="p-6">
+ {/* Preview Banner */}
+ <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
+ <HardHat size={16} weight="duotone" />
+ <span>Connectors are in preview — integrations are not yet active. Configure credentials to prepare for launch.</span>
+ </div>
+
  {/* Active Agents Banner (when connectors are connected) */}
  {activeAgentIds.size > 0 && (
  <motion.div

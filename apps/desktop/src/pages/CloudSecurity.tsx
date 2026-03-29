@@ -58,6 +58,7 @@ import {
   Cpu,
   FileCode,
   X,
+  HardHat,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -1891,6 +1892,12 @@ export default function CloudSecurity() {
           </Badge>
         </div>
       </motion.div>
+
+      {/* Preview Banner */}
+      <div className="mx-6 mt-4 mb-0 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
+        <HardHat size={16} weight="duotone" />
+        <span>Cloud Security is in preview — sample data shown. Connect your cloud provider in Settings to enable live scanning.</span>
+      </div>
 
       {/* Tabs */}
       <div className="flex-1 overflow-hidden">

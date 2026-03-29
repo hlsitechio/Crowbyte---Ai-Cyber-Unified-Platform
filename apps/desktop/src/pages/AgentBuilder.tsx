@@ -52,17 +52,14 @@ const AgentBuilder = () => {
  }, []);
 
  const loadAgents = async () => {
- // TODO: Enable when custom_agents table exists in Supabase
- // CREATE TABLE custom_agents (id uuid PK, user_id uuid, name text, description text,
- // system_prompt text, model text, category text, example_prompts text[], capabilities jsonb,
- // enable_web_search bool, enable_code_execution bool, enable_file_upload bool,
- // status text DEFAULT 'active', created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());
- //
- // Uncomment when table is created:
- // try {
- // const data = await customAgentsService.getAgents();
- // setAgents(data);
- // } catch { /* silent */ }
+ // custom_agents table may not exist yet — fail gracefully
+ try {
+ const data = await customAgentsService.getAgents();
+ setAgents(data);
+ } catch {
+ // Table doesn't exist yet or another error — show empty state silently
+ setAgents([]);
+ }
  };
 
  const handleSaveAgent = async () => {

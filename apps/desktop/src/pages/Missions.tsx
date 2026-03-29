@@ -64,6 +64,7 @@ import {
   Info,
   MinusCircle,
   FlagCheckered,
+  HardHat,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
@@ -1467,6 +1468,12 @@ export default function Missions() {
             New Mission
           </Button>
         </div>
+      </div>
+
+      {/* Preview Banner */}
+      <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
+        <HardHat size={16} weight="duotone" />
+        <span>Mission Pipeline is in preview — tool execution is simulated. Connect MCP scanning tools for live results.</span>
       </div>
 
       {/* Stats */}

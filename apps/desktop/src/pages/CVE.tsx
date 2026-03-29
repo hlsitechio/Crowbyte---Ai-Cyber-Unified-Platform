@@ -15,6 +15,7 @@ import {
 } from"@/components/ui/select";
 import { Separator } from"@/components/ui/separator";
 import { supabase } from"@/lib/supabase";
+import { useAuth } from"@/contexts/auth";
 import { useToast } from"@/hooks/use-toast";
 import { motion, AnimatePresence } from"framer-motion";
 import { formatDistanceToNow } from"date-fns";
@@ -76,6 +77,7 @@ const SEVERITY_CONFIG: Record<string, {
 };
 
 const CVEPage = () => {
+ const { user } = useAuth();
  const [cves, setCves] = useState<CVE[]>([]);
  const [loading, setLoading] = useState(true);
  const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -195,7 +197,7 @@ const CVEPage = () => {
  if (error) throw error;
  toast({ title:"CVE updated" });
  } else {
- const { error } = await supabase.from("cves").insert({ ...payload, user_id:"348309de-1cb4-4fd5-9f55-fa8a749375a5" });
+ const { error } = await supabase.from("cves").insert({ ...payload, user_id: user?.id ?? "" });
  if (error) throw error;
  toast({ title:"CVE added" });
  }
