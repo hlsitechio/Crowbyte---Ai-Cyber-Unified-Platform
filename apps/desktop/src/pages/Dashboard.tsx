@@ -109,7 +109,6 @@ const Dashboard = () => {
  setIpStatus({
  ip: 'Unavailable',
  isVPN: false,
- isTor: false,
  isProxy: false,
  connectionType: 'unknown',
  lastChecked: new Date(),
@@ -622,18 +621,18 @@ const Dashboard = () => {
  <span className={`w-1.5 h-1.5 rounded-full ${
  ipStatus.error || ipStatus.ip === 'Unavailable'
  ? 'bg-red-500'
- : ipStatus.isVPN || ipStatus.isTor
+ : ipStatus.isVPN
  ? 'bg-emerald-500'
  : 'bg-blue-500'
  }`} />
  <span className={
  ipStatus.error || ipStatus.ip === 'Unavailable'
  ? 'text-red-500'
- : ipStatus.isVPN || ipStatus.isTor
+ : ipStatus.isVPN
  ? 'text-emerald-500'
  : 'text-blue-500'
  }>
- {ipStatus.error || ipStatus.ip === 'Unavailable' ? 'Offline' : ipStatus.isVPN || ipStatus.isTor ? 'Protected' : 'Connected'}
+ {ipStatus.error || ipStatus.ip === 'Unavailable' ? 'Offline' : ipStatus.isVPN ? 'Protected' : 'Connected'}
  </span>
  </span>
 
@@ -648,7 +647,7 @@ const Dashboard = () => {
  ) : (
  <>
  <span className="text-xs text-muted-foreground">
- {ipStatus.isVPN ? 'VPN' : ipStatus.isTor ? 'Tor' : 'IP'}:
+ {ipStatus.isVPN ? 'VPN' : 'IP'}:
  </span>
  <span className="text-xs font-mono font-semibold text-primary">{ipStatus.ip}</span>
  {ipStatus.country && (
@@ -680,14 +679,6 @@ const Dashboard = () => {
  </span>
  </span>
 
- {/* Tor Status */}
- <span className="flex items-center gap-1.5 text-xs">
- <span className={`w-1.5 h-1.5 rounded-full ${ipStatus.isTor ? 'bg-violet-500' : 'bg-zinc-600'}`} />
- <span className={ipStatus.isTor ? 'text-violet-500' : 'text-zinc-500'}>
- {ipStatus.isTor ? 'Tor' : 'No Tor'}
- </span>
- </span>
-
  {/* VPN Provider */}
  {ipStatus.vpnProvider && (
  <>
@@ -706,7 +697,7 @@ const Dashboard = () => {
  )}
 
  {/* ISP */}
- {ipStatus.isp && !ipStatus.isVPN && !ipStatus.isTor && (
+ {ipStatus.isp && !ipStatus.isVPN && (
  <>
  <Separator orientation="vertical" className="h-4" />
  <span className="text-xs text-muted-foreground">ISP: {ipStatus.isp}</span>

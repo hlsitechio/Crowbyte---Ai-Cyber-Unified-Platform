@@ -129,8 +129,6 @@ interface ElectronAPI {
   executeCommand: (command: string) => Promise<string>;
   // Run system command
   runCommand: (command: string, args?: string[]) => Promise<string>;
-  // Tor check
-  checkTor: () => Promise<unknown>;
   // NVD CVE API proxy
   fetchCVEs: (year: string) => Promise<unknown>;
   // Claude Code CLI

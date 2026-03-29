@@ -698,7 +698,7 @@ function createWindow() {
               "https://api.ipify.org https://api64.ipify.org https://ipinfo.io " +
               "https://api.my-ip.io https://icanhazip.com https://ipecho.net " +
               "https://ifconfig.me https://ident.me https://wtfismyip.com " +
-              "https://ipapi.co https://check.torproject.org " +
+              "https://ipapi.co " +
               "https://api.venice.ai https://ollama.ai https://*.supabase.co wss://*.supabase.co " +
               "https://*.hstgr.cloud " +
               "wss://*.hstgr.cloud:* " +
@@ -713,7 +713,7 @@ function createWindow() {
               "https://api.ipify.org https://api64.ipify.org https://ipinfo.io " +
               "https://api.my-ip.io https://icanhazip.com https://ipecho.net " +
               "https://ifconfig.me https://ident.me https://wtfismyip.com " +
-              "https://ipapi.co https://check.torproject.org " +
+              "https://ipapi.co " +
               "https://api.venice.ai https://ollama.ai https://*.supabase.co " +
               "https://*.hstgr.cloud " +
               "https://integrate.api.nvidia.com http://" + (process.env.VITE_VPS_IP || '127.0.0.1') + ":*; " +
@@ -1618,50 +1618,6 @@ ipcMain.handle('run-command', async (event, command, args = []) => {
       });
     }
   });
-});
-
-// Tor check proxy (avoid CORS)
-ipcMain.handle('check-tor', async () => {
-  try {
-    const https = require('https');
-
-    return new Promise((resolve) => {
-      const req = https.request('https://check.torproject.org/api/ip', {
-        method: 'GET',
-        timeout: 5000,
-      }, (res) => {
-        let data = '';
-
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(data);
-            resolve({ success: true, data: parsed });
-          } catch (error) {
-            resolve({ success: false, error: 'Invalid JSON response' });
-          }
-        });
-      });
-
-      req.on('error', (error) => {
-        console.error('❌ Tor check error:', error.message);
-        resolve({ success: false, error: error.message });
-      });
-
-      req.on('timeout', () => {
-        req.destroy();
-        resolve({ success: false, error: 'Request timed out' });
-      });
-
-      req.end();
-    });
-  } catch (error) {
-    console.error('❌ Tor check handler error:', error);
-    return { success: false, error: error.message };
-  }
 });
 
 // NVD CVE API proxy (avoid CORS and rate limiting)

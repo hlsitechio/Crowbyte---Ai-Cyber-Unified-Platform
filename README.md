@@ -9,8 +9,6 @@
   <a href="https://crowbyte.io"><img src="https://img.shields.io/badge/Website-crowbyte.io-3b82f6?style=flat-square&logo=globe&logoColor=white" alt="Website" /></a>
   <a href="https://github.com/hlsitechio/crowbyte/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=flat-square" alt="License" /></a>
   <img src="https://img.shields.io/badge/Web%20%C2%B7%20Linux%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Docker-71717a?style=flat-square" alt="Platform" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white" alt="React" />
 </p>
 
 ---
@@ -29,19 +27,19 @@ CrowByte is an **AI-powered cybersecurity platform** for penetration testers, bu
 Deploy up to 9 specialized AI agents on your own infrastructure. Agents handle reconnaissance, vulnerability analysis, exploit research, and report generation in parallel. Supports multiple LLM providers — bring your own API keys or use the built-in gateway.
 
 ### Mission Pipeline
-Phase-based operation planning from scope import through exploitation to final report. Define objectives, track task dependencies, and automate status transitions across the entire engagement lifecycle.
+Phase-based operation planning from scope import through exploitation to final report. Define objectives, track task dependencies, and manage status transitions across the entire engagement lifecycle.
 
 ### CVE Intelligence
 Real-time vulnerability database with CVSS scoring, exploit status tracking, product correlation, and cross-referencing with Shodan. Search, filter, and bookmark CVEs relevant to your active engagements.
 
-### Integrated Terminal
-Full xterm.js terminal with tmux session management. Run Nmap, Nuclei, SQLMap, FFUF, or any CLI tool without leaving the platform. Output is automatically captured for report evidence.
+### Integrated Terminal *(Desktop only)*
+Full xterm.js terminal with tmux session management, powered by node-pty. Run Nmap, Nuclei, SQLMap, FFUF, or any CLI tool without leaving the platform. Multiple tabs, split panes, and shell presets.
 
 ### Fleet Management
-Monitor endpoints, VPS nodes, and containers from a single dashboard. Real-time hardware metrics (CPU, RAM, disk, network), process inspection, and remote agent deployment. Built-in remote desktop with E2E encryption.
+Monitor endpoints, VPS nodes, and containers from a single dashboard. Real-time hardware metrics (CPU, RAM, disk, network), process inspection, and remote agent deployment. Built-in remote desktop with encrypted communication.
 
-### Automated Reporting
-Generate professional reports formatted for HackerOne, Bugcrowd, or custom templates. Findings are automatically populated with severity, evidence, reproduction steps, and impact analysis.
+### Report Generator
+Generate professional pentest and bug bounty reports. Templates for HackerOne, Bugcrowd, and custom formats. Pull findings into structured reports with severity, evidence, and reproduction steps. Export as Markdown, HTML, or platform-specific JSON.
 
 ### Detection Rule Lab
 Author, test, and manage detection rules across formats:
@@ -50,14 +48,14 @@ Author, test, and manage detection rules across formats:
 - **YARA** rules for malware analysis
 - **Snort / Suricata** signatures for network detection
 
-### Alert Center (SIEM Bridge)
-Connect to your existing SIEM infrastructure. Pre-built connectors for Splunk, Elasticsearch, and custom sources. Real-time alert ingestion, triage, and correlation with your findings.
+### Alert Center
+Centralized alert management with support for multiple source types. Ingest, triage, and correlate alerts with your findings. Connector framework for Splunk, Elasticsearch, and webhook sources.
 
 ### Knowledge Base
 Searchable research database for techniques, tool notes, methodology references, and engagement intelligence. Tag, categorize, and attach files. Full-text search across all entries.
 
-### Cloud Security Posture
-CSPM scanning, SBOM generation, and compliance checks across AWS, GCP, and Azure. Identify misconfigurations, exposed resources, and policy violations.
+### Cloud Security Dashboard
+Track cloud security posture across AWS, GCP, and Azure. Manage cloud account inventory, resource tracking, and security findings. Compliance mapping against CIS, SOC2, PCI-DSS, HIPAA, and NIST frameworks.
 
 ---
 
@@ -79,12 +77,11 @@ All AI features work with self-hosted models. No data leaves your machine unless
 
 ## Security
 
-CrowByte is built with security-first principles. Your data stays yours.
-
-- **E2E Encryption** — Remote desktop and fleet communication uses X25519 ECDH key exchange with AES-256-GCM. Zero-knowledge relay.
-- **Local-First** — All data is stored in Supabase (self-hostable). No telemetry, no tracking, no phone-home.
-- **Credential Isolation** — API keys and secrets are stored in encrypted storage with device-bound keys. Never transmitted to third parties.
-- **Audit Logging** — Every significant action is logged with timestamps and user attribution. Exportable for compliance.
+- **Encrypted Communication** — Remote desktop uses ECDH key exchange with AES-256-GCM for end-to-end encrypted screen sharing and input control.
+- **Credential Encryption** — Login credentials are encrypted with AES-256-GCM using device-derived keys (PBKDF2). On Electron, credentials are double-encrypted with the OS-level safeStorage API.
+- **Conversation Encryption** — Optional AES-256-GCM encryption for stored conversations with HMAC-SHA256 integrity verification.
+- **Activity Logging** — Actions across auth, API, security, AI, and terminal are logged with timestamps, severity levels, and categorized tags. Filterable by level and tag.
+- **Supabase Backend** — All data is stored in Supabase (PostgreSQL with Row Level Security). Self-hostable for full data sovereignty.
 - **No Source Exposure** — Proprietary codebase. Binary distribution only. No source code in the repository.
 
 ### Vulnerability Disclosure
@@ -124,11 +121,15 @@ Visit [crowbyte.io](https://crowbyte.io) for details.
 
 ## Roadmap
 
+- [ ] Persistent audit logging with cloud sync and exportable activity trail
+- [ ] Real-time SIEM connectors (Splunk, Elastic polling)
+- [ ] Automated terminal output capture for report evidence
+- [ ] Cloud security scanning (AWS/GCP/Azure API integration)
+- [ ] SBOM generation
 - [ ] Plugin marketplace for community extensions
 - [ ] Collaborative real-time editing for team engagements
 - [ ] Mobile companion app (iOS / Android)
 - [ ] API access for CI/CD pipeline integration
-- [ ] Custom AI agent builder with drag-and-drop workflows
 
 ---
 
@@ -156,4 +157,3 @@ This repository contains documentation, legal documents, and release binaries on
 | Security | [security@crowbyte.io](mailto:security@crowbyte.io) |
 
 ---
-
