@@ -12,6 +12,7 @@
 
 import { pcMonitor, type SystemMetrics, type ProcessInfo } from './pc-monitor';
 import { tavilyService } from './tavily';
+import { glitchTipService } from './glitchtip';
 import type { ToolFunction } from '@/types/service-types';
 
 // MCP client - only available in Electron environment
@@ -82,6 +83,7 @@ YOUR CAPABILITIES:
 - Threat correlation and root cause analysis
 - System health assessment and recommendations
 - Web search for threat intelligence, CVEs, and security advisories (via Tavily)
+- Application error monitoring via GlitchTip (production crashes, exceptions, stack traces)
 
 YOUR PERSONALITY:
 - Tactical and professional security analyst
@@ -96,8 +98,9 @@ Always structure your analysis as:
 2. **METRICS**: Current system state (CPU, Memory, Disk, Network)
 3. **ALERTS**: Any active alerts or anomalies detected
 4. **SECURITY**: Network connections, suspicious activity, threats
-5. **ANALYSIS**: Your expert interpretation and recommendations
-6. **ACTIONS**: Specific steps to take if issues found
+5. **APP ERRORS**: Production bugs from GlitchTip (crashes, exceptions, regressions)
+6. **ANALYSIS**: Your expert interpretation and recommendations
+7. **ACTIONS**: Specific steps to take if issues found
 
 CRITICAL RULES:
 - Always scan for suspicious network connections
@@ -224,16 +227,21 @@ INSTRUCTIONS:
 3. Use mcp_monitor_get_disk_info with {"path": "/", "all_partitions": true}
 4. Use mcp_monitor_get_network_info with {"interface": ""}
 5. Use mcp_monitor_get_process_info with {"pid": 0, "limit": 20, "sort_by": "cpu"}
+6. Use glitchtip_error_summary with {} to check for app errors
+7. If errors found, use glitchtip_get_issues to get details
+8. For critical bugs, use glitchtip_get_issue_events with the issue ID
 
 IMPORTANT:
 - Some tools may return errors - if they do, work with available data
 - Provide your analysis even if some data is missing
 - After gathering metrics, ALWAYS respond with your analysis
+- Check GlitchTip for production app bugs alongside system health
 
 After gathering all available metrics, provide:
 - STATUS: [HEALTHY/WARNING/CRITICAL]
 - Analysis of system health based on available data
 - Security concerns (network traffic patterns, resource usage)
+- App error status (new crashes, regressions, unresolved bugs)
 - Performance recommendations
 - Immediate actions if needed
 
@@ -315,7 +323,58 @@ Be thorough and provide a complete response even if some tools fail.`,
       }
     } as ToolFunction);
 
-    console.log(`🔧 Total tools available: ${tools.length} (${tools.filter(t => t.function.name.includes('mcp_monitor')).length} monitoring + ${tools.filter(t => t.function.name === 'tavily_search').length} search)`);
+    // Add GlitchTip error monitoring tools
+    tools.push({
+      type: 'function',
+      function: {
+        name: 'glitchtip_get_issues',
+        description: 'Get unresolved application errors from GlitchTip error monitoring. Returns bugs, crashes, and exceptions from the CrowByte app (both web and desktop). Use to check for production errors.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Filter query (default: "is:unresolved"). Use "is:resolved" for fixed issues.',
+              default: 'is:unresolved'
+            }
+          },
+          required: []
+        }
+      }
+    } as ToolFunction);
+
+    tools.push({
+      type: 'function',
+      function: {
+        name: 'glitchtip_get_issue_events',
+        description: 'Get detailed events (stack traces, tags, context) for a specific GlitchTip issue by ID. Use after glitchtip_get_issues to deep-dive into a specific bug.',
+        parameters: {
+          type: 'object',
+          properties: {
+            issueId: {
+              type: 'string',
+              description: 'The GlitchTip issue ID to get events for'
+            }
+          },
+          required: ['issueId']
+        }
+      }
+    } as ToolFunction);
+
+    tools.push({
+      type: 'function',
+      function: {
+        name: 'glitchtip_error_summary',
+        description: 'Get a quick summary of application error counts: total, unresolved, and critical. Use for a fast health check of the app.',
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      }
+    } as ToolFunction);
+
+    console.log(`🔧 Total tools available: ${tools.length} (${tools.filter(t => t.function.name.includes('mcp_monitor')).length} monitoring + ${tools.filter(t => t.function.name === 'tavily_search').length} search + ${tools.filter(t => t.function.name.includes('glitchtip')).length} error tracking)`);
 
     return tools;
   }
@@ -418,8 +477,57 @@ Be thorough and provide a complete response even if some tools fail.`,
           console.log(`  → Executing: ${toolName}`);
 
           try {
+            // Handle GlitchTip error monitoring tools
+            if (toolName === 'glitchtip_get_issues') {
+              const issues = await glitchTipService.getIssues(toolArgs.query);
+              currentMessages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({
+                  count: issues.length,
+                  issues: issues.map(i => ({
+                    id: i.id,
+                    level: i.level,
+                    title: i.title,
+                    culprit: i.culprit,
+                    count: i.count,
+                    firstSeen: i.firstSeen,
+                    lastSeen: i.lastSeen,
+                    status: i.status,
+                  })),
+                }),
+              });
+              console.log(`  ✅ Found ${issues.length} GlitchTip issues`);
+            } else if (toolName === 'glitchtip_get_issue_events') {
+              const events = await glitchTipService.getIssueEvents(toolArgs.issueId);
+              currentMessages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({
+                  issueId: toolArgs.issueId,
+                  eventCount: events.length,
+                  events: events.slice(0, 5).map(e => ({
+                    id: e.eventID,
+                    title: e.title,
+                    message: e.message,
+                    dateCreated: e.dateCreated,
+                    tags: e.tags,
+                    entries: e.entries,
+                  })),
+                }),
+              });
+              console.log(`  ✅ Found ${events.length} events for issue ${toolArgs.issueId}`);
+            } else if (toolName === 'glitchtip_error_summary') {
+              const summary = await glitchTipService.getErrorSummary();
+              currentMessages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: JSON.stringify(summary),
+              });
+              console.log(`  ✅ Error summary: ${summary.total} total, ${summary.critical} critical`);
+            }
             // Handle Tavily search tool
-            if (toolName === 'tavily_search') {
+            else if (toolName === 'tavily_search') {
               console.log(`  🔍 Searching for: "${toolArgs.query}"`);
               const searchResult = await tavilyService.search({
                 query: toolArgs.query,
