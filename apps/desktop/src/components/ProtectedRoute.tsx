@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, ArrowsClockwise } from '@phosphor-icons/react';
+import { IS_ELECTRON } from '@/lib/platform';
 
 interface ProtectedRouteProps {
  children: React.ReactNode;
@@ -17,22 +18,20 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
  const { isAuthenticated, loading } = useAuth();
  const navigate = useNavigate();
 
- const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
-
  useEffect(() => {
  if (!loading && !isAuthenticated) {
  navigate('/auth');
  return;
  }
  // Redirect to preferences wizard for new web users who haven't completed setup
- if (!loading && isAuthenticated && !isElectron) {
+ if (!loading && isAuthenticated && !IS_ELECTRON) {
  const wizardDone = localStorage.getItem('crowbyte_prefs_wizard_done');
  const currentPath = window.location.pathname;
  if (!wizardDone && currentPath !== '/setup-preferences') {
    navigate('/setup-preferences');
  }
  }
- }, [isAuthenticated, loading, navigate, isElectron]);
+ }, [isAuthenticated, loading, navigate, IS_ELECTRON]);
 
  // Show loading state while checking auth
  if (loading) {

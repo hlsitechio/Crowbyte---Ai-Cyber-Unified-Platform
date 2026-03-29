@@ -74,9 +74,9 @@ import PreferencesWizard from "./pages/PreferencesWizard";
 import SubscriptionGate from "./pages/SubscriptionGate";
 import { verifyLicense, needsRecheck, CHECK_INTERVAL_MS, type LicenseStatus } from "@/services/license-guard";
 import { needsPreferencesSetup } from "@/services/subscription";
+import { IS_ELECTRON } from "@/lib/platform";
 
 const queryClient = new QueryClient();
-const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
 
 /** Layout wrapper that includes TitleBar — used for all routes except /landing */
 const AppWithTitleBar = () => (
@@ -84,13 +84,13 @@ const AppWithTitleBar = () => (
     <TitleBar />
     <Routes>
       {/* Auth routes without sidebar */}
-      <Route path="/auth" element={<div className="pt-8"><Auth /></div>} />
-      <Route path="/passwordreset" element={<div className="pt-8"><PasswordReset /></div>} />
+      <Route path="/auth" element={<div className={IS_ELECTRON ? "pt-8" : ""}><Auth /></div>} />
+      <Route path="/passwordreset" element={<div className={IS_ELECTRON ? "pt-8" : ""}><PasswordReset /></div>} />
 
       {/* Documentation - own layout, no main sidebar */}
       <Route path="/documentation/*" element={
         <ProtectedRoute>
-          <div className="flex h-screen w-full bg-background pt-8 overflow-hidden">
+          <div className={`flex h-screen w-full bg-background ${IS_ELECTRON ? 'pt-8' : ''} overflow-hidden`}>
             <GlobalContextMenu>
               <div className="flex-1 min-w-0 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
                 <Documentation />
@@ -105,7 +105,7 @@ const AppWithTitleBar = () => (
       <Route path="/*" element={
         <ProtectedRoute>
           <SidebarProvider defaultOpen={true}>
-            <div className="flex h-screen w-full bg-background pt-8 overflow-hidden">
+            <div className={`flex h-screen w-full bg-background ${IS_ELECTRON ? 'pt-8' : ''} overflow-hidden`}>
               <AppSidebar />
               <GlobalContextMenu>
                 <main className="flex-1 min-w-0 p-6 overflow-y-auto overflow-x-hidden main-content-container" style={{ overscrollBehavior: "contain" }}>
@@ -175,14 +175,14 @@ const App = () => {
 
   // ─── License Gate (Electron only) ─────────────────────────────────────
   const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
-  const [licenseChecked, setLicenseChecked] = useState(!isElectron); // Skip for web
+  const [licenseChecked, setLicenseChecked] = useState(!IS_ELECTRON); // Skip for web
 
   // ─── Post-upgrade Preferences Wizard redirect ───────────────────────
   const [prefsChecked, setPrefsChecked] = useState(false);
   const [needsPrefsWizard, setNeedsPrefsWizard] = useState(false);
 
   useEffect(() => {
-    if (!isElectron) return; // Web users don't need license check
+    if (!IS_ELECTRON) return; // Web users don't need license check
 
     const checkLicense = async () => {
       const status = await verifyLicense();
@@ -238,10 +238,10 @@ const App = () => {
   });
 
   // License gate — Electron only, blocks EVERYTHING until valid
-  if (isElectron && !licenseChecked) {
+  if (IS_ELECTRON && !licenseChecked) {
     return null; // Loading — checking license
   }
-  if (isElectron && licenseStatus && !licenseStatus.valid) {
+  if (IS_ELECTRON && licenseStatus && !licenseStatus.valid) {
     // Allow onboarding + auth routes through (new installs need to sign up/login first)
     const hash = window.location.hash || '';
     const isPassthrough = hash.includes('/onboarding') || hash.includes('/auth') || hash.includes('/payments');
@@ -265,7 +265,7 @@ const App = () => {
 
   // ─── Post-upgrade: redirect Pro+ users to preferences wizard ─────────
   // Runs after license gate passes — if user just upgraded and hasn't configured agents/intel
-  if (isElectron && prefsChecked && needsPrefsWizard) {
+  if (IS_ELECTRON && prefsChecked && needsPrefsWizard) {
     const isAlreadyOnPrefs = window.location.hash?.includes('/setup-preferences');
     if (!isAlreadyOnPrefs) {
       // Render a minimal router that redirects to preferences wizard
@@ -294,7 +294,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <TitleBar />
         <Sonner />
-        <div className="pt-8">
+        <div className={IS_ELECTRON ? "pt-8" : ""}>
           <SetupWizard onComplete={() => setSetupComplete(true)} />
         </div>
       </QueryClientProvider>
@@ -328,7 +328,7 @@ const App = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/payments" element={<Checkout />} />
           <Route path="/" element={
-            typeof window !== 'undefined' && (window as any).electronAPI
+            IS_ELECTRON
               ? <Navigate to="/dashboard" replace />
               : <LandingPage />
           } />

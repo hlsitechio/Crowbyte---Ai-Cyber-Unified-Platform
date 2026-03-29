@@ -1,19 +1,19 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Download, TerminalSquare, Crosshair, FileText } from "lucide-react";
+import { UserPlus, TerminalSquare, Crosshair, FileText } from "lucide-react";
 
 const steps = [
   {
-    icon: Download,
+    icon: UserPlus,
     num: "01",
-    title: "Install",
-    desc: "One binary. Linux, Windows, macOS. You're live in 30 seconds.",
+    title: "Sign Up",
+    desc: "Free in your browser. Pro unlocks desktop apps for Linux, Windows, macOS.",
   },
   {
     icon: TerminalSquare,
     num: "02",
     title: "Target",
-    desc: "Give it a domain. CrowByte spawns 15 agents across your attack surface.",
+    desc: "Give it a domain. CrowByte spawns 9 agents across your attack surface.",
   },
   {
     icon: Crosshair,

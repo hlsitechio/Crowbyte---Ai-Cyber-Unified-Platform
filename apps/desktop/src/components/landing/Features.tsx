@@ -34,7 +34,7 @@ const features = [
   {
     icon: Network,
     name: "Fleet Management",
-    desc: "Distributed AI agent swarm across your infrastructure. 15 agents. One command.",
+    desc: "Distributed AI agent swarm across your infrastructure. 9 agents. One command.",
     accent: "blue" as const,
   },
   {

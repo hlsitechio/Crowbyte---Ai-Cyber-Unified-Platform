@@ -2,12 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { Minus, Square, X, PushPin, PushPinSlash, SidebarSimple } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBrowserPanelSafe } from "@/contexts/browser";
+import { IS_ELECTRON } from "@/lib/platform";
 
 export function TitleBar() {
  const [isPinned, setIsPinned] = useState(false);
  const [isHovered, setIsHovered] = useState(false);
  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
  const browserPanel = useBrowserPanelSafe();
+
+ // Only render in Electron — web users see the browser's native chrome
+ if (!IS_ELECTRON) return null;
 
  const handleMinimize = async () => {
  if (window.electronAPI?.minimizeWindow) {
@@ -78,7 +82,7 @@ export function TitleBar() {
  {/* Left side - App title */}
  <div className="flex items-center gap-2">
  <span className="text-xs font-bold text-gradient-silver tracking-wider">
- CROWBYTE TERMINAL
+ CROWBYTE
  </span>
  </div>
 

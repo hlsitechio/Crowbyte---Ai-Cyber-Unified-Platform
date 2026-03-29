@@ -25,6 +25,7 @@ import {
   type MonitoringReport,
   type IncidentMemory,
 } from "@/services/monitoring-agent";
+import { IS_ELECTRON } from "@/lib/platform";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -94,15 +95,8 @@ const SecurityMonitor = () => {
   const [report, setReport] = useState<MonitoringReport | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [autoOn, setAutoOn] = useState(false);
-  const [isElectron, setIsElectron] = useState(false);
   const [history, setHistory] = useState<IncidentMemory[]>([]);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
-
-  // Electron check
-  useEffect(() => {
-    // @ts-ignore
-    setIsElectron(typeof window !== "undefined" && window.electron !== undefined);
-  }, []);
 
   // Sync auto-monitoring state from service
   useEffect(() => {
@@ -185,7 +179,7 @@ const SecurityMonitor = () => {
           <div className="flex items-center gap-2">
             <Button
               onClick={handleScan}
-              disabled={isScanning || !isElectron}
+              disabled={isScanning || !IS_ELECTRON}
               size="sm"
               className="bg-primary/20 hover:bg-primary/30"
             >
@@ -204,7 +198,7 @@ const SecurityMonitor = () => {
 
             <Button
               onClick={toggleAuto}
-              disabled={!isElectron}
+              disabled={!IS_ELECTRON}
               size="sm"
               variant="ghost"
               className={autoOn ? "text-emerald-400" : "text-muted-foreground"}
@@ -217,7 +211,7 @@ const SecurityMonitor = () => {
       </motion.div>
 
       {/* ── Browser mode info line ─────────────────────────────────── */}
-      {!isElectron && (
+      {!IS_ELECTRON && (
         <div className="flex items-center gap-2 text-xs text-amber-400/80">
           <Info size={14} weight="duotone" />
           <span>Desktop mode required for system metrics</span>

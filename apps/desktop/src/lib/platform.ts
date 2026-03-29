@@ -1,8 +1,18 @@
 /**
  * Platform Context
- * Provides platform tag and org context for all Supabase queries.
+ * Provides build target detection + platform tag + org context.
  * Every service that writes to Supabase should import this.
  */
+
+// ── Build Target (compile-time, injected by Vite define) ──────────────────
+export const BUILD_TARGET: 'web' | 'electron' =
+  (typeof __BUILD_TARGET__ !== 'undefined' ? __BUILD_TARGET__ : 'electron') as 'web' | 'electron';
+export const IS_WEB = BUILD_TARGET === 'web';
+export const IS_ELECTRON = BUILD_TARGET === 'electron';
+
+/** Runtime safety-net — checks if Electron IPC bridge is actually present */
+export const hasElectronAPI = (): boolean =>
+  typeof window !== 'undefined' && !!(window as any).electronAPI;
 
 // Platform from env (set in .env per build)
 export const PLATFORM = import.meta.env.VITE_PLATFORM || 'linux';
