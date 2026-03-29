@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="docs/assets/banner.png" alt="CrowByte Terminal" width="860" />
-</p>
-
-<p align="center">
   <strong>AI-powered command center for offensive security.</strong><br />
   <sub>Recon. Exploit. Report. One terminal.</sub>
 </p>
