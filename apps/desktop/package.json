@@ -202,6 +202,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@sentry/vite-plugin": "^5.1.1",
     "@tailwindcss/typography": "^0.5.16",
     "@types/debug": "^4.1.12",
     "@types/fs-extra": "^11.0.4",

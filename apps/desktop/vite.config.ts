@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import path from "path";
 
 // https://vitejs.dev/config/
@@ -16,6 +17,21 @@ export default defineConfig(({ mode }) => {
   },
   plugins: [
     react(),
+    // Upload source maps to GlitchTip (Sentry-compatible) on production builds
+    // Requires SENTRY_AUTH_TOKEN env var (uses GlitchTip API token)
+    process.env.SENTRY_AUTH_TOKEN && sentryVitePlugin({
+      org: 'crowbyte',
+      project: 'crowbyte',
+      url: 'https://app.glitchtip.com',
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      release: {
+        name: `crowbyte@${process.env.npm_package_version || '0.0.0'}`,
+      },
+      sourcemaps: {
+        filesToDeleteAfterUpload: isWeb ? ['./dist/web/**/*.map'] : ['./dist/**/*.map'],
+      },
+      telemetry: false,
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -35,6 +51,7 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: isWeb ? "dist/web" : "dist",
     chunkSizeWarningLimit: 1000,
+    sourcemap: true, // Generate source maps for GlitchTip stack traces
     rollupOptions: {
       external: (id: string) => {
         if (id === 'electron' || id.startsWith('@modelcontextprotocol/')) {
