@@ -6,16 +6,10 @@
 // Suppress EPIPE errors (broken pipe when Vite disconnects)
 process.stdout.on('error', (err) => { if (err.code === 'EPIPE') return; });
 process.stderr.on('error', (err) => { if (err.code === 'EPIPE') return; });
-process.on('uncaughtException', (err) => {
-  if (err.code === 'EPIPE' || err.message?.includes('EPIPE')) return;
-  console.error('[!] Uncaught:', err);
-});
 
 // Suppress sourcemap warnings for MCP SDK (missing source files)
 process.on('warning', (warning) => {
-  if (warning.message && warning.message.includes('Sourcemap')) {
-    return; // Suppress sourcemap warnings
-  }
+  if (warning.message && warning.message.includes('Sourcemap')) return;
   console.warn(warning);
 });
 
@@ -23,18 +17,30 @@ const { app, BrowserWindow, ipcMain, Menu, safeStorage, WebContentsView, session
 const path = require('path');
 const { spawn } = require('child_process');
 
-// GlitchTip — main process error monitoring
-try {
-  const Sentry = require('@sentry/electron/main');
-  Sentry.init({
-    dsn: 'https://16ea5a1e0b304fc086a19d080d003897@app.glitchtip.com/21559',
-    autoSessionTracking: false, // GlitchTip does not support sessions
-    environment: process.env.NODE_ENV || 'production',
-  });
-  console.log('[+] GlitchTip main process monitoring active');
-} catch (e) {
-  console.warn('[-] GlitchTip SDK not available:', e.message);
+// GlitchTip — main process error monitoring (zero deps, pure fetch)
+const GLITCHTIP_STORE_URL = 'https://app.glitchtip.com/api/21559/store/?sentry_key=16ea5a1e0b304fc086a19d080d003897&sentry_version=7';
+function reportError(err) {
+  try {
+    const crypto = require('crypto');
+    const event = {
+      event_id: crypto.randomUUID().replace(/-/g, ''),
+      timestamp: new Date().toISOString(),
+      platform: 'node',
+      level: 'error',
+      environment: process.env.NODE_ENV || 'production',
+      release: `crowbyte@${require('../package.json').version || '0.0.0'}`,
+      tags: { process: 'main', platform: process.platform },
+      exception: { values: [{ type: err.name || 'Error', value: err.message, stacktrace: err.stack ? { frames: err.stack.split('\n').slice(1).map(l => { const m = l.match(/at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?$/); return m ? { function: m[1] || '?', filename: m[2], lineno: +m[3], colno: +m[4] } : null; }).filter(Boolean).reverse() } : undefined }] },
+    };
+    fetch(GLITCHTIP_STORE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(event) }).catch(() => {});
+  } catch (_) { /* silent */ }
 }
+process.on('uncaughtException', (err) => {
+  if (err.code === 'EPIPE' || err.message?.includes('EPIPE')) return;
+  reportError(err);
+  console.error('[!] Uncaught:', err);
+});
+console.log('[+] GlitchTip main process monitoring active (no SDK)');
 const os = require('os');
 const plat = require('./platform.cjs');
 let pty;
