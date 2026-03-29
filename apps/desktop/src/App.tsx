@@ -3,7 +3,7 @@ import '@/services/error-monitor';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TitleBar } from "@/components/TitleBar";
@@ -15,6 +15,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { BrowserPanel } from "@/components/BrowserPanel";
 import { BrowserPanelErrorBoundary } from "@/components/BrowserPanelErrorBoundary";
 import { QAAgent } from "@/components/QAAgent";
+import { SupportBanner } from "@/components/SupportBanner";
 import { useCacheCleanup } from "@/hooks/use-cache-cleanup";
 import SetupWizard from "@/pages/SetupWizard";
 import { setupService } from "@/services/setupService";
@@ -24,7 +25,6 @@ import {
   SettingsLayout,
   ProfileSettings,
   GeneralSettings,
-  LLMSettings,
   MCPSettings,
   ToolsSettings,
   MemorySettings,
@@ -35,6 +35,7 @@ import {
 } from "./pages/settings";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
+import PasswordReset from "./pages/PasswordReset";
 import AIAgent from "./pages/AIAgent";
 import Tools from "./pages/Tools";
 import Knowledge from "./pages/Knowledge";
@@ -59,19 +60,32 @@ import AlertCenter from "./pages/AlertCenter";
 import CloudSecurity from "./pages/CloudSecurity";
 import Logs from "./pages/Logs";
 import SecurityMonitor from "./pages/SecurityMonitor";
+import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import Onboarding from "./pages/Onboarding";
+import Downloads from "./pages/Downloads";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import RefundPolicy from "./pages/RefundPolicy";
+import Contact from "./pages/Contact";
+import Checkout from "./pages/Checkout";
+import PreferencesWizard from "./pages/PreferencesWizard";
+import SubscriptionGate from "./pages/SubscriptionGate";
+import { verifyLicense, needsRecheck, CHECK_INTERVAL_MS, type LicenseStatus } from "@/services/license-guard";
+import { needsPreferencesSetup } from "@/services/subscription";
 
 const queryClient = new QueryClient();
+const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
 
 /** Layout wrapper that includes TitleBar — used for all routes except /landing */
 const AppWithTitleBar = () => (
   <>
     <TitleBar />
     <Routes>
-      {/* Auth route without sidebar */}
+      {/* Auth routes without sidebar */}
       <Route path="/auth" element={<div className="pt-8"><Auth /></div>} />
+      <Route path="/passwordreset" element={<div className="pt-8"><PasswordReset /></div>} />
 
       {/* Documentation - own layout, no main sidebar */}
       <Route path="/documentation/*" element={
@@ -108,8 +122,8 @@ const AppWithTitleBar = () => (
                     <Route path="/connectors" element={<Connectors />} />
                     <Route path="/chat" element={<Chat />} />
                     <Route path="/ai-agent" element={<AIAgent />} />
-                    {/* Redirect /llm to /settings/llm */}
-                    <Route path="/llm" element={<Navigate to="/settings/llm" replace />} />
+                    {/* Redirect /llm to /settings/integrations */}
+                    <Route path="/llm" element={<Navigate to="/settings/integrations" replace />} />
                     {/* Redirect /mcp to /settings/mcp */}
                     <Route path="/mcp" element={<Navigate to="/settings/mcp" replace />} />
                     <Route path="/tools" element={<Tools />} />
@@ -125,12 +139,14 @@ const AppWithTitleBar = () => (
                     <Route path="/cyber-ops" element={<CyberOps />} />
                     <Route path="/terminal" element={<Terminal />} />
                     <Route path="/logs" element={<Logs />} />
+                    <Route path="/support" element={<Support />} />
                     <Route path="/agent-builder" element={<AgentBuilder />} />
+                    <Route path="/downloads" element={<Downloads />} />
                     <Route path="/settings" element={<SettingsLayout />}>
                       <Route index element={<Navigate to="/settings/profile" replace />} />
                       <Route path="profile" element={<ProfileSettings />} />
                       <Route path="general" element={<GeneralSettings />} />
-                      <Route path="llm" element={<LLMSettings />} />
+                      <Route path="llm" element={<Navigate to="/settings/integrations" replace />} />
                       <Route path="mcp" element={<MCPSettings />} />
                       <Route path="tools" element={<ToolsSettings />} />
                       <Route path="memory" element={<MemorySettings />} />
@@ -157,6 +173,47 @@ const App = () => {
   const [setupChecked, setSetupChecked] = useState(setupService.isSetupComplete());
   const [loadingSettings, setLoadingSettings] = useState(false);
 
+  // ─── License Gate (Electron only) ─────────────────────────────────────
+  const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
+  const [licenseChecked, setLicenseChecked] = useState(!isElectron); // Skip for web
+
+  // ─── Post-upgrade Preferences Wizard redirect ───────────────────────
+  const [prefsChecked, setPrefsChecked] = useState(false);
+  const [needsPrefsWizard, setNeedsPrefsWizard] = useState(false);
+
+  useEffect(() => {
+    if (!isElectron) return; // Web users don't need license check
+
+    const checkLicense = async () => {
+      const status = await verifyLicense();
+      setLicenseStatus(status);
+      setLicenseChecked(true);
+
+      // If license is valid (Pro+), check if they need preferences setup
+      if (status.valid) {
+        const needsSetup = await needsPreferencesSetup();
+        setNeedsPrefsWizard(needsSetup);
+      }
+      setPrefsChecked(true);
+    };
+
+    checkLicense();
+
+    // Periodic re-verification while app is running
+    const interval = setInterval(async () => {
+      if (needsRecheck()) {
+        const status = await verifyLicense();
+        setLicenseStatus(status);
+        // If license became invalid while running, force re-render
+        if (!status.valid) {
+          console.warn('[App] License revoked during session:', status.reason);
+        }
+      }
+    }, CHECK_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Check server-side setup status (for server deployments)
   useEffect(() => {
     if (!setupComplete) {
@@ -180,6 +237,53 @@ const App = () => {
     },
   });
 
+  // License gate — Electron only, blocks EVERYTHING until valid
+  if (isElectron && !licenseChecked) {
+    return null; // Loading — checking license
+  }
+  if (isElectron && licenseStatus && !licenseStatus.valid) {
+    // Allow onboarding + auth routes through (new installs need to sign up/login first)
+    const hash = window.location.hash || '';
+    const isPassthrough = hash.includes('/onboarding') || hash.includes('/auth') || hash.includes('/payments');
+    if (!isPassthrough) {
+      return (
+        <SubscriptionGate
+          status={licenseStatus}
+          onRetry={async () => {
+            const status = await verifyLicense();
+            setLicenseStatus(status);
+            // If they just upgraded and license is now valid, check prefs
+            if (status.valid) {
+              const needsSetup = await needsPreferencesSetup();
+              setNeedsPrefsWizard(needsSetup);
+            }
+          }}
+        />
+      );
+    }
+  }
+
+  // ─── Post-upgrade: redirect Pro+ users to preferences wizard ─────────
+  // Runs after license gate passes — if user just upgraded and hasn't configured agents/intel
+  if (isElectron && prefsChecked && needsPrefsWizard) {
+    const isAlreadyOnPrefs = window.location.hash?.includes('/setup-preferences');
+    if (!isAlreadyOnPrefs) {
+      // Render a minimal router that redirects to preferences wizard
+      return (
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <AuthProvider>
+              <Routes>
+                <Route path="/setup-preferences" element={<PreferencesWizard />} />
+                <Route path="*" element={<Navigate to="/setup-preferences" replace />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      );
+    }
+  }
+
   // Setup wizard gate — runs before anything else on first launch
   // Wait for server-side check before showing wizard
   if (!setupComplete && !setupChecked) {
@@ -199,7 +303,7 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <HashRouter
+      <BrowserRouter
         future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true,
@@ -211,6 +315,18 @@ const App = () => {
 
           {/* Landing page — web/marketing only, Electron skips to dashboard */}
           <Route path="/landing" element={<LandingPage />} />
+
+          {/* Preferences wizard — post-signup onboarding for SaaS */}
+          <Route path="/setup-preferences" element={
+            <AuthProvider><PreferencesWizard /></AuthProvider>
+          } />
+
+          {/* Public legal & contact pages — no auth required */}
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/refund" element={<RefundPolicy />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/payments" element={<Checkout />} />
           <Route path="/" element={
             typeof window !== 'undefined' && (window as any).electronAPI
               ? <Navigate to="/dashboard" replace />
@@ -226,12 +342,13 @@ const App = () => {
                   <Sonner />
                   <AppWithTitleBar />
                   <QAAgent />
+                  {/* SupportBanner moved to Settings — no longer floating */}
                 </BrowserPanelProvider>
               </LogsProvider>
             </AuthProvider>
           } />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };

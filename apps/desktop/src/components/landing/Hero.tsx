@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import { DownloadSimple } from "@phosphor-icons/react";
 import LaunchAppButton from "./LaunchAppButton";
 
@@ -311,6 +311,47 @@ function AgentPane({ config, active, startDelay }: { config: AgentConfig; active
 }
 
 /* ------------------------------------------------------------------ */
+/*  Rotating word flip                                                 */
+/* ------------------------------------------------------------------ */
+
+const cyberWords = ["Warfare", "Defense", "Attack", "Exploit"];
+
+function RotatingWord() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % cyberWords.length);
+    }, 3000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <span className="inline-block text-left" style={{ width: "4.8em" }}>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={cyberWords[index]}
+          initial={{ rotateX: 90, opacity: 0, filter: "blur(8px)" }}
+          animate={{ rotateX: 0, opacity: 1, filter: "blur(0px)" }}
+          exit={{ rotateX: -90, opacity: 0, filter: "blur(8px)" }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="inline-block bg-clip-text text-transparent"
+          style={{
+            transformStyle: "preserve-3d",
+            perspective: "500px",
+            backgroundImage: "linear-gradient(135deg, #c084fc 0%, #f97316 50%, #ef4444 100%)",
+            backgroundSize: "200% 100%",
+            animation: "gradient-shift 4s ease-in-out infinite alternate",
+          }}
+        >
+          {cyberWords[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Hero                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -358,81 +399,70 @@ export default function Hero() {
         initial="hidden"
         animate="visible"
       >
-        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 mb-14">
-          {/* Crow logo — left */}
-          <motion.div variants={fadeUp} className="flex-shrink-0">
-            <motion.img
-              src="/crowbyte-crow.png"
-              alt="CrowByte"
-              className="w-[200px] sm:w-[260px] md:w-[320px] lg:w-[380px] drop-shadow-[0_0_40px_rgba(59,130,246,0.3)]"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </motion.div>
-
-          {/* Text — right */}
-          <div className="text-center md:text-left">
-            {/* Badge pill */}
-            <motion.div variants={fadeUp} className="flex justify-center md:justify-start mb-6">
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] backdrop-blur-sm">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75 animate-ping" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
-                </span>
-                <span className="font-['JetBrains_Mono'] text-xs text-zinc-300 tracking-wide">
-                  15 AI Agents. One Command.
-                </span>
-              </div>
-            </motion.div>
-
-            {/* Main headline — gradient text */}
-            <motion.h1
-              variants={fadeUp}
-              className="font-['JetBrains_Mono'] text-4xl sm:text-5xl md:text-[56px] font-bold leading-[1.08] tracking-tight bg-clip-text text-transparent"
+        <div className="flex flex-col items-center text-center mb-14">
+          {/* Main headline — animated gradient text */}
+          <motion.h1
+            variants={fadeUp}
+            className="font-['JetBrains_Mono'] text-4xl sm:text-5xl md:text-[56px] lg:text-[64px] font-bold leading-[1.08] tracking-tight"
+          >
+            <span
+              className="bg-clip-text text-transparent"
               style={{
                 backgroundImage: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 20%, #a78bfa 35%, #c084fc 45%, #f59e0b 60%, #f97316 80%, #ea580c 100%)",
+                backgroundSize: "200% 100%",
+                animation: "gradient-shift 4s ease-in-out infinite alternate",
               }}
             >
-              CrowByte
-              <br />
-              A New Era of
-              <br />
-              CyberWarfare.
-            </motion.h1>
-
-            {/* Subtitle */}
-            <motion.p
-              variants={fadeUp}
-              className="font-['JetBrains_Mono'] text-[14px] md:text-[15px] text-white/70 max-w-lg mt-6 leading-[1.8]"
-            >
-              Deploy autonomous agent swarms across your attack surface.
-              Recon, exploit, and report — simultaneously.
-            </motion.p>
-
-            {/* CTA buttons */}
-            <motion.div
-              variants={fadeUp}
-              className="mt-8 flex items-center justify-center md:justify-start gap-3"
-            >
-              {/* Primary CTA — orange pill with glow */}
-              <LaunchAppButton className="relative font-['JetBrains_Mono'] text-sm font-semibold bg-orange-500 hover:bg-orange-400 text-black px-7 py-3 rounded-full transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:scale-[1.02] active:scale-[0.98] overflow-hidden group">
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
-                <span className="relative z-10">Get Started</span>
-              </LaunchAppButton>
-
-              {/* Secondary CTA — ghost pill */}
-              <a
-                href="https://crowbyte.io/download"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] px-6 py-3 rounded-full transition-all duration-300 inline-flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+              CrowByte — A New Era
+            </span>
+            <br />
+            <span className="inline-block pl-[0.5em]">
+              <span
+                className="bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: "linear-gradient(135deg, #a78bfa 0%, #c084fc 30%, #f59e0b 60%, #f97316 90%)",
+                  backgroundSize: "200% 100%",
+                  animation: "gradient-shift 4s ease-in-out infinite alternate",
+                }}
               >
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                <DownloadSimple size={16} weight="bold" />
-                <span>Download Now</span>
-              </a>
-            </motion.div>
-          </div>
+                of Cyber
+              </span>
+              <RotatingWord />
+            </span>
+          </motion.h1>
+
+          {/* Subtitle */}
+          <motion.p
+            variants={fadeUp}
+            className="font-['JetBrains_Mono'] text-[14px] md:text-[15px] text-white/70 max-w-lg mt-6 leading-[1.8]"
+          >
+            Deploy autonomous agent swarms across your attack surface.
+            Recon, exploit, and report — simultaneously.
+          </motion.p>
+
+          {/* CTA buttons */}
+          <motion.div
+            variants={fadeUp}
+            className="mt-8 flex items-center justify-center gap-3"
+          >
+            {/* Primary CTA — orange pill with glow */}
+            <LaunchAppButton className="relative font-['JetBrains_Mono'] text-sm font-semibold bg-orange-500 hover:bg-orange-400 text-black px-7 py-3 rounded-full transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:scale-[1.02] active:scale-[0.98] overflow-hidden group">
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+              <span className="relative z-10">Get Started</span>
+            </LaunchAppButton>
+
+            {/* Secondary CTA — ghost pill */}
+            <a
+              href="https://crowbyte.io/download"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] px-6 py-3 rounded-full transition-all duration-300 inline-flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+            >
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              <DownloadSimple size={16} weight="bold" />
+              <span>Download Now</span>
+            </a>
+          </motion.div>
         </div>
 
         {/* Terminal — scale + fade in */}

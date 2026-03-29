@@ -120,7 +120,7 @@ function generateId(): string {
 
 function getCurrentPage(): string {
   try {
-    return window.location.hash || '#/';
+    return window.location.pathname || '/';
   } catch {
     return 'unknown';
   }
@@ -165,6 +165,7 @@ class ErrorMonitor {
   private auditTimer: ReturnType<typeof setTimeout> | null = null;
   private flushTimer: ReturnType<typeof setInterval> | null = null;
   private active = false;
+  private paused = false;
   private originalConsoleError: typeof console.error | null = null;
   private originalFetch: typeof window.fetch | null = null;
   private lastNavigationTimestamp: number | null = null;
@@ -184,6 +185,14 @@ class ErrorMonitor {
     // Guard against non-browser environments
     if (typeof window === 'undefined') return;
 
+    // Check if monitoring is disabled via settings
+    if (localStorage.getItem('error_monitor_enabled') === 'false') {
+      this.paused = true;
+      // Still listen for re-enable events
+      this.listenForToggle();
+      return;
+    }
+
     this.active = true;
     this.interceptConsoleError();
     this.interceptWindowError();
@@ -192,11 +201,23 @@ class ErrorMonitor {
     this.interceptNavigation();
     this.interceptClicks();
     this.startFlushTimer();
+    this.listenForToggle();
+  }
+
+  private listenForToggle(): void {
+    if (typeof window === 'undefined') return;
+    window.addEventListener('crowbyte:debugger-toggle', ((e: CustomEvent) => {
+      const { errorMonitor } = e.detail || {};
+      if (typeof errorMonitor === 'boolean') {
+        this.paused = !errorMonitor;
+      }
+    }) as EventListener);
   }
 
   // ---- Internal: buffer management ----
 
   private addError(entry: ErrorEntry): void {
+    if (this.paused) return;
     this.errors.push(entry);
     this.pendingErrors.push(entry);
 
@@ -206,6 +227,7 @@ class ErrorMonitor {
   }
 
   private addNetworkEntry(entry: NetworkEntry): void {
+    if (this.paused) return;
     this.networkLog.push(entry);
     this.pendingNetwork.push(entry);
 
@@ -215,6 +237,7 @@ class ErrorMonitor {
   }
 
   private addNavigationEntry(entry: NavigationEntry): void {
+    if (this.paused) return;
     this.navigationLog.push(entry);
     this.pendingNavigation.push(entry);
 
@@ -224,6 +247,7 @@ class ErrorMonitor {
   }
 
   private addMisclickEntry(entry: MisclickEntry): void {
+    if (this.paused) return;
     this.misclickLog.push(entry);
     this.pendingMisclicks.push(entry);
 
@@ -679,6 +703,7 @@ class ErrorMonitor {
   private auditSeen = new Set<string>(); // dedup by rule+selector+page
 
   private addAuditEntry(entry: UIAuditEntry): void {
+    if (this.paused) return;
     // Dedup: skip if same rule + selector + page already logged
     const key = `${entry.rule}::${entry.selector}::${entry.page}`;
     if (this.auditSeen.has(key)) return;

@@ -14,7 +14,7 @@ export default function LaunchAppButton({ className, children }: LaunchAppButton
   const handleClick = useCallback(() => {
     // In Electron, skip the modal — navigate directly
     if (window.navigator.userAgent.includes("Electron")) {
-      window.location.hash = "#/dashboard";
+      window.location.href = "/dashboard";
       return;
     }
 
@@ -24,7 +24,7 @@ export default function LaunchAppButton({ className, children }: LaunchAppButton
 
   const openWebApp = useCallback(() => {
     setShowModal(false);
-    window.location.hash = "#/auth";
+    window.location.href = "/auth";
   }, []);
 
   return (

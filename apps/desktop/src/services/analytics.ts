@@ -43,27 +43,10 @@ class AnalyticsService {
   /**
    * Log an activity
    */
-  async logActivity(activity: Omit<ActivityLog, 'id' | 'user_id' | 'created_at'>): Promise<void> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.warn('Cannot log activity: User not authenticated');
-        return;
-      }
-
-      await supabase
-        .from('activity_logs')
-        .insert({
-          user_id: user.id,
-          ...activity,
-          ip_address: activity.ip_address || null,
-          user_agent: activity.user_agent || navigator.userAgent,
-        });
-
-      // Activity logging is best-effort — silently ignore failures
-    } catch {
-      // Non-critical: swallow activity log errors
-    }
+  async logActivity(_activity: Omit<ActivityLog, 'id' | 'user_id' | 'created_at'>): Promise<void> {
+    // activity_logs table does not exist in Supabase yet — skip insert to avoid 400 spam
+    // TODO: create activity_logs table in Supabase, then re-enable
+    return;
   }
 
   /**

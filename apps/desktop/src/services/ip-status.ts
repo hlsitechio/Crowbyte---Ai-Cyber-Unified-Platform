@@ -57,15 +57,21 @@ class IPStatusService {
   private cacheTimeout = 5 * 60 * 1000; // 5 minutes
   private lastCheck: Date | null = null;
 
+  /** Whether we're running in a browser (not Electron) — needs proxy for CORS */
+  private get isWeb(): boolean {
+    return typeof window !== 'undefined' && !(window as any).electronAPI;
+  }
+
   /**
-   * Fetch IP information from ipinfo.io (free, CORS-friendly)
+   * Fetch IP information from ipinfo.io (via proxy on web, direct on Electron)
    */
   private async fetchIPInfo(): Promise<Partial<IPStatusData>> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     try {
-      const response = await fetch('https://ipinfo.io/json', {
+      const url = this.isWeb ? '/api/proxy/ip' : 'https://ipinfo.io/json';
+      const response = await fetch(url, {
         method: 'GET',
         signal: controller.signal,
         headers: { 'Accept': 'application/json' },
@@ -220,7 +226,14 @@ class IPStatusService {
     debugLog('🔄 === STARTING IP FETCH WITH FALLBACKS ===');
 
     const services = [
-      // High reliability JSON services
+      // Server-side proxy (works on web, bypasses CORS)
+      ...(this.isWeb ? [{
+        name: 'proxy',
+        url: '/api/proxy/ip',
+        extract: (data: { ip: string }) => data.ip,
+        isJSON: true as const,
+      }] : []),
+      // High reliability JSON services (direct — Electron only)
       {
         name: 'api.ipify.org',
         url: 'https://api.ipify.org?format=json',

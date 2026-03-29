@@ -6,9 +6,15 @@
  * Discord-style installer: silent NSIS → app handles onboarding on first run
  */
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, nativeImage } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+
+// Resolve icon path — works in both dev and packaged
+const iconPath = path.join(__dirname, '../public/icon.png');
+const appIcon = fs.existsSync(iconPath)
+  ? nativeImage.createFromPath(iconPath)
+  : undefined;
 
 let mainWindow: BrowserWindow | null;
 
@@ -57,7 +63,7 @@ function createOnboardingWindow(): void {
       nodeIntegration: false,
       sandbox: false,
     },
-    icon: path.join(__dirname, '../public/icon.png'),
+    icon: appIcon,
     backgroundColor: '#00000000',
     titleBarStyle: 'hidden',
     skipTaskbar: false,
@@ -88,7 +94,7 @@ function createMainWindow(): void {
       sandbox: false,
     },
     autoHideMenuBar: false,
-    icon: path.join(__dirname, '../public/icon.png'),
+    icon: appIcon,
   });
 
   const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
@@ -130,6 +136,11 @@ ipcMain.handle('onboarding:skip', () => {
 // ─── App Lifecycle ──────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
+  // Set dock/taskbar icon explicitly on Linux
+  if (appIcon && process.platform === 'linux') {
+    app.setBadgeCount(0); // forces icon refresh on some DEs
+  }
+
   console.log('\n' + '='.repeat(70));
   console.log('  CrowByte - AI-Powered Cybersecurity Terminal');
   console.log('  by HLSITech | https://crowbyte.io');

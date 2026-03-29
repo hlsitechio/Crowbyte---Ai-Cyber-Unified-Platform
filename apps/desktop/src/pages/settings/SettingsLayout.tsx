@@ -1,10 +1,9 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { User as UserIcon, GearSix, Brain, TreeStructure, Wrench, Database, Flask, ShieldCheck, Plugs, SlidersHorizontal } from "@phosphor-icons/react";
+import { User as UserIcon, GearSix, TreeStructure, Wrench, Database, Flask, ShieldCheck, Plugs, SlidersHorizontal } from "@phosphor-icons/react";
 
 const settingsNav = [
   { label: "Profile", path: "/settings/profile", icon: UserIcon },
   { label: "General", path: "/settings/general", icon: GearSix },
-  { label: "LLM Models", path: "/settings/llm", icon: Brain },
   { label: "MCP Connectors", path: "/settings/mcp", icon: TreeStructure },
   { label: "AI Tools", path: "/settings/tools", icon: Wrench },
   { label: "Memory", path: "/settings/memory", icon: Database },

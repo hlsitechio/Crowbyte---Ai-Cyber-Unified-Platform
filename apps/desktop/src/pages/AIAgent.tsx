@@ -92,37 +92,51 @@ function extractDomain(url: string): string {
 }
 
 function generateFollowUps(query: string, sources: Source[]): string[] {
+  // Extract meaningful multi-word phrases from source titles (not random single words)
+  const stopWords = new Set(['the','this','that','with','from','about','have','been','and','for','are','was','were','has','its','new','how','what','why','who','all','can','will','may','more','most','than','into','over','also','but','not','our','your','them','their','some','any','each','both','few','many','much','such','very','just','only']);
+
+  const titles = sources.slice(0, 5).map(s => s.title);
+  const keyPhrases = titles
+    .flatMap(t => {
+      // Extract 2-3 word phrases that look like real topics
+      const words = t.split(/[\s\-:,|]+/).filter(w => w.length > 2 && !stopWords.has(w.toLowerCase()));
+      const phrases: string[] = [];
+      for (let i = 0; i < words.length - 1; i++) {
+        if (words[i] && words[i+1] && !stopWords.has(words[i].toLowerCase())) {
+          phrases.push(`${words[i]} ${words[i+1]}`);
+        }
+      }
+      return phrases;
+    })
+    .filter(p => p.length > 5)
+    .slice(0, 5);
+
   const suggestions: string[] = [];
-  // Extract key terms from source titles
-  const titleWords = sources
-    .slice(0, 3)
-    .flatMap((s) => s.title.split(/\s+/))
-    .filter((w) => w.length > 4 && !/^(https?|the|this|that|with|from|about|have|been)$/i.test(w))
-    .map((w) => w.replace(/[^a-zA-Z0-9-]/g, ""));
 
-  const unique = [...new Set(titleWords)];
+  // Generate contextual security follow-ups
+  const queryLower = query.toLowerCase();
 
-  // Pattern 1: "What is [term]?"
-  if (unique[0]) suggestions.push(`What is ${unique[0]}?`);
-  // Pattern 2: "How does [term] work?"
-  if (unique[1]) suggestions.push(`How does ${unique[1]} work?`);
-  // Pattern 3: "[term] vulnerabilities"
-  if (unique[2]) {
-    suggestions.push(`${unique[2]} vulnerabilities`);
-  } else if (unique[0]) {
-    suggestions.push(`${query} mitigation strategies`);
-  }
-
-  // Fallbacks
-  if (suggestions.length < 3) {
-    const fallbacks = [
-      `${query} — deeper analysis`,
-      `${query} exploit proof of concept`,
-      `${query} defense and mitigation`,
-    ];
-    while (suggestions.length < 3 && fallbacks.length) {
-      suggestions.push(fallbacks.shift()!);
-    }
+  if (queryLower.includes('cve') || queryLower.includes('vulnerabilit')) {
+    suggestions.push(`Exploit PoC and active exploitation status`);
+    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — patch availability and mitigations`);
+    suggestions.push(`Related CVEs and attack chain analysis`);
+  } else if (queryLower.includes('malware') || queryLower.includes('ransomware')) {
+    suggestions.push(`IOCs and detection signatures for these campaigns`);
+    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — MITRE ATT&CK mapping`);
+    suggestions.push(`Incident response playbook for this threat`);
+  } else if (queryLower.includes('apt') || queryLower.includes('threat actor')) {
+    suggestions.push(`TTPs and infrastructure used by these groups`);
+    suggestions.push(`Recent campaigns targeting my industry`);
+    suggestions.push(`Detection rules and hunting queries`);
+  } else if (queryLower.includes('exploit') || queryLower.includes('attack')) {
+    suggestions.push(`Defense and mitigation strategies`);
+    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — technical deep dive`);
+    suggestions.push(`Similar attack techniques and variants`);
+  } else {
+    // Generic security follow-ups based on extracted topics
+    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — deeper technical analysis`);
+    if (keyPhrases[1]) suggestions.push(`${keyPhrases[1]} — impact and remediation`);
+    suggestions.push(`${query} — latest developments and advisories`);
   }
 
   return suggestions.slice(0, 3);

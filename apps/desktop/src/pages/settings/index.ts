@@ -1,7 +1,6 @@
 export { default as SettingsLayout } from "./SettingsLayout";
 export { default as ProfileSettings } from "./ProfileSettings";
 export { default as GeneralSettings } from "./GeneralSettings";
-export { default as LLMSettings } from "./LLMSettings";
 export { default as MCPSettings } from "./MCPSettings";
 export { default as ToolsSettings } from "./ToolsSettings";
 export { default as MemorySettings } from "./MemorySettings";

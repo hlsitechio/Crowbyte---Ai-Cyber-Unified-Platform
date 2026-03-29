@@ -5,7 +5,7 @@
  * "87% of incidents require 2+ data sources. We unify them all."
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,15 +57,16 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 
-import type {
-  Alert,
-  AlertSource,
-  AlertStatus,
-  SourceType,
-  SourceStatus,
-  InvestigationTimeline,
-  TimelineEvent,
-  CorrelationGroup,
+import {
+  alertIngestion,
+  type Alert,
+  type AlertSource,
+  type AlertStatus,
+  type SourceType,
+  type SourceStatus,
+  type InvestigationTimeline,
+  type TimelineEvent,
+  type CorrelationGroup,
 } from "@/services/alert-ingestion";
 
 // ─── Severity Colors ────────────────────────────────────────────────────────
@@ -92,6 +93,11 @@ const SEVERITY_COLORS: Record<string, { badge: string; dot: string; text: string
     text: "text-blue-400",
   },
   info: {
+    badge: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+    dot: "bg-zinc-500",
+    text: "text-zinc-400",
+  },
+  informational: {
     badge: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
     dot: "bg-zinc-500",
     text: "text-zinc-400",
@@ -138,554 +144,6 @@ const TIMELINE_STATUS_COLORS: Record<string, string> = {
   archived: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
 };
 
-// ─── Mock Data ──────────────────────────────────────────────────────────────
-
-const MOCK_ALERTS: Alert[] = [
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000001",
-    user_id: "user-1",
-    source_id: "src-splunk-01",
-    title: "Suspicious PowerShell Execution with Encoded Command",
-    description: "PowerShell.exe invoked with -EncodedCommand flag from non-standard parent process (explorer.exe → cmd.exe → powershell.exe). Base64 payload decoded to IEX (New-Object Net.WebClient).DownloadString targeting external C2.",
-    severity: "critical",
-    source_type: "splunk",
-    original_id: "SPL-2026-44821",
-    original_data: { search_name: "Encoded PowerShell Detection", severity: "critical", host: "PROD-WEB-01", _time: "2026-03-26T02:14:33Z" },
-    affected_host: "PROD-WEB-01",
-    affected_user: "svc_deploy",
-    source_ip: "10.0.4.22",
-    dest_ip: "185.220.101.34",
-    mitre_tactics: ["Execution", "Command and Control"],
-    mitre_techniques: ["T1059.001", "T1071.001"],
-    status: "new",
-    correlation_group_id: "cg-001",
-    alert_time: "2026-03-26T02:14:33Z",
-    ingested_at: "2026-03-26T02:14:35Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000002",
-    user_id: "user-1",
-    source_id: "src-cs-01",
-    title: "CrowdStrike: Credential Dumping via LSASS Memory Access",
-    description: "Process mimikatz.exe attempted to access LSASS process memory. Credential theft technique detected on domain controller.",
-    severity: "critical",
-    source_type: "crowdstrike",
-    original_id: "CS-DET-88412",
-    original_data: { display_name: "LSASS Memory Access", max_severity: 95, hostname: "DC-PRIMARY-01" },
-    affected_host: "DC-PRIMARY-01",
-    affected_user: "SYSTEM",
-    source_ip: "10.0.1.5",
-    mitre_tactics: ["Credential Access"],
-    mitre_techniques: ["T1003.001"],
-    status: "triaging",
-    assigned_to: "analyst-1",
-    alert_time: "2026-03-26T01:58:11Z",
-    ingested_at: "2026-03-26T01:58:14Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000003",
-    user_id: "user-1",
-    source_id: "src-elastic-01",
-    title: "Brute Force Login Attempts Detected — 847 Failed Auth in 5min",
-    description: "Elastic SIEM detected 847 failed authentication attempts against SSH service from single source IP within a 5-minute window. Threshold: 50/5min.",
-    severity: "high",
-    source_type: "elastic",
-    original_id: "EL-RULE-3391",
-    original_data: { "rule.name": "Brute Force Detection", "rule.severity": "high", "host.name": "PROD-SSH-GW-01" },
-    affected_host: "PROD-SSH-GW-01",
-    source_ip: "45.155.205.99",
-    dest_ip: "10.0.2.10",
-    mitre_tactics: ["Credential Access", "Initial Access"],
-    mitre_techniques: ["T1110.001", "T1078"],
-    status: "new",
-    alert_time: "2026-03-26T03:22:07Z",
-    ingested_at: "2026-03-26T03:22:09Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000004",
-    user_id: "user-1",
-    source_id: "src-sentinel-01",
-    title: "Azure Sentinel: Anomalous Service Principal Activity",
-    description: "Service principal 'sp-deploy-prod' performed 23 role assignments across 8 subscriptions in 2 minutes. Normal baseline: 0-2 assignments per day.",
-    severity: "high",
-    source_type: "sentinel",
-    original_id: "SENT-INC-7821",
-    original_data: { AlertName: "Anomalous SP Activity", Severity: "High", CompromisedEntity: "sp-deploy-prod" },
-    affected_host: "AZURE-MGMT",
-    affected_user: "sp-deploy-prod",
-    mitre_tactics: ["Privilege Escalation", "Persistence"],
-    mitre_techniques: ["T1548.002", "T1098"],
-    status: "new",
-    alert_time: "2026-03-26T04:05:19Z",
-    ingested_at: "2026-03-26T04:05:22Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000005",
-    user_id: "user-1",
-    source_id: "src-splunk-01",
-    title: "Lateral Movement: SMB Admin Share Access from Non-Admin Workstation",
-    description: "User jdoe accessed \\\\DB-MASTER-02\\C$ from workstation WS-SALES-14. User is not in Domain Admins group. Possible compromised credential.",
-    severity: "high",
-    source_type: "splunk",
-    original_id: "SPL-2026-44830",
-    original_data: { search_name: "SMB Lateral Movement", severity: "high", host: "DB-MASTER-02" },
-    affected_host: "DB-MASTER-02",
-    affected_user: "jdoe",
-    source_ip: "10.0.8.114",
-    dest_ip: "10.0.3.20",
-    mitre_tactics: ["Lateral Movement"],
-    mitre_techniques: ["T1021.002"],
-    status: "new",
-    correlation_group_id: "cg-002",
-    alert_time: "2026-03-26T02:31:45Z",
-    ingested_at: "2026-03-26T02:31:48Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000006",
-    user_id: "user-1",
-    source_id: "src-syslog-01",
-    title: "Firewall: Outbound Connection to Known C2 Infrastructure",
-    description: "Palo Alto firewall logged outbound connection to 91.215.85.142 (ThreatFeed: Cobalt Strike C2) from internal host PROD-WEB-01 on port 443/tcp.",
-    severity: "critical",
-    source_type: "syslog",
-    original_id: "FW-LOG-9928341",
-    original_data: { message: "THREAT C2 Outbound", hostname: "PA-FW-01", severity: 2 },
-    affected_host: "PROD-WEB-01",
-    source_ip: "10.0.4.22",
-    dest_ip: "91.215.85.142",
-    mitre_tactics: ["Command and Control"],
-    mitre_techniques: ["T1071.001", "T1573"],
-    status: "new",
-    correlation_group_id: "cg-001",
-    alert_time: "2026-03-26T02:15:01Z",
-    ingested_at: "2026-03-26T02:15:04Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000007",
-    user_id: "user-1",
-    source_id: "src-cs-01",
-    title: "CrowdStrike: Suspicious DLL Side-Loading Detected",
-    description: "Legitimate signed binary used to load unsigned DLL from temp directory. Process: C:\\Windows\\System32\\msiexec.exe loading C:\\Users\\Public\\malware.dll.",
-    severity: "high",
-    source_type: "crowdstrike",
-    original_id: "CS-DET-88445",
-    original_data: { display_name: "DLL Side-Loading", max_severity: 72, hostname: "WS-DEV-03" },
-    affected_host: "WS-DEV-03",
-    affected_user: "dev_admin",
-    source_ip: "10.0.6.33",
-    mitre_tactics: ["Defense Evasion", "Execution"],
-    mitre_techniques: ["T1574.002", "T1059"],
-    status: "new",
-    alert_time: "2026-03-26T03:41:22Z",
-    ingested_at: "2026-03-26T03:41:25Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000008",
-    user_id: "user-1",
-    source_id: "src-webhook-01",
-    title: "GitHub: Secrets Detected in Push to Public Repository",
-    description: "GitHub Advanced Security detected AWS access key (AKIA*****) and database connection string in commit abc123f pushed to public repo org/infrastructure.",
-    severity: "critical",
-    source_type: "webhook",
-    original_id: "GH-SEC-2026-1141",
-    original_data: { title: "Secret scanning alert", severity: "critical", target: "github.com/org/infrastructure" },
-    affected_host: "github.com/org/infrastructure",
-    affected_user: "dev_intern",
-    mitre_tactics: ["Credential Access", "Collection"],
-    mitre_techniques: ["T1552.001"],
-    status: "new",
-    alert_time: "2026-03-26T05:02:33Z",
-    ingested_at: "2026-03-26T05:02:35Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000009",
-    user_id: "user-1",
-    source_id: "src-elastic-01",
-    title: "DNS Tunneling Activity Detected — High Entropy Subdomains",
-    description: "DNS resolver logged queries with high-entropy subdomains (avg 4.2 bits/char) to domain data.evil-tunnel.xyz. Pattern consistent with DNS data exfiltration.",
-    severity: "medium",
-    source_type: "elastic",
-    original_id: "EL-RULE-3405",
-    original_data: { "rule.name": "DNS Tunneling Detection", "rule.severity": "medium", "host.name": "PROD-APP-02" },
-    affected_host: "PROD-APP-02",
-    source_ip: "10.0.5.18",
-    dest_ip: "8.8.8.8",
-    mitre_tactics: ["Exfiltration", "Command and Control"],
-    mitre_techniques: ["T1048.003", "T1071.004"],
-    status: "triaging",
-    assigned_to: "analyst-2",
-    alert_time: "2026-03-26T01:12:44Z",
-    ingested_at: "2026-03-26T01:12:47Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000010",
-    user_id: "user-1",
-    source_id: "src-splunk-01",
-    title: "Scheduled Task Created for Persistence — SYSTEM Context",
-    description: "schtasks.exe created task 'WindowsUpdate' running as SYSTEM, pointing to C:\\ProgramData\\update.exe. Non-standard binary path detected.",
-    severity: "high",
-    source_type: "splunk",
-    original_id: "SPL-2026-44842",
-    original_data: { search_name: "Persistence Scheduled Task", severity: "high", host: "PROD-WEB-01" },
-    affected_host: "PROD-WEB-01",
-    source_ip: "10.0.4.22",
-    mitre_tactics: ["Persistence", "Execution"],
-    mitre_techniques: ["T1053.005"],
-    status: "new",
-    correlation_group_id: "cg-001",
-    alert_time: "2026-03-26T02:18:55Z",
-    ingested_at: "2026-03-26T02:18:58Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000011",
-    user_id: "user-1",
-    source_id: "src-sentinel-01",
-    title: "Azure AD: Impossible Travel — Login from Two Countries in 3min",
-    description: "User maria.garcia logged in from Frankfurt, DE (IP: 3.120.x.x) and Lagos, NG (IP: 102.89.x.x) within 3 minutes. Physical distance: 5,100 km.",
-    severity: "medium",
-    source_type: "sentinel",
-    original_id: "SENT-INC-7834",
-    original_data: { AlertName: "Impossible Travel", Severity: "Medium", CompromisedEntity: "maria.garcia@corp.com" },
-    affected_host: "AZURE-AD",
-    affected_user: "maria.garcia@corp.com",
-    source_ip: "102.89.44.12",
-    mitre_tactics: ["Initial Access"],
-    mitre_techniques: ["T1078.004"],
-    status: "new",
-    alert_time: "2026-03-26T04:33:18Z",
-    ingested_at: "2026-03-26T04:33:21Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000012",
-    user_id: "user-1",
-    source_id: "src-cs-01",
-    title: "CrowdStrike: Ransomware Behavior — Mass File Encryption",
-    description: "Process vssadmin.exe deleted shadow copies followed by rapid file rename operations (.encrypted extension) across 14 network shares. Kill chain: T1490 → T1486.",
-    severity: "critical",
-    source_type: "crowdstrike",
-    original_id: "CS-DET-88501",
-    original_data: { display_name: "Ransomware Behavior", max_severity: 100, hostname: "FILE-SRV-01" },
-    affected_host: "FILE-SRV-01",
-    affected_user: "SYSTEM",
-    source_ip: "10.0.3.50",
-    mitre_tactics: ["Impact"],
-    mitre_techniques: ["T1486", "T1490"],
-    status: "escalated",
-    finding_id: "finding-001",
-    alert_time: "2026-03-26T05:11:02Z",
-    ingested_at: "2026-03-26T05:11:05Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000013",
-    user_id: "user-1",
-    source_id: "src-syslog-01",
-    title: "IDS: SQL Injection Attempt Against Production API",
-    description: "Suricata IDS triggered rule SID:2024897 — SQL injection pattern detected in HTTP POST body to /api/v2/users/search endpoint. Payload: ' OR 1=1; DROP TABLE--",
-    severity: "medium",
-    source_type: "syslog",
-    original_id: "SURI-2024897-41",
-    original_data: { message: "SQL Injection Attempt", hostname: "IDS-01", severity: 4 },
-    affected_host: "PROD-API-01",
-    source_ip: "194.26.135.78",
-    dest_ip: "10.0.2.5",
-    mitre_tactics: ["Initial Access"],
-    mitre_techniques: ["T1190"],
-    status: "resolved",
-    resolved_at: "2026-03-26T04:00:00Z",
-    alert_time: "2026-03-26T03:55:22Z",
-    ingested_at: "2026-03-26T03:55:25Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000014",
-    user_id: "user-1",
-    source_id: "src-webhook-01",
-    title: "Datadog: Anomalous Outbound Data Transfer — 4.7GB in 12min",
-    description: "Datadog monitor triggered on PROD-DB-02: 4.7GB data transferred to external IP 185.143.223.x over port 8443. Normal baseline: <100MB/hour.",
-    severity: "high",
-    source_type: "webhook",
-    original_id: "DD-MON-2026-441",
-    original_data: { title: "Anomalous Outbound Transfer", severity: "high", target: "PROD-DB-02" },
-    affected_host: "PROD-DB-02",
-    source_ip: "10.0.3.21",
-    dest_ip: "185.143.223.88",
-    mitre_tactics: ["Exfiltration"],
-    mitre_techniques: ["T1048.001"],
-    status: "new",
-    alert_time: "2026-03-26T04:45:11Z",
-    ingested_at: "2026-03-26T04:45:14Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000015",
-    user_id: "user-1",
-    source_id: "src-elastic-01",
-    title: "Process Injection via CreateRemoteThread on svchost.exe",
-    description: "Elastic Endpoint detected CreateRemoteThread API call targeting svchost.exe (PID 4412) from unknown process C:\\Temp\\loader.exe. Shellcode injection suspected.",
-    severity: "critical",
-    source_type: "elastic",
-    original_id: "EL-RULE-3412",
-    original_data: { "rule.name": "Process Injection Detection", "rule.severity": "critical", "host.name": "PROD-WEB-01" },
-    affected_host: "PROD-WEB-01",
-    source_ip: "10.0.4.22",
-    mitre_tactics: ["Defense Evasion", "Privilege Escalation"],
-    mitre_techniques: ["T1055.003"],
-    status: "new",
-    correlation_group_id: "cg-001",
-    alert_time: "2026-03-26T02:16:12Z",
-    ingested_at: "2026-03-26T02:16:15Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000016",
-    user_id: "user-1",
-    source_id: "src-syslog-01",
-    title: "VPN: Concurrent Sessions from Different Geolocations",
-    description: "User admin_ops has active VPN sessions from US (NY) and RU (Moscow) simultaneously. Session IDs: VPN-88412, VPN-88419.",
-    severity: "medium",
-    source_type: "syslog",
-    original_id: "VPN-ALERT-8841",
-    original_data: { message: "Concurrent VPN geo-anomaly", hostname: "VPN-GW-01", severity: 4 },
-    affected_host: "VPN-GW-01",
-    affected_user: "admin_ops",
-    source_ip: "178.62.11.44",
-    mitre_tactics: ["Initial Access"],
-    mitre_techniques: ["T1078"],
-    status: "false_positive",
-    resolved_at: "2026-03-26T05:30:00Z",
-    alert_time: "2026-03-26T05:15:33Z",
-    ingested_at: "2026-03-26T05:15:36Z",
-  },
-  {
-    id: "a1b2c3d4-0001-4000-a000-000000000017",
-    user_id: "user-1",
-    source_id: "src-splunk-01",
-    title: "Windows Event: New Local Admin Account Created",
-    description: "Event ID 4720 followed by 4732 — new user 'support_tmp' added to local Administrators group on DB-MASTER-02. Created by user jdoe.",
-    severity: "high",
-    source_type: "splunk",
-    original_id: "SPL-2026-44855",
-    original_data: { search_name: "Local Admin Creation", severity: "high", host: "DB-MASTER-02" },
-    affected_host: "DB-MASTER-02",
-    affected_user: "jdoe",
-    source_ip: "10.0.8.114",
-    mitre_tactics: ["Persistence", "Privilege Escalation"],
-    mitre_techniques: ["T1136.001", "T1078.003"],
-    status: "new",
-    correlation_group_id: "cg-002",
-    alert_time: "2026-03-26T02:33:10Z",
-    ingested_at: "2026-03-26T02:33:13Z",
-  },
-];
-
-const MOCK_SOURCES: AlertSource[] = [
-  {
-    id: "src-splunk-01",
-    user_id: "user-1",
-    name: "Splunk Enterprise (PROD)",
-    source_type: "splunk",
-    connection_config: { url: "https://splunk.corp.internal:8089", poll_interval_ms: 30000 },
-    status: "connected",
-    last_seen_at: "2026-03-26T05:14:00Z",
-    alerts_ingested: 1847,
-    created_at: "2026-01-15T10:00:00Z",
-    updated_at: "2026-03-26T05:14:00Z",
-  },
-  {
-    id: "src-elastic-01",
-    user_id: "user-1",
-    name: "Elastic SIEM Cluster",
-    source_type: "elastic",
-    connection_config: { url: "https://elastic.corp.internal:9200", index: ".siem-signals-*" },
-    status: "connected",
-    last_seen_at: "2026-03-26T05:13:45Z",
-    alerts_ingested: 2341,
-    created_at: "2026-01-20T14:30:00Z",
-    updated_at: "2026-03-26T05:13:45Z",
-  },
-  {
-    id: "src-cs-01",
-    user_id: "user-1",
-    name: "CrowdStrike Falcon",
-    source_type: "crowdstrike",
-    connection_config: { url: "https://api.crowdstrike.com", client_id: "cs-client-prod" },
-    status: "connected",
-    last_seen_at: "2026-03-26T05:12:30Z",
-    alerts_ingested: 956,
-    created_at: "2026-02-01T09:00:00Z",
-    updated_at: "2026-03-26T05:12:30Z",
-  },
-  {
-    id: "src-sentinel-01",
-    user_id: "user-1",
-    name: "Microsoft Sentinel",
-    source_type: "sentinel",
-    connection_config: { workspace_id: "ws-prod-001", poll_interval_ms: 60000 },
-    status: "error",
-    last_seen_at: "2026-03-26T03:45:00Z",
-    alerts_ingested: 412,
-    error_message: "Token expired — re-authenticate via Azure AD",
-    created_at: "2026-02-10T11:00:00Z",
-    updated_at: "2026-03-26T03:45:00Z",
-  },
-  {
-    id: "src-syslog-01",
-    user_id: "user-1",
-    name: "Syslog Collector (PA/Suricata)",
-    source_type: "syslog",
-    connection_config: { port: 514 },
-    status: "connected",
-    last_seen_at: "2026-03-26T05:14:10Z",
-    alerts_ingested: 5629,
-    created_at: "2025-12-01T08:00:00Z",
-    updated_at: "2026-03-26T05:14:10Z",
-  },
-  {
-    id: "src-webhook-01",
-    user_id: "user-1",
-    name: "Webhook Receiver (GitHub/Datadog)",
-    source_type: "webhook",
-    connection_config: { url: "https://crowbyte.internal/api/webhooks/ingest" },
-    status: "connected",
-    last_seen_at: "2026-03-26T05:02:35Z",
-    alerts_ingested: 234,
-    created_at: "2026-03-01T16:00:00Z",
-    updated_at: "2026-03-26T05:02:35Z",
-  },
-];
-
-const MOCK_INVESTIGATIONS: InvestigationTimeline[] = [
-  {
-    id: "inv-001",
-    user_id: "user-1",
-    name: "PROD-WEB-01 Full Compromise Investigation",
-    description: "Multi-stage attack on PROD-WEB-01: initial access via encoded PowerShell, C2 callback to Cobalt Strike, process injection into svchost, scheduled task persistence. Active incident response.",
-    alert_ids: ["a1b2c3d4-0001-4000-a000-000000000001", "a1b2c3d4-0001-4000-a000-000000000006", "a1b2c3d4-0001-4000-a000-000000000010", "a1b2c3d4-0001-4000-a000-000000000015"],
-    finding_ids: [],
-    timeline_events: [
-      { id: "evt-1", timestamp: "2026-03-26T02:14:33Z", source: "splunk", event_type: "alert", title: "Encoded PowerShell execution detected", severity: "critical" },
-      { id: "evt-2", timestamp: "2026-03-26T02:15:01Z", source: "syslog", event_type: "alert", title: "Outbound C2 connection to 91.215.85.142", severity: "critical" },
-      { id: "evt-3", timestamp: "2026-03-26T02:16:12Z", source: "elastic", event_type: "alert", title: "Process injection into svchost.exe", severity: "critical" },
-      { id: "evt-4", timestamp: "2026-03-26T02:18:55Z", source: "splunk", event_type: "alert", title: "Persistence via scheduled task 'WindowsUpdate'", severity: "high" },
-      { id: "evt-5", timestamp: "2026-03-26T02:30:00Z", source: "manual", event_type: "note", title: "IR team notified — host isolated from network", severity: "info" },
-      { id: "evt-6", timestamp: "2026-03-26T03:00:00Z", source: "manual", event_type: "action", title: "Memory dump acquired for forensic analysis", severity: "info" },
-    ],
-    status: "active",
-    severity: "critical",
-    lead_analyst: "analyst-1",
-    created_at: "2026-03-26T02:20:00Z",
-    updated_at: "2026-03-26T03:00:00Z",
-  },
-  {
-    id: "inv-002",
-    user_id: "user-1",
-    name: "DB-MASTER-02 Lateral Movement Chain",
-    description: "User jdoe's credentials appear compromised. SMB admin share access from non-admin workstation followed by local admin account creation on database server.",
-    alert_ids: ["a1b2c3d4-0001-4000-a000-000000000005", "a1b2c3d4-0001-4000-a000-000000000017"],
-    finding_ids: [],
-    timeline_events: [
-      { id: "evt-7", timestamp: "2026-03-26T02:31:45Z", source: "splunk", event_type: "alert", title: "SMB C$ access from WS-SALES-14 to DB-MASTER-02", severity: "high" },
-      { id: "evt-8", timestamp: "2026-03-26T02:33:10Z", source: "splunk", event_type: "alert", title: "Local admin 'support_tmp' created on DB-MASTER-02", severity: "high" },
-      { id: "evt-9", timestamp: "2026-03-26T02:40:00Z", source: "manual", event_type: "note", title: "jdoe's password reset — forced MFA re-enrollment", severity: "info" },
-    ],
-    status: "active",
-    severity: "high",
-    lead_analyst: "analyst-2",
-    created_at: "2026-03-26T02:35:00Z",
-    updated_at: "2026-03-26T02:40:00Z",
-  },
-  {
-    id: "inv-003",
-    user_id: "user-1",
-    name: "Ransomware Containment — FILE-SRV-01",
-    description: "CrowdStrike detected ransomware behavior on FILE-SRV-01. Shadow copies deleted, mass file encryption across 14 shares. Host isolated. Backups verified.",
-    alert_ids: ["a1b2c3d4-0001-4000-a000-000000000012"],
-    finding_ids: ["finding-001"],
-    timeline_events: [
-      { id: "evt-10", timestamp: "2026-03-26T05:11:02Z", source: "crowdstrike", event_type: "alert", title: "Ransomware behavior detected — mass encryption", severity: "critical" },
-      { id: "evt-11", timestamp: "2026-03-26T05:12:00Z", source: "manual", event_type: "action", title: "Host isolated via CrowdStrike network containment", severity: "critical" },
-      { id: "evt-12", timestamp: "2026-03-26T05:15:00Z", source: "manual", event_type: "action", title: "Backup integrity verified — last good: 05:00 UTC", severity: "info" },
-      { id: "evt-13", timestamp: "2026-03-26T05:20:00Z", source: "manual", event_type: "note", title: "Escalated to finding — full report generated", severity: "info" },
-    ],
-    status: "closed",
-    severity: "critical",
-    lead_analyst: "analyst-1",
-    created_at: "2026-03-26T05:12:00Z",
-    updated_at: "2026-03-26T05:20:00Z",
-  },
-];
-
-const MOCK_CORRELATION_GROUPS: CorrelationGroup[] = [
-  {
-    id: "cg-001",
-    alerts: MOCK_ALERTS.filter(a => a.correlation_group_id === "cg-001"),
-    severity: "critical",
-    affected_hosts: ["PROD-WEB-01"],
-    affected_users: ["svc_deploy"],
-    mitre_tactics: ["Execution", "Command and Control", "Persistence", "Defense Evasion", "Privilege Escalation"],
-    time_range: { start: "2026-03-26T02:14:33Z", end: "2026-03-26T02:18:55Z" },
-    description: "4 correlated alerts affecting PROD-WEB-01 — full kill chain from execution to persistence",
-  },
-  {
-    id: "cg-002",
-    alerts: MOCK_ALERTS.filter(a => a.correlation_group_id === "cg-002"),
-    severity: "high",
-    affected_hosts: ["DB-MASTER-02"],
-    affected_users: ["jdoe"],
-    mitre_tactics: ["Lateral Movement", "Persistence", "Privilege Escalation"],
-    time_range: { start: "2026-03-26T02:31:45Z", end: "2026-03-26T02:33:10Z" },
-    description: "2 correlated alerts affecting DB-MASTER-02 — lateral movement followed by admin creation",
-  },
-  {
-    id: "cg-003",
-    alerts: [MOCK_ALERTS[2], MOCK_ALERTS[10]],
-    severity: "high",
-    affected_hosts: ["PROD-SSH-GW-01", "AZURE-AD"],
-    affected_users: ["maria.garcia@corp.com"],
-    mitre_tactics: ["Credential Access", "Initial Access"],
-    time_range: { start: "2026-03-26T03:22:07Z", end: "2026-03-26T04:33:18Z" },
-    description: "2 correlated alerts — brute force + impossible travel suggest credential compromise",
-  },
-  {
-    id: "cg-004",
-    alerts: [MOCK_ALERTS[8], MOCK_ALERTS[13]],
-    severity: "high",
-    affected_hosts: ["PROD-APP-02", "PROD-DB-02"],
-    affected_users: [],
-    mitre_tactics: ["Exfiltration", "Command and Control"],
-    time_range: { start: "2026-03-26T01:12:44Z", end: "2026-03-26T04:45:11Z" },
-    description: "2 correlated alerts — DNS tunneling + anomalous outbound transfer indicate data exfiltration",
-  },
-  {
-    id: "cg-005",
-    alerts: [MOCK_ALERTS[1], MOCK_ALERTS[6]],
-    severity: "critical",
-    affected_hosts: ["DC-PRIMARY-01", "WS-DEV-03"],
-    affected_users: ["SYSTEM", "dev_admin"],
-    mitre_tactics: ["Credential Access", "Defense Evasion", "Execution"],
-    time_range: { start: "2026-03-26T01:58:11Z", end: "2026-03-26T03:41:22Z" },
-    description: "2 correlated alerts — LSASS dump on DC + DLL side-loading on dev workstation",
-  },
-  {
-    id: "cg-006",
-    alerts: [MOCK_ALERTS[7], MOCK_ALERTS[11]],
-    severity: "critical",
-    affected_hosts: ["github.com/org/infrastructure", "FILE-SRV-01"],
-    affected_users: ["dev_intern", "SYSTEM"],
-    mitre_tactics: ["Credential Access", "Collection", "Impact"],
-    time_range: { start: "2026-03-26T05:02:33Z", end: "2026-03-26T05:11:02Z" },
-    description: "2 correlated alerts — leaked secrets + ransomware activity within same window",
-  },
-];
-
-// ─── Source Health Sparkline Data ────────────────────────────────────────────
-
-const SPARKLINE_DATA: Record<string, number[]> = {
-  "src-splunk-01": [12, 18, 14, 22, 31, 28, 19, 24, 33, 27, 21, 16, 25, 30, 22, 18, 26, 29, 35, 28],
-  "src-elastic-01": [8, 14, 11, 19, 26, 23, 15, 20, 28, 22, 17, 12, 21, 25, 18, 14, 22, 24, 30, 23],
-  "src-cs-01": [5, 8, 6, 12, 15, 11, 9, 14, 18, 13, 10, 7, 13, 16, 11, 8, 14, 15, 20, 14],
-  "src-sentinel-01": [4, 6, 5, 9, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  "src-syslog-01": [45, 52, 48, 61, 73, 68, 55, 62, 78, 65, 58, 50, 63, 72, 60, 53, 64, 70, 82, 66],
-  "src-webhook-01": [2, 3, 1, 4, 5, 3, 2, 4, 6, 4, 3, 2, 4, 5, 3, 2, 4, 4, 7, 5],
-};
-
 // ─── Animations ─────────────────────────────────────────────────────────────
 
 const fadeIn = {
@@ -714,6 +172,7 @@ function Sparkline({ data, color = "#22c55e", width = 120, height = 28 }: {
   width?: number;
   height?: number;
 }) {
+  if (!data.length) return null;
   const max = Math.max(...data, 1);
   const points = data.map((v, i) => {
     const x = (i / (data.length - 1)) * width;
@@ -744,10 +203,40 @@ export default function AlertCenter() {
   // ─── State ──────────────────────────────────────────────────────────────────
 
   const [activeTab, setActiveTab] = useState("feed");
-  const [alerts, setAlerts] = useState<Alert[]>(MOCK_ALERTS);
-  const [sources] = useState<AlertSource[]>(MOCK_SOURCES);
-  const [investigations, setInvestigations] = useState<InvestigationTimeline[]>(MOCK_INVESTIGATIONS);
-  const [correlationGroups] = useState<CorrelationGroup[]>(MOCK_CORRELATION_GROUPS);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [sources, setSources] = useState<AlertSource[]>([]);
+  const [investigations, setInvestigations] = useState<InvestigationTimeline[]>([]);
+  const [correlationGroups, setCorrelationGroups] = useState<CorrelationGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // ─── Load real data from Supabase ───────────────────────────────────────────
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [alertsData, sourcesData, timelinesData] = await Promise.all([
+          alertIngestion.getAlerts({ limit: 200 }),
+          alertIngestion.getSources().catch(() => []),
+          alertIngestion.getTimelines().catch(() => []),
+        ]);
+        setAlerts(alertsData);
+        setSources(sourcesData);
+        setInvestigations(timelinesData);
+
+        // Auto-correlate alerts
+        try {
+          const groups = await alertIngestion.correlateAlerts(30);
+          setCorrelationGroups(groups);
+        } catch { /* correlation is optional */ }
+      } catch (err) {
+        console.error('Failed to load alerts:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+    const interval = setInterval(loadData, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Feed filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -1078,7 +567,33 @@ export default function AlertCenter() {
                 {/* Alert List */}
                 <ScrollArea className={`flex-1 ${detailAlert ? "max-w-[55%]" : ""}`}>
                   <div className="p-4 space-y-2">
+                    {/* Loading State */}
+                    {loading && (
+                      <div className="flex flex-col items-center justify-center py-20 gap-3">
+                        <ArrowsClockwise weight="duotone" className="w-8 h-8 text-zinc-500 animate-spin" />
+                        <p className="text-sm text-zinc-500">Loading alerts from Supabase...</p>
+                      </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!loading && alerts.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-20 gap-3">
+                        <ShieldCheck weight="duotone" className="w-12 h-12 text-zinc-600" />
+                        <p className="text-sm text-zinc-400">No alerts yet</p>
+                        <p className="text-xs text-zinc-500">Alerts are generated automatically from intel reports by the CrowByte Alert Agent.</p>
+                      </div>
+                    )}
+
+                    {/* No Results (filtered) */}
+                    {!loading && alerts.length > 0 && filteredAlerts.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-16 gap-2">
+                        <MagnifyingGlass weight="duotone" className="w-8 h-8 text-zinc-600" />
+                        <p className="text-sm text-zinc-400">No alerts match your filters</p>
+                      </div>
+                    )}
+
                     {/* Select All */}
+                    {!loading && filteredAlerts.length > 0 && (
                     <div className="flex items-center gap-2 px-2 py-1">
                       <Checkbox
                         checked={selectedAlertIds.size === filteredAlerts.length && filteredAlerts.length > 0}
@@ -1087,6 +602,7 @@ export default function AlertCenter() {
                       />
                       <span className="text-[10px] text-zinc-500">Select all</span>
                     </div>
+                    )}
 
                     <motion.div variants={stagger} initial="initial" animate="animate">
                       <AnimatePresence mode="popLayout">
@@ -1435,7 +951,7 @@ export default function AlertCenter() {
                   {sources.map(source => {
                     const statusColor = SOURCE_STATUS_COLORS[source.status];
                     const Icon = SOURCE_ICONS[source.source_type] || Cube;
-                    const sparkData = SPARKLINE_DATA[source.id] || [];
+                    const sparkData: number[] = []; // TODO: real source health metrics
                     const sparkColor = source.status === "connected" ? "#22c55e"
                       : source.status === "error" ? "#ef4444"
                       : "#71717a";

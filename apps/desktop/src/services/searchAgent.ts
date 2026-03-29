@@ -6,6 +6,7 @@
 
 import { analyticsService } from './analytics';
 import { tavilyService } from './tavily';
+import { openClaw } from './openclaw';
 
 export interface SearchAgentConfig {
   tavilyApiKey: string;
@@ -58,16 +59,10 @@ class SearchAgentService {
     const steps: Array<{ action: string; observation: string }> = [];
 
     try {
-      // Step 1: Analyze the query
+      // Step 1: Web search via Tavily
       steps.push({
-        action: 'analyze_query',
-        observation: `Processing query: "${query.query}"`,
-      });
-
-      // Step 2: Perform web search
-      steps.push({
-        action: 'tavily_search',
-        observation: 'Executing Tavily web search...',
+        action: 'web_search',
+        observation: `Searching the web for: "${query.query}"`,
       });
 
       const searchResults = await tavilyService.search({
@@ -78,12 +73,6 @@ class SearchAgentService {
         include_raw_content: false,
       });
 
-      steps.push({
-        action: 'process_results',
-        observation: `Found ${searchResults.data.results?.length || 0} relevant sources`,
-      });
-
-      // Step 3: Extract sources
       const sources = (searchResults.data.results || []).map((result) => ({
         title: result.title,
         url: result.url,
@@ -91,21 +80,72 @@ class SearchAgentService {
         score: result.score,
       }));
 
-      // Step 4: Generate answer
-      let answer = searchResults.data.answer || this.synthesizeAnswer(sources, query.query);
+      steps.push({
+        action: 'sources_found',
+        observation: `Retrieved ${sources.length} sources: ${sources.slice(0, 3).map(s => s.title).join(', ')}`,
+      });
+
+      // Step 2: AI synthesis via OpenClaw GLM5
+      let answer = searchResults.data.answer || '';
+
+      try {
+        steps.push({
+          action: 'ai_analysis',
+          observation: 'Synthesizing intel with GLM5...',
+        });
+
+        const sourceContext = sources.slice(0, 5).map((s, i) =>
+          `[${i + 1}] ${s.title}\n${s.content.slice(0, 400)}`
+        ).join('\n\n');
+
+        const aiPrompt = `You are a cybersecurity intelligence analyst. Analyze the following web search results for the query: "${query.query}"
+
+SOURCES:
+${sourceContext}
+
+Provide a concise, actionable intelligence briefing:
+- Summarize key findings (2-3 sentences max)
+- Highlight any CVEs, threat actors, or IOCs mentioned
+- Note actionable items for a security team
+- Be direct and technical — no fluff
+
+Format with markdown. Do NOT repeat source titles or URLs.`;
+
+        const aiResponse = await openClaw.chat(
+          [{ role: 'user', content: aiPrompt }],
+          undefined,
+          0.3,
+        );
+
+        if (aiResponse && aiResponse.length > 50) {
+          answer = aiResponse;
+          steps.push({
+            action: 'synthesis_complete',
+            observation: `GLM5 analysis complete (${aiResponse.length} chars)`,
+          });
+        } else {
+          steps.push({
+            action: 'synthesis_fallback',
+            observation: 'GLM5 unavailable — using Tavily summary',
+          });
+        }
+      } catch {
+        // GLM5 failed — fall back to Tavily answer
+        steps.push({
+          action: 'synthesis_fallback',
+          observation: 'OpenClaw offline — using Tavily summary',
+        });
+        if (!answer) {
+          answer = this.synthesizeAnswer(sources, query.query);
+        }
+      }
 
       if (query.context) {
         answer = `**Context:** ${query.context}\n\n${answer}`;
       }
 
-      steps.push({
-        action: 'synthesize_answer',
-        observation: 'Generated comprehensive answer from sources',
-      });
-
       const totalTime = Date.now() - startTime;
 
-      // Log to analytics
       await analyticsService.logSearch({
         service: 'search-agent',
         query: query.query,
@@ -114,12 +154,7 @@ class SearchAgentService {
         status: 'success',
       });
 
-      return {
-        answer,
-        sources,
-        steps,
-        totalTime,
-      };
+      return { answer, sources, steps, totalTime };
     } catch (error) {
       const totalTime = Date.now() - startTime;
 

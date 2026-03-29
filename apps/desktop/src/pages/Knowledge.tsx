@@ -16,7 +16,10 @@ import { Textarea } from"@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
 import { useToast } from"@/hooks/use-toast";
 import { knowledgeService, type KnowledgeEntry, type CreateKnowledgeInput } from"@/services/knowledge";
-import { BookOpen, MagnifyingGlass, Plus, Star, Eye, ArrowSquareOut, Tag, Clock, Folder, Trash, PencilSimple, Sparkle, BookBookmark, Funnel, TrendUp, X, CheckSquare, Square, MinusSquare } from "@phosphor-icons/react";
+import { supabase } from "@/lib/supabase";
+import { BookOpen, MagnifyingGlass, Plus, Star, Eye, ArrowSquareOut, Tag, Clock, Folder, Trash, PencilSimple, Sparkle, BookBookmark, Funnel, TrendUp, X, CheckSquare, Square, MinusSquare, ShieldCheck, Link, CalendarBlank, User, Hash, ArrowLeft, Copy, Check } from "@phosphor-icons/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from"framer-motion";
 import { formatDistanceToNow } from"date-fns";
 
@@ -41,6 +44,8 @@ export default function Knowledge() {
  const [categoryStats, setCategoryStats] = useState<Map<string, number>>(new Map());
  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
  const [selectionMode, setSelectionMode] = useState(false);
+ const [viewEntry, setViewEntry] = useState<KnowledgeEntry | null>(null);
+ const [copied, setCopied] = useState(false);
 
  // Form state
  const [newEntry, setNewEntry] = useState<Partial<CreateKnowledgeInput>>({
@@ -191,6 +196,26 @@ export default function Knowledge() {
  variant:"destructive",
  });
  }
+ };
+
+ /**
+  * Open document viewer
+  */
+ const handleView = async (entry: KnowledgeEntry) => {
+   setViewEntry(entry);
+   setCopied(false);
+   // Increment view count
+   try {
+     await supabase.from('knowledge_base').update({ view_count: (entry.view_count || 0) + 1 }).eq('id', entry.id);
+     setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, view_count: (e.view_count || 0) + 1 } : e));
+   } catch {}
+ };
+
+ const handleCopyContent = () => {
+   if (!viewEntry) return;
+   navigator.clipboard.writeText(viewEntry.content || '');
+   setCopied(true);
+   setTimeout(() => setCopied(false), 2000);
  };
 
  const toggleSelect = (id: string) => {
@@ -552,7 +577,7 @@ export default function Knowledge() {
 
  {/* Actions */}
  <div className="flex gap-2 mt-2">
- <Button variant="outline" size="sm" className="flex-1">
+ <Button variant="outline" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); handleView(entry); }}>
  <Eye size={12} weight="bold" className="mr-1" />
  View
  </Button>
@@ -567,6 +592,151 @@ export default function Knowledge() {
  </TabsContent>
  ))}
  </Tabs>
+
+ {/* ─── Document Viewer Dialog ──────────────────────────────────────── */}
+ <Dialog open={!!viewEntry} onOpenChange={(open) => { if (!open) setViewEntry(null); }}>
+   <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col p-0 gap-0 bg-zinc-950 border-zinc-800">
+     {viewEntry && (
+       <>
+         {/* Header */}
+         <div className="flex items-start gap-4 px-6 pt-6 pb-4 border-b border-white/[0.06] shrink-0">
+           <div className="flex-1 min-w-0">
+             <DialogTitle className="text-lg font-semibold text-zinc-100 leading-tight">
+               {viewEntry.title}
+             </DialogTitle>
+             <DialogDescription className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+               <span className="flex items-center gap-1">
+                 <Clock size={12} weight="bold" />
+                 {formatDistanceToNow(new Date(viewEntry.created_at), { addSuffix: true })}
+               </span>
+               {viewEntry.category && (
+                 <span className="flex items-center gap-1">
+                   <Folder size={12} weight="bold" />
+                   {viewEntry.category}
+                 </span>
+               )}
+               {viewEntry.source_type && (
+                 <span className="flex items-center gap-1">
+                   <Hash size={12} weight="bold" />
+                   {viewEntry.source_type}
+                 </span>
+               )}
+               {viewEntry.importance > 0 && (
+                 <Badge variant={viewEntry.importance >= 4 ? "destructive" : "secondary"} className="text-xs h-5">
+                   P{viewEntry.importance}
+                 </Badge>
+               )}
+               {viewEntry.is_verified && (
+                 <Badge variant="outline" className="text-xs h-5 border-emerald-500/30 text-emerald-400">
+                   <ShieldCheck size={10} weight="bold" className="mr-1" />
+                   Verified
+                 </Badge>
+               )}
+             </DialogDescription>
+           </div>
+           <div className="flex items-center gap-1 shrink-0">
+             <Button
+               variant="ghost"
+               size="sm"
+               className="h-8 w-8 p-0"
+               onClick={handleCopyContent}
+             >
+               {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+             </Button>
+             {viewEntry.source_url && (
+               <a
+                 href={viewEntry.source_url}
+                 target="_blank"
+                 rel="noopener noreferrer"
+               >
+                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                   <ArrowSquareOut size={14} />
+                 </Button>
+               </a>
+             )}
+           </div>
+         </div>
+
+         {/* Tags bar */}
+         {viewEntry.tags.length > 0 && (
+           <div className="flex flex-wrap gap-1.5 px-6 py-3 border-b border-white/[0.04] shrink-0">
+             {viewEntry.tags.map((tag, idx) => (
+               <Badge key={idx} variant="secondary" className="text-xs">
+                 <Tag size={10} weight="bold" className="mr-1" />
+                 {tag}
+               </Badge>
+             ))}
+           </div>
+         )}
+
+         {/* Related CVEs bar */}
+         {viewEntry.related_cves && viewEntry.related_cves.length > 0 && (
+           <div className="flex flex-wrap gap-1.5 px-6 py-2.5 border-b border-white/[0.04] bg-red-500/[0.03] shrink-0">
+             <span className="text-xs text-zinc-500 mr-1 self-center">Related CVEs:</span>
+             {viewEntry.related_cves.map((cve, idx) => (
+               <Badge key={idx} variant="destructive" className="text-xs">
+                 {cve}
+               </Badge>
+             ))}
+           </div>
+         )}
+
+         {/* Content — scrollable markdown body */}
+         <ScrollArea className="flex-1 min-h-0">
+           <div className="px-6 py-6">
+             {viewEntry.summary && (
+               <div className="mb-6 p-4 rounded-lg bg-blue-500/[0.04] border border-blue-500/10">
+                 <p className="text-xs font-medium text-blue-400 mb-1">Summary</p>
+                 <p className="text-sm text-zinc-300 leading-relaxed">{viewEntry.summary}</p>
+               </div>
+             )}
+             <div className="prose prose-invert prose-sm max-w-none
+               prose-headings:text-zinc-100 prose-headings:font-semibold prose-headings:border-b prose-headings:border-white/[0.06] prose-headings:pb-2 prose-headings:mb-4
+               prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
+               prose-p:text-zinc-300 prose-p:leading-relaxed
+               prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+               prose-strong:text-zinc-200
+               prose-code:text-emerald-400 prose-code:bg-emerald-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono
+               prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-white/[0.06] prose-pre:rounded-lg
+               prose-blockquote:border-l-blue-500/50 prose-blockquote:bg-blue-500/[0.03] prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
+               prose-li:text-zinc-300
+               prose-table:border-collapse prose-th:bg-zinc-900 prose-th:text-zinc-300 prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2 prose-td:border-t prose-td:border-white/[0.06]
+               prose-hr:border-white/[0.06]
+               prose-img:rounded-lg prose-img:border prose-img:border-white/[0.06]"
+             >
+               <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                 {viewEntry.content || '*No content available*'}
+               </ReactMarkdown>
+             </div>
+           </div>
+         </ScrollArea>
+
+         {/* Footer metadata */}
+         <div className="flex items-center gap-4 px-6 py-3 border-t border-white/[0.06] text-xs text-zinc-600 shrink-0">
+           <span className="flex items-center gap-1">
+             <Eye size={12} />
+             {viewEntry.view_count} views
+           </span>
+           {viewEntry.author && (
+             <span className="flex items-center gap-1">
+               <User size={12} />
+               {viewEntry.author}
+             </span>
+           )}
+           {viewEntry.published_date && (
+             <span className="flex items-center gap-1">
+               <CalendarBlank size={12} />
+               Published {new Date(viewEntry.published_date).toLocaleDateString()}
+             </span>
+           )}
+           <span className="ml-auto">
+             Updated {formatDistanceToNow(new Date(viewEntry.updated_at), { addSuffix: true })}
+           </span>
+         </div>
+       </>
+     )}
+   </DialogContent>
+ </Dialog>
  </div>
  );
 }

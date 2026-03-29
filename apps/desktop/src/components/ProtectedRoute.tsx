@@ -17,11 +17,22 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
  const { isAuthenticated, loading } = useAuth();
  const navigate = useNavigate();
 
+ const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
+
  useEffect(() => {
  if (!loading && !isAuthenticated) {
  navigate('/auth');
+ return;
  }
- }, [isAuthenticated, loading, navigate]);
+ // Redirect to preferences wizard for new web users who haven't completed setup
+ if (!loading && isAuthenticated && !isElectron) {
+ const wizardDone = localStorage.getItem('crowbyte_prefs_wizard_done');
+ const currentPath = window.location.pathname;
+ if (!wizardDone && currentPath !== '/setup-preferences') {
+   navigate('/setup-preferences');
+ }
+ }
+ }, [isAuthenticated, loading, navigate, isElectron]);
 
  // Show loading state while checking auth
  if (loading) {

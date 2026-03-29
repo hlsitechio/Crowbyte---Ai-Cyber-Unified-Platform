@@ -4,213 +4,493 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { RssSimple, CheckCircle, XCircle, Brain, FloppyDisk } from "@phosphor-icons/react";
-import inoreaderService from "@/services/inoreader";
+import { Switch } from "@/components/ui/switch";
+import {
+  Robot,
+  Cloud,
+  Lightning,
+  FloppyDisk,
+  CheckCircle,
+  XCircle,
+  CircleNotch,
+  GithubLogo,
+  Globe,
+  Database,
+  Key,
+  Plugs,
+  ShieldCheck,
+  ArrowsClockwise,
+} from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth";
+
+type ConnectionStatus = "connected" | "disconnected" | "testing" | "error";
+
+interface ProviderConfig {
+  name: string;
+  endpointUrl: string;
+  apiKey: string;
+  model: string;
+  enabled: boolean;
+}
+
+const DEFAULT_PROVIDERS: Record<string, ProviderConfig> = {
+  openclaw: {
+    name: "OpenClaw / NVIDIA",
+    endpointUrl: import.meta.env.VITE_OPENCLAW_HOSTNAME
+      ? `https://${import.meta.env.VITE_OPENCLAW_HOSTNAME}/nvidia/v1`
+      : "",
+    apiKey: import.meta.env.VITE_NVIDIA_API_KEY || "",
+    model: "deepseek-v3.2",
+    enabled: true,
+  },
+  openai: {
+    name: "OpenAI Compatible",
+    endpointUrl: "",
+    apiKey: "",
+    model: "gpt-4o",
+    enabled: false,
+  },
+  anthropic: {
+    name: "Anthropic",
+    endpointUrl: "https://api.anthropic.com/v1",
+    apiKey: "",
+    model: "claude-sonnet-4-20250514",
+    enabled: false,
+  },
+  ollama: {
+    name: "Ollama (Self-Hosted)",
+    endpointUrl: "http://localhost:11434/v1",
+    apiKey: "",
+    model: "llama3.1:70b",
+    enabled: false,
+  },
+  custom: {
+    name: "Custom Endpoint",
+    endpointUrl: "",
+    apiKey: "",
+    model: "",
+    enabled: false,
+  },
+};
+
+function loadProviders(): Record<string, ProviderConfig> {
+  try {
+    const saved = localStorage.getItem("crowbyte_ai_providers");
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return { ...DEFAULT_PROVIDERS };
+}
+
+function loadServiceKeys(): Record<string, string> {
+  return {
+    shodan: localStorage.getItem("shodan_api_key") || "",
+    tavily: localStorage.getItem("tavily_api_key") || "",
+    venice: localStorage.getItem("venice_api_key") || import.meta.env.VITE_VENICE_API_KEY || "",
+  };
+}
 
 export default function IntegrationsSettings() {
   const { toast } = useToast();
-  const [inoreaderAuth, setInoreaderAuth] = useState(false);
-  const [apiUsage, setApiUsage] = useState({
-    count: 0,
-    limit: 5000,
-    remaining: 5000,
-    resetTime: new Date(),
-    percentUsed: 0,
-  });
-  const [ollamaApiKey, setOllamaApiKey] = useState(localStorage.getItem('ollama_api_key') || '');
-  const [ollamaEndpoint, setOllamaEndpoint] = useState(localStorage.getItem('ollama_endpoint') || 'http://localhost:11434');
+  const { user } = useAuth();
+
+  // AI Providers
+  const [providers, setProviders] = useState<Record<string, ProviderConfig>>(loadProviders);
+  const [testingProvider, setTestingProvider] = useState<string | null>(null);
+  const [providerStatus, setProviderStatus] = useState<Record<string, ConnectionStatus>>({});
+
+  // Service API keys
+  const [serviceKeys, setServiceKeys] = useState(loadServiceKeys);
+  const [testingService, setTestingService] = useState<string | null>(null);
+  const [serviceStatus, setServiceStatus] = useState<Record<string, ConnectionStatus>>({});
+
+  // Supabase status
+  const [supabaseStatus, setSupabaseStatus] = useState<ConnectionStatus>("testing");
+
+  // GitHub OAuth
+  const [githubConnected, setGithubConnected] = useState(false);
 
   useEffect(() => {
-    setInoreaderAuth(inoreaderService.isAuthenticated());
-    if (inoreaderService.isAuthenticated()) {
-      setApiUsage(inoreaderService.getAPIUsage());
+    // Check Supabase
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (supabaseUrl) {
+      fetch(`${supabaseUrl}/rest/v1/`, {
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ""}`,
+        },
+      })
+        .then((r) => setSupabaseStatus(r.ok ? "connected" : "error"))
+        .catch(() => setSupabaseStatus("error"));
+    } else {
+      setSupabaseStatus("disconnected");
     }
-  }, []);
 
-  const handleInoreaderAuth = () => {
-    const authUrl = inoreaderService.getAuthUrl();
-    window.open(authUrl, '_blank');
-    toast({
-      title: "Authentication Required",
-      description: "Complete OAuth authentication in the opened window, then refresh this page.",
-    });
+    // Check GitHub OAuth
+    if (user?.app_metadata?.provider === "github" || user?.identities?.some((i: { provider: string }) => i.provider === "github")) {
+      setGithubConnected(true);
+    }
+  }, [user]);
+
+  const updateProvider = (key: string, field: keyof ProviderConfig, value: string | boolean) => {
+    setProviders((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], [field]: value },
+    }));
   };
 
-  const handleInoreaderLogout = () => {
-    inoreaderService.logout();
-    setInoreaderAuth(false);
-    setApiUsage({
-      count: 0,
-      limit: 5000,
-      remaining: 5000,
-      resetTime: new Date(),
-      percentUsed: 0,
-    });
-    toast({
-      title: "Disconnected",
-      description: "Inoreader account disconnected successfully.",
-    });
+  const testProvider = async (key: string) => {
+    const p = providers[key];
+    if (!p.endpointUrl) {
+      toast({ title: "No endpoint URL", description: "Enter an endpoint URL first.", variant: "destructive" });
+      return;
+    }
+    setTestingProvider(key);
+    setProviderStatus((prev) => ({ ...prev, [key]: "testing" }));
+
+    try {
+      const url = p.endpointUrl.replace(/\/+$/, "");
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (p.apiKey) headers["Authorization"] = `Bearer ${p.apiKey}`;
+
+      const res = await fetch(`${url}/models`, { headers, signal: AbortSignal.timeout(8000) });
+      setProviderStatus((prev) => ({ ...prev, [key]: res.ok ? "connected" : "error" }));
+      toast({
+        title: res.ok ? "Connection Successful" : "Connection Failed",
+        description: res.ok ? `${p.name} is reachable` : `HTTP ${res.status}`,
+        variant: res.ok ? "default" : "destructive",
+      });
+    } catch (err) {
+      setProviderStatus((prev) => ({ ...prev, [key]: "error" }));
+      toast({ title: "Connection Failed", description: String(err), variant: "destructive" });
+    } finally {
+      setTestingProvider(null);
+    }
   };
 
-  const handleSaveIntegrations = () => {
-    localStorage.setItem('ollama_api_key', ollamaApiKey);
-    localStorage.setItem('ollama_endpoint', ollamaEndpoint);
-    toast({
-      title: "Ollama Settings Saved",
-      description: "Ollama configuration has been updated successfully.",
-    });
+  const testShodan = async () => {
+    const key = serviceKeys.shodan;
+    if (!key) return;
+    setTestingService("shodan");
+    setServiceStatus((prev) => ({ ...prev, shodan: "testing" }));
+    try {
+      const res = await fetch(`https://api.shodan.io/api-info?key=${key}`, { signal: AbortSignal.timeout(8000) });
+      const ok = res.ok;
+      setServiceStatus((prev) => ({ ...prev, shodan: ok ? "connected" : "error" }));
+      toast({ title: ok ? "Shodan Connected" : "Invalid Key", variant: ok ? "default" : "destructive" });
+    } catch {
+      setServiceStatus((prev) => ({ ...prev, shodan: "error" }));
+    } finally {
+      setTestingService(null);
+    }
   };
+
+  const testVenice = async () => {
+    const key = serviceKeys.venice;
+    if (!key) return;
+    setTestingService("venice");
+    setServiceStatus((prev) => ({ ...prev, venice: "testing" }));
+    try {
+      const res = await fetch("https://api.venice.ai/api/v1/models", {
+        headers: { Authorization: `Bearer ${key}` },
+        signal: AbortSignal.timeout(8000),
+      });
+      const ok = res.ok;
+      setServiceStatus((prev) => ({ ...prev, venice: ok ? "connected" : "error" }));
+      toast({ title: ok ? "Venice.ai Connected" : "Invalid Key", variant: ok ? "default" : "destructive" });
+    } catch {
+      setServiceStatus((prev) => ({ ...prev, venice: "error" }));
+    } finally {
+      setTestingService(null);
+    }
+  };
+
+  const handleSaveAll = () => {
+    localStorage.setItem("crowbyte_ai_providers", JSON.stringify(providers));
+    localStorage.setItem("shodan_api_key", serviceKeys.shodan);
+    localStorage.setItem("tavily_api_key", serviceKeys.tavily);
+    localStorage.setItem("venice_api_key", serviceKeys.venice);
+
+    window.dispatchEvent(new CustomEvent("crowbyte:integrations-updated", { detail: { providers, serviceKeys } }));
+
+    toast({ title: "Integrations Saved", description: "All integration settings updated." });
+  };
+
+  const StatusBadge = ({ status }: { status?: ConnectionStatus }) => {
+    if (!status || status === "disconnected")
+      return (
+        <span className="flex items-center gap-1.5 text-xs text-zinc-500">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+          Not Connected
+        </span>
+      );
+    if (status === "testing")
+      return (
+        <span className="flex items-center gap-1.5 text-xs text-blue-400">
+          <CircleNotch size={12} weight="bold" className="animate-spin" />
+          Testing...
+        </span>
+      );
+    if (status === "connected")
+      return (
+        <span className="flex items-center gap-1.5 text-xs text-emerald-500">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          Connected
+        </span>
+      );
+    return (
+      <span className="flex items-center gap-1.5 text-xs text-red-500">
+        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+        Error
+      </span>
+    );
+  };
+
+  const providerEntries = Object.entries(providers);
 
   return (
-    <div className="space-y-4">
-      {/* Inoreader Integration */}
-      <Card className="bg-card/50 backdrop-blur">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <RssSimple size={20} weight="duotone" className="text-emerald-500" />
-                Inoreader Integration
-              </CardTitle>
-              <CardDescription>
-                Connect your Inoreader account to aggregate cyber security news feeds
-              </CardDescription>
-            </div>
-            <span className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md ${inoreaderAuth ? 'bg-transparent text-emerald-500' : 'bg-transparent text-red-500'}`}>
-              {inoreaderAuth ? (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  Connected
-                </>
-              ) : (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                  Not Connected
-                </>
-              )}
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {inoreaderAuth ? (
-            <>
-              <div className="flex items-center justify-between p-4 bg-transparent rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-emerald-500">Authentication Status</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your Inoreader account is successfully connected
-                  </p>
-                </div>
-                <CheckCircle size={32} weight="duotone" className="text-emerald-500" />
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Label>API Usage Statistics</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Calls Today</p>
-                    <p className="text-2xl font-bold text-primary">{apiUsage.count}/{apiUsage.limit}</p>
-                  </div>
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Remaining</p>
-                    <p className="text-2xl font-bold text-primary">{apiUsage.remaining}</p>
-                  </div>
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Usage</p>
-                    <p className="text-2xl font-bold text-primary">{apiUsage.percentUsed.toFixed(1)}%</p>
-                  </div>
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Resets At</p>
-                    <p className="text-sm font-bold text-primary">{apiUsage.resetTime.toLocaleTimeString()}</p>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <Button
-                variant="destructive"
-                onClick={handleInoreaderLogout}
-                className="w-full"
-              >
-                Disconnect Inoreader
-              </Button>
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <RssSimple size={64} weight="duotone" className="mx-auto mb-4 text-primary/50" />
-              <h3 className="text-lg font-semibold mb-2">Connect Your Inoreader Account</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                Aggregate cyber security news from multiple sources including The Hacker News,
-                Bleeping Computer, CVE feeds, and more in your Command Center dashboard.
-              </p>
-              <Button
-                onClick={handleInoreaderAuth}
-                className="gap-2 bg-transparent hover:bg-white/[0.03] text-emerald-500 ring-1 ring-emerald-500/20"
-              >
-                <RssSimple size={16} weight="bold" />
-                Connect Inoreader Account
-              </Button>
-              <p className="text-xs text-muted-foreground mt-4">
-                You'll be redirected to Inoreader to authorize the connection
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Ollama Configuration */}
-      <Card className="bg-card/50 backdrop-blur">
+    <div className="space-y-6">
+      {/* ── AI Infrastructure ── */}
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain size={20} weight="duotone" className="text-primary" />
-            Ollama Configuration
+            <Robot size={20} weight="duotone" className="text-blue-500" />
+            AI Infrastructure
           </CardTitle>
-          <CardDescription>Configure your local Ollama instance for AI model inference</CardDescription>
+          <CardDescription>
+            Connect your own AI providers. Enterprise users can route all AI calls through their infrastructure.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="ollama-endpoint">Ollama Endpoint URL</Label>
-            <Input
-              id="ollama-endpoint"
-              placeholder="http://localhost:11434"
-              value={ollamaEndpoint}
-              onChange={(e) => setOllamaEndpoint(e.target.value)}
-              className="terminal-text"
-            />
-            <p className="text-xs text-muted-foreground">
-              Default: http://localhost:11434 (leave as-is for local installation)
+          {providerEntries.map(([key, provider], idx) => (
+            <div key={key}>
+              {idx > 0 && <Separator className="my-4" />}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={provider.enabled}
+                      onCheckedChange={(v) => updateProvider(key, "enabled", v)}
+                    />
+                    <div>
+                      <Label className="text-sm font-semibold">{provider.name}</Label>
+                      {key === "openclaw" && (
+                        <p className="text-[11px] text-zinc-500">Default CrowByte AI gateway</p>
+                      )}
+                      {key === "custom" && (
+                        <p className="text-[11px] text-zinc-500">Any OpenAI-compatible endpoint</p>
+                      )}
+                    </div>
+                  </div>
+                  <StatusBadge status={providerStatus[key]} />
+                </div>
+
+                {provider.enabled && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pl-12">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-400">Endpoint URL</Label>
+                      <Input
+                        placeholder="https://api.example.com/v1"
+                        value={provider.endpointUrl}
+                        onChange={(e) => updateProvider(key, "endpointUrl", e.target.value)}
+                        className="h-8 text-xs font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-400">API Key</Label>
+                      <Input
+                        type="password"
+                        placeholder="sk-..."
+                        value={provider.apiKey}
+                        onChange={(e) => updateProvider(key, "apiKey", e.target.value)}
+                        className="h-8 text-xs font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-400">Model</Label>
+                      <Input
+                        placeholder="model-name"
+                        value={provider.model}
+                        onChange={(e) => updateProvider(key, "model", e.target.value)}
+                        className="h-8 text-xs font-mono"
+                      />
+                    </div>
+                    <div className="col-span-full flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => testProvider(key)}
+                        disabled={testingProvider === key || !provider.endpointUrl}
+                        className="h-7 text-xs gap-1.5"
+                      >
+                        {testingProvider === key ? (
+                          <CircleNotch size={12} weight="bold" className="animate-spin" />
+                        ) : (
+                          <Lightning size={12} weight="bold" />
+                        )}
+                        Test Connection
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          <div className="bg-blue-500/5 border border-blue-500/10 rounded-lg p-3 mt-2">
+            <p className="text-xs text-blue-400/80">
+              <strong>Enterprise:</strong> Enable your own AI provider to route all CrowByte AI
+              operations through your infrastructure. Supports any OpenAI-compatible API endpoint.
             </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ollama-key">Ollama API Key (Optional)</Label>
-            <Input
-              id="ollama-key"
-              type="password"
-              placeholder="Leave empty for local instances"
-              value={ollamaApiKey}
-              onChange={(e) => setOllamaApiKey(e.target.value)}
-              className="terminal-text"
-            />
-            <p className="text-xs text-muted-foreground">
-              Only required if using a remote Ollama server with authentication
-            </p>
-          </div>
-          <Separator />
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSaveIntegrations}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <FloppyDisk size={16} weight="bold" className="mr-2" />
-              Save Ollama Settings
-            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* ── Platform Services ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plugs size={20} weight="duotone" className="text-purple-500" />
+            Platform Services
+          </CardTitle>
+          <CardDescription>Core service connections and API keys</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Supabase (read-only) */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                <Database size={16} weight="duotone" className="text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Supabase</p>
+                <p className="text-[11px] text-zinc-500 font-mono">
+                  {import.meta.env.VITE_SUPABASE_URL
+                    ? new URL(import.meta.env.VITE_SUPABASE_URL).hostname
+                    : "Not configured"}
+                </p>
+              </div>
+            </div>
+            <StatusBadge status={supabaseStatus} />
+          </div>
+
+          {/* GitHub OAuth (read-only) */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-md bg-zinc-700/50 flex items-center justify-center">
+                <GithubLogo size={16} weight="duotone" className="text-zinc-300" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">GitHub OAuth</p>
+                <p className="text-[11px] text-zinc-500">
+                  {githubConnected ? "Linked via Supabase Auth" : "Not linked — login with GitHub to connect"}
+                </p>
+              </div>
+            </div>
+            <StatusBadge status={githubConnected ? "connected" : "disconnected"} />
+          </div>
+
+          <Separator />
+
+          {/* Shodan */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Globe size={16} weight="duotone" className="text-red-400" />
+                <Label className="text-sm font-semibold">Shodan</Label>
+              </div>
+              <StatusBadge status={serviceStatus.shodan} />
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Shodan API key"
+                value={serviceKeys.shodan}
+                onChange={(e) => setServiceKeys((p) => ({ ...p, shodan: e.target.value }))}
+                className="h-8 text-xs font-mono flex-1"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={testShodan}
+                disabled={testingService === "shodan" || !serviceKeys.shodan}
+                className="h-8 text-xs gap-1.5"
+              >
+                {testingService === "shodan" ? (
+                  <CircleNotch size={12} weight="bold" className="animate-spin" />
+                ) : (
+                  <ArrowsClockwise size={12} weight="bold" />
+                )}
+                Test
+              </Button>
+            </div>
+            <p className="text-[11px] text-zinc-500">Network intelligence, CVE lookup, IP enrichment</p>
+          </div>
+
+          <Separator />
+
+          {/* Venice.ai */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} weight="duotone" className="text-amber-400" />
+                <Label className="text-sm font-semibold">Venice.ai</Label>
+              </div>
+              <StatusBadge status={serviceStatus.venice} />
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Venice API key"
+                value={serviceKeys.venice}
+                onChange={(e) => setServiceKeys((p) => ({ ...p, venice: e.target.value }))}
+                className="h-8 text-xs font-mono flex-1"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={testVenice}
+                disabled={testingService === "venice" || !serviceKeys.venice}
+                className="h-8 text-xs gap-1.5"
+              >
+                {testingService === "venice" ? (
+                  <CircleNotch size={12} weight="bold" className="animate-spin" />
+                ) : (
+                  <ArrowsClockwise size={12} weight="bold" />
+                )}
+                Test
+              </Button>
+            </div>
+            <p className="text-[11px] text-zinc-500">Uncensored AI for offensive security analysis</p>
+          </div>
+
+          <Separator />
+
+          {/* Tavily */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Key size={16} weight="duotone" className="text-sky-400" />
+              <Label className="text-sm font-semibold">Tavily Search</Label>
+            </div>
+            <Input
+              type="password"
+              placeholder="Tavily API key"
+              value={serviceKeys.tavily}
+              onChange={(e) => setServiceKeys((p) => ({ ...p, tavily: e.target.value }))}
+              className="h-8 text-xs font-mono"
+            />
+            <p className="text-[11px] text-zinc-500">AI-powered cybersecurity search and threat intelligence</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Save ── */}
+      <div className="flex justify-end">
+        <Button onClick={handleSaveAll} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <FloppyDisk size={16} weight="bold" className="mr-2" />
+          Save All Integrations
+        </Button>
+      </div>
     </div>
   );
 }

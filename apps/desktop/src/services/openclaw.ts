@@ -231,10 +231,16 @@ class OpenClawService {
     this.config = { ...this.config, ...config };
   }
 
+  /** Whether we're running in a browser (not Electron) — needs proxy for CORS */
+  private get isWeb(): boolean {
+    return typeof window !== 'undefined' && !(window as any).electronAPI;
+  }
+
   /**
-   * Get the NVIDIA proxy base URL (via Traefik HTTPS)
+   * Get the NVIDIA proxy base URL (via Traefik HTTPS, or server proxy on web)
    */
   private getProxyUrl(): string {
+    if (this.isWeb) return '/api/proxy/openclaw/nvidia/v1';
     const host = import.meta.env.VITE_OPENCLAW_HOSTNAME || this.config.vpsHost;
     return `https://${host}/nvidia/v1`;
   }
@@ -243,6 +249,7 @@ class OpenClawService {
    * Get the OpenClaw gateway URL
    */
   private getGatewayUrl(): string {
+    if (this.isWeb) return '/api/proxy/openclaw';
     const host = import.meta.env.VITE_OPENCLAW_HOSTNAME || this.config.vpsHost;
     return `https://${host}`;
   }

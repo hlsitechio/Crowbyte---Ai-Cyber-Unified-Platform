@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Shield, CircleNotch, GithubLogo } from "@phosphor-icons/react";
+import { ArrowLeft, CircleNotch, GithubLogo } from "@phosphor-icons/react";
 import { credentialStorage } from "@/services/credentialStorage";
 import { deviceFingerprint } from "@/services/deviceFingerprint";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +23,10 @@ export default function Auth() {
  const [rememberMe, setRememberMe] = useState(false);
  const [isCheckingCredentials, setIsCheckingCredentials] = useState(true);
  const [deviceRecognized, setDeviceRecognized] = useState(false);
+ const [showResetPassword, setShowResetPassword] = useState(false);
+ const [resetEmail, setResetEmail] = useState("");
+ const [resetSent, setResetSent] = useState(false);
+ const [resetLoading, setResetLoading] = useState(false);
 
  useEffect(() => {
  // Redirect if already authenticated
@@ -45,10 +49,8 @@ export default function Auth() {
  const hasOAuthParams = hash.includes('access_token=');
  console.log('🔍 Checking for OAuth callback:', hasOAuthParams ? 'tokens detected' : 'no tokens');
 
- // Extract hash parameters (after the first #)
- // Format: #/auth#access_token=...&expires_in=...&provider_token=...
- const hashParts = hash.split('#');
- const oauthHash = hashParts.length > 2 ? hashParts[2] : (hashParts.length > 1 ? hashParts[1] : '');
+ // With BrowserRouter, URL is /auth#access_token=...
+ const oauthHash = hash.startsWith('#') ? hash.substring(1) : '';
 
  if (!oauthHash) return;
 
@@ -73,7 +75,6 @@ export default function Auth() {
  });
 
  try {
- // HashRouter double-hash breaks Supabase auto-detection
  // Manually set the session with extracted tokens
  const { data, error } = await supabase.auth.setSession({
  access_token: accessToken,
@@ -86,7 +87,7 @@ export default function Auth() {
  toast.success('Logged in successfully!');
 
  // Clean the hash and navigate to dashboard
- window.location.hash = '#/dashboard';
+ window.history.replaceState(null, '', '/auth');
  navigate('/dashboard');
  } catch (err) {
  console.error('❌ Failed to set session:', err);
@@ -181,7 +182,7 @@ export default function Auth() {
  setLoading(true);
  try {
  // Use current origin for redirect — works in both Electron and browser
- const redirectUrl = `${window.location.origin}${window.location.pathname}#/auth`;
+ const redirectUrl = `${window.location.origin}/auth`;
 
  const { data, error } = await supabase.auth.signInWithOAuth({
  provider: 'github',
@@ -205,12 +206,64 @@ export default function Auth() {
  }
  };
 
+ const sendPasswordReset = async (email: string): Promise<void> => {
+ // Use CrowByte server API (routes through Resend for branded emails)
+ const baseUrl = window.location.origin;
+ const res = await fetch(`${baseUrl}/api/password-reset`, {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ email,
+ redirect_to: `${window.location.origin}/passwordreset`,
+ }),
+ });
+ if (!res.ok) {
+ const data = await res.json().catch(() => ({}));
+ throw new Error(data.error || 'Failed to send reset email');
+ }
+ };
+
+ const handleResetPassword = async () => {
+ if (!resetEmail) {
+ toast.error('Please enter your email address');
+ return;
+ }
+ setResetLoading(true);
+ try {
+ await sendPasswordReset(resetEmail);
+ setResetSent(true);
+ toast.success('Password reset email sent!', {
+ description: `Check your inbox at ${resetEmail}`,
+ });
+ } catch (error: unknown) {
+ const msg = error instanceof Error ? error.message : 'Failed to send reset email';
+ toast.error(msg);
+ } finally {
+ setResetLoading(false);
+ }
+ };
+
+ const handleResendReset = async () => {
+ setResetLoading(true);
+ try {
+ await sendPasswordReset(resetEmail);
+ toast.success('Reset email resent!', {
+ description: `Check your inbox and spam folder at ${resetEmail}`,
+ });
+ } catch (error: unknown) {
+ const msg = error instanceof Error ? error.message : 'Failed to resend';
+ toast.error(msg);
+ } finally {
+ setResetLoading(false);
+ }
+ };
+
  // Show loading spinner while checking for stored credentials
  if (isCheckingCredentials) {
  return (
  <div className="min-h-screen flex items-center justify-center bg-background">
  <div className="flex flex-col items-center gap-4">
- <CircleNotch size={48} weight="bold" className="animate-spin text-primary" />
+ <CircleNotch size={48} weight="bold" className="animate-spin text-blue-500" />
  <p className="text-sm text-muted-foreground">Checking device credentials...</p>
  </div>
  </div>
@@ -220,23 +273,36 @@ export default function Auth() {
  return (
  <div className="min-h-screen flex items-center justify-center bg-background p-4">
  <div className="w-full max-w-md space-y-6">
- <div className="flex flex-col items-center gap-4">
- <Shield size={64} weight="duotone" className="text-primary animate-pulse" />
- <h1 className="text-4xl font-bold text-center text-gradient-silver">
- CROWBYTE AI
+ <button
+ onClick={() => { window.location.href = '/'; }}
+ className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-blue-500 transition-colors font-['JetBrains_Mono'] cursor-pointer"
+ >
+ <ArrowLeft size={14} weight="bold" />
+ Back to website
+ </button>
+ <div className="flex flex-col items-center gap-3">
+ <div className="text-center">
+ <p className="text-sm text-zinc-500 font-['JetBrains_Mono'] mb-2">Welcome to</p>
+ <h1
+ className="text-4xl font-bold text-center font-['JetBrains_Mono'] bg-clip-text text-transparent"
+ style={{
+ backgroundImage: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 20%, #a78bfa 35%, #c084fc 45%, #f59e0b 60%, #f97316 80%, #ea580c 100%)",
+ backgroundSize: "200% 100%",
+ animation: "gradient-shift 4s ease-in-out infinite alternate",
+ }}
+ >
+ CrowByte
  </h1>
- <p className="text-sm text-muted-foreground text-center">
- Secure Authentication Required
- </p>
+ </div>
  {deviceRecognized && (
- <div className="flex items-center gap-2 text-xs text-emerald-500 bg-emerald-950/30 px-3 py-1.5 rounded-full ring-1 ring-emerald-500/15">
- <Shield size={12} weight="bold" />
+ <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-950/30 px-3 py-1.5 rounded-full ring-1 ring-blue-500/15">
+ <span className="w-2 h-2 rounded-full bg-blue-500" />
  <span>Device Recognized</span>
  </div>
  )}
  </div>
- <Card className="w-full border-primary/30">
- <CardHeader>
+ <Card className="w-full border-blue-500/20 bg-zinc-950/50">
+ <CardHeader className="text-center">
  <CardTitle className="text-2xl">{isLogin ? "Operator Login" : "New Operator Registration"}</CardTitle>
  <CardDescription>
  {isLogin ? "Enter your credentials to access the system" : "Create your CrowByte operator account"}
@@ -270,8 +336,9 @@ export default function Auth() {
  />
  </div>
 
- {/* Remember Me checkbox (only show for login) */}
+ {/* Remember Me + Forgot Password (only show for login) */}
  {isLogin && (
+ <div className="flex items-center justify-between">
  <div className="flex items-center space-x-2" role="group" aria-label="Remember me on this device">
  <Checkbox
  id="remember"
@@ -285,8 +352,16 @@ export default function Auth() {
  htmlFor="remember"
  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer select-none"
  >
- Remember me on this device
+ Remember me
  </label>
+ </div>
+ <button
+ type="button"
+ onClick={() => { setShowResetPassword(true); setResetEmail(email); setResetSent(false); }}
+ className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+ >
+ Forgot password?
+ </button>
  </div>
  )}
 
@@ -341,6 +416,83 @@ export default function Auth() {
  </CardContent>
  </Card>
  </div>
+
+ {/* Reset Password Modal */}
+ {showResetPassword && (
+ <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+ <Card className="w-full max-w-sm border-blue-500/20 bg-zinc-950/95">
+ <CardHeader className="text-center pb-3">
+ <CardTitle className="text-lg">Reset Password</CardTitle>
+ <CardDescription>
+ {resetSent
+ ? "Check your email for a reset link"
+ : "Enter your email to receive a password reset link"}
+ </CardDescription>
+ </CardHeader>
+ <CardContent className="space-y-4">
+ {!resetSent ? (
+ <>
+ <div className="space-y-2">
+ <Label htmlFor="reset-email">Email</Label>
+ <Input
+ id="reset-email"
+ type="email"
+ placeholder="your@email.com"
+ value={resetEmail}
+ onChange={(e) => setResetEmail(e.target.value)}
+ onKeyDown={(e) => e.key === 'Enter' && handleResetPassword()}
+ disabled={resetLoading}
+ autoFocus
+ />
+ </div>
+ <Button
+ onClick={handleResetPassword}
+ className="w-full"
+ disabled={resetLoading || !resetEmail}
+ >
+ {resetLoading ? (
+ <><CircleNotch size={16} weight="bold" className="mr-2 animate-spin" /> Sending...</>
+ ) : (
+ "Send Reset Link"
+ )}
+ </Button>
+ </>
+ ) : (
+ <div className="space-y-4">
+ <div className="bg-green-500/5 border border-green-500/10 rounded-lg p-4 text-center">
+ <p className="text-sm text-green-400 font-medium mb-1">Email sent!</p>
+ <p className="text-xs text-zinc-400">
+ We sent a password reset link to <span className="text-zinc-300">{resetEmail}</span>
+ </p>
+ <p className="text-[11px] text-zinc-500 mt-2">
+ Check your inbox and spam folder. The link expires in 1 hour.
+ </p>
+ </div>
+ <Button
+ variant="outline"
+ onClick={handleResendReset}
+ className="w-full"
+ disabled={resetLoading}
+ >
+ {resetLoading ? (
+ <><CircleNotch size={16} weight="bold" className="mr-2 animate-spin" /> Resending...</>
+ ) : (
+ "Resend Email"
+ )}
+ </Button>
+ </div>
+ )}
+ <Button
+ variant="ghost"
+ onClick={() => setShowResetPassword(false)}
+ className="w-full text-zinc-500"
+ >
+ Back to login
+ </Button>
+ </CardContent>
+ </Card>
+ </div>
+ )}
  </div>
  );
 }

@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { List, X } from "@phosphor-icons/react";
-import LaunchAppButton from "./LaunchAppButton";
 
-const navLinks = [
+interface NavLink {
+  label: string;
+  href: string;
+  isRoute?: boolean;
+}
+
+const navLinks: NavLink[] = [
   { label: "Features", href: "#features" },
   { label: "Solutions", href: "#solutions" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Pricing", href: "/payments", isRoute: true },
   { label: "Docs", href: "#docs" },
 ];
 
@@ -20,8 +25,12 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollTo = (id: string) => {
-    document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
+  const handleNav = (link: NavLink) => {
+    if (link.isRoute) {
+      window.location.href = link.href;
+    } else {
+      document.querySelector(link.href)?.scrollIntoView({ behavior: "smooth" });
+    }
     setMobileOpen(false);
   };
 
@@ -52,7 +61,7 @@ export default function Navbar() {
             {navLinks.map((link) => (
               <button
                 key={link.label}
-                onClick={() => scrollTo(link.href)}
+                onClick={() => handleNav(link)}
                 className="font-['JetBrains_Mono'] text-[13px] text-zinc-500 hover:text-white transition-colors duration-200 px-4 py-2 rounded-full hover:bg-white/[0.05]"
               >
                 {link.label}
@@ -61,11 +70,13 @@ export default function Navbar() {
           </div>
 
           {/* Right — CTA pill with glow */}
-          <LaunchAppButton className="hidden md:inline-flex relative font-['JetBrains_Mono'] text-[13px] font-medium text-white px-5 py-2 rounded-full border border-white/[0.15] bg-white/[0.05] hover:bg-white/[0.08] transition-all duration-300 cursor-pointer overflow-hidden group">
-            {/* Glow streak on top edge */}
+          <a
+            href="/auth"
+            className="hidden md:inline-flex relative font-['JetBrains_Mono'] text-[13px] font-medium text-white px-5 py-2 rounded-full border border-white/[0.15] bg-white/[0.05] hover:bg-white/[0.08] transition-all duration-300 cursor-pointer overflow-hidden group no-underline"
+          >
             <span className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[1px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
             <span className="relative z-10">Launch App</span>
-          </LaunchAppButton>
+          </a>
 
           {/* Hamburger — mobile */}
           <button
@@ -103,16 +114,20 @@ export default function Navbar() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.06, duration: 0.25 }}
-                  onClick={() => scrollTo(link.href)}
+                  onClick={() => handleNav(link)}
                   className="font-['JetBrains_Mono'] text-xl text-zinc-300 hover:text-white transition-colors"
                 >
                   {link.label}
                 </motion.button>
               ))}
-              <LaunchAppButton className="mt-6 relative font-['JetBrains_Mono'] text-sm font-medium text-white px-6 py-2.5 rounded-full border border-white/[0.15] bg-white/[0.05] transition-all cursor-pointer overflow-hidden">
+              <a
+                href="/auth"
+                onClick={() => setMobileOpen(false)}
+                className="mt-6 relative font-['JetBrains_Mono'] text-sm font-medium text-white px-6 py-2.5 rounded-full border border-white/[0.15] bg-white/[0.05] transition-all cursor-pointer overflow-hidden no-underline"
+              >
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[1px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                 <span className="relative z-10">Launch App</span>
-              </LaunchAppButton>
+              </a>
             </nav>
           </motion.div>
         )}

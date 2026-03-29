@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User as UserIcon, ArrowsClockwise, SignOut, X, Envelope, Calendar } from "@phosphor-icons/react";
+import { User as UserIcon, ArrowsClockwise, SignOut, X, Envelope, Calendar, Key, PaperPlaneTilt, Copy, ShieldCheck, Eye, EyeSlash } from "@phosphor-icons/react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
@@ -10,10 +10,150 @@ export default function ProfileSettings() {
   const { signOut, user } = useAuth();
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [uploadingPicture, setUploadingPicture] = useState(false);
+  const [sendingKey, setSendingKey] = useState(false);
+  const [licenseKey, setLicenseKey] = useState<string | null>(null);
+  const [keyRevealed, setKeyRevealed] = useState(false);
+  const tier = user?.user_metadata?.tier || 'free';
 
   useEffect(() => {
     loadProfilePicture();
+    loadLicenseKey();
   }, []);
+
+  const loadLicenseKey = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('license_keys')
+        .select('license_key, workspace_id, tier')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading license key:', error);
+        return;
+      }
+      if (data?.license_key) {
+        setLicenseKey(data.license_key);
+      }
+    } catch (error) {
+      console.error('Failed to load license key:', error);
+    }
+  };
+
+  const handleSendKey = async () => {
+    if (!user) return;
+    setSendingKey(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('No active session');
+
+      const resp = await fetch('/api/mailer/send-key', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.error || 'Failed to send key');
+
+      toast({
+        title: "License Key Sent",
+        description: `Your license key has been sent to ${user.email}`,
+      });
+    } catch (error) {
+      console.error('Failed to send key:', error);
+      toast({
+        title: "Send Failed",
+        description: error instanceof Error ? error.message : "Failed to send license key",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingKey(false);
+    }
+  };
+
+  const handleRegenerateKey = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.rpc('regenerate_license_key', {
+        p_user_id: user.id,
+      });
+
+      if (error) throw error;
+
+      const newKey = data?.[0]?.new_key;
+      if (newKey) {
+        setLicenseKey(newKey);
+        toast({
+          title: "Key Regenerated",
+          description: "Your old key has been revoked. A new key is now active.",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to regenerate key:', error);
+      toast({
+        title: "Regeneration Failed",
+        description: error instanceof Error ? error.message : "Failed to regenerate license key",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const maskKey = (key: string) => {
+    if (key.length <= 7) return key;
+    return key.slice(0, 3) + '••••-••••-••••-' + key.slice(-4);
+  };
+
+  const handleCopyKey = async () => {
+    if (!licenseKey) return;
+    try {
+      await navigator.clipboard.writeText(licenseKey);
+      toast({ title: "Copied", description: "License key copied to clipboard" });
+    } catch {
+      // Fallback for Electron
+      const ta = document.createElement('textarea');
+      ta.value = licenseKey;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast({ title: "Copied", description: "License key copied to clipboard" });
+    }
+  };
+
+  const handleSaveToKeyManager = async () => {
+    if (!licenseKey || !user) return;
+
+    // Try PasswordCredential API (works with Bitwarden, 1Password, browser built-in)
+    if ('PasswordCredential' in window) {
+      try {
+        const cred = new (window as any).PasswordCredential({
+          id: user.email || 'crowbyte-license',
+          password: licenseKey,
+          name: `CrowByte License Key (${tier})`,
+        });
+        await (navigator as any).credentials.store(cred);
+        toast({
+          title: "Saved to Password Manager",
+          description: "Your license key has been offered to your password manager",
+        });
+        return;
+      } catch {
+        // PasswordCredential not supported or user dismissed
+      }
+    }
+
+    // Fallback: copy + prompt user
+    await handleCopyKey();
+    toast({
+      title: "Key Copied — Save It Manually",
+      description: "Paste into Bitwarden/1Password as a secure note. Site: crowbyte.io",
+    });
+  };
 
   const loadProfilePicture = async () => {
     if (!user) return;
@@ -240,6 +380,77 @@ export default function ProfileSettings() {
           </button>
         </div>
       </CardContent>
+
+      {/* License Key Section — paid users only */}
+      {licenseKey && licenseKey !== 'free-user' && (
+        <>
+          <CardHeader className="pt-2 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Key size={18} weight="duotone" className="text-primary" />
+              License Key
+            </CardTitle>
+            <CardDescription>One key for all your devices — desktop, server, everywhere</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+              <code className="flex-1 text-sm font-mono text-zinc-300 tracking-wider select-all">
+                {keyRevealed ? licenseKey : maskKey(licenseKey)}
+              </code>
+              <button
+                onClick={() => setKeyRevealed(!keyRevealed)}
+                className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                title={keyRevealed ? 'Hide key' : 'Reveal key'}
+              >
+                {keyRevealed ? <EyeSlash size={16} weight="bold" /> : <Eye size={16} weight="bold" />}
+              </button>
+              <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                tier === 'pro' || tier === 'professional'
+                  ? 'bg-blue-500/20 text-blue-400'
+                  : tier === 'team'
+                  ? 'bg-purple-500/20 text-purple-400'
+                  : 'bg-amber-500/20 text-amber-400'
+              }`}>
+                {tier}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                onClick={handleSaveToKeyManager}
+                className="text-xs text-zinc-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5"
+              >
+                <ShieldCheck size={14} weight="bold" />
+                Add to Password Manager
+              </button>
+              <button
+                onClick={handleCopyKey}
+                className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1.5"
+              >
+                <Copy size={14} weight="bold" />
+                Copy
+              </button>
+              <button
+                onClick={handleSendKey}
+                disabled={sendingKey}
+                className="text-xs text-zinc-400 hover:text-blue-400 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {sendingKey ? (
+                  <ArrowsClockwise size={14} weight="bold" className="animate-spin" />
+                ) : (
+                  <PaperPlaneTilt size={14} weight="bold" />
+                )}
+                {sendingKey ? 'Sending...' : 'Email My Key'}
+              </button>
+              <button
+                onClick={handleRegenerateKey}
+                className="text-xs text-zinc-400 hover:text-amber-500 transition-colors flex items-center gap-1.5"
+              >
+                <ArrowsClockwise size={14} weight="bold" />
+                Regenerate
+              </button>
+            </div>
+          </CardContent>
+        </>
+      )}
     </Card>
   );
 }

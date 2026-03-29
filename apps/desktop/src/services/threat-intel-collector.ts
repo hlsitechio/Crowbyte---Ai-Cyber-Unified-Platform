@@ -279,23 +279,56 @@ function parsePlaintextIPs(text: string, feedName: string): NormalizedIOC[] {
 
 // ── Core Collector ──
 
+// Map feed names to proxy feed IDs
+const FEED_PROXY_MAP: Record<string, string> = {
+  'abuse_ch_urlhaus': 'urlhaus-recent',
+  'abuse_ch_feodo': 'feodo-ipblocklist',
+  'abuse_ch_threatfox': 'threatfox',
+  'blocklist_de_ssh': 'blocklist-ssh',
+  'blocklist_de_bruteforce': 'blocklist-brute',
+  'cinsscore_badguys': 'ci-badguys',
+  'emerging_threats_compromised': 'et-compromised',
+};
+
+const isWeb = typeof window !== 'undefined' && !(window as any).electronAPI;
+
 async function fetchFeed(feed: FeedConfig): Promise<NormalizedIOC[]> {
-  const opts: RequestInit = {
-    method: feed.method || 'GET',
-    headers: { 'Accept': 'application/json, text/plain, */*' },
-  };
-
-  if (feed.method === 'POST' && feed.body) {
-    opts.headers = { ...opts.headers as Record<string, string>, 'Content-Type': 'application/json' };
-    opts.body = JSON.stringify(feed.body);
-  }
-
   let response: Response;
-  try {
-    response = await fetch(feed.url, opts);
-  } catch {
-    console.debug(`[threat-intel] Feed unavailable in desktop mode: ${feed.name} (${feed.url})`);
-    return [];
+
+  // On web, use server-side proxy to avoid CORS
+  if (isWeb && FEED_PROXY_MAP[feed.name]) {
+    const proxyId = FEED_PROXY_MAP[feed.name];
+    const proxyOpts: RequestInit = {
+      method: feed.method === 'POST' ? 'POST' : 'GET',
+    };
+    if (feed.method === 'POST' && feed.body) {
+      proxyOpts.headers = { 'Content-Type': 'application/json' };
+      proxyOpts.body = JSON.stringify(feed.body);
+    }
+    try {
+      response = await fetch(`/api/proxy/feed/${proxyId}`, proxyOpts);
+    } catch {
+      console.debug(`[threat-intel] Proxy feed unavailable: ${feed.name}`);
+      return [];
+    }
+  } else {
+    // Direct fetch (Electron — no CORS issues)
+    const opts: RequestInit = {
+      method: feed.method || 'GET',
+      headers: { 'Accept': 'application/json, text/plain, */*' },
+    };
+
+    if (feed.method === 'POST' && feed.body) {
+      opts.headers = { ...opts.headers as Record<string, string>, 'Content-Type': 'application/json' };
+      opts.body = JSON.stringify(feed.body);
+    }
+
+    try {
+      response = await fetch(feed.url, opts);
+    } catch {
+      console.debug(`[threat-intel] Feed unavailable: ${feed.name} (${feed.url})`);
+      return [];
+    }
   }
 
   if (!response.ok) {

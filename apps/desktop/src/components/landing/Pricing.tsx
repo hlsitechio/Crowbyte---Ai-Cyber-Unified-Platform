@@ -21,32 +21,34 @@ const plans: PlanTier[] = [
   {
     name: "Free",
     price: "$0",
-    subtitle: "Get started",
+    subtitle: "Web only",
     features: [
+      { label: "Platform", value: "Web app only" },
       { label: "Custom Agents", value: "2 agents" },
-      { label: "MCP Tools", value: "Basic set" },
+      { label: "MCP Tools", value: "Limited" },
       { label: "VPS Agents", value: false },
       { label: "Red Team Ops", value: false },
-      { label: "Fleet Management", value: false },
+      { label: "Desktop App", value: false },
       { label: "Support", value: "Community" },
     ],
     cta: "Launch Free",
-    href: "#/auth",
+    href: "/auth",
   },
   {
     name: "Pro",
     price: "$29",
     subtitle: "For serious hunters",
     features: [
+      { label: "Platform", value: "Web + Desktop" },
       { label: "Custom Agents", value: "10 agents" },
-      { label: "MCP Tools", value: "All 142" },
+      { label: "MCP Tools", value: "All current" },
       { label: "VPS Agents", value: "3 agents" },
       { label: "Red Team Ops", value: "5 ops" },
-      { label: "Fleet Management", value: "5 endpoints" },
+      { label: "Desktop App", value: "All platforms" },
       { label: "Support", value: "Priority email" },
     ],
     cta: "Start Pro",
-    href: "#/auth",
+    href: "/payments",
     highlight: true,
   },
   {
@@ -54,30 +56,35 @@ const plans: PlanTier[] = [
     price: "$79",
     subtitle: "Collaborate at scale",
     features: [
+      { label: "Platform", value: "Web + Desktop" },
       { label: "Custom Agents", value: "Unlimited" },
-      { label: "MCP Tools", value: "All 142" },
+      { label: "MCP Tools", value: "All current" },
       { label: "VPS Agents", value: "9 agents" },
       { label: "Red Team Ops", value: "Unlimited" },
-      { label: "Fleet Management", value: "50 endpoints" },
+      { label: "Desktop App", value: "All platforms" },
+      { label: "Early Access", value: "New betas first" },
       { label: "Support", value: "Priority + chat" },
     ],
     cta: "Start Team",
-    href: "#/auth",
+    href: "/payments",
   },
   {
     name: "Enterprise",
     price: "Custom",
     subtitle: "On-prem + air-gapped",
     features: [
+      { label: "Platform", value: "Web + Desktop" },
       { label: "Custom Agents", value: "Unlimited" },
       { label: "MCP Tools", value: "All + custom" },
       { label: "VPS Agents", value: "Unlimited" },
       { label: "Red Team Ops", value: "Unlimited" },
+      { label: "Desktop App", value: "All platforms" },
+      { label: "Early Access", value: "All new betas" },
       { label: "Fleet Management", value: "Unlimited" },
       { label: "Support", value: "Dedicated SLA" },
     ],
     cta: "Contact Sales",
-    href: "mailto:support@crowbyte.io",
+    href: "/contact",
   },
 ];
 
@@ -174,7 +181,7 @@ export default function Pricing() {
               </ul>
 
               <button
-                onClick={() => { window.location.hash = plan.href; }}
+                onClick={() => { window.location.href = plan.href; }}
                 className={`mt-6 w-full rounded-full py-3 text-sm text-center block font-['JetBrains_Mono'] font-medium transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
                   plan.highlight
                     ? "bg-orange-500 hover:bg-orange-400 text-black"

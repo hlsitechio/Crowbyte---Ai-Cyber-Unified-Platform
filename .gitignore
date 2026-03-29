@@ -107,6 +107,7 @@ package-lock.json
 *.png
 !public/favicon.ico
 !public/icon.ico
+!docs/assets/*.png
 *.jpg
 *.jpeg
 *.gif
@@ -128,3 +129,7 @@ package-lock.json
 social/
 automation/
 packages/
+agents/
+server/
+test-landing/
+SAAS-PLAN.md

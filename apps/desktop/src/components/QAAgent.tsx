@@ -1426,7 +1426,32 @@ const ActivitySparkline = ({ timestamps }: { timestamps: number[] }) => {
 
 export function QAAgent() {
  const location = useLocation();
+ const [enabled, setEnabled] = useState(() => localStorage.getItem('ai_debugger_enabled') !== 'false');
  const [open, setOpen] = useState(false);
+
+ // Listen for settings toggle
+ useEffect(() => {
+ const handler = (e: Event) => {
+ const detail = (e as CustomEvent).detail;
+ if (detail && typeof detail.aiDebugger === 'boolean') {
+ setEnabled(detail.aiDebugger);
+ if (!detail.aiDebugger) setOpen(false);
+ }
+ };
+ window.addEventListener('crowbyte:debugger-toggle', handler);
+ // Also check on storage change (other tabs)
+ const storageHandler = () => {
+ setEnabled(localStorage.getItem('ai_debugger_enabled') !== 'false');
+ };
+ window.addEventListener('storage', storageHandler);
+ return () => {
+ window.removeEventListener('crowbyte:debugger-toggle', handler);
+ window.removeEventListener('storage', storageHandler);
+ };
+ }, []);
+
+ // If disabled, render nothing
+ if (!enabled) return null;
  const [errors, setErrors] = useState<ErrorEntry[]>([]);
  const [network, setNetwork] = useState<NetworkEntry[]>([]);
  const [navigation, setNavigation] = useState<NavigationEntry[]>([]);

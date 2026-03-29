@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from"@/comp
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { Separator } from"@/components/ui/separator";
 import { Button } from"@/components/ui/button";
-import { Warning, Pulse, Cpu, HardDrives, WifiHigh, Clock, Lightning, Brain, Broadcast, Eye, ArrowSquareOut, ArrowsClockwise, Globe, ArrowRight, Monitor, Terminal, ChatDots, DesktopTower, Sword, Database, Robot } from "@phosphor-icons/react";
+import { Warning, Pulse, Cpu, HardDrives, WifiHigh, Clock, Lightning, Broadcast, Eye, ArrowSquareOut, ArrowsClockwise, Globe, ArrowRight, Monitor, Terminal, ChatDots, Sword, Database, Robot } from "@phosphor-icons/react";
 import { motion } from"framer-motion";
 import CommandCenterHeader from"@/components/CommandCenterHeader";
+import { FeedPanel } from"@/components/FeedPanel";
 import { useToast } from"@/hooks/use-toast";
 import { ipStatusService, type IPStatusData } from"@/services/ip-status";
 import { systemMonitor, SystemMetrics } from"@/services/systemMonitor";
@@ -36,6 +37,15 @@ interface SystemHealth {
  network: number;
 }
 
+interface AgentActivity {
+ agent: string;
+ icon: string;
+ lastRun: string;
+ status: 'active' | 'idle' | 'error';
+ metric: string;
+ metricLabel: string;
+}
+
 const Dashboard = () => {
  const { toast } = useToast();
  const navigate = useNavigate();
@@ -63,6 +73,9 @@ const Dashboard = () => {
  // OpenClaw status
  const [openClawStatus, setOpenClawStatus] = useState<{ ok: boolean; latencyMs: number } | null>(null);
  const [supabaseOk, setSupabaseOk] = useState<boolean | null>(null);
+
+ // Agent activity
+ const [agentActivity, setAgentActivity] = useState<AgentActivity[]>([]);
 
  // VPS system metrics
  const [vpsMetrics, setVpsMetrics] = useState<{
@@ -159,29 +172,8 @@ const Dashboard = () => {
  .limit(5);
 
  if (error || !data || data.length === 0) {
- if (error) {
- console.warn('⚠️ Supabase error, using mock data:', error);
- } else {
- console.warn('⚠️ No CVEs in database, using mock data');
- }
-
- // Fall back to mock data if Supabase fails or no data
- setCveAlerts([
- {
- id:"CVE-2025-XXXX",
- description:"Critical remote code execution vulnerability discovered in widely-used framework",
- severity:"CRITICAL",
- publishedDate: new Date().toISOString(),
- cvssScore: 9.8,
- },
- {
- id:"CVE-2025-YYYY",
- description:"SQL injection vulnerability affecting enterprise database systems",
- severity:"HIGH",
- publishedDate: new Date().toISOString(),
- cvssScore: 8.1,
- },
- ]);
+ if (error) console.warn('⚠️ Supabase CVE error:', error);
+ setCveAlerts([]);
  } else {
  // Successfully fetched from Supabase
  // CVEs loaded successfully
@@ -198,24 +190,7 @@ const Dashboard = () => {
  }
  } catch (error) {
  console.error("❌ Error fetching CVEs:", error);
-
- // Fallback mock data
- setCveAlerts([
- {
- id:"CVE-2025-XXXX",
- description:"Critical remote code execution vulnerability discovered in widely-used framework",
- severity:"CRITICAL",
- publishedDate: new Date().toISOString(),
- cvssScore: 9.8,
- },
- {
- id:"CVE-2025-YYYY",
- description:"SQL injection vulnerability affecting enterprise database systems",
- severity:"HIGH",
- publishedDate: new Date().toISOString(),
- cvssScore: 8.1,
- },
- ]);
+ setCveAlerts([]);
  } finally {
  setLoadingCVEs(false);
  }
@@ -234,36 +209,36 @@ const Dashboard = () => {
  fetchCVEs();
  }, []);
 
- // Fetch news from Supabase (ingested by VPS service every 3 min)
+ // Fetch threat intel from Supabase intel_reports (ingested by Sentinel agent every 15 min)
  const fetchNews = async () => {
  try {
  setLoadingNews(true);
  const { supabase } = await import('@/lib/supabase');
  const { data, error } = await supabase
- .from('knowledge_base')
- .select('title, source_url, author, published_date, subcategory')
- .eq('category', 'news')
- .order('published_date', { ascending: false })
- .limit(40);
+ .from('intel_reports')
+ .select('title, source_url, source, category, severity, processed_at, created_at')
+ .order('created_at', { ascending: false })
+ .limit(20);
 
- if (error || !data || data.length === 0) throw new Error('No news');
+ if (error || !data || data.length === 0) throw new Error('No intel');
 
  const items: NewsItem[] = data.map((item: any) => {
- const pubDate = item.published_date ? new Date(item.published_date) : new Date();
+ const pubDate = item.processed_at ? new Date(item.processed_at) : new Date(item.created_at);
  const hoursAgo = Math.floor((Date.now() - pubDate.getTime()) / 3600000);
  const timeText = hoursAgo < 1 ? 'Just now' : hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.floor(hoursAgo / 24)}d ago`;
+ const categoryLabel = (item.category || 'other').replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
  return {
  title: item.title,
- source: item.author || 'Unknown',
+ source: item.source || 'Unknown',
  time: timeText,
- category: item.subcategory || 'Security News',
+ category: item.severity === 'critical' ? `CRITICAL — ${categoryLabel}` : categoryLabel,
  url: item.source_url || '#',
  };
  });
  setNews(items);
  } catch {
  setNews([
- { title:"Waiting for feed ingestion from VPS...", source:"CrowByte", time:"now", category:"System", url:"#" },
+ { title:"Waiting for Sentinel agent to ingest feeds...", source:"CrowByte", time:"now", category:"System", url:"#" },
  ]);
  } finally {
  setLoadingNews(false);
@@ -281,6 +256,81 @@ const Dashboard = () => {
 
  useEffect(() => {
  fetchNews();
+ }, []);
+
+ // Fetch agent activity stats from Supabase
+ const fetchAgentActivity = async () => {
+ try {
+ const { supabase } = await import('@/lib/supabase');
+ const now = new Date();
+ const oneDayAgo = new Date(now.getTime() - 24 * 3600000).toISOString();
+
+ // Parallel queries for agent metrics
+ const [intelRes, alertsRes, reportsRes, cveRes] = await Promise.all([
+ supabase.from('intel_reports').select('created_at', { count: 'exact', head: false })
+ .gte('created_at', oneDayAgo).order('created_at', { ascending: false }).limit(1),
+ supabase.from('alerts').select('ingested_at', { count: 'exact', head: false })
+ .gte('ingested_at', oneDayAgo).order('ingested_at', { ascending: false }).limit(1),
+ supabase.from('reports').select('created_at', { count: 'exact', head: false })
+ .gte('created_at', oneDayAgo).order('created_at', { ascending: false }).limit(1),
+ supabase.from('cves').select('created_at', { count: 'exact', head: false })
+ .gte('created_at', oneDayAgo).order('created_at', { ascending: false }).limit(1),
+ ]);
+
+ const timeAgo = (iso: string | null) => {
+ if (!iso) return 'Never';
+ const ms = now.getTime() - new Date(iso).getTime();
+ const mins = Math.floor(ms / 60000);
+ if (mins < 1) return 'Just now';
+ if (mins < 60) return `${mins}m ago`;
+ const hrs = Math.floor(mins / 60);
+ if (hrs < 24) return `${hrs}h ago`;
+ return `${Math.floor(hrs / 24)}d ago`;
+ };
+
+ setAgentActivity([
+ {
+ agent: 'Sentinel',
+ icon: '🛰️',
+ lastRun: timeAgo(intelRes.data?.[0]?.created_at || null),
+ status: (intelRes.count || 0) > 0 ? 'active' : 'idle',
+ metric: String(intelRes.count || 0),
+ metricLabel: 'reports/24h',
+ },
+ {
+ agent: 'Alerter',
+ icon: '🚨',
+ lastRun: timeAgo(alertsRes.data?.[0]?.ingested_at || null),
+ status: (alertsRes.count || 0) > 0 ? 'active' : 'idle',
+ metric: String(alertsRes.count || 0),
+ metricLabel: 'alerts/24h',
+ },
+ {
+ agent: 'Classifier',
+ icon: '🧬',
+ lastRun: timeAgo(cveRes.data?.[0]?.created_at || null),
+ status: (cveRes.count || 0) > 0 ? 'active' : 'idle',
+ metric: String(cveRes.count || 0),
+ metricLabel: 'CVEs/24h',
+ },
+ {
+ agent: 'Reporter',
+ icon: '📊',
+ lastRun: timeAgo(reportsRes.data?.[0]?.created_at || null),
+ status: (reportsRes.count || 0) > 0 ? 'active' : 'idle',
+ metric: String(reportsRes.count || 0),
+ metricLabel: 'reports/24h',
+ },
+ ]);
+ } catch (err) {
+ console.error('Agent activity fetch failed:', err);
+ }
+ };
+
+ useEffect(() => {
+ fetchAgentActivity();
+ const interval = setInterval(fetchAgentActivity, 120000); // refresh every 2 min
+ return () => clearInterval(interval);
  }, []);
 
  // Real system health monitoring from registered endpoint
@@ -732,85 +782,6 @@ const Dashboard = () => {
  </Card>
  </motion.div>
 
- {/* OpenClaw Agent Swarm Status */}
- <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.4, delay: 0.15 }}
- >
- <Card className="bg-card/50 backdrop-blur">
- <CardContent className="p-3">
- <div className="flex items-center justify-between gap-3">
- <div className="flex items-center gap-2 min-w-[140px]">
- <DesktopTower size={16} weight="bold" className="text-primary" />
- <span className="text-xs font-semibold text-primary">OpenClaw Swarm</span>
- </div>
- <div className="flex items-center gap-2 flex-1 flex-wrap">
- {/* VPS Connection */}
- <span className="flex items-center gap-1.5 text-xs">
- <span className={`w-1.5 h-1.5 rounded-full ${
- openClawStatus?.ok
- ? 'bg-emerald-500'
- : openClawStatus === null
- ? 'bg-amber-500 animate-pulse'
- : 'bg-red-500'
- }`} />
- <span className={
- openClawStatus?.ok
- ? 'text-emerald-500'
- : openClawStatus === null
- ? 'text-amber-500'
- : 'text-red-500'
- }>
- {openClawStatus?.ok ? 'VPS Online' : openClawStatus === null ? 'Checking...' : 'VPS Offline'}
- </span>
- </span>
-
- {openClawStatus?.ok && (
- <>
- <Separator orientation="vertical" className="h-4" />
- <span className="text-xs text-muted-foreground">{openClawStatus.latencyMs}ms</span>
- <Separator orientation="vertical" className="h-4" />
- <span className="text-xs text-cyan-500">9 Agents</span>
- <Separator orientation="vertical" className="h-4" />
- <span className="text-xs text-muted-foreground font-mono">
- {openClaw.getModels().find(m => m.id === openClaw.getCurrentModel())?.name || 'GLM5'}
- </span>
- <span className="text-xs text-emerald-500">NVIDIA Free</span>
- </>
- )}
-
- <Separator orientation="vertical" className="h-4" />
-
- {/* Supabase Status */}
- <span className="flex items-center gap-1.5 text-xs">
- <span className={`w-1.5 h-1.5 rounded-full ${
- supabaseOk
- ? 'bg-emerald-500'
- : supabaseOk === null
- ? 'bg-amber-500 animate-pulse'
- : 'bg-red-500'
- }`} />
- <span className={
- supabaseOk ? 'text-emerald-500' : supabaseOk === null ? 'text-amber-500' : 'text-red-500'
- }>
- {supabaseOk ? 'Supabase' : supabaseOk === null ? 'Checking...' : 'DB Offline'}
- </span>
- </span>
-
- {/* Electron Status */}
- <span className="flex items-center gap-1.5 text-xs">
- <span className={`w-1.5 h-1.5 rounded-full ${window.electronAPI ? 'bg-emerald-500' : 'bg-red-500'}`} />
- <span className={window.electronAPI ? 'text-emerald-500' : 'text-red-500'}>
- {window.electronAPI ? 'Electron IPC' : 'No IPC'}
- </span>
- </span>
- </div>
- </div>
- </CardContent>
- </Card>
- </motion.div>
-
  {/* Quick Actions Row */}
  <div className="flex items-center gap-6">
  <motion.div
@@ -869,57 +840,6 @@ const Dashboard = () => {
  </div>
  </motion.div>
  </div>
-
- {/* CrowByte AI - Quick Access */}
- <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.4, delay: 0.1 }}
- >
- <Card
- className="bg-gradient-to-br from-primary/5 to-background backdrop-blur cursor-pointer hover:transition-all group"
- onClick={() => navigate('/chat')}
- >
- <CardContent className="p-6">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-4">
- <div className="p-3 rounded-lg bg-primary/20 group-hover:scale-110 transition-transform">
- <Brain size={32} weight="duotone" className="text-primary" />
- </div>
- <div>
- <div className="flex items-center gap-2 mb-1">
- <h3 className="text-lg font-semibold">CrowByte AI</h3>
- <span className="text-xs text-muted-foreground">
- OpenClaw • {openClaw.getModels().find(m => m.id === openClaw.getCurrentModel())?.name || 'GLM5'}
- </span>
- <span className="text-xs text-emerald-500">NVIDIA Free</span>
- </div>
- <p className="text-sm text-muted-foreground">Agentic AI with terminal execution • 9 agents • 7 models</p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <div className="text-right">
- <p className="text-xs text-muted-foreground mb-1">
- {openClawStatus?.ok ? `${openClawStatus.latencyMs}ms latency` : 'Connecting...'}
- </p>
- <Button
- variant="outline"
- size="sm"
- className="bg-primary/10 hover:bg-primary/20"
- onClick={(e) => {
- e.stopPropagation();
- navigate('/chat');
- }}
- >
- Open Chat
- <ArrowRight size={16} weight="bold" className="ml-2 group-hover:translate-x-1 transition-transform" />
- </Button>
- </div>
- </div>
- </div>
- </CardContent>
- </Card>
- </motion.div>
 
  {/* System Health — Kali + OpenClaw side by side */}
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1185,6 +1105,9 @@ const Dashboard = () => {
  </motion.div>
  </div>
 
+ {/* Your Feed — personalized security intelligence from CrowByte agents */}
+ <FeedPanel />
+
  {/* Main Content Grid */}
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* CVE Alerts */}
@@ -1201,7 +1124,7 @@ const Dashboard = () => {
  <Warning size={20} weight="duotone" className="animate-pulse" />
  Latest CVE Alerts
  </CardTitle>
- <CardDescription>Recent {new Date().getFullYear()} vulnerabilities from NVD NIST</CardDescription>
+ <CardDescription>Top CVEs tracked by CrowByte Sentinel</CardDescription>
  </div>
  <Button
  variant="ghost"
@@ -1273,7 +1196,7 @@ const Dashboard = () => {
  <Broadcast size={20} weight="duotone" />
  Cyber Threat Intelligence
  </CardTitle>
- <CardDescription>Latest security news from r/netsec</CardDescription>
+ <CardDescription>Live intel from Sentinel — RSS feeds analyzed by GLM5</CardDescription>
  </div>
  <Button
  variant="ghost"
@@ -1329,13 +1252,83 @@ const Dashboard = () => {
  </motion.div>
  </div>
 
- {/* Status Footer */}
+ {/* AI Agent Activity */}
+ <motion.div
+ initial={{ opacity: 0, y: 20 }}
+ animate={{ opacity: 1, y: 0 }}
+ transition={{ duration: 0.4, delay: 0.5 }}
+ >
+ <Card className="bg-card/50 backdrop-blur">
+ <CardHeader className="pb-3">
+ <div className="flex items-center justify-between">
+ <div>
+ <CardTitle className="flex items-center gap-2 text-emerald-500">
+ <Robot size={20} weight="duotone" />
+ AI Agent Swarm
+ </CardTitle>
+ <CardDescription>VPS autonomous agents — Sentinel, Alerter, Classifier, Reporter</CardDescription>
+ </div>
+ <Button
+ variant="ghost"
+ size="sm"
+ onClick={fetchAgentActivity}
+ className="h-8 px-3"
+ >
+ <ArrowsClockwise size={16} weight="bold" className="mr-2" />
+ Refresh
+ </Button>
+ </div>
+ </CardHeader>
+ <CardContent>
+ <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+ {agentActivity.map((agent) => (
+ <div
+ key={agent.agent}
+ className="rounded-lg p-4 ring-1 ring-white/[0.06] transition-all hover:bg-primary/5 hover:ring-white/[0.1]"
+ >
+ <div className="flex items-center justify-between mb-3">
+ <div className="flex items-center gap-2">
+ <span className="text-lg">{agent.icon}</span>
+ <span className="font-semibold text-sm text-zinc-100">{agent.agent}</span>
+ </div>
+ <div className={`h-2 w-2 rounded-full ${
+ agent.status === 'active' ? 'bg-emerald-500 animate-pulse' :
+ agent.status === 'error' ? 'bg-red-500' : 'bg-zinc-600'
+ }`} />
+ </div>
+ <div className="space-y-1.5">
+ <div className="flex items-center justify-between">
+ <span className="text-xs text-muted-foreground">Last run</span>
+ <span className="text-xs font-mono text-zinc-300">{agent.lastRun}</span>
+ </div>
+ <div className="flex items-center justify-between">
+ <span className="text-xs text-muted-foreground">{agent.metricLabel}</span>
+ <span className={`text-sm font-bold ${
+ parseInt(agent.metric) > 0 ? 'text-emerald-400' : 'text-zinc-500'
+ }`}>{agent.metric}</span>
+ </div>
+ </div>
+ </div>
+ ))}
+ </div>
+ {agentActivity.length === 0 && (
+ <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+ <ArrowsClockwise size={16} weight="bold" className="mr-2 animate-spin" />
+ Loading agent activity...
+ </div>
+ )}
+ </CardContent>
+ </Card>
+ </motion.div>
+
+ {/* Status Footer — Unified system bar */}
  <motion.div
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4, delay: 0.6 }}
  className="flex items-center justify-between text-sm text-muted-foreground border-t border-white/[0.04] pt-4"
  >
+ {/* Left: System status + Version */}
  <div className="flex items-center gap-4">
  <div className="flex items-center gap-2">
  <div className={`h-2 w-2 rounded-full animate-pulse ${
@@ -1353,14 +1346,59 @@ const Dashboard = () => {
  <span>CrowByte v1.0</span>
  </div>
  </div>
- <div className="flex items-center gap-2 text-xs">
- <span className={openClawStatus?.ok ? 'text-emerald-500' : 'text-red-500'}>OpenClaw</span>
- <span className="text-muted-foreground">|</span>
- <span className={supabaseOk ? 'text-emerald-500' : 'text-red-500'}>Supabase</span>
- <span className="text-muted-foreground">|</span>
+
+ {/* Right: Subsystem status indicators */}
+ <div className="flex items-center gap-3 text-xs">
+ {/* OpenClaw VPS */}
+ <span className="flex items-center gap-1.5">
+ <span className={`w-1.5 h-1.5 rounded-full ${
+ openClawStatus?.ok ? 'bg-emerald-500' : openClawStatus === null ? 'bg-amber-500 animate-pulse' : 'bg-red-500'
+ }`} />
+ <span className={openClawStatus?.ok ? 'text-emerald-500' : openClawStatus === null ? 'text-amber-500' : 'text-red-500'}>
+ OpenClaw
+ </span>
+ {openClawStatus?.ok && (
+ <span className="text-muted-foreground">{openClawStatus.latencyMs}ms</span>
+ )}
+ </span>
+ <span className="text-zinc-700">|</span>
+
+ {/* VPS agents + model */}
+ {openClawStatus?.ok && (
+ <>
+ <span className="text-cyan-500">9 Agents</span>
+ <span className="text-zinc-700">|</span>
+ <span className="text-muted-foreground font-mono">
+ {openClaw.getModels().find(m => m.id === openClaw.getCurrentModel())?.name || 'GLM5'}
+ </span>
+ <span className="text-emerald-500">NVIDIA</span>
+ <span className="text-zinc-700">|</span>
+ </>
+ )}
+
+ {/* Supabase */}
+ <span className="flex items-center gap-1.5">
+ <span className={`w-1.5 h-1.5 rounded-full ${
+ supabaseOk ? 'bg-emerald-500' : supabaseOk === null ? 'bg-amber-500 animate-pulse' : 'bg-red-500'
+ }`} />
+ <span className={supabaseOk ? 'text-emerald-500' : supabaseOk === null ? 'text-amber-500' : 'text-red-500'}>
+ Supabase
+ </span>
+ </span>
+ <span className="text-zinc-700">|</span>
+
+ {/* Electron */}
+ <span className="flex items-center gap-1.5">
+ <span className={`w-1.5 h-1.5 rounded-full ${window.electronAPI ? 'bg-emerald-500' : 'bg-red-500'}`} />
  <span className={window.electronAPI ? 'text-emerald-500' : 'text-red-500'}>Electron</span>
- <span className="text-muted-foreground">|</span>
+ </span>
+ <span className="text-zinc-700">|</span>
+
+ {/* Network */}
+ <span className="flex items-center gap-1.5">
+ <span className={`w-1.5 h-1.5 rounded-full ${ipStatus && !ipStatus.error ? 'bg-emerald-500' : 'bg-red-500'}`} />
  <span className={ipStatus && !ipStatus.error ? 'text-emerald-500' : 'text-red-500'}>Network</span>
+ </span>
  </div>
  </motion.div>
  </div>

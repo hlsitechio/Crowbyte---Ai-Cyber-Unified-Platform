@@ -18,12 +18,13 @@ import openClaw from"@/services/openclaw";
 import claudeProvider, { type ClaudeStreamEvent } from"@/services/claude-provider";
 import { analyticsService } from"@/services/analytics";
 import { memoryEngine } from"@/services/memory-engine";
+import { isWebAiAvailable, streamChat, getModels as getWebModels, getUsage, type AiModel } from"@/services/web-ai-chat";
 import ReactMarkdown from"react-markdown";
 import remarkGfm from"remark-gfm";
 
 // ─── Types ───────────────────────────────────────────────
 
-type Provider = 'claude' | 'openclaw';
+type Provider = 'claude' | 'openclaw' | 'crowbyte';
 
 interface Message {
  role:"user" |"assistant";
@@ -238,6 +239,12 @@ const Chat = () => {
  const [claudeAvailable, setClaudeAvailable] = useState(false);
  const [sessionCost, setSessionCost] = useState(0);
 
+ // CrowByte Web AI state
+ const [webAiAvailable, setWebAiAvailable] = useState(false);
+ const [webAiModel, setWebAiModel] = useState('deepseek-ai/deepseek-r1');
+ const [webAiModels, setWebAiModels] = useState<AiModel[]>([]);
+ const [webAiUsage, setWebAiUsage] = useState<{ current: number; limit: number | null; tier: string } | null>(null);
+
  const scrollRef = useRef<HTMLDivElement>(null);
 
  // ─── Auth + Health ───────────────────────────────────
@@ -251,6 +258,17 @@ const Chat = () => {
  const health = await openClaw.healthCheck();
  setOpenClawConnected(health.ok);
  } catch { setOpenClawConnected(false); }
+
+ // Web AI: auto-detect and fetch models/usage
+ if (isWebAiAvailable()) {
+ setWebAiAvailable(true);
+ const [models, usage] = await Promise.all([getWebModels(), getUsage()]);
+ if (models.length > 0) setWebAiModels(models);
+ if (usage) setWebAiUsage({ current: usage.current, limit: usage.limit, tier: usage.tier });
+ // Auto-select crowbyte on web if Claude CLI isn't available
+ if (!window.electronAPI?.claudeChat) setProvider('crowbyte');
+ }
+
  if (!conversationId) await createNewConversation();
  };
  init();
@@ -462,6 +480,57 @@ const Chat = () => {
  return assistantContent;
  }, [openClawModel, messages, conversationId]);
 
+ // ─── CrowByte Web AI Send ────────────────────────────
+
+ const sendCrowByte = useCallback(async (userMessage: Message) => {
+ let assistantContent = "";
+
+ setMessages(prev => [...prev, {
+ role: "assistant", content: "", isStreaming: true,
+ provider: 'crowbyte', model: webAiModel, timestamp: Date.now(),
+ }]);
+
+ const chatMessages = [...messages, userMessage].map(m => ({
+ role: m.role as 'user' | 'assistant' | 'system',
+ content: m.content,
+ }));
+
+ for await (const chunk of streamChat(chatMessages, webAiModel)) {
+ if (chunk.type === 'text') {
+ assistantContent += chunk.content;
+ } else if (chunk.type === 'error') {
+ assistantContent += `\n**Error:** ${chunk.content}\n`;
+ } else if (chunk.type === 'done') {
+ break;
+ }
+
+ setMessages(prev => {
+ const next = [...prev];
+ next[next.length - 1] = {
+ role: "assistant", content: assistantContent, isStreaming: true,
+ provider: 'crowbyte', model: webAiModel,
+ };
+ return next;
+ });
+ }
+
+ setMessages(prev => {
+ const next = [...prev];
+ next[next.length - 1] = {
+ role: "assistant", content: assistantContent, isStreaming: false,
+ provider: 'crowbyte', model: webAiModel, timestamp: Date.now(),
+ };
+ return next;
+ });
+
+ // Refresh usage after send
+ const usage = await getUsage();
+ if (usage) setWebAiUsage({ current: usage.current, limit: usage.limit, tier: usage.tier });
+
+ if (assistantContent) await saveMessage('assistant', assistantContent);
+ return assistantContent;
+ }, [webAiModel, messages, conversationId]);
+
  // ─── Send Handler ────────────────────────────────────
 
  const handleSend = async () => {
@@ -490,10 +559,12 @@ const Chat = () => {
 
  try {
  if (provider === 'claude') await sendClaude(userMessage);
- else await sendOpenClaw(userMessage);
+ else if (provider === 'openclaw') await sendOpenClaw(userMessage);
+ else await sendCrowByte(userMessage);
 
+ const activeModel = provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel;
  await analyticsService.logChat({
- model: provider === 'claude' ? claudeModel : openClawModel,
+ model: activeModel,
  messageLength: messages.length,
  responseTimeMs: Date.now() - chatStartTime,
  status: 'success',
@@ -501,7 +572,7 @@ const Chat = () => {
  } catch (error) {
  console.error("Chat error:", error);
  await analyticsService.logChat({
- model: provider === 'claude' ? claudeModel : openClawModel,
+ model: activeModel,
  messageLength: 0,
  responseTimeMs: Date.now() - chatStartTime,
  status: 'error',
@@ -524,7 +595,9 @@ const Chat = () => {
 
  const currentModelLabel = provider === 'claude'
  ? claudeProvider.getModels().find(m => m.id === claudeModel)?.name || claudeModel
- : openClaw.getModels().find(m => m.id === openClawModel)?.name || openClawModel;
+ : provider === 'openclaw'
+ ? openClaw.getModels().find(m => m.id === openClawModel)?.name || openClawModel
+ : webAiModels.find(m => m.id === webAiModel)?.name || webAiModel;
 
  // ─── Render ──────────────────────────────────────────
 
@@ -565,18 +638,32 @@ const Chat = () => {
  >
  <Robot size={12} weight="bold" className="inline mr-1" />OpenClaw
  </button>
+ {webAiAvailable && (
+ <button
+ onClick={() => setProvider('crowbyte')}
+ className={`px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 ${
+ provider === 'crowbyte'
+ ? 'bg-transparent text-blue-500 shadow-sm shadow-blue-500/10'
+ : 'text-muted-foreground hover:text-foreground'
+ }`}
+ >
+ <Lightning size={12} weight="bold" className="inline mr-1" />CrowByte
+ </button>
+ )}
  </div>
 
  {/* Status dot */}
  <div className="flex items-center gap-1.5">
  <div className={`w-2 h-2 rounded-full ${
- (provider === 'claude' ? claudeAvailable : openClawConnected)
+ (provider === 'claude' ? claudeAvailable : provider === 'openclaw' ? openClawConnected : webAiAvailable)
  ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-red-500'
  }`} />
  <span className="text-[10px] text-muted-foreground/60">
  {provider === 'claude'
  ? (claudeAvailable ? 'Ready' : 'Unavailable')
- : (openClawConnected ? 'Connected' : 'Offline')
+ : provider === 'openclaw'
+ ? (openClawConnected ? 'Connected' : 'Offline')
+ : (webAiAvailable ? 'Online' : 'Unavailable')
  }
  </span>
  </div>
@@ -598,7 +685,7 @@ const Chat = () => {
  ))}
  </SelectContent>
  </Select>
- ) : (
+ ) : provider === 'openclaw' ? (
  <Select value={openClawModel} onValueChange={setOpenClawModel}>
  <SelectTrigger className="w-[240px] h-8 bg-background/50 border-border/50 text-white text-xs">
  <SelectValue />
@@ -609,6 +696,24 @@ const Chat = () => {
  ))}
  </SelectContent>
  </Select>
+ ) : (
+ <div className="flex items-center gap-2">
+ <Select value={webAiModel} onValueChange={setWebAiModel}>
+ <SelectTrigger className="w-[220px] h-8 bg-background/50 border-border/50 text-white text-xs">
+ <SelectValue />
+ </SelectTrigger>
+ <SelectContent>
+ {webAiModels.map(m => (
+ <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
+ {webAiUsage && webAiUsage.limit !== null && (
+ <span className="text-[10px] text-blue-400/70 font-mono whitespace-nowrap">
+ {webAiUsage.current}/{webAiUsage.limit}
+ </span>
+ )}
+ </div>
  )}
 
  <Sheet>
@@ -666,6 +771,33 @@ const Chat = () => {
  ))}
  </div>
  </div>
+ {webAiAvailable && (
+ <>
+ <Separator />
+ <div>
+ <Label className="text-white flex items-center gap-2">
+ <Lightning size={16} weight="bold" className="text-blue-500" />
+ CrowByte AI (Web)
+ </Label>
+ <div className="mt-3 space-y-2">
+ {[
+ ['Status', webAiAvailable ? 'Online' : 'Offline', webAiAvailable ? 'bg-transparent text-blue-500' : 'bg-transparent text-red-500'],
+ ['Tier', webAiUsage?.tier?.toUpperCase() || 'FREE', 'bg-transparent text-blue-500'],
+ ['Usage', webAiUsage ? (webAiUsage.limit === null ? 'Unlimited' : `${webAiUsage.current}/${webAiUsage.limit} today`) : 'N/A', 'bg-transparent text-blue-400'],
+ ['Models', `${webAiModels.length} available`, 'bg-primary/20 text-primary'],
+ ['Cost', '$0 (Included)', 'bg-transparent text-emerald-500'],
+ ].map(([label, value, cls]) => (
+ <Card key={label as string} className="p-3 ring-1 ring-white/[0.06]">
+ <div className="flex items-center justify-between">
+ <span className="text-sm text-white">{label}</span>
+ <Badge className={cls as string}>{value}</Badge>
+ </div>
+ </Card>
+ ))}
+ </div>
+ </div>
+ </>
+ )}
  <Separator />
  <Card className="p-3">
  <div className="flex items-center justify-between">
@@ -689,20 +821,26 @@ const Chat = () => {
  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ${
  provider === 'claude'
  ? 'bg-transparent ring-1 ring-violet-500/20'
- : 'bg-transparent ring-1 ring-emerald-500/20'
+ : provider === 'openclaw'
+ ? 'bg-transparent ring-1 ring-emerald-500/20'
+ : 'bg-transparent ring-1 ring-blue-500/20'
  }`}>
  {provider === 'claude'
  ? <Sparkle size={28} weight="duotone" className="text-violet-500" />
- : <Robot size={28} weight="duotone" className="text-emerald-500" />
+ : provider === 'openclaw'
+ ? <Robot size={28} weight="duotone" className="text-emerald-500" />
+ : <Lightning size={28} weight="duotone" className="text-blue-500" />
  }
  </div>
  <h2 className="text-lg font-medium text-foreground/80 mb-1">
- {provider === 'claude' ? 'Claude Code' : 'OpenClaw'}
+ {provider === 'claude' ? 'Claude Code' : provider === 'openclaw' ? 'OpenClaw' : 'CrowByte AI'}
  </h2>
  <p className="text-xs text-muted-foreground/50 text-center max-w-sm">
  {provider === 'claude'
  ? 'Full .env-unfiltered — 344 tools, all MCP servers, bypass permissions'
- : 'NVIDIA Free — 9 agents, execute_command + dispatch_agent'
+ : provider === 'openclaw'
+ ? 'NVIDIA Free — 9 agents, execute_command + dispatch_agent'
+ : `Cybersecurity AI — ${webAiUsage?.tier || 'free'} tier, ${webAiModels.length} models`
  }
  </p>
  </div>

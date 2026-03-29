@@ -115,7 +115,7 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  <>
  {commonItems}
  <ContextMenuSeparator />
- <ContextMenuItem onClick={() => window.location.hash = '#/terminal'}>
+ <ContextMenuItem onClick={() => window.location.href = '/terminal'}>
  <TerminalIcon className="mr-2" size={16} weight="bold" />
  New Terminal
  <ContextMenuShortcut>Ctrl+Shift+`</ContextMenuShortcut>
@@ -186,7 +186,7 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  Refresh
  <ContextMenuShortcut>Ctrl+R</ContextMenuShortcut>
  </ContextMenuItem>
- <ContextMenuItem onClick={() => window.location.hash = '#/settings'}>
+ <ContextMenuItem onClick={() => window.location.href = '/settings'}>
  <GearSix className="mr-2" size={16} weight="bold" />
  Settings
  </ContextMenuItem>

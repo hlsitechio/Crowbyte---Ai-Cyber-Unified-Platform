@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Brain, TreeStructure, BookOpen, ShieldCheck, GearSix, Terminal, Cpu, Pulse, Robot, ChatDots, SignOut, Sword, User, BookmarkSimple, FileText, ChartBar, Crosshair, ShieldWarning, Monitor, Scroll, Target, SidebarSimple, PlugsConnected, Funnel, Notebook, Lightning, Rocket, Bell, Cloud } from "@phosphor-icons/react";
+import { Brain, TreeStructure, BookOpen, ShieldCheck, GearSix, Terminal, Cpu, Pulse, Robot, ChatDots, SignOut, Sword, User, BookmarkSimple, FileText, ChartBar, Crosshair, ShieldWarning, Monitor, Scroll, Target, SidebarSimple, PlugsConnected, Funnel, Notebook, Lightning, Rocket, Bell, Cloud, DownloadSimple, Headset } from "@phosphor-icons/react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { useBrowserPanelSafe } from "@/contexts/browser";
 import { useLogs } from "@/contexts/logs";
+import { getUnreadCount } from "@/services/subscription";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import {
@@ -20,6 +21,12 @@ import {
  SidebarTrigger,
  useSidebar,
 } from "@/components/ui/sidebar";
+import {
+ Tooltip,
+ TooltipContent,
+ TooltipProvider,
+ TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // ─── Glowing Dot Component ──────────────────────────────────────────────────
 
@@ -83,6 +90,7 @@ const SECTION_DOT: Record<string, DotColor> = {
 const commandCenterItems = [
  { title: "Dashboard", url: "/dashboard", icon: Pulse },
  { title: "Analytics", url: "/analytics", icon: ChartBar },
+ { title: "Alert Center", url: "/alert-center", icon: Bell },
 ];
 
 const aiOperationsItems = [
@@ -94,32 +102,33 @@ const aiOperationsItems = [
 const redTeamItems = [
  { title: "Red Team", url: "/redteam", icon: Crosshair },
  { title: "Missions", url: "/missions", icon: Rocket },
+ { title: "Mission Planner", url: "/mission-planner", icon: Target },
  { title: "Cyber Ops", url: "/cyber-ops", icon: Sword },
  { title: "Network Map", url: "/network-scanner", icon: TreeStructure },
 ];
 
 const blueTeamItems = [
- { title: "Findings", url: "/findings", icon: Funnel },
- { title: "Reports", url: "/reports", icon: Notebook },
- { title: "Detection Lab", url: "/detection-lab", icon: Lightning },
- { title: "Alert Center", url: "/alert-center", icon: Bell },
- { title: "Cloud Security", url: "/cloud-security", icon: Cloud },
- { title: "Connectors", url: "/connectors", icon: PlugsConnected },
  { title: "Security Monitor", url: "/security-monitor", icon: ShieldCheck },
  { title: "Fleet Management", url: "/fleet", icon: Monitor },
- { title: "CVE Database", url: "/cve", icon: ShieldWarning },
- { title: "Threat Intelligence", url: "/threat-intelligence", icon: ShieldWarning },
+ { title: "Detection Lab", url: "/detection-lab", icon: Lightning },
+ { title: "Cloud Security", url: "/cloud-security", icon: Cloud },
 ];
 
 const intelligenceItems = [
- { title: "Mission Planner", url: "/mission-planner", icon: Target },
+ { title: "CVE Database", url: "/cve", icon: ShieldWarning },
+ { title: "Threat Intel", url: "/threat-intelligence", icon: ShieldWarning },
+ { title: "Findings", url: "/findings", icon: Funnel },
+ { title: "Reports", url: "/reports", icon: Notebook },
  { title: "Knowledge Base", url: "/knowledge", icon: BookOpen },
  { title: "Bookmarks", url: "/bookmarks", icon: BookmarkSimple },
+ { title: "Memory", url: "/memory", icon: Brain },
 ];
 
 const systemItems = [
  { title: "Terminal", url: "/terminal", icon: Terminal },
  { title: "Logs", url: "/logs", icon: Scroll },
+ { title: "Support", url: "/support", icon: Headset },
+ { title: "Connectors", url: "/connectors", icon: PlugsConnected },
 ];
 
 export function AppSidebar() {
@@ -132,6 +141,15 @@ export function AppSidebar() {
  const currentPath = location.pathname;
  const [workspaceName, setWorkspaceName] = useState(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+ const [feedUnread, setFeedUnread] = useState(0);
+
+ // Poll feed unread count every 60s
+ useEffect(() => {
+ const fetchCount = () => getUnreadCount().then(setFeedUnread).catch(() => {});
+ fetchCount();
+ const interval = setInterval(fetchCount, 60000);
+ return () => clearInterval(interval);
+ }, []);
 
  const isActive = (path: string) => currentPath === path || (path !== "/" && currentPath.startsWith(path + "/"));
 
@@ -219,8 +237,10 @@ export function AppSidebar() {
  return items.map((item, index) => {
  const isItemActive = isActive(item.url);
  const showErrorBadge = item.url === '/logs' && unreadErrorCount > 0;
+ const showFeedBadge = item.url === '/dashboard' && feedUnread > 0;
+ const isCollapsed = state === "collapsed";
 
- return (
+ const navContent = (
  <motion.div
  key={item.title}
  initial={{ opacity: 0, x: -12 }}
@@ -244,11 +264,11 @@ export function AppSidebar() {
  <NavLink
  to={item.url}
  end
- className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}
+ className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${isCollapsed ? "gap-0 justify-center" : "gap-3"}`}
  >
- {state === "expanded" && <GlowDot color={dotColor} active={isItemActive} />}
+ {!isCollapsed && <GlowDot color={dotColor} active={isItemActive} />}
  <item.icon size={16} weight="duotone" className={`flex-shrink-0 ${isItemActive ? "text-zinc-100" : "text-zinc-400"}`} />
- {state === "expanded" && (
+ {!isCollapsed && (
  <span className={`text-[13px] ${isItemActive ? "text-zinc-100 font-medium" : "text-zinc-300"}`}>
  {item.title}
  </span>
@@ -256,15 +276,44 @@ export function AppSidebar() {
  {showErrorBadge && (
  <span className="ml-auto text-[10px] text-red-500">{unreadErrorCount}</span>
  )}
+ {showFeedBadge && (
+ <span className="ml-auto flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-blue-500 text-[9px] text-white font-bold">{feedUnread > 99 ? "99+" : feedUnread}</span>
+ )}
  </NavLink>
  </SidebarMenuButton>
  </SidebarMenuItem>
  </motion.div>
  );
+
+ if (isCollapsed) {
+ return (
+ <Tooltip key={item.title} delayDuration={0}>
+ <TooltipTrigger asChild>{navContent}</TooltipTrigger>
+ <TooltipContent side="right" className="bg-zinc-900 border-zinc-700 text-zinc-200 text-xs px-2.5 py-1">
+ {item.title}
+ </TooltipContent>
+ </Tooltip>
+ );
+ }
+
+ return navContent;
  });
  };
 
+ const CollapsedTooltip = ({ children, label }: { children: React.ReactNode; label: string }) => {
+ if (state !== "collapsed") return <>{children}</>;
  return (
+ <Tooltip delayDuration={0}>
+ <TooltipTrigger asChild>{children}</TooltipTrigger>
+ <TooltipContent side="right" className="bg-zinc-900 border-zinc-700 text-zinc-200 text-xs px-2.5 py-1">
+ {label}
+ </TooltipContent>
+ </Tooltip>
+ );
+ };
+
+ return (
+ <TooltipProvider>
  <Sidebar collapsible="icon" className="border-r border-white/[0.06]">
  <SidebarHeader className={`border-b border-white/[0.04] ${state === "collapsed" ? "p-2 space-y-2" : "p-4 space-y-3"}`}>
  <div className={`flex items-center ${state === "collapsed" ? "flex-col gap-1.5" : "gap-2.5 justify-between"}`}>
@@ -297,11 +346,18 @@ export function AppSidebar() {
  </div>
  )}
  {user && state === "collapsed" && (
- <div className="flex items-center justify-center" title={user.email || 'User'}>
+ <Tooltip delayDuration={0}>
+ <TooltipTrigger asChild>
+ <div className="flex items-center justify-center cursor-default">
  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-700/60">
  <User size={14} weight="bold" className="text-zinc-400" />
  </div>
  </div>
+ </TooltipTrigger>
+ <TooltipContent side="right" className="bg-zinc-900 border-zinc-700 text-zinc-200 text-xs px-2.5 py-1">
+ {user.email}
+ </TooltipContent>
+ </Tooltip>
  )}
  </SidebarHeader>
 
@@ -385,7 +441,40 @@ export function AppSidebar() {
  </SidebarGroupLabel>
  <SidebarGroupContent>
  <SidebarMenu>
+ {/* Downloads */}
+ <CollapsedTooltip label="Downloads">
+ <motion.div
+ whileHover={{ x: 2 }}
+ className="relative"
+ >
+ {isActive("/downloads") && (
+ <motion.div
+ layoutId="activeTab"
+ className="absolute inset-0 bg-white/[0.04] rounded-md"
+ transition={{ type: "spring", stiffness: 500, damping: 30 }}
+ />
+ )}
+ <SidebarMenuItem>
+ <SidebarMenuButton asChild>
+ <NavLink
+ to="/downloads"
+ className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}
+ >
+ {state === "expanded" && <GlowDot color="gray" active={isActive("/downloads")} />}
+ <DownloadSimple size={16} weight="duotone" className={`flex-shrink-0 ${isActive("/downloads") ? "text-zinc-200" : "text-zinc-500"}`} />
+ {state === "expanded" && (
+ <span className={`text-[13px] ${isActive("/downloads") ? "text-zinc-200 font-medium" : "text-zinc-400"}`}>
+ Downloads
+ </span>
+ )}
+ </NavLink>
+ </SidebarMenuButton>
+ </SidebarMenuItem>
+ </motion.div>
+ </CollapsedTooltip>
+
  {/* Documentation */}
+ <CollapsedTooltip label="Documentation">
  <motion.div
  whileHover={{ x: 2 }}
  className="relative"
@@ -414,9 +503,11 @@ export function AppSidebar() {
  </SidebarMenuButton>
  </SidebarMenuItem>
  </motion.div>
+ </CollapsedTooltip>
 
  {/* Browser Panel Toggle */}
  {browserPanel && (
+ <CollapsedTooltip label="Browser">
  <motion.div
  whileHover={{ x: 2 }}
  className="relative"
@@ -447,9 +538,11 @@ export function AppSidebar() {
  </SidebarMenuButton>
  </SidebarMenuItem>
  </motion.div>
+ </CollapsedTooltip>
  )}
 
  {/* Settings */}
+ <CollapsedTooltip label="Settings">
  <motion.div
  whileHover={{ x: 2 }}
  className="relative"
@@ -478,8 +571,10 @@ export function AppSidebar() {
  </SidebarMenuButton>
  </SidebarMenuItem>
  </motion.div>
+ </CollapsedTooltip>
 
  {/* Exit */}
+ <CollapsedTooltip label="Exit">
  <motion.div
  whileHover={{ x: 2 }}
  className="relative"
@@ -498,10 +593,12 @@ export function AppSidebar() {
  </SidebarMenuButton>
  </SidebarMenuItem>
  </motion.div>
+ </CollapsedTooltip>
  </SidebarMenu>
  </SidebarGroupContent>
  </SidebarGroup>
  </SidebarContent>
  </Sidebar>
+ </TooltipProvider>
  );
 }
