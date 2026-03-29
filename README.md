@@ -80,7 +80,8 @@ All AI features work with self-hosted models. No data leaves your machine unless
 - **Encrypted Communication** — Remote desktop uses ECDH key exchange with AES-256-GCM for end-to-end encrypted screen sharing and input control.
 - **Credential Encryption** — Login credentials are encrypted with AES-256-GCM using device-derived keys (PBKDF2). On Electron, credentials are double-encrypted with the OS-level safeStorage API.
 - **Conversation Encryption** — Optional AES-256-GCM encryption for stored conversations with HMAC-SHA256 integrity verification.
-- **Activity Logging** — Actions across auth, API, security, AI, and terminal are logged with timestamps, severity levels, and categorized tags. Filterable by level and tag.
+- **Activity Logging** — Actions across auth, API, security, network, AI, and terminal are logged with timestamps, severity levels, and categorized tags. Filterable by level and tag. Exportable as CSV or JSON.
+- **No Telemetry** — CrowByte does not collect usage data, analytics, or tracking information. All activity logs stay on your device.
 - **Supabase Backend** — All data is stored in Supabase (PostgreSQL with Row Level Security). Self-hostable for full data sovereignty.
 - **No Source Exposure** — Proprietary codebase. Binary distribution only. No source code in the repository.
 
@@ -121,7 +122,7 @@ Visit [crowbyte.io](https://crowbyte.io) for details.
 
 ## Roadmap
 
-- [ ] Persistent audit logging with cloud sync and exportable activity trail
+- [ ] Persistent audit logging with cloud sync (Supabase-backed)
 - [ ] Real-time SIEM connectors (Splunk, Elastic polling)
 - [ ] Automated terminal output capture for report evidence
 - [ ] Cloud security scanning (AWS/GCP/Azure API integration)

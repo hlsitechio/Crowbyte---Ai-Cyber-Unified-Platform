@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { WarningCircle, CheckCircle, Info, XCircle, Warning, Funnel, ArrowsClockwise, Scroll, Trash } from "@phosphor-icons/react";
+import { WarningCircle, CheckCircle, Info, XCircle, Warning, Funnel, ArrowsClockwise, Scroll, Trash, DownloadSimple } from "@phosphor-icons/react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -80,6 +81,47 @@ export default function Logs() {
  setViewMode('all');
  };
 
+ const exportLogs = (fmt: 'csv' | 'json') => {
+  const data = filteredLogs.map(log => ({
+    timestamp: format(log.timestamp, "yyyy-MM-dd'T'HH:mm:ss"),
+    level: log.level,
+    tag: log.tag,
+    action: log.action,
+    details: log.details || '',
+  }));
+
+  let content: string;
+  let mimeType: string;
+  let ext: string;
+
+  if (fmt === 'json') {
+    content = JSON.stringify(data, null, 2);
+    mimeType = 'application/json';
+    ext = 'json';
+  } else {
+    const header = 'timestamp,level,tag,action,details';
+    const rows = data.map(r =>
+      `${r.timestamp},${r.level},${r.tag},"${r.action.replace(/"/g, '""')}","${String(r.details).replace(/"/g, '""')}"`
+    );
+    content = [header, ...rows].join('\n');
+    mimeType = 'text/csv';
+    ext = 'csv';
+  }
+
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `crowbyte-logs-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.${ext}`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  toast({
+    title: `Exported ${data.length} logs`,
+    description: `Saved as ${ext.toUpperCase()} file`,
+  });
+ };
+
  const handleDeleteAll = () => {
  if (logs.length === 0) return;
 
@@ -130,6 +172,23 @@ export default function Logs() {
  <ArrowsClockwise size={16} weight="bold" />
  Refresh
  </Button>
+ <DropdownMenu>
+ <DropdownMenuTrigger asChild>
+ <Button
+ variant="outline"
+ size="sm"
+ disabled={filteredLogs.length === 0}
+ className="gap-2"
+ >
+ <DownloadSimple size={16} weight="bold" />
+ Export
+ </Button>
+ </DropdownMenuTrigger>
+ <DropdownMenuContent>
+ <DropdownMenuItem onClick={() => exportLogs('csv')}>Export as CSV</DropdownMenuItem>
+ <DropdownMenuItem onClick={() => exportLogs('json')}>Export as JSON</DropdownMenuItem>
+ </DropdownMenuContent>
+ </DropdownMenu>
  <Button
  variant="destructive"
  size="sm"

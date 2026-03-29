@@ -3,6 +3,8 @@
  * Detects current IP and VPN status
  */
 
+import { loggingService } from '@/services/logging';
+
 // Debug logging — disabled in production to prevent leaking IP/VPN/ISP data to console
 const IP_DEBUG = import.meta.env.DEV;
 const debugLog = (...args: unknown[]) => { if (IP_DEBUG) console.debug('[IP]', ...args); };
@@ -939,6 +941,7 @@ class IPStatusService {
         this.lastCheck = new Date();
 
         debugLog(`✅ === IP STATUS COMPLETE: ${status.ip} (${status.connectionType}) ===`);
+        loggingService.addLog('success', 'network', 'IP status resolved', `${status.ip} (${status.connectionType}${status.isVPN ? ` - ${status.vpnProvider || 'VPN'}` : ''})`);
         if (status.isVPN) debugLog(`🔒 VPN: ${status.vpnProvider || 'Unknown Provider'}`);
         if (status.dnsInfo && status.dnsInfo.servers.length > 0) {
           debugLog(`🌐 DNS: ${status.dnsInfo.servers.join(', ')} (${status.dnsInfo.source})`);
@@ -950,6 +953,7 @@ class IPStatusService {
         return status;
       } catch (enrichmentError: any) {
         debugWarn('⚠️ Enrichment failed, returning basic status:', enrichmentError.message);
+        loggingService.addLog('warning', 'network', 'IP enrichment partial failure', enrichmentError.message);
 
         // Return basic status without enrichment
         const basicStatus: IPStatusData = {
