@@ -3,6 +3,7 @@
  * Streams Claude responses via Electron IPC → claude -p --output-format stream-json
  * Uses the full .env-unfiltered setup (CLAUDE.md, MCP servers, tools, plugins)
  */
+import { hasElectronAPI } from '@/lib/platform';
 
 export interface ClaudeModel {
   id: string;
@@ -61,7 +62,7 @@ class ClaudeProvider {
    * Call onEvent() before send() to receive streaming events.
    */
   async send(prompt: string): Promise<{ ok: boolean; costUsd?: number }> {
-    if (!window.electronAPI?.claudeChat) {
+    if (!hasElectronAPI() || !window.electronAPI?.claudeChat) {
       return { ok: false };
     }
 

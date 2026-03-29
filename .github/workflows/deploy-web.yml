@@ -1,0 +1,125 @@
+###############################################################################
+# CrowByte — Web Deployment
+#
+# Triggers:
+#   push to main → deploy to staging (staging.crowbyte.io)
+#   v* tags      → deploy to production (crowbyte.io)
+#
+# Runs on self-hosted VPS runner (147.93.44.58)
+###############################################################################
+
+name: Deploy Web
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Deploy target'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  # ─── Staging (push to main) ───────────────────────────────────────────────
+  deploy-staging:
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'staging')
+    runs-on: [self-hosted, linux, x64, crowbyte]
+    name: Deploy to Staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/desktop/package.json
+
+      - name: Install dependencies
+        working-directory: apps/desktop
+        run: npm install --legacy-peer-deps
+
+      - name: Build web (staging)
+        working-directory: apps/desktop
+        run: npm run build:web:staging
+        env:
+          VITE_BUILD_TARGET: web
+
+      - name: Security audit
+        working-directory: apps/desktop
+        run: |
+          if grep -r "service_role" dist/web/; then
+            echo "::error::Service key found in web bundle!"
+            exit 1
+          fi
+
+      - name: Deploy to staging
+        run: |
+          rsync -avz --delete apps/desktop/dist/web/ /opt/crowbyte/staging/
+
+      - name: Backup staging build
+        run: |
+          BACKUP_DIR="/opt/crowbyte/releases/staging-$(date +%Y%m%d-%H%M%S)"
+          mkdir -p "${BACKUP_DIR}/web"
+          cp -r apps/desktop/dist/web/* "${BACKUP_DIR}/web/"
+          echo "[+] Staging build backed up to ${BACKUP_DIR}"
+
+  # ─── Production (v* tag) ──────────────────────────────────────────────────
+  deploy-production:
+    if: >
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'production')
+    runs-on: [self-hosted, linux, x64, crowbyte]
+    name: Deploy to Production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/desktop/package.json
+
+      - name: Install dependencies
+        working-directory: apps/desktop
+        run: npm install --legacy-peer-deps
+
+      - name: Build web (production)
+        working-directory: apps/desktop
+        run: npm run build:web:production
+        env:
+          VITE_BUILD_TARGET: web
+
+      - name: Security audit
+        working-directory: apps/desktop
+        run: |
+          if grep -r "service_role" dist/web/; then
+            echo "::error::Service key found in web bundle!"
+            exit 1
+          fi
+
+      - name: Deploy to production
+        run: |
+          rsync -avz --delete apps/desktop/dist/web/ /opt/crowbyte/src/apps/desktop/dist/
+          systemctl reload nginx
+
+      - name: Backup web build
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          BACKUP_DIR="/opt/crowbyte/releases/${RELEASE_TAG}/web"
+          mkdir -p "${BACKUP_DIR}"
+          cp -r apps/desktop/dist/web/* "${BACKUP_DIR}/"
+          echo "[+] Web build backed up to ${BACKUP_DIR}"

@@ -3,8 +3,12 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  base: './',
+export default defineConfig(({ mode }) => {
+  const buildTarget = process.env.VITE_BUILD_TARGET || 'electron';
+  const isWeb = buildTarget === 'web';
+
+  return {
+  base: isWeb ? '/' : './',
   server: {
     host: "::",
     port: 8081,
@@ -24,9 +28,12 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
+    "__BUILD_TARGET__": JSON.stringify(buildTarget),
+    // Strip service key from web builds — must never ship to browser
+    ...(isWeb ? { "import.meta.env.VITE_SUPABASE_SERVICE_KEY": "undefined" } : {}),
   },
   build: {
-    outDir: "dist",
+    outDir: isWeb ? "dist/web" : "dist",
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       external: (id: string) => {
@@ -64,4 +71,5 @@ export default defineConfig(({ mode }) => ({
       "@modelcontextprotocol/server-memory",
     ],
   },
-}));
+};
+});

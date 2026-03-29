@@ -1,5 +1,5 @@
 ###############################################################################
-# CrowByte Terminal — Docker Build & Push
+# CrowByte — Docker Build & Push
 #
 # Triggers: version tags (v*), manual dispatch
 # Builds: Linux (amd64) on self-hosted VPS runner (162GB disk)
@@ -58,6 +58,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_BUILD_TARGET=electron
+            VITE_PLATFORM=linux
           cache-from: type=registry,ref=${{ env.GHCR_REPO }}:buildcache
           cache-to: type=registry,ref=${{ env.GHCR_REPO }}:buildcache,mode=max
 

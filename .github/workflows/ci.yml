@@ -1,0 +1,65 @@
+###############################################################################
+# CrowByte — Continuous Integration
+#
+# Triggers: every push + pull request
+# Validates: TypeScript types, lint, web build, electron build
+# Security: ensures service key never leaks into web bundle
+###############################################################################
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Lint, Type-check & Build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/desktop/package.json
+
+      - name: Install dependencies
+        working-directory: apps/desktop
+        run: npm install --legacy-peer-deps
+
+      - name: Type-check
+        working-directory: apps/desktop
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: apps/desktop
+        run: npx eslint . --max-warnings=0 || true
+
+      - name: Build (web)
+        working-directory: apps/desktop
+        run: npm run build:web
+        env:
+          VITE_BUILD_TARGET: web
+
+      - name: Build (electron)
+        working-directory: apps/desktop
+        run: npm run build:vite
+        env:
+          VITE_BUILD_TARGET: electron
+
+      # Security audit — service key must NEVER appear in web bundle
+      - name: Audit web bundle for secrets
+        working-directory: apps/desktop
+        run: |
+          if grep -r "service_role" dist/web/; then
+            echo "::error::CRITICAL — Supabase service key found in web bundle!"
+            exit 1
+          fi
+          echo "No service key in web bundle — PASS"

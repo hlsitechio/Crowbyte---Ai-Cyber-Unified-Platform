@@ -1,7 +1,9 @@
 /**
  * Filesystem MCP Service
  * Access to /mnt/bounty and /home/rainkode via MCP Filesystem Server
+ * Only available in Electron builds — web has no IPC bridge.
  */
+import { hasElectronAPI } from '@/lib/platform';
 
 declare global {
   interface Window {
@@ -38,6 +40,11 @@ class FilesystemMCPService {
    * Initialize the filesystem service and load available tools
    */
   async initialize(): Promise<void> {
+    if (!hasElectronAPI()) {
+      console.log('📁 Filesystem MCP: skipping — not in Electron');
+      return;
+    }
+
     try {
       console.log('📁 Initializing Filesystem MCP Service...');
 

@@ -1,29 +1,25 @@
+<h1 align="center">CrowByte</h1>
+
 <p align="center">
-  <strong>AI-powered command center for offensive security.</strong><br />
-  <sub>Recon. Exploit. Report. One terminal.</sub>
+  <strong>AI-powered cybersecurity platform for offensive security.</strong><br />
+  <sub>Recon. Exploit. Report. One platform.</sub>
 </p>
 
 <p align="center">
   <a href="https://crowbyte.io"><img src="https://img.shields.io/badge/Website-crowbyte.io-3b82f6?style=flat-square&logo=globe&logoColor=white" alt="Website" /></a>
-  <a href="https://crowbyte.io/download"><img src="https://img.shields.io/badge/Download-v2.0.0-10b981?style=flat-square&logo=download&logoColor=white" alt="Download" /></a>
   <a href="https://github.com/hlsitechio/crowbyte/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=flat-square" alt="License" /></a>
-  <img src="https://img.shields.io/badge/Platform-Linux%20%C2%B7%20Windows%20%C2%B7%20macOS-71717a?style=flat-square" alt="Platform" />
-  <img src="https://img.shields.io/badge/Electron-39-47848f?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
-  <img src="https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/Web%20%C2%B7%20Linux%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Docker-71717a?style=flat-square" alt="Platform" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white" alt="React" />
 </p>
 
 ---
 
 ## What is CrowByte?
 
-CrowByte Terminal is a **desktop application** for penetration testers, bug bounty hunters, and red team operators. It replaces the workflow of juggling 20+ browser tabs, terminal windows, and note apps with a unified command center powered by AI.
+CrowByte is an **AI-powered cybersecurity platform** for penetration testers, bug bounty hunters, and red team operators. It replaces the workflow of juggling 20+ browser tabs, terminal windows, and note apps with a unified command center powered by AI.
 
-Available for **Linux**, **Windows**, and **macOS**. Server appliance mode for browser-based access.
-
-<p align="center">
-  <img src="docs/assets/dashboard.png" alt="CrowByte Dashboard" width="860" />
-</p>
+**Free** in your browser at [crowbyte.io](https://crowbyte.io). **Pro** unlocks desktop apps for Linux, Windows, and macOS. **Docker** for self-hosted deployments.
 
 ---
 
@@ -67,17 +63,17 @@ CSPM scanning, SBOM generation, and compliance checks across AWS, GCP, and Azure
 
 ## AI Infrastructure
 
-CrowByte supports multiple AI providers. Enterprise users can route all operations through their own infrastructure.
+CrowByte ships with a 9-agent AI swarm powered by multiple frontier models. Enterprise users can route all operations through their own infrastructure.
 
-| Provider | Type | Notes |
-|----------|------|-------|
-| **Built-in Gateway** | OpenAI-compatible | Zero-cost inference via bundled VPS proxy |
-| **OpenAI / Azure** | API | GPT-4o, GPT-4 Turbo |
-| **Anthropic** | API | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 |
+| Provider | Models | Notes |
+|----------|--------|-------|
+| **OpenClaw Gateway** | DeepSeek V3.2, Qwen3 Coder 480B, Qwen 3.5 397B, Mistral Large 675B, Kimi K2, GLM5 | Built-in proxy — included with Pro |
+| **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 | Native CLI integration with MCP tools |
+| **NVIDIA NIM** | Any NIM-hosted model | Via OpenClaw gateway |
 | **Self-hosted** | Ollama / vLLM | Any model on your hardware |
-| **Custom** | OpenAI-compatible | Any endpoint that speaks the OpenAI API |
+| **Custom** | Any OpenAI-compatible endpoint | Bring your own API |
 
-All AI features work offline with self-hosted models. No data leaves your machine unless you configure an external provider.
+All AI features work with self-hosted models. No data leaves your machine unless you configure an external provider.
 
 ---
 
@@ -86,7 +82,7 @@ All AI features work offline with self-hosted models. No data leaves your machin
 CrowByte is built with security-first principles. Your data stays yours.
 
 - **E2E Encryption** — Remote desktop and fleet communication uses X25519 ECDH key exchange with AES-256-GCM. Zero-knowledge relay.
-- **Local-First** — All data is stored locally in SQLite and Supabase (self-hostable). No telemetry, no tracking, no phone-home.
+- **Local-First** — All data is stored in Supabase (self-hostable). No telemetry, no tracking, no phone-home.
 - **Credential Isolation** — API keys and secrets are stored in encrypted storage with device-bound keys. Never transmitted to third parties.
 - **Audit Logging** — Every significant action is logged with timestamps and user attribution. Exportable for compliance.
 - **No Source Exposure** — Proprietary codebase. Binary distribution only. No source code in the repository.
@@ -95,7 +91,7 @@ CrowByte is built with security-first principles. Your data stays yours.
 
 If you discover a security vulnerability, report it responsibly.
 
-**Email**: [security@hlsitech.io](mailto:security@hlsitech.io)
+**Email**: [security@crowbyte.io](mailto:security@crowbyte.io)
 
 Do **not** open a public GitHub issue for security vulnerabilities.
 
@@ -103,49 +99,13 @@ See [SECURITY.md](SECURITY.md) for our full disclosure policy and response SLA.
 
 ---
 
-## Screenshots
+## Get Started
 
-<p align="center">
-  <img src="docs/assets/dashboard.png" alt="Dashboard" width="420" />
-  <img src="docs/assets/chat.png" alt="AI Chat" width="420" />
-</p>
-<p align="center">
-  <img src="docs/assets/cve.png" alt="CVE Intelligence" width="420" />
-  <img src="docs/assets/terminal.png" alt="Terminal" width="420" />
-</p>
-<p align="center">
-  <img src="docs/assets/fleet.png" alt="Fleet Management" width="420" />
-  <img src="docs/assets/mission.png" alt="Mission Pipeline" width="420" />
-</p>
-
----
-
-## Download
-
-Get CrowByte Terminal for your platform:
-
-| Platform | Format | Link |
-|----------|--------|------|
-| **Linux** | AppImage, .deb | [Download](https://crowbyte.io/download) |
-| **Windows** | Installer (.exe) | [Download](https://crowbyte.io/download) |
-| **macOS** | .dmg | [Download](https://crowbyte.io/download) |
-
-Or visit [crowbyte.io/download](https://crowbyte.io/download) for the latest release.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Desktop | Electron 39 |
-| Frontend | React 18, TypeScript 5, Vite |
-| UI | Radix UI (shadcn/ui), Tailwind CSS, Framer Motion |
-| Terminal | xterm.js + node-pty |
-| Backend | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
-| AI | Multi-provider (OpenAI-compatible, Anthropic, Ollama) |
-| Charts | Recharts |
-| Security | AES-256-GCM, X25519 ECDH, HKDF |
+| Tier | Access | How |
+|------|--------|-----|
+| **Free** | Web app | [crowbyte.io](https://crowbyte.io) — sign up, start in your browser |
+| **Pro** | Web + Desktop | Linux (.AppImage, .deb), Windows (.exe), macOS (.dmg) |
+| **Docker** | Self-hosted | `docker compose up -d` — access via browser on port 6080 |
 
 ---
 
@@ -153,8 +113,8 @@ Or visit [crowbyte.io/download](https://crowbyte.io/download) for the latest rel
 
 | Tier | Price | Includes |
 |------|-------|----------|
-| **Free** | $0 | Core features, 1 device, community support |
-| **Pro** | $19/mo | All features, 3 devices, AI agents, priority support |
+| **Free** | $0 | Web access, core features, community support |
+| **Pro** | $19/mo | Desktop apps, AI agent swarm, all features, priority support |
 | **Team** | $49/mo | 10 seats, shared findings, fleet management |
 | **Enterprise** | Custom | Unlimited seats, custom AI infra, dedicated support, SLA |
 
@@ -193,11 +153,7 @@ This repository contains documentation, legal documents, and release binaries on
 |---------|---------|
 | Website | [crowbyte.io](https://crowbyte.io) |
 | Support | [support@crowbyte.io](mailto:support@crowbyte.io) |
-| Security | [security@hlsitech.io](mailto:security@hlsitech.io) |
-| Company | [hlsitech.io](https://hlsitech.io) |
+| Security | [security@crowbyte.io](mailto:security@crowbyte.io) |
 
 ---
 
-<p align="center">
-  <sub>Built by <a href="https://hlsitech.io">HLSITech</a> — Offensive security, powered by AI.</sub>
-</p>

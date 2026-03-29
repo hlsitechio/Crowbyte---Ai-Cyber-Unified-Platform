@@ -22,7 +22,7 @@ export default function CTABanner() {
         </h2>
 
         <p className="font-['JetBrains_Mono'] text-sm text-zinc-500 mb-8 max-w-lg mx-auto">
-          One terminal. 15 AI agents. Every tool you need.
+          One platform. 9 AI agents. Every tool you need.
           <br />
           Your next bounty is waiting.
         </p>
@@ -42,7 +42,7 @@ export default function CTABanner() {
         </div>
 
         <p className="font-['JetBrains_Mono'] text-xs text-zinc-600 mt-4">
-          Free tier. No credit card. Linux / Windows / macOS.
+          Free tier. No credit card. Start in your browser.
         </p>
       </motion.div>
     </section>
