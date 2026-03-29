@@ -8,9 +8,10 @@
  * API: configured via VITE_GLITCHTIP_API_TOKEN
  */
 
+// Use @sentry/electron renderer for Electron, @sentry/browser for web
 import * as Sentry from '@sentry/browser';
 import { loggingService } from '@/services/logging';
-import { IS_WEB, BUILD_TARGET } from '@/lib/platform';
+import { IS_WEB, IS_ELECTRON, BUILD_TARGET } from '@/lib/platform';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -82,11 +83,13 @@ class GlitchTipService {
             platform: IS_WEB ? 'web' : 'desktop',
           },
         },
+        // GlitchTip does not support sessions
+        autoSessionTracking: false,
         // Don't send PII
         sendDefaultPii: false,
-        // Sample rate — capture all errors, 10% of transactions
+        // Sample rate — capture all errors, 1% of transactions
         sampleRate: 1.0,
-        tracesSampleRate: 0.1,
+        tracesSampleRate: 0.01,
         // Filter noisy errors
         beforeSend(event) {
           // Don't send extension errors

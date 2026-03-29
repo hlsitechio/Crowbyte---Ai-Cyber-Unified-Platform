@@ -22,6 +22,19 @@ process.on('warning', (warning) => {
 const { app, BrowserWindow, ipcMain, Menu, safeStorage, WebContentsView, session } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+
+// GlitchTip — main process error monitoring
+try {
+  const Sentry = require('@sentry/electron/main');
+  Sentry.init({
+    dsn: 'https://16ea5a1e0b304fc086a19d080d003897@app.glitchtip.com/21559',
+    autoSessionTracking: false, // GlitchTip does not support sessions
+    environment: process.env.NODE_ENV || 'production',
+  });
+  console.log('[+] GlitchTip main process monitoring active');
+} catch (e) {
+  console.warn('[-] GlitchTip SDK not available:', e.message);
+}
 const os = require('os');
 const plat = require('./platform.cjs');
 let pty;
