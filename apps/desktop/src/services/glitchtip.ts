@@ -1,17 +1,15 @@
 /**
- * GlitchTip Error Monitoring Service
+ * GlitchTip Error Monitoring — Zero Dependencies
  *
- * Captures frontend errors and sends them to GlitchTip (Sentry-compatible).
- * Also provides an API client to query issues from the AI agent.
+ * Lightweight error reporter using GlitchTip's Sentry-compatible store API.
+ * No @sentry/* packages. Just fetch().
  *
  * DSN: configured via VITE_GLITCHTIP_DSN
  * API: configured via VITE_GLITCHTIP_API_TOKEN
  */
 
-// Use @sentry/electron renderer for Electron, @sentry/browser for web
-import * as Sentry from '@sentry/browser';
 import { loggingService } from '@/services/logging';
-import { IS_WEB, IS_ELECTRON, BUILD_TARGET } from '@/lib/platform';
+import { IS_WEB, BUILD_TARGET } from '@/lib/platform';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -47,6 +45,70 @@ export interface GlitchTipEvent {
   }>;
 }
 
+type SeverityLevel = 'fatal' | 'error' | 'warning' | 'info' | 'debug';
+
+// ─── DSN Parser ────────────────────────────────────────────────────────────
+
+interface ParsedDSN {
+  publicKey: string;
+  host: string;
+  projectId: string;
+  storeUrl: string;
+}
+
+function parseDSN(dsn: string): ParsedDSN | null {
+  try {
+    // DSN format: https://<key>@<host>/<project_id>
+    const url = new URL(dsn);
+    const publicKey = url.username;
+    const host = url.host;
+    const projectId = url.pathname.replace('/', '');
+    return {
+      publicKey,
+      host,
+      projectId,
+      storeUrl: `${url.protocol}//${host}/api/${projectId}/store/?sentry_key=${publicKey}&sentry_version=7`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Stack Trace Parser ────────────────────────────────────────────────────
+
+interface StackFrame {
+  filename: string;
+  function: string;
+  lineno: number;
+  colno: number;
+  in_app: boolean;
+}
+
+function parseStack(stack: string): StackFrame[] {
+  const frames: StackFrame[] = [];
+  const lines = stack.split('\n').slice(1); // Skip error message line
+
+  for (const line of lines) {
+    // Chrome/Edge: "    at functionName (file:line:col)"
+    // Firefox: "functionName@file:line:col"
+    const chromeMatch = line.match(/^\s*at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?$/);
+    const firefoxMatch = line.match(/^(.+?)@(.+?):(\d+):(\d+)$/);
+    const match = chromeMatch || firefoxMatch;
+
+    if (match) {
+      frames.push({
+        function: match[1] || '?',
+        filename: match[2],
+        lineno: parseInt(match[3], 10),
+        colno: parseInt(match[4], 10),
+        in_app: !match[2].includes('node_modules'),
+      });
+    }
+  }
+
+  return frames.reverse(); // Sentry expects oldest frame first
+}
+
 // ─── Configuration ─────────────────────────────────────────────────────────
 
 const GLITCHTIP_DSN = import.meta.env.VITE_GLITCHTIP_DSN || '';
@@ -55,14 +117,22 @@ const GLITCHTIP_API_BASE = 'https://app.glitchtip.com/api/0';
 const GLITCHTIP_ORG = 'crowbyte';
 const GLITCHTIP_PROJECT = 'crowbyte';
 
+// Noisy errors to suppress
+const NOISE_PATTERNS = ['ResizeObserver', 'extension', 'chrome-extension://'];
+
 // ─── Service ───────────────────────────────────────────────────────────────
 
 class GlitchTipService {
   private initialized = false;
+  private dsn: ParsedDSN | null = null;
+  private user: { id: string; email?: string } | null = null;
+  private breadcrumbs: Array<{
+    category: string;
+    message: string;
+    data?: Record<string, unknown>;
+    timestamp: number;
+  }> = [];
 
-  /**
-   * Initialize Sentry SDK pointing at GlitchTip
-   */
   initialize(): void {
     if (this.initialized || !GLITCHTIP_DSN) {
       if (!GLITCHTIP_DSN) {
@@ -71,88 +141,124 @@ class GlitchTipService {
       return;
     }
 
-    try {
-      Sentry.init({
-        dsn: GLITCHTIP_DSN,
-        environment: import.meta.env.MODE || 'production',
-        release: `crowbyte@${import.meta.env.VITE_APP_VERSION || '0.0.0'}`,
-        // Tag every event with build target
-        initialScope: {
-          tags: {
-            build_target: BUILD_TARGET,
-            platform: IS_WEB ? 'web' : 'desktop',
-          },
-        },
-        // GlitchTip does not support sessions
-        autoSessionTracking: false,
-        // Don't send PII
-        sendDefaultPii: false,
-        // Sample rate — capture all errors, 1% of transactions
-        sampleRate: 1.0,
-        tracesSampleRate: 0.01,
-        // Filter noisy errors
-        beforeSend(event) {
-          // Don't send extension errors
-          if (event.exception?.values?.some(e =>
-            e.value?.includes('extension') ||
-            e.value?.includes('ResizeObserver')
-          )) {
-            return null;
-          }
+    this.dsn = parseDSN(GLITCHTIP_DSN);
+    if (!this.dsn) {
+      console.error('[GlitchTip] Invalid DSN');
+      return;
+    }
 
-          // Log to our internal system too
-          const errorMsg = event.exception?.values?.[0]?.value || event.message || 'Unknown error';
-          loggingService.addLog('error', 'system', 'Error captured by GlitchTip', errorMsg);
+    // Global error handler
+    window.addEventListener('error', (event) => {
+      if (event.error) {
+        this.captureError(event.error);
+      } else {
+        this.captureMessage(event.message || 'Unknown error', 'error');
+      }
+    });
 
-          return event;
-        },
-      });
+    // Unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      const error = event.reason instanceof Error
+        ? event.reason
+        : new Error(String(event.reason));
+      this.captureError(error, { unhandled: true });
+    });
 
-      this.initialized = true;
-      loggingService.addLog('success', 'system', 'GlitchTip error monitoring initialized');
-    } catch (error) {
-      console.error('[GlitchTip] Init failed:', error);
+    this.initialized = true;
+    loggingService.addLog('success', 'system', 'GlitchTip error monitoring initialized');
+  }
+
+  captureError(error: Error, context?: Record<string, unknown>): void {
+    if (!this.initialized || !this.dsn) return;
+
+    // Filter noise
+    const msg = error.message || '';
+    if (NOISE_PATTERNS.some(p => msg.includes(p))) return;
+
+    // Log locally too
+    loggingService.addLog('error', 'system', 'Error captured by GlitchTip', msg);
+
+    const frames = error.stack ? parseStack(error.stack) : [];
+
+    const event = {
+      event_id: crypto.randomUUID().replace(/-/g, ''),
+      timestamp: new Date().toISOString(),
+      platform: 'javascript',
+      level: 'error' as SeverityLevel,
+      environment: import.meta.env.MODE || 'production',
+      release: `crowbyte@${import.meta.env.VITE_APP_VERSION || '0.0.0'}`,
+      tags: {
+        build_target: BUILD_TARGET,
+        platform: IS_WEB ? 'web' : 'desktop',
+      },
+      user: this.user || undefined,
+      breadcrumbs: this.breadcrumbs.slice(-20), // Last 20
+      extra: context,
+      exception: {
+        values: [{
+          type: error.name || 'Error',
+          value: error.message,
+          stacktrace: frames.length > 0 ? { frames } : undefined,
+        }],
+      },
+    };
+
+    this.sendEvent(event);
+  }
+
+  captureMessage(message: string, level: SeverityLevel = 'info'): void {
+    if (!this.initialized || !this.dsn) return;
+
+    const event = {
+      event_id: crypto.randomUUID().replace(/-/g, ''),
+      timestamp: new Date().toISOString(),
+      platform: 'javascript',
+      level,
+      environment: import.meta.env.MODE || 'production',
+      release: `crowbyte@${import.meta.env.VITE_APP_VERSION || '0.0.0'}`,
+      tags: {
+        build_target: BUILD_TARGET,
+        platform: IS_WEB ? 'web' : 'desktop',
+      },
+      user: this.user || undefined,
+      message: { formatted: message },
+    };
+
+    this.sendEvent(event);
+  }
+
+  setUser(user: { id: string; email?: string }): void {
+    this.user = user;
+  }
+
+  clearUser(): void {
+    this.user = null;
+  }
+
+  addBreadcrumb(category: string, message: string, data?: Record<string, unknown>): void {
+    this.breadcrumbs.push({
+      category,
+      message,
+      data,
+      timestamp: Date.now() / 1000,
+    });
+    // Keep last 50
+    if (this.breadcrumbs.length > 50) {
+      this.breadcrumbs = this.breadcrumbs.slice(-50);
     }
   }
 
-  /**
-   * Manually capture an error
-   */
-  captureError(error: Error, context?: Record<string, unknown>): void {
-    if (!this.initialized) return;
-    Sentry.captureException(error, { extra: context });
-  }
+  private sendEvent(event: Record<string, unknown>): void {
+    if (!this.dsn) return;
 
-  /**
-   * Capture a message (non-error event)
-   */
-  captureMessage(message: string, level: Sentry.SeverityLevel = 'info'): void {
-    if (!this.initialized) return;
-    Sentry.captureMessage(message, level);
-  }
-
-  /**
-   * Set user context (after login)
-   */
-  setUser(user: { id: string; email?: string }): void {
-    if (!this.initialized) return;
-    Sentry.setUser({ id: user.id, email: user.email });
-  }
-
-  /**
-   * Clear user context (after logout)
-   */
-  clearUser(): void {
-    if (!this.initialized) return;
-    Sentry.setUser(null);
-  }
-
-  /**
-   * Add breadcrumb for debugging context
-   */
-  addBreadcrumb(category: string, message: string, data?: Record<string, unknown>): void {
-    if (!this.initialized) return;
-    Sentry.addBreadcrumb({ category, message, data, level: 'info' });
+    // Fire-and-forget — don't block the UI
+    fetch(this.dsn.storeUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event),
+    }).catch(() => {
+      // Silent fail — error reporting shouldn't cause errors
+    });
   }
 
   // ─── API Client (for AI Agent queries) ─────────────────────────────────
@@ -182,9 +288,6 @@ class GlitchTipService {
     }
   }
 
-  /**
-   * Get all unresolved issues
-   */
   async getIssues(query?: string): Promise<GlitchTipIssue[]> {
     const params = new URLSearchParams({ query: query || 'is:unresolved' });
     return await this.apiRequest<GlitchTipIssue[]>(
@@ -192,18 +295,12 @@ class GlitchTipService {
     ) || [];
   }
 
-  /**
-   * Get issue details with events
-   */
   async getIssueEvents(issueId: string): Promise<GlitchTipEvent[]> {
     return await this.apiRequest<GlitchTipEvent[]>(
       `/issues/${issueId}/events/`
     ) || [];
   }
 
-  /**
-   * Get error count summary
-   */
   async getErrorSummary(): Promise<{ total: number; unresolved: number; critical: number }> {
     const issues = await this.getIssues();
     return {
@@ -213,9 +310,6 @@ class GlitchTipService {
     };
   }
 
-  /**
-   * Resolve an issue
-   */
   async resolveIssue(issueId: string): Promise<boolean> {
     if (!GLITCHTIP_API_TOKEN) return false;
 
@@ -234,9 +328,6 @@ class GlitchTipService {
     }
   }
 
-  /**
-   * Get all issues formatted for AI agent consumption
-   */
   async getIssuesForAgent(): Promise<string> {
     const issues = await this.getIssues();
     if (issues.length === 0) return 'No unresolved issues found.';
