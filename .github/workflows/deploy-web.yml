@@ -70,6 +70,16 @@ jobs:
         run: |
           rsync -avz --delete apps/desktop/dist/web/ /opt/crowbyte/staging/
 
+      - name: Smoke test staging
+        run: |
+          sleep 2
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://staging.crowbyte.io/ || echo "000")
+          if [ "$STATUS" != "200" ]; then
+            echo "::warning::Staging health check returned $STATUS"
+          else
+            echo "[+] Staging is live — HTTP $STATUS"
+          fi
+
       - name: Backup staging build
         run: |
           BACKUP_DIR="/opt/crowbyte/releases/staging-$(date +%Y%m%d-%H%M%S)"
@@ -122,6 +132,16 @@ jobs:
         run: |
           rsync -avz --delete apps/desktop/dist/web/ /opt/crowbyte/src/apps/desktop/dist/
           systemctl reload nginx
+
+      - name: Smoke test production
+        run: |
+          sleep 2
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://crowbyte.io/ || echo "000")
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Production health check FAILED — HTTP $STATUS"
+            exit 1
+          fi
+          echo "[+] Production is live — HTTP $STATUS"
 
       - name: Backup web build
         env:
