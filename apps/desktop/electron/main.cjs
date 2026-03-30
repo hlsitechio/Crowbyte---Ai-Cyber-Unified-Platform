@@ -755,6 +755,11 @@ function createWindow() {
     console.log('[*] Loading from built files: dist/index.html');
   }
 
+  // Auto-maximize in Docker/headless environments (Xvfb WMs don't position well)
+  if (isForceProduction && !app.isPackaged) {
+    mainWindow.maximize();
+  }
+
   // Setup context menu (right-click menu)
   mainWindow.webContents.on('context-menu', (event, params) => {
     const contextMenu = Menu.buildFromTemplate([
