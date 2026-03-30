@@ -17,6 +17,7 @@ import type { ToolFunction } from '@/types/service-types';
 
 // MCP client - only available in Electron environment
 // Import will be handled at runtime to avoid bundling Node.js dependencies
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mcpClient: any = null;
 
 interface AlertItem {

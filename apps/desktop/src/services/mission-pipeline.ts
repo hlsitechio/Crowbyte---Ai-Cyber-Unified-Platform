@@ -465,6 +465,7 @@ class MissionPipeline {
         // Create findings from recon results
         const reconFindings = [
           { title: `Open ports discovered on ${target}`, severity: 'info' as const, finding_type: 'info' as const },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           { title: `${(output.subdomains as any)?.sample_output?.length || 0} subdomains found for ${target}`, severity: 'info' as const, finding_type: 'info' as const },
         ];
 
@@ -501,6 +502,7 @@ class MissionPipeline {
 
         // Interesting findings from enum
         const enumFindings = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const dirs = (output.directories as any)?.sample_output || [];
         if (dirs.includes('/.git')) {
           enumFindings.push({ title: `Git repository exposed on ${target}`, severity: 'high' as const, finding_type: 'exposure' as const });
@@ -544,6 +546,7 @@ class MissionPipeline {
         });
 
         // Create vuln findings
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sqliParams = (output.sqli_check as any)?.sample_output?.injectable_params || [];
         for (const param of sqliParams) {
           try {
@@ -562,6 +565,7 @@ class MissionPipeline {
           } catch { /* continue */ }
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const xssCount = (output.xss_check as any)?.sample_output?.vulnerable || 0;
         if (xssCount > 0) {
           try {
@@ -631,6 +635,7 @@ class MissionPipeline {
           sample_output: { databases_accessible: 2, sensitive_data: true, pii_found: true },
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((output.data_access as any)?.sample_output?.pii_found) {
           try {
             await findingsEngine.ingestManual({
@@ -714,12 +719,14 @@ class MissionPipeline {
 
     // Add discovered subdomains
     if (result.output.subdomains) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const subs = (result.output.subdomains as any)?.sample_output;
       if (Array.isArray(subs)) currentTargets.push(...subs);
     }
 
     // Add alive hosts
     if (result.output.alive_hosts) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const hosts = (result.output.alive_hosts as any)?.sample_output;
       if (Array.isArray(hosts)) currentTargets.push(...hosts);
     }

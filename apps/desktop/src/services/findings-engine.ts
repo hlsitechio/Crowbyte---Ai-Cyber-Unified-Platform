@@ -163,6 +163,7 @@ function normalizeNmap(scanResult: Record<string, unknown>, scanId?: string): Cr
       const product = (service.product || service.name || 'unknown') as string;
       const version = (service.version || '') as string;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (state === 'open' || (typeof state === 'object' && (state as any)?.state === 'open')) {
         findings.push({
           source: 'nmap',

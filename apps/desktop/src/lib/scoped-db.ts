@@ -71,7 +71,7 @@ export async function scopedUpsert(table: string, data: Record<string, unknown>,
     ...(getOrgId() ? { org_id: getOrgId() } : {}),
   };
 
-  let query = supabase.from(table).upsert({ ...data, ...context });
+  const query = supabase.from(table).upsert({ ...data, ...context });
   return query.select();
 }
 

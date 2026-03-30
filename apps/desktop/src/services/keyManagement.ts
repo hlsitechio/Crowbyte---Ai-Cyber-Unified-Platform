@@ -285,8 +285,10 @@ class KeyManagementService {
   private saveKeyMetadata(metadata: KeyMetadata): void {
     try {
       // Check if we're in Electron with safeStorage available
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof window !== 'undefined' && (window as any).electron?.safeStorage) {
         // Use Electron's safeStorage for better security
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).electron.safeStorage.setItem(
           KEY_CONFIG.saltStorageKey,
           JSON.stringify(metadata)
@@ -309,7 +311,9 @@ class KeyManagementService {
       let data: string | null = null;
 
       // Check if we're in Electron with safeStorage available
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof window !== 'undefined' && (window as any).electron?.safeStorage) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data = (window as any).electron.safeStorage.getItem(KEY_CONFIG.saltStorageKey);
       } else {
         data = localStorage.getItem(KEY_CONFIG.saltStorageKey);
@@ -334,7 +338,9 @@ class KeyManagementService {
     this.keyMetadata = null;
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof window !== 'undefined' && (window as any).electron?.safeStorage) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).electron.safeStorage.removeItem(KEY_CONFIG.saltStorageKey);
       } else {
         localStorage.removeItem(KEY_CONFIG.saltStorageKey);

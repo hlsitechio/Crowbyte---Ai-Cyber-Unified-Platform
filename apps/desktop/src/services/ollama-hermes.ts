@@ -14,6 +14,7 @@ interface OllamaTool {
   description: string;
   parameters: {
     type: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     properties: Record<string, any>;
     required: string[];
   };
@@ -21,6 +22,7 @@ interface OllamaTool {
 
 interface ToolCall {
   name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   arguments: Record<string, any>;
 }
 
@@ -280,6 +282,7 @@ Use available tools to execute the strategy. Be specific and actionable.`;
       const models = data.models || [];
 
       // Check if Hermes model is installed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const modelInstalled = models.some((m: any) =>
         m.name.includes('hermes') || m.name === this.model
       );
@@ -315,6 +318,7 @@ Use available tools to execute the strategy. Be specific and actionable.`;
       if (!response.ok) throw new Error('Failed to fetch models');
 
       const data = await response.json();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (data.models || []).map((m: any) => m.name);
     } catch (error) {
       console.error('[Ollama Hermes] Failed to list models:', error);

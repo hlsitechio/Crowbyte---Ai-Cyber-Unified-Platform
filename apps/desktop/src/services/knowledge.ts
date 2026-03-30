@@ -24,7 +24,9 @@ export interface KnowledgeEntry {
   is_verified: boolean;
   related_cves: string[] | null;
   related_topics: string[] | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attachments: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata: any;
   view_count: number;
   last_viewed_at: string | null;
@@ -48,6 +50,7 @@ export interface CreateKnowledgeInput {
   is_verified?: boolean;
   related_cves?: string[];
   related_topics?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: any;
 }
 

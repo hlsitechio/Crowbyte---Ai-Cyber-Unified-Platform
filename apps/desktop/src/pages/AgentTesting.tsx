@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { agentTester } from '@/services/agent-tester';
+import { agentTester, AgentTestReport, TestResult } from '@/services/agent-tester';
 import {
  PlayCircle,
  CheckCircle,
@@ -28,6 +28,17 @@ import {
  GearSix,
 } from '@phosphor-icons/react';
 
+type AllAgentTestResults = {
+ timestamp: string;
+ reports: AgentTestReport[];
+ summary: {
+  totalAgents: number;
+  healthyAgents: number;
+  failingAgents: number;
+  averageScore: number;
+ };
+};
+
 interface TestProgress {
  current: number;
  total: number;
@@ -36,7 +47,7 @@ interface TestProgress {
 }
 
 export default function AgentTesting() {
- const [testResults, setTestResults] = useState<any>(null);
+ const [testResults, setTestResults] = useState<AllAgentTestResults | null>(null);
  const [progress, setProgress] = useState<TestProgress>({
  current: 0,
  total: 0,
@@ -314,7 +325,7 @@ export default function AgentTesting() {
  value={agentConfig.openclaw.requestType}
  onChange={(e) => setAgentConfig({
  ...agentConfig,
- openclaw: { ...agentConfig.openclaw, requestType: e.target.value as any }
+ openclaw: { ...agentConfig.openclaw, requestType: e.target.value as typeof agentConfig.openclaw.requestType }
  })}
  >
  <option value="general">General</option>
@@ -517,7 +528,7 @@ export default function AgentTesting() {
  value={agentConfig.general.loggingLevel}
  onChange={(e) => setAgentConfig({
  ...agentConfig,
- general: { ...agentConfig.general, loggingLevel: e.target.value as any }
+ general: { ...agentConfig.general, loggingLevel: e.target.value as typeof agentConfig.general.loggingLevel }
  })}
  >
  <option value="debug">Debug</option>
@@ -699,8 +710,11 @@ export default function AgentTesting() {
  <CardContent>
  <ScrollArea className="h-[600px] pr-4">
  <div className="space-y-4">
- {testResults.reports.map((report: any, idx: number) => {
+ {testResults.reports.map((report: AgentTestReport, idx: number) => {
  const scoreBadge = getScoreBadge(report.overallScore);
+ const avgDuration = report.results.length > 0
+  ? (report.results.reduce((sum: number, t: TestResult) => sum + t.duration, 0) / report.results.length).toFixed(0)
+  : '0';
 
  return (
  <Card key={idx} className="overflow-hidden">
@@ -744,26 +758,26 @@ export default function AgentTesting() {
  <div className="flex items-center gap-2">
  <CheckCircle size={16} weight="bold" className="text-emerald-500" />
  <span className="text-sm">
- Passed: {report.testResults.filter((t: any) => t.passed).length}
+ Passed: {report.results.filter((t: TestResult) => t.passed).length}
  </span>
  </div>
  <div className="flex items-center gap-2">
  <XCircle size={16} weight="bold" className="text-red-500" />
  <span className="text-sm">
- Failed: {report.testResults.filter((t: any) => !t.passed).length}
+ Failed: {report.results.filter((t: TestResult) => !t.passed).length}
  </span>
  </div>
  <div className="flex items-center gap-2">
  <Clock size={16} weight="bold" className="text-muted-foreground" />
  <span className="text-sm">
- Avg: {report.averageTestDuration.toFixed(0)}ms
+ Avg: {avgDuration}ms
  </span>
  </div>
  </div>
  </TabsContent>
 
  <TabsContent value="tests" className="space-y-3">
- {report.testResults.map((test: any, testIdx: number) => (
+ {report.results.map((test: TestResult, testIdx: number) => (
  <div
  key={testIdx}
  className="border rounded-lg p-3 space-y-2"
@@ -782,7 +796,7 @@ export default function AgentTesting() {
 
  {/* Validation Results */}
  <div className="space-y-1 text-xs">
- {test.validationResults.map((validation: any, vIdx: number) => (
+ {test.validationResults.map((validation: TestResult['validationResults'][number], vIdx: number) => (
  <div
  key={vIdx}
  className="flex items-start gap-2 text-muted-foreground"

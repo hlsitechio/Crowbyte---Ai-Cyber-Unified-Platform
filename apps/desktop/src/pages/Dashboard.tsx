@@ -177,6 +177,7 @@ const Dashboard = () => {
  // Successfully fetched from Supabase
  // CVEs loaded successfully
 
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const cves: CVE[] = data.map((item: any) => ({
  id: item.cve_id || item.id,
  description: item.description ||"No description available",
@@ -221,6 +222,7 @@ const Dashboard = () => {
 
  if (error || !data || data.length === 0) throw new Error('No intel');
 
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const items: NewsItem[] = data.map((item: any) => {
  const pubDate = item.processed_at ? new Date(item.processed_at) : new Date(item.created_at);
  const hoursAgo = Math.floor((Date.now() - pubDate.getTime()) / 3600000);
@@ -419,8 +421,10 @@ const Dashboard = () => {
 
  // Supabase Realtime — live updates for endpoints, CVEs, conversations
  useEffect(() => {
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const channels: any[] = [];
 
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const parseVpsEndpoint = (row: any) => {
  if (!row) return;
  const memTotalGb = row.total_memory_gb || 16;
@@ -459,6 +463,7 @@ const Dashboard = () => {
  event: '*',
  schema: 'public',
  table: 'endpoints',
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  }, (payload: any) => {
  const row = payload.new;
  if (!row) return;
@@ -552,7 +557,7 @@ const Dashboard = () => {
  .eq('hostname', import.meta.env.VITE_VPS_HOSTNAME_ID || 'vps')
  .maybeSingle();
  if (data) parseVpsEndpoint(data);
- } catch {}
+ } catch { /* ignore */ }
  }, 30000);
 
  return () => {

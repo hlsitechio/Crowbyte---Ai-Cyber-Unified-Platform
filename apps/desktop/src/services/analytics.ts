@@ -39,15 +39,21 @@ export interface ApiUsageStats {
 
 class AnalyticsService {
   // All methods are intentionally no-ops — no telemetry collected
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async logActivity(_activity: any): Promise<void> { return; }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async logSearch(_params: any): Promise<void> { return; }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async logApiCall(_params: any): Promise<void> { return; }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async logChat(_params: any): Promise<void> { return; }
   async getRecentActivity(_limit?: number): Promise<ActivityLog[]> { return []; }
   async getTodayUsageStats(): Promise<ApiUsageStats[]> { return []; }
   async getServiceUsageStats(_service: string, _days?: number): Promise<ApiUsageStats[]> { return []; }
   async getActivitySummary(_days?: number): Promise<Record<string, number>> { return {}; }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subscribeToActivityUpdates(_callback: any): () => void { return () => {}; }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subscribeToUsageStatsUpdates(_callback: any): () => void { return () => {}; }
 }
 

@@ -10,6 +10,14 @@ export function TitleBar() {
  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
  const browserPanel = useBrowserPanelSafe();
 
+ useEffect(() => {
+  return () => {
+   if (hideTimeoutRef.current) {
+    clearTimeout(hideTimeoutRef.current);
+   }
+  };
+ }, []);
+
  // Only render in Electron — web users see the browser's native chrome
  if (!IS_ELECTRON) return null;
 
@@ -45,14 +53,6 @@ export function TitleBar() {
  setIsHovered(false);
  }, 5000);
  };
-
- useEffect(() => {
- return () => {
- if (hideTimeoutRef.current) {
- clearTimeout(hideTimeoutRef.current);
- }
- };
- }, []);
 
  const shouldShow = isPinned || isHovered;
 

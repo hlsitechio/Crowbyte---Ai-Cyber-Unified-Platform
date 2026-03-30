@@ -11,6 +11,7 @@ import { mcpConfig } from '../config/mcp-config.js';
 interface MCPTool {
   name: string;
   description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inputSchema: any;
 }
 
@@ -178,7 +179,9 @@ class MCPClientService {
   /**
    * Get all available tools from all MCP servers in Venice.ai function calling format
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getVeniceTools(): any[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tools: any[] = [];
 
     for (const [serverName, server] of this.servers.entries()) {
@@ -200,7 +203,7 @@ class MCPClientService {
   /**
    * Execute an MCP tool call
    */
-  async executeTool(toolName: string, args: any): Promise<any> {
+  async executeTool(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     // Parse tool name to get server and actual tool name
     // Format: mcp_<servername>_<toolname>
     // Server name is alphanumeric only (no underscores)

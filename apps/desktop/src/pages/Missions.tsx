@@ -75,6 +75,7 @@ const PHASE_ORDER: PhaseType[] = [
   "recon", "enumerate", "vuln_scan", "exploit", "post_exploit", "report",
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const PHASE_ICONS: Record<PhaseType, React.ComponentType<any>> = {
   recon: MagnifyingGlass,
   enumerate: TreeStructure,
@@ -181,6 +182,7 @@ const PHASE_STATUS_BADGE: Record<string, { className: string; label: string }> =
   },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EVENT_ICONS: Record<string, React.ComponentType<any>> = {
   mission_created: Rocket,
   mission_started: Play,

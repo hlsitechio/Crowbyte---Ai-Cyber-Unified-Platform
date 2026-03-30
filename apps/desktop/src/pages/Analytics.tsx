@@ -242,7 +242,7 @@ const Analytics = () => {
 
   // Fetch real system metrics (JS heap, storage, DOM nodes)
   const fetchSystemMetrics = useCallback(async () => {
-    const perf = performance as any;
+    const perf = performance as unknown as { memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number } };
     let jsHeap = 0;
     if (perf.memory) {
       jsHeap = Math.round((perf.memory.usedJSHeapSize / perf.memory.jsHeapSizeLimit) * 100);
@@ -302,7 +302,7 @@ const Analytics = () => {
 
     // VPS Agent check — use image probe to avoid CORS/cert issues
     {
-      const vpsIp = (import.meta as any).env?.VITE_VPS_IP;
+      const vpsIp = (import.meta as { env?: Record<string, string> }).env?.VITE_VPS_IP;
       if (vpsIp) {
         const start = performance.now();
         const online = await new Promise<boolean>((resolve) => {
@@ -413,7 +413,7 @@ const Analytics = () => {
 
       if (!cveError && cveData && cveData.length > 0) {
         setCriticalCVEs(
-          cveData.map((item: any) => ({
+          cveData.map((item: Record<string, unknown>) => ({
             id: item.id,
             cve_id: item.id,
             description: item.description || "No description",
@@ -433,26 +433,26 @@ const Analytics = () => {
 
         const stats: CVELibraryStats = {
           total_cves: allData.length,
-          critical_count: allData.filter((c: any) => c.severity === "CRITICAL").length,
-          high_count: allData.filter((c: any) => c.severity === "HIGH").length,
-          medium_count: allData.filter((c: any) => c.severity === "MEDIUM").length,
-          low_count: allData.filter((c: any) => c.severity === "LOW").length,
-          trending_count: allData.filter((c: any) => c.published_date && new Date(c.published_date) >= weekAgo).length,
-          exploitable_count: allData.filter((c: any) => c.cvss_score && c.cvss_score >= 9.0).length,
+          critical_count: allData.filter((c: Record<string, unknown>) => c.severity === "CRITICAL").length,
+          high_count: allData.filter((c: Record<string, unknown>) => c.severity === "HIGH").length,
+          medium_count: allData.filter((c: Record<string, unknown>) => c.severity === "MEDIUM").length,
+          low_count: allData.filter((c: Record<string, unknown>) => c.severity === "LOW").length,
+          trending_count: allData.filter((c: Record<string, unknown>) => c.published_date && new Date(c.published_date as string) >= weekAgo).length,
+          exploitable_count: allData.filter((c: Record<string, unknown>) => (c.cvss_score as number) >= 9.0).length,
         };
         setCveStats(stats);
         calculateSecurityScore(stats);
         computeThreatRadar(stats);
       } else {
         // Fallback: fetch from NVD via Electron proxy
-        if ((window as any).electronAPI?.executeCommand) {
+        if (window.electronAPI?.executeCommand) {
           try {
-            const raw = await (window as any).electronAPI.executeCommand(
+            const raw = await window.electronAPI.executeCommand(
               'curl -s "https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=10&cvssV3Severity=CRITICAL" 2>/dev/null | head -c 50000'
             );
             const nvdData = JSON.parse(raw);
             const vulns = nvdData.vulnerabilities || [];
-            const cveObjects = vulns.slice(0, 20).map((v: any, i: number) => {
+            const cveObjects = vulns.slice(0, 20).map((v: Record<string, unknown>, i: number) => {
               const cve = v.cve || {};
               const metrics =
                 cve.metrics?.cvssMetricV31?.[0]?.cvssData || cve.metrics?.cvssMetricV30?.[0]?.cvssData || {};
@@ -472,8 +472,8 @@ const Analytics = () => {
 
             const stats: CVELibraryStats = {
               total_cves: nvdData.totalResults || cveObjects.length,
-              critical_count: cveObjects.filter((c: any) => c.severity === "CRITICAL").length,
-              high_count: cveObjects.filter((c: any) => c.severity === "HIGH").length,
+              critical_count: cveObjects.filter((c: Record<string, unknown>) => c.severity === "CRITICAL").length,
+              high_count: cveObjects.filter((c: Record<string, unknown>) => c.severity === "HIGH").length,
               medium_count: 0,
               low_count: 0,
               trending_count: 0,

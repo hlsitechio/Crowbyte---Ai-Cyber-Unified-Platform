@@ -259,8 +259,6 @@ class ErrorMonitor {
   // ---- Click interception (dead clicks + rage clicks) ----
 
   private interceptClicks(): void {
-    const self = this;
-
     document.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
@@ -270,19 +268,19 @@ class ErrorMonitor {
       const y = e.clientY;
 
       // --- Rage click detection ---
-      self.recentClicks.push({ x, y, ts: now });
+      this.recentClicks.push({ x, y, ts: now });
       // Prune old clicks outside the time window
-      self.recentClicks = self.recentClicks.filter(
+      this.recentClicks = this.recentClicks.filter(
         (c) => now - c.ts < RAGE_CLICK_WINDOW_MS
       );
       // Count clicks in the same area
-      const nearbyClicks = self.recentClicks.filter(
+      const nearbyClicks = this.recentClicks.filter(
         (c) => Math.abs(c.x - x) < RAGE_CLICK_RADIUS && Math.abs(c.y - y) < RAGE_CLICK_RADIUS
       );
 
       if (nearbyClicks.length >= RAGE_CLICK_THRESHOLD) {
         // Only log once per burst (check if we already logged one in this window)
-        const existingRage = self.misclickLog.find(
+        const existingRage = this.misclickLog.find(
           (m) =>
             m.type === 'rage_click' &&
             now - new Date(m.timestamp).getTime() < RAGE_CLICK_WINDOW_MS * 2 &&
@@ -291,14 +289,14 @@ class ErrorMonitor {
         );
 
         if (!existingRage) {
-          self.addMisclickEntry({
+          this.addMisclickEntry({
             id: generateId(),
             timestamp: nowISO(),
             type: 'rage_click',
             x,
             y,
-            element: self.describeElement(target),
-            selector: self.buildSelector(target),
+            element: this.describeElement(target),
+            selector: this.buildSelector(target),
             page: getCurrentPage(),
             clickCount: nearbyClicks.length,
           });
@@ -308,7 +306,7 @@ class ErrorMonitor {
 
       // --- Dead click detection ---
       // Only check elements that LOOK interactive
-      if (!self.isInteractiveElement(target)) return;
+      if (!this.isInteractiveElement(target)) return;
 
       // Skip the QA Agent's own UI
       if (target.closest('[data-qa-agent]')) return;
@@ -321,8 +319,8 @@ class ErrorMonitor {
       if (target.closest('nav, [role="navigation"], [data-sidebar], [class*="sidebar"], [class*="Sidebar"]')) return;
 
       // Snapshot current counts
-      const netCountBefore = self.networkLog.length;
-      const navCountBefore = self.navigationLog.length;
+      const netCountBefore = this.networkLog.length;
+      const navCountBefore = this.navigationLog.length;
 
       // Use MutationObserver to detect DOM changes after click
       let domChanged = false;
@@ -340,22 +338,22 @@ class ErrorMonitor {
       setTimeout(() => {
         observer.disconnect();
 
-        const netCountAfter = self.networkLog.length;
-        const navCountAfter = self.navigationLog.length;
+        const netCountAfter = this.networkLog.length;
+        const navCountAfter = this.navigationLog.length;
 
         const fetchFired = netCountAfter > netCountBefore;
         const navChanged = navCountAfter > navCountBefore;
 
         // If DOM changed, fetch fired, or navigation changed — the click DID something
         if (!fetchFired && !navChanged && !domChanged) {
-          self.addMisclickEntry({
+          this.addMisclickEntry({
             id: generateId(),
             timestamp: nowISO(),
             type: 'dead_click',
             x,
             y,
-            element: self.describeElement(target),
-            selector: self.buildSelector(target),
+            element: this.describeElement(target),
+            selector: this.buildSelector(target),
             page: getCurrentPage(),
           });
         }
@@ -441,11 +439,9 @@ class ErrorMonitor {
 
   private interceptConsoleError(): void {
     this.originalConsoleError = console.error;
-    const self = this;
-
-    console.error = function (...args: unknown[]) {
+    console.error = (...args: unknown[]) => {
       // Call the original first
-      self.originalConsoleError!.apply(console, args);
+      this.originalConsoleError!.apply(console, args);
 
       let message = '';
       let stack: string | undefined;
@@ -465,7 +461,7 @@ class ErrorMonitor {
         }
       }
 
-      self.addError({
+      this.addError({
         id: generateId(),
         timestamp: nowISO(),
         type: 'console',
@@ -481,21 +477,19 @@ class ErrorMonitor {
   // ---- window.onerror interception ----
 
   private interceptWindowError(): void {
-    const self = this;
-
-    window.onerror = function (
+    window.onerror = (
       messageOrEvent: Event | string,
       source?: string,
       lineno?: number,
       colno?: number,
       error?: Error
-    ) {
+    ) => {
       const message =
         typeof messageOrEvent === 'string'
           ? messageOrEvent
           : (error?.message ?? 'Unknown error');
 
-      self.addError({
+      this.addError({
         id: generateId(),
         timestamp: nowISO(),
         type: 'uncaught',
@@ -511,9 +505,7 @@ class ErrorMonitor {
   // ---- unhandledrejection interception ----
 
   private interceptUnhandledRejection(): void {
-    const self = this;
-
-    window.onunhandledrejection = function (event: PromiseRejectionEvent) {
+    window.onunhandledrejection = (event: PromiseRejectionEvent) => {
       let message = 'Unhandled promise rejection';
       let stack: string | undefined;
 
@@ -530,7 +522,7 @@ class ErrorMonitor {
         }
       }
 
-      self.addError({
+      this.addError({
         id: generateId(),
         timestamp: nowISO(),
         type: 'promise',
@@ -547,9 +539,8 @@ class ErrorMonitor {
 
   private interceptFetch(): void {
     this.originalFetch = window.fetch;
-    const self = this;
 
-    window.fetch = function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    window.fetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const method = init?.method?.toUpperCase() ?? 'GET';
       let url: string;
 
@@ -563,12 +554,12 @@ class ErrorMonitor {
 
       // Skip monitoring our own error reporting endpoint to avoid loops
       if (url.includes('/api/errors')) {
-        return self.originalFetch!.call(window, input, init);
+        return this.originalFetch!.call(window, input, init);
       }
 
       const startTime = Date.now();
 
-      return self.originalFetch!.call(window, input, init).then(
+      return this.originalFetch!.call(window, input, init).then(
         (response: Response) => {
           const duration = Date.now() - startTime;
 
@@ -581,7 +572,7 @@ class ErrorMonitor {
           }
 
           // Track ALL requests in network log
-          self.addNetworkEntry({
+          this.addNetworkEntry({
             id: generateId(),
             timestamp: nowISO(),
             method,
@@ -596,7 +587,7 @@ class ErrorMonitor {
 
           // Track failed responses as errors
           if (response.status >= 400) {
-            self.addError({
+            this.addError({
               id: generateId(),
               timestamp: nowISO(),
               type: 'network',
@@ -618,7 +609,7 @@ class ErrorMonitor {
           const errMessage = err instanceof Error ? err.message : String(err);
 
           // Network failure still tracked
-          self.addNetworkEntry({
+          this.addNetworkEntry({
             id: generateId(),
             timestamp: nowISO(),
             method,
@@ -630,7 +621,7 @@ class ErrorMonitor {
             page: getCurrentPage(),
           });
 
-          self.addError({
+          this.addError({
             id: generateId(),
             timestamp: nowISO(),
             type: 'network',
@@ -651,39 +642,37 @@ class ErrorMonitor {
   // ---- Navigation tracking via hashchange ----
 
   private interceptNavigation(): void {
-    const self = this;
-
     // Record the initial page
     const initialPage = getCurrentPage();
-    self.lastNavigationTimestamp = Date.now();
-    self.addNavigationEntry({
+    this.lastNavigationTimestamp = Date.now();
+    this.addNavigationEntry({
       timestamp: nowISO(),
       page: initialPage,
     });
 
     // Schedule initial audit after page settles
-    self.scheduleAudit(initialPage);
+    this.scheduleAudit(initialPage);
 
     window.addEventListener('hashchange', () => {
       const now = Date.now();
       const currentPage = getCurrentPage();
 
       // Fill duration on the previous navigation entry
-      if (self.navigationLog.length > 0 && self.lastNavigationTimestamp !== null) {
-        const lastEntry = self.navigationLog[self.navigationLog.length - 1];
+      if (this.navigationLog.length > 0 && this.lastNavigationTimestamp !== null) {
+        const lastEntry = this.navigationLog[this.navigationLog.length - 1];
         if (lastEntry.duration === undefined) {
-          lastEntry.duration = now - self.lastNavigationTimestamp;
+          lastEntry.duration = now - this.lastNavigationTimestamp;
         }
       }
 
-      self.lastNavigationTimestamp = now;
-      self.addNavigationEntry({
+      this.lastNavigationTimestamp = now;
+      this.addNavigationEntry({
         timestamp: nowISO(),
         page: currentPage,
       });
 
       // Schedule UI audit for the new page
-      self.scheduleAudit(currentPage);
+      this.scheduleAudit(currentPage);
     });
   }
 
@@ -1406,6 +1395,7 @@ export const errorMonitor = new ErrorMonitor();
 // ---------------------------------------------------------------------------
 
 if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__qaAgent = {
     /** Get current error count by severity */
     status() {
@@ -1439,6 +1429,7 @@ if (typeof window !== 'undefined') {
       errorMonitor.clearAll();
       // Force re-audit after a short delay to let the page settle
       setTimeout(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const status = (window as any).__qaAgent.status();
         console.log('[QA Bridge] Recheck complete:', JSON.stringify(status));
       }, 3000);
@@ -1464,11 +1455,13 @@ if (typeof window !== 'undefined') {
 
     /** Get compact summary for Claude Code consumption */
     report() {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const s = (window as any).__qaAgent.status();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const failed = (window as any).__qaAgent.failedRequests();
       return {
         ...s,
-        failedUrls: failed.map((f: any) => f.url),
+        failedUrls: failed.map((f: { url: string }) => f.url),
         perf: errorMonitor.getPerformanceMetrics(),
       };
     },

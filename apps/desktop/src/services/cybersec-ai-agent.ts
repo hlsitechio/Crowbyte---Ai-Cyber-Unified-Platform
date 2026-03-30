@@ -127,6 +127,7 @@ Be precise, technical, and security-focused in your responses.`;
 
       if (processInfo.success && processInfo.data?.processes) {
         context += `**Top Running Processes** (by CPU usage):\n`;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         processInfo.data.processes.slice(0, 10).forEach((proc: any, idx: number) => {
           context += `${idx + 1}. ${proc.name} (PID: ${proc.pid}, CPU: ${proc.cpu_percent?.toFixed(1)}%)\n`;
         });

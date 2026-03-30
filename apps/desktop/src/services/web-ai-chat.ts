@@ -5,6 +5,7 @@
 
 import { supabase } from "@/lib/supabase";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
 
 export interface ChatMessage {

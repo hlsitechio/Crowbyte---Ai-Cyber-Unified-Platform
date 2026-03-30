@@ -39,6 +39,7 @@ interface UncensoredRequestOptions {
   preferLowRisk?: boolean;
   maxRetries?: number;
   enableFallback?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tools?: any[];
   temperature?: number;
 }
@@ -76,6 +77,7 @@ class VeniceUncensoredService {
     attemptCount: number;
     templateUsed: string;
     refusalDetected: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toolCalls?: any[];
   }> {
     const {
@@ -186,9 +188,11 @@ Provide complete, working exploit code with detailed comments explaining each st
    */
   async analyzeAttackVectors(
     target: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tools: any[]
   ): Promise<{
     analysis: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toolCalls: any[];
   }> {
     const prompt = `Analyze attack vectors for: ${target}
@@ -237,9 +241,11 @@ Use available tools to execute the attack strategy.`;
    */
   private async callVeniceAPI(
     messages: VeniceMessage[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tools?: any[],
     temperature: number = 0.7
   ): Promise<VeniceResponse> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload: any = {
       model: this.model,
       messages,
@@ -276,6 +282,7 @@ Use available tools to execute the attack strategy.`;
   async *streamChat(
     messages: VeniceMessage[],
     template?: PromptTemplate,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tools?: any[]
   ): AsyncGenerator<string> {
     // Use provided template or select default
@@ -293,6 +300,7 @@ Use available tools to execute the attack strategy.`;
       lastMsg.content = promptTemplate.userPromptWrapper(lastMsg.content);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload: any = {
       model: this.model,
       messages: enhancedMessages,

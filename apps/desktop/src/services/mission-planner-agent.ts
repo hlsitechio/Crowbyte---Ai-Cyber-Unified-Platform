@@ -65,6 +65,7 @@ export interface GeneratedRisk {
 }
 
 export interface PlanModificationRequest {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   currentPlan: any;
   modificationType: 'optimize' | 'add_phase' | 'reduce_risk' | 'accelerate' | 'enhance_stealth';
   requirements: string;
@@ -230,6 +231,7 @@ Output the complete modified plan as JSON only.`;
   /**
    * Analyze a plan and provide recommendations
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async analyzePlan(plan: any): Promise<{
     score: number;
     strengths: string[];
@@ -368,6 +370,7 @@ Output as JSON:
   /**
    * Generate attack vector diagram data
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async generateAttackDiagram(plan: any): Promise<{
     nodes: Array<{ id: string; label: string; type: string }>;
     edges: Array<{ from: string; to: string; label?: string }>;
@@ -378,6 +381,7 @@ Output as JSON:
     const edges = [];
 
     if (plan.phases && Array.isArray(plan.phases)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       plan.phases.forEach((phase: any, index: number) => {
         nodes.push({
           id: `phase-${index}`,

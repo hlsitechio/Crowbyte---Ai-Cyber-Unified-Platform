@@ -424,8 +424,10 @@ class TriageEngine {
             const cvssData = vuln.metrics?.cvssMetricV31?.[0] || vuln.metrics?.cvssMetricV2?.[0];
             results.push({
               id: cveId,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               description: vuln.descriptions?.find((d: any) => d.lang === 'en')?.value || '',
               cvss: cvssData?.cvssData?.baseScore || 0,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               references: vuln.references?.map((r: any) => r.url) || [],
             });
           }
@@ -1002,6 +1004,7 @@ Return ONLY a JSON object (no markdown, no explanation):
       const timeout = setTimeout(() => resolve(response || null), 30000);
 
       window.electronAPI.removeClaudeListeners?.();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window.electronAPI.onClaudeStreamEvent?.((raw: any) => {
         try {
           const event = typeof raw === 'string' ? JSON.parse(raw) : raw;

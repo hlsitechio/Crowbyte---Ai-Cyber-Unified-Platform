@@ -22,6 +22,7 @@ import type {
 // ─── Stats Dashboard ───────────────────────────────────────────────────────
 
 function StatCard({ label, value, icon: Icon, color ="text-primary" }: {
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  label: string; value: string | number; icon: any; color?: string;
 }) {
  return (
@@ -180,7 +181,7 @@ function KnowledgeTab() {
  setIsAdding(false);
  setNewTopic(""); setNewSummary(""); setNewDetails(""); setNewTags("");
  loadKnowledge();
- } catch (err: any) {
+ } catch (err) {
  toast({ title:"Error", description: err.message, variant:"destructive" });
  }
  };
@@ -417,7 +418,7 @@ function ProjectsTab() {
  setIsAdding(false);
  setNewName(""); setNewDesc(""); setNewTags("");
  loadProjects();
- } catch (err: any) {
+ } catch (err) {
  toast({ title:"Error", description: err.message, variant:"destructive" });
  }
  };

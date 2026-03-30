@@ -330,6 +330,7 @@ ${html}
       steps_to_reproduce: this.buildStepsToReproduce(f),
       impact: this.buildImpactStatement(f),
       url: f.target_url || undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       http_request: (f.evidence as any)?.request || undefined,
     }));
   }
@@ -375,16 +376,24 @@ ${html}
 
       if (finding.evidence) {
         parts.push(`\n## Evidence\n`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((finding.evidence as any).request) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           parts.push('### HTTP Request\n```http\n' + (finding.evidence as any).request + '\n```');
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((finding.evidence as any).response) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           parts.push('### HTTP Response\n```http\n' + String((finding.evidence as any).response).slice(0, 2000) + '\n```');
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((finding.evidence as any).curl) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           parts.push('### cURL\n```bash\n' + (finding.evidence as any).curl + '\n```');
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((finding.evidence as any).payload) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           parts.push('### Payload\n```\n' + (finding.evidence as any).payload + '\n```');
         }
       }
@@ -525,13 +534,19 @@ ${this.buildImpactStatement(f)}
 
       if (f.evidence) {
         md += '#### Evidence\n\n';
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((f.evidence as any).request) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           md += '**HTTP Request:**\n```http\n' + (f.evidence as any).request + '\n```\n\n';
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((f.evidence as any).response) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           md += '**HTTP Response:**\n```http\n' + String((f.evidence as any).response).slice(0, 2000) + '\n```\n\n';
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((f.evidence as any).curl) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           md += '**cURL:**\n```bash\n' + (f.evidence as any).curl + '\n```\n\n';
         }
       }
@@ -578,17 +593,22 @@ ${report.recommendations || findings.filter(f => f.severity === 'critical' || f.
     steps.push(`1. Navigate to \`${finding.target_url || finding.target_host + (finding.target_port ? ':' + finding.target_port : '')}\``);
 
     if (finding.source === 'sqlmap' && finding.evidence) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ev = finding.evidence as any;
       steps.push(`2. Inject the following payload in the \`${ev.parameter || 'vulnerable'}\` parameter:`);
       steps.push(`   \`\`\`\n   ${ev.payload || 'See evidence'}\n   \`\`\``);
       steps.push(`3. Observe the ${ev.technique || 'SQL injection'} response`);
     } else if (finding.source === 'nuclei') {
       steps.push(`2. The vulnerability was detected by Nuclei template`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((finding.evidence as any)?.curl) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         steps.push(`3. Reproduce with:\n   \`\`\`bash\n   ${(finding.evidence as any).curl}\n   \`\`\``);
       }
     } else if (finding.evidence) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((finding.evidence as any).request) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         steps.push(`2. Send the following HTTP request:\n   \`\`\`http\n   ${(finding.evidence as any).request}\n   \`\`\``);
       }
       steps.push(`${steps.length + 1}. Observe the vulnerability in the response`);
@@ -656,7 +676,9 @@ ${report.recommendations || findings.filter(f => f.severity === 'critical' || f.
   private buildSupportingMaterial(finding: Finding): string[] {
     const materials: string[] = [];
     if (finding.evidence) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((finding.evidence as any).screenshot) materials.push((finding.evidence as any).screenshot);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((finding.evidence as any).curl) materials.push(`cURL command: ${(finding.evidence as any).curl}`);
     }
     if (finding.cve_ids?.length) {

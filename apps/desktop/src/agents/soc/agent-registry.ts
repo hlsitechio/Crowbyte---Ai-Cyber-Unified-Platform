@@ -526,7 +526,7 @@ export const INFRA_WINDOWS_AGENT: AgentRole = {
   id: 'infra-windows-agent',
   name: 'Windows Infrastructure Agent',
   description: 'Manages Windows endpoints and servers. Runs PowerShell commands, queries Event Logs, manages services, audits Active Directory. The hands-on operator for Windows infra.',
-  domain: 'infrastructure' as any,
+  domain: 'infrastructure',
   permissionLevel: 'respond',
   autoActivateOn: ['windows-endpoint', 'windows-server'],
   allowedTools: [
@@ -580,7 +580,7 @@ export const INFRA_LINUX_AGENT: AgentRole = {
   id: 'infra-linux-agent',
   name: 'Linux Infrastructure Agent',
   description: 'Manages Linux servers via SSH. Runs commands, reads logs, manages services, hunts for rootkits and persistence. The operator for Linux infra.',
-  domain: 'infrastructure' as any,
+  domain: 'infrastructure',
   permissionLevel: 'respond',
   autoActivateOn: ['linux-server'],
   allowedTools: [
@@ -689,7 +689,7 @@ export const INFRA_CONTAINER_AGENT: AgentRole = {
   id: 'infra-container-agent',
   name: 'Container Agent',
   description: 'Docker and Kubernetes specialist. Monitors container health, investigates anomalies, manages lifecycle, and audits security configurations.',
-  domain: 'container' as any,
+  domain: 'container',
   permissionLevel: 'respond',
   autoActivateOn: ['docker', 'kubernetes'],
   allowedTools: [
@@ -745,7 +745,7 @@ export const CLOUD_SECURITY_AGENT: AgentRole = {
   id: 'cloud-security-agent',
   name: 'Cloud Security Agent',
   description: 'AWS, Azure, and GCP security specialist. Audits IAM, network config, storage, and monitors cloud-native threat detection services.',
-  domain: 'cloud-infra' as any,
+  domain: 'cloud-infra',
   permissionLevel: 'observe',
   autoActivateOn: ['aws', 'azure'],
   allowedTools: [

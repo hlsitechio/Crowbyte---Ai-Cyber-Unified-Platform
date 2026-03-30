@@ -83,7 +83,7 @@ class EndpointService {
           currentDevice.gpu = metrics.gpu;
         }
       }
-    } catch {}
+    } catch { /* ignore */ }
 
     return endpoints;
   }

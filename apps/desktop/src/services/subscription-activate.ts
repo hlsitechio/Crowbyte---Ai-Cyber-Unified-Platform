@@ -58,15 +58,18 @@ export async function activateSubscription(opts: {
 
   // Try RPC first (SECURITY DEFINER — handles upsert reliably)
   const { data: rpcData, error: rpcErr } = await supabase.rpc(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     'activate_my_subscription' as any,
     {
       p_tier: opts.tier,
       p_expires_at: expiresAt,
       p_paypal_email: opts.paypalEmail || null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
   );
 
   if (!rpcErr && rpcData) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = rpcData as any[];
     const sub = rows?.[0] || rpcData;
     console.log(`[+] Subscription activated via RPC: ${sub.tier} until ${sub.expires_at}`);
@@ -83,6 +86,7 @@ export async function activateSubscription(opts: {
   const status = opts.status || "active";
 
   const { data: existing } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from("user_subscriptions" as any)
     .select("id")
     .eq("user_id", user.id)
@@ -92,6 +96,7 @@ export async function activateSubscription(opts: {
 
   if (existing) {
     const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from("user_subscriptions" as any)
       .update({
         tier: opts.tier,
@@ -99,6 +104,7 @@ export async function activateSubscription(opts: {
         paypal_email: opts.paypalEmail || null,
         expires_at: expiresAt,
         updated_at: now,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       .eq("user_id", user.id)
       .select()
@@ -106,6 +112,7 @@ export async function activateSubscription(opts: {
     result = { data, error };
   } else {
     const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from("user_subscriptions" as any)
       .insert({
         user_id: user.id,
@@ -116,6 +123,7 @@ export async function activateSubscription(opts: {
         expires_at: expiresAt,
         created_at: now,
         updated_at: now,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       .select()
       .single();
@@ -127,6 +135,7 @@ export async function activateSubscription(opts: {
     return { success: false, error: result.error.message };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sub = result.data as any;
   console.log(`[+] Subscription activated: ${sub.tier} until ${sub.expires_at}`);
 
@@ -146,6 +155,7 @@ export async function hasSubscription(): Promise<boolean> {
   if (!user) return false;
 
   const { data } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from("user_subscriptions" as any)
     .select("id, status")
     .eq("user_id", user.id)
@@ -167,12 +177,14 @@ export async function getSubscriptionStatus(): Promise<{
   if (!user) return null;
 
   const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from("user_subscriptions" as any)
     .select("tier, status, expires_at, paypal_email")
     .eq("user_id", user.id)
     .single();
 
   if (error || !data) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const s = data as any;
   return {
     tier: s.tier,

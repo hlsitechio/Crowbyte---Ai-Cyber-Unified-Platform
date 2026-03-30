@@ -123,6 +123,7 @@ const TYPE_LABELS: Record<ReportType, string> = {
   executive: "Executive",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EXPORT_FORMATS: { value: ExportFormat; label: string; icon: React.ComponentType<any> }[] = [
   { value: "markdown", label: "Markdown", icon: FileMd },
   { value: "html", label: "HTML", icon: FileHtml },

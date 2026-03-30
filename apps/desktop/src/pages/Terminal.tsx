@@ -324,7 +324,7 @@ const Terminal = () => {
  const handleResize = () => {
  const active = terminalsRef.current.find(t => t.id === activeTerminalId);
  if (active) {
- try { active.fitAddon.fit(); } catch {}
+ try { active.fitAddon.fit(); } catch { /* ignore */ }
  }
  };
  window.addEventListener('resize', handleResize);
@@ -343,7 +343,7 @@ const Terminal = () => {
  const observer = new ResizeObserver(() => {
  const active = terminalsRef.current.find(t => t.id === activeTerminalId);
  if (active) {
- try { active.fitAddon.fit(); } catch {}
+ try { active.fitAddon.fit(); } catch { /* ignore */ }
  }
  });
 
@@ -357,7 +357,7 @@ const Terminal = () => {
  setTimeout(() => {
  const t = terminalsRef.current.find(t => t.id === id);
  if (t) {
- try { t.fitAddon.fit(); } catch {}
+ try { t.fitAddon.fit(); } catch { /* ignore */ }
  t.xterm.focus();
  }
  }, 50);

@@ -84,6 +84,24 @@ interface SystemMetricsResponse {
   error?: string;
 }
 
+interface BrowserTab {
+  id: string;
+  url: string;
+  title: string;
+  favicon: string;
+  isLoading: boolean;
+  isSecure: boolean;
+  canGoBack: boolean;
+  canGoForward: boolean;
+}
+
+interface BrowserManagerEvent {
+  event: string;
+  tab?: BrowserTab;
+  tabId?: string;
+  activeTabId?: string;
+}
+
 interface ElectronAPI {
   initVenice: (apiKey: string) => Promise<VeniceInitResponse>;
   streamChat: (request: StreamChatRequest) => Promise<StreamChatResponse>;
@@ -134,15 +152,15 @@ interface ElectronAPI {
   // Claude Code CLI
   claudeChat: (options: { prompt: string; model?: string; sessionId?: string | null; maxBudget?: number }) => Promise<{ ok: boolean; exitCode?: number; error?: string }>;
   claudeStop: () => Promise<{ ok: boolean; error?: string }>;
-  onClaudeStreamEvent: (callback: (data: any) => void) => void;
+  onClaudeStreamEvent: (callback: (data: unknown) => void) => void;
   onClaudeStreamEnd: (callback: (data: { code: number }) => void) => void;
   onClaudeStreamError: (callback: (error: string) => void) => void;
   removeClaudeListeners: () => void;
   // Browser Manager — WebContentsView-based real browser
   browserMgr: {
-    createTab: (opts?: { url?: string; makeActive?: boolean }) => Promise<{ tabId: string; tabs: any[]; activeTabId: string }>;
-    closeTab: (tabId: string) => Promise<{ tabs: any[]; activeTabId: string | null }>;
-    switchTab: (tabId: string) => Promise<{ activeTabId: string; tab: any }>;
+    createTab: (opts?: { url?: string; makeActive?: boolean }) => Promise<{ tabId: string; tabs: BrowserTab[]; activeTabId: string }>;
+    closeTab: (tabId: string) => Promise<{ tabs: BrowserTab[]; activeTabId: string | null }>;
+    switchTab: (tabId: string) => Promise<{ activeTabId: string; tab: BrowserTab }>;
     navigate: (url: string, tabId?: string) => Promise<{ ok: boolean }>;
     back: () => Promise<{ ok: boolean }>;
     forward: () => Promise<{ ok: boolean }>;
@@ -150,23 +168,23 @@ interface ElectronAPI {
     stop: () => Promise<{ ok: boolean }>;
     setBounds: (bounds: { x: number; y: number; width: number; height: number }) => Promise<{ ok: boolean }>;
     setVisible: (visible: boolean) => Promise<{ ok: boolean }>;
-    getState: () => Promise<{ tabs: any[]; activeTabId: string | null; isVisible: boolean }>;
-    execJS: (code: string, tabId?: string) => Promise<{ success: boolean; data?: any; error?: string }>;
+    getState: () => Promise<{ tabs: BrowserTab[]; activeTabId: string | null; isVisible: boolean }>;
+    execJS: (code: string, tabId?: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
     devtools: (tabId?: string) => Promise<{ ok: boolean }>;
     getUrl: (tabId?: string) => Promise<{ data: string }>;
     getTitle: (tabId?: string) => Promise<{ data: string }>;
-    onEvent: (callback: (data: any) => void) => void;
+    onEvent: (callback: (data: BrowserManagerEvent) => void) => void;
     removeEventListeners: () => void;
   };
   // Legacy compat
   browserPanel: {
-    navigate: (url: string) => Promise<any>;
-    back: () => Promise<any>;
-    forward: () => Promise<any>;
-    reload: () => Promise<any>;
-    isOpen: () => Promise<any>;
-    open: (url?: string) => Promise<any>;
-    close: () => Promise<any>;
+    navigate: (url: string) => Promise<unknown>;
+    back: () => Promise<unknown>;
+    forward: () => Promise<unknown>;
+    reload: () => Promise<unknown>;
+    isOpen: () => Promise<unknown>;
+    open: (url?: string) => Promise<unknown>;
+    close: () => Promise<unknown>;
   };
   onBrowserPanelCommand: () => void;
   sendBrowserPanelResult: () => void;

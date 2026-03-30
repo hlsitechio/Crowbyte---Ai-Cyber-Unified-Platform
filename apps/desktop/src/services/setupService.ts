@@ -56,12 +56,15 @@ const SETUP_STORAGE_KEY = 'crowbyte_setup_config';
 const CURRENT_SETUP_VERSION = 1;
 
 // Electron IPC helpers for disk persistence
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
 
 /** Write setup marker to disk via Electron IPC (survives localStorage wipes) */
 async function writeSetupMarker(config: SetupConfig): Promise<void> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (isElectron && (window as any).electronAPI?.writeFile) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (window as any).electronAPI.writeFile(
         '.crowbyte-setup.json',
         JSON.stringify(config, null, 2)
@@ -73,7 +76,9 @@ async function writeSetupMarker(config: SetupConfig): Promise<void> {
 /** Read setup marker from disk */
 async function readSetupMarker(): Promise<SetupConfig | null> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (isElectron && (window as any).electronAPI?.readFile) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = await (window as any).electronAPI.readFile('.crowbyte-setup.json');
       if (data) return JSON.parse(data);
     }

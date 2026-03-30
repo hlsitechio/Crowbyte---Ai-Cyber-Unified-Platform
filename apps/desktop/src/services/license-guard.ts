@@ -199,12 +199,15 @@ async function checkSubscription(): Promise<LicenseStatus> {
   }
 
   // Query subscription via RPC (SECURITY DEFINER — bypasses RLS edge cases)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: rpcData, error: rpcErr } = await supabase.rpc('get_my_subscription' as any);
 
   // Fallback to direct query if RPC doesn't exist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let s: any = null;
   if (rpcErr) {
     const { data: sub, error: subErr } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from('user_subscriptions' as any)
       .select('tier, status, expires_at')
       .eq('user_id', session.user.id)
@@ -213,6 +216,7 @@ async function checkSubscription(): Promise<LicenseStatus> {
     if (subErr || !sub) s = null;
     else s = sub;
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = rpcData as any[];
     s = rows?.length > 0 ? rows[0] : null;
   }
@@ -270,19 +274,24 @@ async function verifyDevice(
 ): Promise<{ ok: boolean; reason?: string }> {
   // Check existing activations
   const { data: activations } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from('device_activations' as any)
     .select('id, device_id, device_name, last_seen')
     .eq('user_id', userId)
     .order('last_seen', { ascending: false });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const acts = (activations || []) as any[];
 
   // Is this device already registered?
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const existing = acts.find((a: any) => a.device_id === deviceId);
   if (existing) {
     // Update last_seen
     await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from('device_activations' as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .update({ last_seen: new Date().toISOString() } as any)
       .eq('id', existing.id);
     return { ok: true };
@@ -290,6 +299,7 @@ async function verifyDevice(
 
   // New device — check limit
   if (acts.length >= maxDevices) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const deviceList = acts.map((a: any) => a.device_name || a.device_id).join(', ');
     return {
       ok: false,
@@ -299,12 +309,14 @@ async function verifyDevice(
 
   // Register new device
   const { error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from('device_activations' as any)
     .insert({
       user_id: userId,
       device_id: deviceId,
       device_name: `${navigator.platform} - ${navigator.userAgent.split('(')[1]?.split(')')[0] || 'Unknown'}`,
       last_seen: new Date().toISOString(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
   if (error) {
@@ -323,10 +335,12 @@ export async function getActiveDevices(): Promise<{ id: string; device_id: strin
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return [];
   const { data } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from('device_activations' as any)
     .select('id, device_id, device_name, last_seen')
     .eq('user_id', session.user.id)
     .order('last_seen', { ascending: false });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data || []) as any[];
 }
 
@@ -335,6 +349,7 @@ export async function getActiveDevices(): Promise<{ id: string; device_id: strin
  */
 export async function deactivateDevice(activationId: string): Promise<boolean> {
   const { error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from('device_activations' as any)
     .delete()
     .eq('id', activationId);

@@ -81,6 +81,7 @@ const Fleet = () => {
 
  // Realtime endpoint updates from Supabase
  useEffect(() => {
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  let channel: any = null;
  const setupRealtime = async () => {
  try {
@@ -96,7 +97,7 @@ const Fleet = () => {
  loadEndpoints();
  })
  .subscribe();
- } catch {}
+ } catch { /* ignore */ }
  };
  setupRealtime();
  // Fallback poll every 60s (realtime handles most updates)
@@ -193,6 +194,7 @@ const Fleet = () => {
  return `${(bytes / 1024).toFixed(0)} KB`;
  };
 
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const rootDisk = disk?.filesystems?.find((f: any) => f.mount === '/') || disk?.filesystems?.[0];
 
  // Map API response fields
@@ -203,6 +205,7 @@ const Fleet = () => {
  const diskPercent = rootDisk?.usedPercent ?? (rootDisk?.size ? Math.round((rootDisk.used / rootDisk.size) * 100) : 0);
 
  // Network rates from interfaces
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const ethIface = net?.interfaces?.find((i: any) => i.iface !== 'lo' && i.operstate === 'up') || net?.interfaces?.find((i: any) => i.iface !== 'lo');
  const rxRate = net?.rxRate ?? ethIface?.rx?.rate;
  const txRate = net?.txRate ?? ethIface?.tx?.rate;
@@ -234,9 +237,11 @@ const Fleet = () => {
  network: {
  rx_rate: rxRate ? formatBytes(rxRate) + '/s' : '--',
  tx_rate: txRate ? formatBytes(txRate) + '/s' : '--',
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  interfaces: net?.interfaces?.filter((i: any) => i.iface !== 'lo').length || 0,
  },
  docker: {
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  running: docker?.running ?? docker?.containers?.filter((c: any) => c.state === 'running').length ?? 0,
  total: (docker?.running ?? 0) + (docker?.stopped ?? 0) + (docker?.paused ?? 0),
  },

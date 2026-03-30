@@ -78,10 +78,10 @@ export function AddEndpointDialog({
       });
       onOpenChange(false);
       onEndpointAdded?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save endpoint:', err);
       toast.error('Failed to add endpoint', {
-        description: err.message || 'Please try again',
+        description: err instanceof Error ? err.message : 'Please try again',
       });
     } finally {
       setSaving(false);
