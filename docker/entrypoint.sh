@@ -54,10 +54,27 @@ export NODE_ENV=production
 export ELECTRON_DISABLE_SECURITY_WARNINGS=true
 export ELECTRON_NO_ATTACH_CONSOLE=true
 
+# Pre-seed onboarding config so Docker containers skip the wizard
+# Electron uses package.json "name" (lowercase) for userData path
+CROWBYTE_CONFIG_DIR="/root/.config/crowbyte"
+mkdir -p "${CROWBYTE_CONFIG_DIR}"
+if [ ! -f "${CROWBYTE_CONFIG_DIR}/crowbyte-config.json" ]; then
+  cat > "${CROWBYTE_CONFIG_DIR}/crowbyte-config.json" <<EOCFG
+{
+  "onboardingComplete": true,
+  "onboardingCompletedAt": "$(date -Iseconds)",
+  "version": "2.0.0",
+  "dockerMode": true
+}
+EOCFG
+  echo "[+] Onboarding pre-seeded (Docker mode)"
+fi
+
 npx electron electron/main.cjs \
   --no-sandbox \
   --disable-gpu \
   --disable-dev-shm-usage \
+  --start-maximized \
   --display=${DISPLAY} \
   2>&1 | sed 's/^/[electron] /' &
 

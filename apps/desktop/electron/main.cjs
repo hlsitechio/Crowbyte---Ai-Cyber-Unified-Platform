@@ -60,6 +60,10 @@ try {
   StdioClientTransport = null;
 }
 
+// Force consistent app name so userData path is always ~/.config/crowbyte/
+// Without this, unpackaged Electron (npx electron) uses ~/.config/Electron/
+app.name = 'crowbyte';
+
 // Disable hardware acceleration to prevent GPU errors (if app is available)
 if (app && typeof app.disableHardwareAcceleration === 'function') {
   app.disableHardwareAcceleration();
@@ -755,9 +759,9 @@ function createWindow() {
     console.log('[*] Loading from built files: dist/index.html');
   }
 
-  // Auto-maximize in Docker/headless environments (Xvfb WMs don't position well)
+  // Auto-fullscreen in Docker/headless environments (Xvfb + Fluxbox ignores maximize/setBounds)
   if (isForceProduction && !app.isPackaged) {
-    mainWindow.maximize();
+    mainWindow.setFullScreen(true);
   }
 
   // Setup context menu (right-click menu)
