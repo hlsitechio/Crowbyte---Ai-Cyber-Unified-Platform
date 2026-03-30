@@ -1,191 +1,144 @@
 /**
- * Search Agent Page — Tavily-powered intelligent search
- * Features: search history, follow-up suggestions, quick actions, collapsible reasoning
+ * CrowByte Support Agent — AI-powered support chat with diagnostics,
+ * escalation, and real-time push notifications.
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { searchAgent, type SearchAgentResponse } from "@/services/searchAgent";
+import { Badge } from "@/components/ui/badge";
 import {
-  Robot,
-  PaperPlaneTilt,
-  MagnifyingGlass,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import {
+  supportAgent,
+  type SupportMessage,
+  type DiagnosticResult,
+  type HealthCheck,
+  type EscalationTicket,
+  type UserNotification,
+  type TicketPriority,
+} from "@/services/support-agent";
+import {
+  Headset,
   Brain,
-  Clock,
-  Trash,
-  ArrowSquareOut,
-  Sparkle,
-  CircleNotch,
+  Pulse,
+  Bug,
+  BookOpen,
+  Bell,
+  Wrench,
   CaretDown,
   CaretRight,
-  Crosshair,
-  ShieldWarning,
-  Detective,
-  Binoculars,
-  Wrench,
-  Virus,
+  PaperPlaneTilt,
+  CircleNotch,
+  X,
+  CheckCircle,
+  Warning,
+  Info,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ── Constants ────────────────────────────────────────────────────────────────────
 
-interface Source {
-  title: string;
-  url: string;
-  content: string;
-  score?: number;
-}
-
-interface Step {
-  action: string;
-  observation: string;
-}
-
-interface Message {
-  id: string;
-  role: "user" | "agent";
-  content: string;
-  sources?: Source[];
-  steps?: Step[];
-  followUps?: string[];
-  timestamp: Date;
-}
-
-interface HistoryEntry {
-  id: string;
-  query: string;
-  messages: Message[];
-  timestamp: number;
-}
-
-// ── Constants ──────────────────────────────────────────────────────────────────
-
-const HISTORY_KEY = "crowbyte_search_history";
-const MAX_HISTORY = 15;
+const STORAGE_KEY = "crowbyte_support_history";
+const MAX_MESSAGES = 50;
 
 const QUICK_ACTIONS = [
-  { label: "Latest CVEs", icon: ShieldWarning, template: "What are the latest critical CVEs disclosed this week?" },
-  { label: "Exploit DB", icon: Crosshair, template: "Search Exploit-DB for recent public exploits" },
-  { label: "OSINT", icon: Detective, template: "OSINT techniques for reconnaissance on " },
-  { label: "Threat Intel", icon: Binoculars, template: "Latest threat intelligence on active threat actors" },
-  { label: "Tool Discovery", icon: Wrench, template: "Best security tools for " },
-  { label: "Malware Analysis", icon: Virus, template: "Recent malware campaigns and analysis techniques" },
+  { label: "System Status", icon: Pulse, action: "Run a full system diagnostic and show me the health status" },
+  { label: "How do I...", icon: BookOpen, template: "How do I " },
+  { label: "Report Bug", icon: Bug, template: "I found a bug: " },
+  { label: "Talk to Human", icon: Headset, action: "I need to talk to a human" },
 ];
 
 const CAPABILITIES = [
-  { icon: MagnifyingGlass, text: "Deep web research with real-time Tavily AI search" },
-  { icon: ShieldWarning, text: "CVE analysis with exploitability and patch status" },
-  { icon: Wrench, text: "Security tool discovery and comparison" },
-  { icon: Binoculars, text: "Threat intelligence on actors, TTPs, and IOCs" },
+  { icon: Brain, text: "RAG-powered answers from CrowByte documentation" },
+  { icon: Wrench, text: "Live system diagnostics and health checks" },
+  { icon: Headset, text: "Escalation to human support with full context" },
+  { icon: Bell, text: "Real-time notifications from your admin team" },
 ];
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────────
 
-function extractDomain(url: string): string {
+function loadMessages(): SupportMessage[] {
   try {
-    return new URL(url).hostname.replace("www.", "");
-  } catch {
-    return url;
-  }
-}
-
-function generateFollowUps(query: string, sources: Source[]): string[] {
-  // Extract meaningful multi-word phrases from source titles (not random single words)
-  const stopWords = new Set(['the','this','that','with','from','about','have','been','and','for','are','was','were','has','its','new','how','what','why','who','all','can','will','may','more','most','than','into','over','also','but','not','our','your','them','their','some','any','each','both','few','many','much','such','very','just','only']);
-
-  const titles = sources.slice(0, 5).map(s => s.title);
-  const keyPhrases = titles
-    .flatMap(t => {
-      // Extract 2-3 word phrases that look like real topics
-      const words = t.split(/[\s\-:,|]+/).filter(w => w.length > 2 && !stopWords.has(w.toLowerCase()));
-      const phrases: string[] = [];
-      for (let i = 0; i < words.length - 1; i++) {
-        if (words[i] && words[i+1] && !stopWords.has(words[i].toLowerCase())) {
-          phrases.push(`${words[i]} ${words[i+1]}`);
-        }
-      }
-      return phrases;
-    })
-    .filter(p => p.length > 5)
-    .slice(0, 5);
-
-  const suggestions: string[] = [];
-
-  // Generate contextual security follow-ups
-  const queryLower = query.toLowerCase();
-
-  if (queryLower.includes('cve') || queryLower.includes('vulnerabilit')) {
-    suggestions.push(`Exploit PoC and active exploitation status`);
-    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — patch availability and mitigations`);
-    suggestions.push(`Related CVEs and attack chain analysis`);
-  } else if (queryLower.includes('malware') || queryLower.includes('ransomware')) {
-    suggestions.push(`IOCs and detection signatures for these campaigns`);
-    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — MITRE ATT&CK mapping`);
-    suggestions.push(`Incident response playbook for this threat`);
-  } else if (queryLower.includes('apt') || queryLower.includes('threat actor')) {
-    suggestions.push(`TTPs and infrastructure used by these groups`);
-    suggestions.push(`Recent campaigns targeting my industry`);
-    suggestions.push(`Detection rules and hunting queries`);
-  } else if (queryLower.includes('exploit') || queryLower.includes('attack')) {
-    suggestions.push(`Defense and mitigation strategies`);
-    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — technical deep dive`);
-    suggestions.push(`Similar attack techniques and variants`);
-  } else {
-    // Generic security follow-ups based on extracted topics
-    if (keyPhrases[0]) suggestions.push(`${keyPhrases[0]} — deeper technical analysis`);
-    if (keyPhrases[1]) suggestions.push(`${keyPhrases[1]} — impact and remediation`);
-    suggestions.push(`${query} — latest developments and advisories`);
-  }
-
-  return suggestions.slice(0, 3);
-}
-
-function loadHistory(): HistoryEntry[] {
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as SupportMessage[];
+    return parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }));
   } catch {
     return [];
   }
 }
 
-function saveHistory(entries: HistoryEntry[]) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+function saveMessages(msgs: SupportMessage[]) {
+  const trimmed = msgs.slice(-MAX_MESSAGES);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
 }
 
-function truncate(text: string, len: number): string {
-  return text.length > len ? text.slice(0, len) + "..." : text;
+function makeMessage(
+  role: SupportMessage["role"],
+  content: string,
+  extra?: Partial<SupportMessage>,
+): SupportMessage {
+  return {
+    id: crypto.randomUUID(),
+    role,
+    content,
+    timestamp: new Date(),
+    ...extra,
+  };
 }
 
-function timeAgo(ts: number): string {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+function statusDot(status: HealthCheck["status"]) {
+  if (status === "ok") return "bg-emerald-500";
+  if (status === "warning") return "bg-amber-500";
+  return "bg-red-500";
 }
 
-// ── Components ─────────────────────────────────────────────────────────────────
+function statusIcon(status: HealthCheck["status"]) {
+  if (status === "ok") return <CheckCircle size={14} weight="fill" className="text-emerald-500" />;
+  if (status === "warning") return <Warning size={14} weight="fill" className="text-amber-500" />;
+  return <X size={14} weight="bold" className="text-red-500" />;
+}
 
-function ReasoningSteps({ steps }: { steps: Step[] }) {
-  const [open, setOpen] = useState(false);
+function notifIcon(type: UserNotification["type"]) {
+  if (type === "critical" || type === "alert") return <Warning size={14} weight="fill" className="text-red-400" />;
+  if (type === "warning") return <Warning size={14} weight="fill" className="text-amber-400" />;
+  if (type === "update") return <Info size={14} weight="fill" className="text-blue-400" />;
+  return <Info size={14} weight="fill" className="text-zinc-400" />;
+}
 
-  if (!steps.length) return null;
+// ── DiagnosticCard ───────────────────────────────────────────────────────────────
+
+function DiagnosticCard({ result }: { result: DiagnosticResult }) {
+  const [open, setOpen] = useState(true);
+
+  const scoreColor =
+    result.score >= 80 ? "text-emerald-400" : result.score >= 50 ? "text-amber-400" : "text-red-400";
+  const barColor =
+    result.score >= 80 ? "bg-emerald-500" : result.score >= 50 ? "bg-amber-500" : "bg-red-500";
 
   return (
-    <div className="mt-3">
+    <div className="mt-2 rounded-lg border border-zinc-800 bg-zinc-900/60 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+        className="flex items-center justify-between w-full px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
       >
-        {open ? <CaretDown size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
-        Reasoning ({steps.length} steps)
+        <span className="flex items-center gap-1.5 font-medium">
+          <Pulse size={14} weight="bold" className="text-blue-400" />
+          System Diagnostics
+        </span>
+        <span className="flex items-center gap-2">
+          <span className={`font-mono font-semibold ${scoreColor}`}>{result.score}/100</span>
+          {open ? <CaretDown size={12} /> : <CaretRight size={12} />}
+        </span>
       </button>
+
       <AnimatePresence>
         {open && (
           <motion.div
@@ -194,13 +147,29 @@ function ReasoningSteps({ steps }: { steps: Step[] }) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-2 space-y-1.5 pl-3 border-l border-zinc-800">
-              {steps.map((step, i) => (
-                <div key={i} className="text-xs">
-                  <span className="text-violet-400">{step.action}</span>
-                  <span className="text-zinc-500 ml-2">{step.observation}</span>
+            <div className="px-3 pb-3 space-y-2">
+              {/* Health checks */}
+              <div className="space-y-1">
+                {result.checks.map((check) => (
+                  <div key={check.name} className="flex items-center gap-2 text-xs">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot(check.status)}`} />
+                    <span className="text-zinc-300 font-medium w-28 flex-shrink-0">{check.name}</span>
+                    <span className="text-zinc-500 truncate">{check.message}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Score bar */}
+              <div className="pt-1">
+                <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${result.score}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className={`h-full rounded-full ${barColor}`}
+                  />
                 </div>
-              ))}
+              </div>
             </div>
           </motion.div>
         )}
@@ -209,417 +178,477 @@ function ReasoningSteps({ steps }: { steps: Step[] }) {
   );
 }
 
-function SourcesList({ sources }: { sources: Source[] }) {
-  if (!sources.length) return null;
+// ── EscalationDialog ─────────────────────────────────────────────────────────────
+
+function EscalationDialog({
+  onSubmit,
+  onCancel,
+  loading,
+}: {
+  onSubmit: (subject: string, priority: TicketPriority) => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  const [subject, setSubject] = useState("");
+  const [priority, setPriority] = useState<TicketPriority>("medium");
 
   return (
-    <div className="mt-3 space-y-1">
-      <span className="text-xs text-zinc-500 font-medium">
-        Sources ({sources.length})
-      </span>
-      <div className="space-y-1">
-        {sources.map((src, i) => (
-          <a
-            key={i}
-            href={src.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-baseline gap-2 group text-sm py-0.5 hover:text-white transition-colors"
-          >
-            <ArrowSquareOut
-              size={12}
-              weight="bold"
-              className="text-zinc-600 group-hover:text-violet-400 flex-shrink-0 translate-y-[1px]"
-            />
-            <span className="text-zinc-300 group-hover:text-white truncate">
-              {src.title || extractDomain(src.url)}
-            </span>
-            <span className="text-zinc-600 text-xs flex-shrink-0">
-              {extractDomain(src.url)}
-            </span>
-            {src.score != null && (
-              <span className="text-zinc-600 text-xs flex-shrink-0 tabular-nums">
-                {Math.round(src.score * 100)}%
-              </span>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3 space-y-3"
+    >
+      <div className="flex items-center gap-2 text-sm text-zinc-200 font-medium">
+        <Headset size={16} weight="duotone" className="text-blue-400" />
+        Create Support Ticket
+      </div>
+
+      <Input
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
+        placeholder="Brief description of your issue..."
+        className="bg-zinc-900 border-zinc-700 text-sm"
+        autoFocus
+      />
+
+      <div className="flex items-center gap-3">
+        <Select value={priority} onValueChange={(v) => setPriority(v as TicketPriority)}>
+          <SelectTrigger className="w-32 h-8 text-xs bg-zinc-900 border-zinc-700">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="critical">Critical</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="flex-1" />
+
+        <button
+          onClick={onCancel}
+          className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => subject.trim() && onSubmit(subject.trim(), priority)}
+          disabled={!subject.trim() || loading}
+          className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+        >
+          {loading ? <CircleNotch size={12} weight="bold" className="animate-spin" /> : null}
+          Submit Ticket
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── NotificationBanner ───────────────────────────────────────────────────────────
+
+function NotificationBanner({
+  notification,
+  onDismiss,
+}: {
+  notification: UserNotification;
+  onDismiss: (id: string) => void;
+}) {
+  const borderColor =
+    notification.type === "critical" || notification.type === "alert"
+      ? "border-red-500/30"
+      : notification.type === "warning"
+        ? "border-amber-500/30"
+        : "border-blue-500/30";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className={`flex items-start gap-2 px-3 py-2 rounded-lg border ${borderColor} bg-zinc-900/60`}
+    >
+      {notifIcon(notification.type)}
+      <div className="flex-1 min-w-0">
+        <span className="text-xs font-medium text-zinc-200">{notification.title}</span>
+        <p className="text-xs text-zinc-400 truncate">{notification.message}</p>
+      </div>
+      <button
+        onClick={() => onDismiss(notification.id)}
+        className="text-zinc-600 hover:text-zinc-300 transition-colors flex-shrink-0 mt-0.5"
+      >
+        <X size={12} weight="bold" />
+      </button>
+    </motion.div>
+  );
+}
+
+// ── TicketBadge ──────────────────────────────────────────────────────────────────
+
+function TicketBadge({ ticketId }: { ticketId: string }) {
+  return (
+    <Badge variant="outline" className="border-blue-500/40 text-blue-400 text-[10px] gap-1">
+      <CheckCircle size={10} weight="fill" />
+      Ticket #{ticketId.slice(0, 8)}
+    </Badge>
+  );
+}
+
+// ── Chat Message ─────────────────────────────────────────────────────────────────
+
+function ChatMessage({ msg }: { msg: SupportMessage }) {
+  // System messages — centered, muted
+  if (msg.role === "system" || msg.role === "notification") {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex justify-center"
+      >
+        <div className="flex items-center gap-1.5 text-xs text-zinc-500 bg-zinc-900/40 px-3 py-1 rounded-full">
+          {msg.notification ? notifIcon(msg.notification.type) : <Info size={12} weight="fill" />}
+          {msg.content}
+        </div>
+      </motion.div>
+    );
+  }
+
+  // User bubble — right aligned
+  if (msg.role === "user") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex justify-end"
+      >
+        <div className="max-w-[80%] bg-blue-600/15 border border-blue-500/20 rounded-xl px-4 py-2.5">
+          <p className="text-sm text-zinc-200 whitespace-pre-wrap">{msg.content}</p>
+          <span className="text-[10px] text-zinc-600 mt-1 block text-right">
+            {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Agent / diagnostic — left aligned with icon
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex justify-start"
+    >
+      <div className="max-w-[90%] space-y-0">
+        <div className="flex items-start gap-2.5">
+          <Headset size={18} weight="duotone" className="text-blue-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
+              {msg.content}
+            </div>
+
+            {/* Diagnostic card */}
+            {msg.diagnostics && <DiagnosticCard result={msg.diagnostics} />}
+
+            {/* Ticket badge */}
+            {msg.ticketId && (
+              <div className="mt-2">
+                <TicketBadge ticketId={msg.ticketId} />
+              </div>
             )}
-          </a>
+
+            <span className="text-[10px] text-zinc-700 mt-2 block">
+              {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Welcome State ────────────────────────────────────────────────────────────────
+
+function WelcomeState({ onAction }: { onAction: (text: string, isTemplate: boolean) => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 space-y-6">
+      <div className="text-center space-y-2">
+        <Headset size={36} weight="duotone" className="text-blue-400 mx-auto" />
+        <h2 className="text-lg font-semibold text-zinc-200">CrowByte Support</h2>
+        <p className="text-sm text-zinc-500 max-w-sm">
+          Get help with CrowByte features, diagnose issues, or talk to a human.
+        </p>
+      </div>
+
+      {/* Capabilities */}
+      <div className="space-y-2 max-w-sm w-full">
+        {CAPABILITIES.map((cap, i) => (
+          <div key={i} className="flex items-center gap-2.5 text-sm text-zinc-400">
+            <cap.icon size={16} weight="bold" className="text-zinc-600 flex-shrink-0" />
+            {cap.text}
+          </div>
+        ))}
+      </div>
+
+      {/* Quick actions grid */}
+      <div className="grid grid-cols-2 gap-2 max-w-sm w-full pt-2">
+        {QUICK_ACTIONS.map((qa) => (
+          <button
+            key={qa.label}
+            onClick={() => onAction(qa.action || qa.template || "", !!qa.template)}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-800/60 hover:border-zinc-700 transition-colors text-left"
+          >
+            <qa.icon size={16} weight="bold" className="text-blue-400 flex-shrink-0" />
+            <span className="text-xs text-zinc-300">{qa.label}</span>
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-function FollowUpSuggestions({
-  suggestions,
-  onSelect,
-}: {
-  suggestions: string[];
-  onSelect: (q: string) => void;
-}) {
-  if (!suggestions.length) return null;
+// ── Header ───────────────────────────────────────────────────────────────────────
 
-  return (
-    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
-      {suggestions.map((s, i) => (
-        <button
-          key={i}
-          onClick={() => onSelect(s)}
-          className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
-        >
-          {s}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SearchHistory({
-  entries,
-  onSelect,
-  onClear,
-  open,
-  onToggle,
+function Header({
+  notifCount,
+  onRunDiagnostics,
+  diagLoading,
 }: {
-  entries: HistoryEntry[];
-  onSelect: (entry: HistoryEntry) => void;
-  onClear: () => void;
-  open: boolean;
-  onToggle: () => void;
+  notifCount: number;
+  onRunDiagnostics: () => void;
+  diagLoading: boolean;
 }) {
   return (
-    <div className="border-b border-zinc-800/60">
-      <button
-        onClick={onToggle}
-        className="flex items-center justify-between w-full px-4 py-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-      >
-        <span className="flex items-center gap-1.5">
-          <Clock size={12} weight="bold" />
-          Search History ({entries.length})
+    <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
+      <div className="flex items-center gap-2.5">
+        <Headset size={22} weight="duotone" className="text-blue-400" />
+        <div>
+          <h1 className="text-base font-semibold text-zinc-200">CrowByte Support</h1>
+          <p className="text-[11px] text-zinc-600">AI-powered help desk</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        {/* Online indicator */}
+        <span className="flex items-center gap-1.5 text-xs text-emerald-500">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Online
         </span>
-        {open ? <CaretDown size={12} /> : <CaretRight size={12} />}
-      </button>
-      <AnimatePresence>
-        {open && entries.length > 0 && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-2 space-y-0.5">
-              {entries.map((entry) => (
-                <button
-                  key={entry.id}
-                  onClick={() => onSelect(entry)}
-                  className="flex items-center justify-between w-full text-left text-xs py-1 px-2 rounded hover:bg-white/[0.05] transition-colors group"
-                >
-                  <span className="text-zinc-400 group-hover:text-zinc-200 truncate mr-3">
-                    {truncate(entry.query, 50)}
-                  </span>
-                  <span className="text-zinc-600 flex-shrink-0 tabular-nums">
-                    {timeAgo(entry.timestamp)}
-                  </span>
-                </button>
-              ))}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClear();
-                }}
-                className="flex items-center gap-1 text-xs text-zinc-600 hover:text-red-400 transition-colors mt-1 px-2"
-              >
-                <Trash size={10} weight="bold" />
-                Clear history
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+        {/* Notification bell */}
+        <button className="relative p-1 text-zinc-500 hover:text-zinc-200 transition-colors">
+          <Bell size={18} weight={notifCount > 0 ? "fill" : "regular"} />
+          {notifCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+              {notifCount > 9 ? "9+" : notifCount}
+            </span>
+          )}
+        </button>
+
+        {/* Run Diagnostics */}
+        <button
+          onClick={onRunDiagnostics}
+          disabled={diagLoading}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-md transition-colors disabled:opacity-40"
+        >
+          {diagLoading ? (
+            <CircleNotch size={12} weight="bold" className="animate-spin" />
+          ) : (
+            <Pulse size={12} weight="bold" />
+          )}
+          Run Diagnostics
+        </button>
+      </div>
     </div>
   );
 }
 
-// ── Main Page ──────────────────────────────────────────────────────────────────
+// ── Main Page ────────────────────────────────────────────────────────────────────
 
 export default function AIAgent() {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<SupportMessage[]>(loadMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>(loadHistory);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [diagLoading, setDiagLoading] = useState(false);
+  const [escalationOpen, setEscalationOpen] = useState(false);
+  const [escalationLoading, setEscalationLoading] = useState(false);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [bannerNotifs, setBannerNotifs] = useState<UserNotification[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Persist messages on change
+  useEffect(() => {
+    saveMessages(messages);
+  }, [messages]);
 
   // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, escalationOpen, bannerNotifs]);
 
-  // Auto-init
+  // Subscribe to push notifications
   useEffect(() => {
-    initializeAgent();
+    // Load existing
+    supportAgent.getNotifications().then(setNotifications).catch(() => {});
+
+    const unsub = supportAgent.subscribeToNotifications((notif) => {
+      setNotifications((prev) => [notif, ...prev]);
+      setBannerNotifs((prev) => [notif, ...prev]);
+      // Also inject as system message in chat
+      setMessages((prev) => [
+        ...prev,
+        makeMessage("notification", `${notif.title}: ${notif.message}`, { notification: notif }),
+      ]);
+    });
+
+    return unsub;
   }, []);
 
-  // ── Init ─────────────────────────────────────────────────────────────────────
+  // ── Actions ─────────────────────────────────────────────────────────────────
 
-  const initializeAgent = async () => {
-    setIsInitializing(true);
-    try {
-      const tavilyApiKey = import.meta.env.VITE_TAVILY_API_KEY;
-      if (!tavilyApiKey) {
-        toast({
-          title: "Configuration Error",
-          description: "VITE_TAVILY_API_KEY not set in .env",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      await searchAgent.initialize({ tavilyApiKey, maxResults: 5 });
-      setIsInitialized(true);
-    } catch (error) {
-      toast({
-        title: "Initialization Failed",
-        description: error instanceof Error ? error.message : "Failed to start agent",
-        variant: "destructive",
-      });
-    } finally {
-      setIsInitializing(false);
-    }
-  };
-
-  // ── Search ───────────────────────────────────────────────────────────────────
+  const addMessage = useCallback((msg: SupportMessage) => {
+    setMessages((prev) => [...prev, msg].slice(-MAX_MESSAGES));
+  }, []);
 
   const sendMessage = useCallback(
-    async (query?: string) => {
-      const text = query || input.trim();
-      if (!text || isLoading) return;
+    async (text?: string) => {
+      const content = text || input.trim();
+      if (!content || isLoading) return;
 
-      const userMsg: Message = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: text,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, userMsg]);
+      const userMsg = makeMessage("user", content);
+      const updated = [...messages, userMsg].slice(-MAX_MESSAGES);
+      setMessages(updated);
       setInput("");
       setIsLoading(true);
 
       try {
-        const response: SearchAgentResponse = await searchAgent.search({ query: text });
-        const followUps = generateFollowUps(text, response.sources);
+        const reply = await supportAgent.chat(updated);
+        addMessage(reply);
 
-        const agentMsg: Message = {
-          id: crypto.randomUUID(),
-          role: "agent",
-          content: response.answer,
-          sources: response.sources,
-          steps: response.steps,
-          followUps,
-          timestamp: new Date(),
-        };
-
-        setMessages((prev) => {
-          const updated = [...prev, agentMsg];
-          // Save to history
-          const entry: HistoryEntry = {
-            id: crypto.randomUUID(),
-            query: text,
-            messages: [userMsg, agentMsg],
-            timestamp: Date.now(),
-          };
-          const newHistory = [entry, ...history.filter((h) => h.query !== text)].slice(0, MAX_HISTORY);
-          setHistory(newHistory);
-          saveHistory(newHistory);
-          return updated;
-        });
-      } catch (error) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "agent",
-            content: `Error: ${error instanceof Error ? error.message : "Search failed"}`,
-            timestamp: new Date(),
-          },
-        ]);
+        // If agent suggests escalation and user confirms
+        const intent = supportAgent.classifyIntent(content);
+        if (intent === "escalation") {
+          setEscalationOpen(true);
+        }
+      } catch (err: any) {
+        addMessage(
+          makeMessage("agent", `Error: ${err.message || "Failed to get response"}. Try running diagnostics or escalating.`),
+        );
+        toast({ title: "Chat Error", description: err.message, variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
     },
-    [input, isLoading, history, toast],
+    [input, isLoading, messages, addMessage, toast],
   );
 
-  // ── History ──────────────────────────────────────────────────────────────────
+  const runDiagnostics = useCallback(async () => {
+    setDiagLoading(true);
+    addMessage(makeMessage("agent", "Running system diagnostics..."));
 
-  const restoreHistory = useCallback((entry: HistoryEntry) => {
-    // Restore messages with Date objects (they get serialized as strings in localStorage)
-    const restored = entry.messages.map((m) => ({
-      ...m,
-      timestamp: new Date(m.timestamp),
-    }));
-    setMessages(restored);
-  }, []);
+    try {
+      const result = await supportAgent.runDiagnostics();
+      addMessage(
+        makeMessage("agent", result.summary, { diagnostics: result }),
+      );
+    } catch (err: any) {
+      addMessage(makeMessage("agent", `Diagnostics failed: ${err.message}`));
+      toast({ title: "Diagnostic Error", description: err.message, variant: "destructive" });
+    } finally {
+      setDiagLoading(false);
+    }
+  }, [addMessage, toast]);
 
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-    localStorage.removeItem(HISTORY_KEY);
-  }, []);
+  const handleEscalate = useCallback(
+    async (subject: string, priority: TicketPriority) => {
+      setEscalationLoading(true);
+      try {
+        const lastDiag = [...messages]
+          .reverse()
+          .find((m) => m.diagnostics)?.diagnostics;
 
-  // ── Quick action ─────────────────────────────────────────────────────────────
+        const ticket: EscalationTicket = {
+          subject,
+          priority,
+          conversation: messages,
+          diagnostics: lastDiag,
+        };
+
+        const ticketId = await supportAgent.escalate(ticket);
+        setEscalationOpen(false);
+        addMessage(
+          makeMessage("agent", `Ticket created successfully. A human will review your case shortly.`, {
+            ticketId,
+          }),
+        );
+      } catch (err: any) {
+        toast({ title: "Escalation Failed", description: err.message, variant: "destructive" });
+      } finally {
+        setEscalationLoading(false);
+      }
+    },
+    [messages, addMessage, toast],
+  );
+
+  const dismissBanner = useCallback(
+    (id: string) => {
+      setBannerNotifs((prev) => prev.filter((n) => n.id !== id));
+      supportAgent.dismissNotification(id).catch(() => {});
+    },
+    [],
+  );
 
   const handleQuickAction = useCallback(
-    (template: string) => {
-      // If template ends with a space, put cursor there for user to type
-      if (template.endsWith(" ")) {
-        setInput(template);
+    (text: string, isTemplate: boolean) => {
+      if (isTemplate) {
+        setInput(text);
         inputRef.current?.focus();
       } else {
-        sendMessage(template);
+        sendMessage(text);
       }
     },
     [sendMessage],
   );
 
-  // ── Render: Init Screen ──────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
 
-  if (!isInitialized) {
-    return (
-      <div className="flex flex-col h-screen">
-        {/* Header */}
-        <Header initialized={false} initializing={isInitializing} onInit={initializeAgent} />
-
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="max-w-md w-full space-y-6">
-            <div className="text-center space-y-2">
-              <Brain size={32} weight="duotone" className="text-violet-500 mx-auto" />
-              <h2 className="text-lg font-semibold text-zinc-200">Initialize search agent to begin</h2>
-              <p className="text-sm text-zinc-500">Tavily-powered deep web search for security research</p>
-            </div>
-
-            <div className="space-y-2">
-              {CAPABILITIES.map((cap, i) => (
-                <div key={i} className="flex items-center gap-2.5 text-sm text-zinc-400">
-                  <cap.icon size={16} weight="bold" className="text-zinc-600 flex-shrink-0" />
-                  {cap.text}
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={initializeAgent}
-              disabled={isInitializing}
-              className="w-full py-2.5 rounded-md text-sm font-medium text-white bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {isInitializing ? (
-                <>
-                  <CircleNotch size={16} weight="bold" className="animate-spin" />
-                  Initializing...
-                </>
-              ) : (
-                <>
-                  <Sparkle size={16} weight="bold" />
-                  Initialize Agent
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Render: Chat Interface ───────────────────────────────────────────────────
+  const unreadNotifCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header */}
-      <Header initialized onInit={initializeAgent} />
+      <Header
+        notifCount={unreadNotifCount}
+        onRunDiagnostics={runDiagnostics}
+        diagLoading={diagLoading}
+      />
 
-      {/* History bar */}
-      {history.length > 0 && (
-        <SearchHistory
-          entries={history}
-          onSelect={restoreHistory}
-          onClear={clearHistory}
-          open={historyOpen}
-          onToggle={() => setHistoryOpen(!historyOpen)}
-        />
-      )}
+      {/* Notification banners */}
+      <AnimatePresence>
+        {bannerNotifs.length > 0 && (
+          <div className="px-4 pt-2 space-y-1.5">
+            {bannerNotifs.slice(0, 3).map((n) => (
+              <NotificationBanner key={n.id} notification={n} onDismiss={dismissBanner} />
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
 
-      {/* Messages */}
+      {/* Chat area */}
       <ScrollArea className="flex-1 px-4 py-3" ref={scrollRef}>
         <div className="max-w-3xl mx-auto space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center py-16 space-y-3">
-              <MagnifyingGlass size={28} weight="duotone" className="text-zinc-700 mx-auto" />
-              <p className="text-sm text-zinc-600">Ask anything. Search the web for security research.</p>
-            </div>
+          {messages.length === 0 ? (
+            <WelcomeState onAction={handleQuickAction} />
+          ) : (
+            <AnimatePresence>
+              {messages.map((msg) => (
+                <ChatMessage key={msg.id} msg={msg} />
+              ))}
+            </AnimatePresence>
           )}
-
-          <AnimatePresence>
-            {messages.map((msg) => (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {msg.role === "user" ? (
-                  /* User bubble */
-                  <div className="max-w-[80%] bg-white/[0.05] rounded-xl px-4 py-2.5">
-                    <p className="text-sm text-zinc-200">{msg.content}</p>
-                    <span className="text-[10px] text-zinc-600 mt-1 block text-right">
-                      {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-                ) : (
-                  /* Agent message — no bubble bg */
-                  <div className="max-w-[90%] space-y-0">
-                    <div className="flex items-start gap-2.5">
-                      <Robot
-                        size={18}
-                        weight="duotone"
-                        className="text-violet-500 flex-shrink-0 mt-0.5"
-                      />
-                      <div className="flex-1 min-w-0">
-                        {/* Answer text */}
-                        <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
-                          {msg.content}
-                        </div>
-
-                        {/* Sources */}
-                        {msg.sources && <SourcesList sources={msg.sources} />}
-
-                        {/* Reasoning steps */}
-                        {msg.steps && <ReasoningSteps steps={msg.steps} />}
-
-                        {/* Follow-ups */}
-                        {msg.followUps && (
-                          <FollowUpSuggestions
-                            suggestions={msg.followUps}
-                            onSelect={sendMessage}
-                          />
-                        )}
-
-                        <span className="text-[10px] text-zinc-700 mt-2 block">
-                          {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
 
           {/* Loading indicator */}
           {isLoading && (
@@ -628,35 +657,46 @@ export default function AIAgent() {
               animate={{ opacity: 1 }}
               className="flex items-center gap-2.5"
             >
-              <Robot size={18} weight="duotone" className="text-violet-500" />
+              <Headset size={18} weight="duotone" className="text-blue-400" />
               <div className="flex items-center gap-2 text-sm text-zinc-500">
-                <CircleNotch size={14} weight="bold" className="animate-spin text-violet-500" />
-                Searching...
+                <CircleNotch size={14} weight="bold" className="animate-spin text-blue-400" />
+                Thinking...
               </div>
             </motion.div>
           )}
+
+          {/* Inline escalation dialog */}
+          <AnimatePresence>
+            {escalationOpen && (
+              <EscalationDialog
+                onSubmit={handleEscalate}
+                onCancel={() => setEscalationOpen(false)}
+                loading={escalationLoading}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </ScrollArea>
 
       {/* Bottom: quick actions + input */}
       <div className="border-t border-zinc-800/60 px-4 py-3">
         <div className="max-w-3xl mx-auto space-y-2.5">
-          {/* Quick actions */}
+          {/* Quick action chips */}
           <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-            {QUICK_ACTIONS.map((action) => (
+            {QUICK_ACTIONS.map((qa) => (
               <button
-                key={action.label}
-                onClick={() => handleQuickAction(action.template)}
+                key={qa.label}
+                onClick={() => handleQuickAction(qa.action || qa.template || "", !!qa.template)}
                 disabled={isLoading}
                 className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-white disabled:opacity-40 transition-colors whitespace-nowrap flex-shrink-0"
               >
-                <action.icon size={13} weight="bold" />
-                {action.label}
+                <qa.icon size={13} weight="bold" />
+                {qa.label}
               </button>
             ))}
           </div>
 
-          {/* Input */}
+          {/* Input row */}
           <div className="flex gap-2">
             <Input
               ref={inputRef}
@@ -668,14 +708,14 @@ export default function AIAgent() {
                   sendMessage();
                 }
               }}
-              placeholder="Search anything..."
+              placeholder="Describe your issue or ask a question..."
               disabled={isLoading}
-              className="flex-1 bg-zinc-900 border-zinc-800 focus-visible:ring-violet-500/30 text-sm"
+              className="flex-1 bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500/30 text-sm"
             />
             <button
               onClick={() => sendMessage()}
               disabled={isLoading || !input.trim()}
-              className="px-3 rounded-md bg-violet-600 hover:bg-violet-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center"
+              className="px-3 rounded-md bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center"
             >
               {isLoading ? (
                 <CircleNotch size={16} weight="bold" className="animate-spin text-white" />
@@ -685,57 +725,6 @@ export default function AIAgent() {
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Header ─────────────────────────────────────────────────────────────────────
-
-function Header({
-  initialized,
-  initializing,
-  onInit,
-}: {
-  initialized: boolean;
-  initializing?: boolean;
-  onInit?: () => void;
-}) {
-  return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
-      <div className="flex items-center gap-2.5">
-        <Brain size={22} weight="duotone" className="text-violet-500" />
-        <div>
-          <h1 className="text-base font-semibold text-zinc-200">Search Agent</h1>
-          <p className="text-[11px] text-zinc-600">Powered by Tavily</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        {initialized ? (
-          <span className="flex items-center gap-1.5 text-xs text-emerald-500">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Online
-          </span>
-        ) : (
-          <button
-            onClick={onInit}
-            disabled={initializing}
-            className="text-xs text-zinc-400 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1.5"
-          >
-            {initializing ? (
-              <>
-                <CircleNotch size={12} weight="bold" className="animate-spin" />
-                Initializing...
-              </>
-            ) : (
-              <>
-                <Sparkle size={12} weight="bold" />
-                Initialize
-              </>
-            )}
-          </button>
-        )}
       </div>
     </div>
   );
