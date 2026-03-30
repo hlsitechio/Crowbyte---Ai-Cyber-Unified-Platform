@@ -1043,9 +1043,9 @@ export default function Findings() {
 
                         {/* CVEs */}
                         <div>
-                          {finding.cve_ids.length > 0 ? (
+                          {(finding.cve_ids || []).length > 0 ? (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono border-zinc-700 text-zinc-400">
-                              {finding.cve_ids.length}
+                              {(finding.cve_ids || []).length}
                             </Badge>
                           ) : (
                             <span className="text-zinc-700 text-xs">--</span>
@@ -1105,11 +1105,11 @@ export default function Findings() {
 
                                 {/* CVE / CWE Lists */}
                                 <div className="flex gap-6">
-                                  {finding.cve_ids.length > 0 && (
+                                  {(finding.cve_ids || []).length > 0 && (
                                     <div>
                                       <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">CVEs</h4>
                                       <div className="flex flex-wrap gap-1">
-                                        {finding.cve_ids.map(cve => (
+                                        {(finding.cve_ids || []).map(cve => (
                                           <Badge key={cve} variant="outline" className="text-[10px] font-mono border-red-500/30 text-red-400 cursor-pointer hover:bg-red-500/10">
                                             {cve}
                                           </Badge>
@@ -1117,11 +1117,11 @@ export default function Findings() {
                                       </div>
                                     </div>
                                   )}
-                                  {finding.cwe_ids.length > 0 && (
+                                  {(finding.cwe_ids || []).length > 0 && (
                                     <div>
                                       <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">CWEs</h4>
                                       <div className="flex flex-wrap gap-1">
-                                        {finding.cwe_ids.map(cwe => (
+                                        {(finding.cwe_ids || []).map(cwe => (
                                           <Badge key={cwe} variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-400">
                                             {cwe}
                                           </Badge>
@@ -1132,11 +1132,11 @@ export default function Findings() {
                                 </div>
 
                                 {/* Tags */}
-                                {finding.tags.length > 0 && (
+                                {(finding.tags || []).length > 0 && (
                                   <div>
                                     <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">Tags</h4>
                                     <div className="flex flex-wrap gap-1">
-                                      {finding.tags.map(tag => (
+                                      {(finding.tags || []).map(tag => (
                                         <Badge key={tag} variant="outline" className="text-[10px] border-zinc-700 text-zinc-400">
                                           <Tag size={10} weight="duotone" className="mr-0.5" />
                                           {tag}
