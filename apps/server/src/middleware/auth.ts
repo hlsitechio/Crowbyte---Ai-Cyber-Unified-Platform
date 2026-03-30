@@ -2,8 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { randomBytes } from 'node:crypto';
 
-// Generate a stable secret on first boot if none provided
-const JWT_SECRET: string = process.env.JWT_SECRET ?? randomBytes(64).toString('hex');
+// Generate a stable secret on first boot if none provided.
+// WARNING: without JWT_SECRET in the environment all tokens are invalidated on every restart.
+const JWT_SECRET: string = process.env.JWT_SECRET ?? (() => {
+  console.warn('[!] JWT_SECRET is not set. A random secret will be generated on each startup.');
+  console.warn('[!] All existing tokens will be invalidated on server restart. Set JWT_SECRET in your .env to persist sessions.');
+  return randomBytes(64).toString('hex');
+})();
 const TOKEN_EXPIRY = '24h';
 
 export { JWT_SECRET, TOKEN_EXPIRY };
@@ -27,7 +32,7 @@ declare global {
 const PUBLIC_PATHS = ['/api/auth/login'];
 
 // Prefixes that skip auth (read-only metrics, safe to expose behind nginx)
-const PUBLIC_PREFIXES = ['/api/system/', '/api/docker/', '/api/tools/available', '/api/setup/', '/api/health', '/api/errors', '/api/memory/', '/api/fleet/register', '/api/fleet/heartbeat'];
+const PUBLIC_PREFIXES = ['/api/system/', '/api/docker/', '/api/tools/available', '/api/setup/', '/api/health', '/api/memory/', '/api/fleet/register', '/api/fleet/heartbeat'];
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Skip auth for non-API routes (static files, SPA)

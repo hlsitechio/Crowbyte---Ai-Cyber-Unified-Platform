@@ -4,11 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync } from 'node:fs';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const router = Router();
 
 // Path to memory-engine bridge script
@@ -17,30 +17,34 @@ const PYTHON = process.env.PYTHON_PATH || 'python3';
 const EXEC_TIMEOUT = 30_000; // 30s max per call
 
 /**
- * Execute a bridge command and return parsed JSON
+ * Execute a bridge command and return parsed JSON.
+ * Uses execFile (not exec) to avoid shell injection.
  */
 async function callBridge(command: string, args: Record<string, unknown> = {}): Promise<any> {
-  const jsonArgs = JSON.stringify(args).replace(/'/g, "'\\''"); // escape single quotes for shell
-  const cmd = `${PYTHON} "${BRIDGE_PATH}" ${command} '${jsonArgs}'`;
+  const jsonArgs = JSON.stringify(args);
 
   try {
-    const { stdout, stderr } = await execAsync(cmd, {
-      timeout: EXEC_TIMEOUT,
-      env: { ...process.env, PYTHONPATH: BRIDGE_PATH.replace(/\/bridge\.py$/, '') },
-    });
+    const { stdout, stderr } = await execFileAsync(
+      PYTHON,
+      [BRIDGE_PATH, command, jsonArgs],
+      {
+        timeout: EXEC_TIMEOUT,
+        env: { ...process.env, PYTHONPATH: BRIDGE_PATH.replace(/\/bridge\.py$/, '') },
+      },
+    );
 
     if (stderr && !stdout) {
-      console.error(`[memory] bridge stderr: ${stderr}`);
-      return { error: stderr.trim() };
+      console.error(`[memory] bridge stderr: ${stderr}`); // full detail logged server-side
+      return { error: 'Memory bridge returned an error' }; // sanitized message to client
     }
 
     return JSON.parse(stdout.trim());
   } catch (err: any) {
-    console.error(`[memory] bridge error (${command}):`, err.message);
+    console.error(`[memory] bridge error (${command}):`, err.message); // full detail logged server-side
     if (err.stdout) {
       try { return JSON.parse(err.stdout.trim()); } catch {}
     }
-    throw new Error(`Memory bridge failed: ${err.message}`);
+    throw new Error('Memory bridge call failed'); // sanitized message to client
   }
 }
 
