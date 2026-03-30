@@ -107,9 +107,9 @@ function validateCommand(command: string): boolean {
 }
 
 function sanitizeArgs(args: string[]): string[] {
-  // Block shell metacharacters in individual args
+  // Block shell metacharacters in all args — there is no safe exception for flag-looking args
   return args.map(arg => {
-    if (/[;&|`$(){}]/.test(arg) && !arg.startsWith('-')) {
+    if (/[;&|`$(){}]/.test(arg)) {
       throw new Error(`Unsafe argument rejected: ${arg}`);
     }
     return arg;
@@ -237,6 +237,17 @@ router.get('/available', async (_req: Request, res: Response): Promise<void> => 
   }
 });
 
+// Validate that a scan target looks like a hostname, IP address, IP range, or URL.
+// This prevents obvious shell injection targets and garbage input.
+const TARGET_PATTERN = /^[a-zA-Z0-9._\-/:[\]]+$/;
+
+function validateTarget(target: string): boolean {
+  return typeof target === 'string' &&
+    target.length > 0 &&
+    target.length <= 500 &&
+    TARGET_PATTERN.test(target);
+}
+
 // POST /api/tools/scan — quick scan presets
 router.post('/scan', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -250,8 +261,8 @@ router.post('/scan', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (typeof target !== 'string' || target.length > 500) {
-      res.status(400).json({ error: 'Invalid target' });
+    if (!validateTarget(target)) {
+      res.status(400).json({ error: 'Invalid target: must be a valid hostname, IP address, CIDR range, or URL' });
       return;
     }
 
