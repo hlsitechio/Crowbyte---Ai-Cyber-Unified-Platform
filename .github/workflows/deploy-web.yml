@@ -54,6 +54,10 @@ jobs:
         env:
           VITE_BUILD_TARGET: web
 
+      - name: Strip source maps
+        working-directory: apps/desktop
+        run: find dist/web/ -name '*.map' -delete
+
       - name: Security audit
         working-directory: apps/desktop
         run: |
@@ -101,6 +105,10 @@ jobs:
         run: npm run build:web:production
         env:
           VITE_BUILD_TARGET: web
+
+      - name: Strip source maps
+        working-directory: apps/desktop
+        run: find dist/web/ -name '*.map' -delete
 
       - name: Security audit
         working-directory: apps/desktop
