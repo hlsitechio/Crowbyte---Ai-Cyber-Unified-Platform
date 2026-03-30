@@ -12,7 +12,7 @@ export const IS_ELECTRON = BUILD_TARGET === 'electron';
 
 /** Runtime safety-net — checks if Electron IPC bridge is actually present */
 export const hasElectronAPI = (): boolean =>
-  typeof window !== 'undefined' && !!(window as any).electronAPI;
+  typeof window !== 'undefined' && !!window.electronAPI;
 
 // Platform from env (set in .env per build)
 export const PLATFORM = import.meta.env.VITE_PLATFORM || 'linux';

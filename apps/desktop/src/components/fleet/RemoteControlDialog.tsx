@@ -61,8 +61,8 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
           permission,
         });
         setSession(sess);
-      } catch (error: any) {
-        toast.error('Failed to initiate remote session', { description: error.message });
+      } catch (error) {
+        toast.error('Failed to initiate remote session', { description: error instanceof Error ? error.message : 'Unknown error' });
         onOpenChange(false);
       }
     };

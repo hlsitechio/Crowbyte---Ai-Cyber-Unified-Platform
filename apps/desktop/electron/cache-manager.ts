@@ -8,10 +8,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   key: string;
   data: T;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   createdAt: number;
   expiresAt: number | null;
   hitCount: number;
@@ -21,7 +21,7 @@ export interface CacheEntry<T = any> {
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds (default: 1 hour)
   namespace?: string; // Cache namespace (default: 'default')
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CacheStats {
@@ -92,7 +92,7 @@ export class LocalCacheManager {
   /**
    * Get cached data
    */
-  get<T = any>(key: string, options: Pick<CacheOptions, 'namespace'> = {}): T | null {
+  get<T = unknown>(key: string, options: Pick<CacheOptions, 'namespace'> = {}): T | null {
     const namespace = options.namespace || this.DEFAULT_NAMESPACE;
     const filePath = this.getFilePath(key, namespace);
 
@@ -127,7 +127,7 @@ export class LocalCacheManager {
   /**
    * Set cached data
    */
-  set<T = any>(key: string, data: T, options: CacheOptions = {}): boolean {
+  set<T = unknown>(key: string, data: T, options: CacheOptions = {}): boolean {
     const namespace = options.namespace || this.DEFAULT_NAMESPACE;
     const ttl = options.ttl || this.DEFAULT_TTL;
     const filePath = this.getFilePath(key, namespace);

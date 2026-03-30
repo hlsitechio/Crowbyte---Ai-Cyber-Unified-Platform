@@ -534,11 +534,11 @@ export default function AIAgent() {
         if (intent === "escalation") {
           setEscalationOpen(true);
         }
-      } catch (err: any) {
+      } catch (err) {
         addMessage(
-          makeMessage("agent", `Error: ${err.message || "Failed to get response"}. Try running diagnostics or escalating.`),
+          makeMessage("agent", `Error: ${(err instanceof Error ? err.message : null) || "Failed to get response"}. Try running diagnostics or escalating.`),
         );
-        toast({ title: "Chat Error", description: err.message, variant: "destructive" });
+        toast({ title: "Chat Error", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
@@ -555,9 +555,9 @@ export default function AIAgent() {
       addMessage(
         makeMessage("agent", result.summary, { diagnostics: result }),
       );
-    } catch (err: any) {
-      addMessage(makeMessage("agent", `Diagnostics failed: ${err.message}`));
-      toast({ title: "Diagnostic Error", description: err.message, variant: "destructive" });
+    } catch (err) {
+      addMessage(makeMessage("agent", `Diagnostics failed: ${err instanceof Error ? err.message : String(err)}`));
+      toast({ title: "Diagnostic Error", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
     } finally {
       setDiagLoading(false);
     }
@@ -585,8 +585,8 @@ export default function AIAgent() {
             ticketId,
           }),
         );
-      } catch (err: any) {
-        toast({ title: "Escalation Failed", description: err.message, variant: "destructive" });
+      } catch (err) {
+        toast({ title: "Escalation Failed", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
       } finally {
         setEscalationLoading(false);
       }

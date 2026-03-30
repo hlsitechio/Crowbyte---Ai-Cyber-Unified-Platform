@@ -40,7 +40,7 @@ function loadState(): Partial<BrowserPanelState> {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { /* ignore */ }
   return {};
 }
 
@@ -51,7 +51,7 @@ function saveState(state: Partial<BrowserPanelState>) {
       panelWidth: state.panelWidth,
       isOpen: state.isOpen,
     }));
-  } catch {}
+  } catch { /* ignore */ }
 }
 
 export function BrowserPanelProvider({ children }: { children: ReactNode }) {

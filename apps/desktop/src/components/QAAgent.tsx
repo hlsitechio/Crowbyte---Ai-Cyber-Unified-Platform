@@ -528,8 +528,8 @@ const ErrorRow = ({
  <span
  role="button"
  tabIndex={0}
- onClick={(e) => { e.stopPropagation(); isIgnored ? onUnignore() : onIgnore(); }}
- onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); isIgnored ? onUnignore() : onIgnore(); } }}
+ onClick={(e) => { e.stopPropagation(); if (isIgnored) { onUnignore(); } else { onIgnore(); } }}
+ onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (isIgnored) { onUnignore(); } else { onIgnore(); } } }}
  className="flex-shrink-0 p-1 rounded hover:bg-white/10 transition-colors text-zinc-600 hover:text-zinc-300"
  title={isIgnored ? "Unignore this error" : "Ignore this error"}
  >
@@ -1450,8 +1450,6 @@ export function QAAgent() {
  };
  }, []);
 
- // If disabled, render nothing
- if (!enabled) return null;
  const [errors, setErrors] = useState<ErrorEntry[]>([]);
  const [network, setNetwork] = useState<NetworkEntry[]>([]);
  const [navigation, setNavigation] = useState<NavigationEntry[]>([]);
@@ -1647,6 +1645,8 @@ export function QAAgent() {
  setExpandedId((prev) => (prev === id ? null : id));
  }, []);
 
+ // If disabled, render nothing
+ if (!enabled) return null;
  if (isAuthPage) return null;
 
  const errorCount = visibleErrors.length;

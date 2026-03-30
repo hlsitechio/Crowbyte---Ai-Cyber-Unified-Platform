@@ -101,7 +101,7 @@ export function BrowserPanel() {
  const mgr = api();
  if (!mgr) return;
 
- mgr.onEvent((data: any) => {
+ mgr.onEvent((data) => {
  switch (data.event) {
  case 'tab-updated':
  setTabs(prev => prev.map(t => t.id === data.tab.id ? data.tab : t));
@@ -410,7 +410,7 @@ export function BrowserPanel() {
  <button onClick={handleDevTools} className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="DevTools">
  <Shield size={14} weight="bold" />
  </button>
- <button onClick={() => { try { window.open(activeTab?.url, '_blank'); } catch {} }}
+ <button onClick={() => { try { window.open(activeTab?.url, '_blank'); } catch { /* ignore */ } }}
  className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="Open in external browser">
  <ArrowSquareOut size={14} weight="bold" />
  </button>

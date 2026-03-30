@@ -85,10 +85,10 @@ export function ConversationsSidebar({
 
  // Folders feature disabled until table is created via migration
  // TODO: Enable after running: CREATE TABLE folders (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users, name text, created_at timestamptz default now());
- let foldersData: any[] | null = null;
+ const foldersData: unknown[] | null = null;
 
  // Fetch all conversations — try with folder_id, fall back without
- let conversationsData: any[] | null = null;
+ let conversationsData: Array<{ id: string; title: string; updated_at: string }> | null = null;
  const convRes = await supabase
  .from('conversations')
  .select('id, title, updated_at')
@@ -98,15 +98,15 @@ export function ConversationsSidebar({
 
  if (conversationsData) {
  if (foldersData && foldersData.length > 0) {
- const foldersWithConversations: FolderType[] = foldersData.map((folder: any) => ({
+  const foldersWithConversations: FolderType[] = (foldersData as Array<{ id: string; name: string }>).map((folder) => ({
  ...folder,
- conversations: conversationsData!.filter((c: any) => c.folder_id === folder.id)
+  conversations: (conversationsData as Array<Conversation & { folder_id: string }>)!.filter((c) => c.folder_id === folder.id)
  }));
  setFolders(foldersWithConversations);
- setUnorganizedConversations(conversationsData.filter((c: any) => !c.folder_id));
+  setUnorganizedConversations((conversationsData as Array<Conversation & { folder_id: string | null }>).filter((c) => !c.folder_id));
  } else {
  setFolders([]);
- setUnorganizedConversations(conversationsData.map((c: any) => ({ ...c, folder_id: null })));
+  setUnorganizedConversations(conversationsData.map((c) => ({ ...c, folder_id: null })));
  }
  }
  };
