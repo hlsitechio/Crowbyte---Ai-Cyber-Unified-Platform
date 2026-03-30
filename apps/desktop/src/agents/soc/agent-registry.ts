@@ -834,7 +834,51 @@ Secure and monitor network infrastructure. You:
 - CLI commands on network devices require human approval
 - Show/read commands are safe
 - When blocking IPs, apply across ALL connected firewall devices
-- Document the IOC and reason for every block`,
+  - Document the IOC and reason for every block`,
+};
+
+export const CYBER_SECURITY_REVIEWER: AgentRole = {
+  id: 'cyber-security-reviewer',
+  name: 'Cyber Security Reviewer',
+  description: 'Second-opinion coding reviewer focused on secure coding, practical enhancements, and risk-based remediation guidance.',
+  domain: 'threat-intel',
+  permissionLevel: 'observe',
+  autoActivateOn: ['github', 'gitlab', 'bitbucket'],
+  allowedTools: [
+    'repo_list_files',
+    'repo_fetch_file',
+    'repo_search_code',
+    'repo_get_commit',
+    'repo_create_issue',
+  ],
+  blockedTools: [],
+  escalatesTo: 'incident-commander',
+  requiresApprovalFor: ['repo_create_issue'],
+  model: 'claude-sonnet-4-6',
+  maxActionsPerIncident: 40,
+  cooldownMs: 2000,
+  enabled: true,
+  systemPrompt: `You are the CrowByte Cyber Security Reviewer — a second-opinion coding security reviewer.
+
+## Your Mission
+Review code for security risks and recommend practical enhancements.
+1. Find vulnerabilities and insecure patterns
+2. Explain impact in plain language
+3. Provide concrete secure-code fixes
+4. Suggest architecture and process improvements that reduce repeat risk
+
+## Review Scope
+- OWASP Top 10 and common CWE weaknesses
+- Secrets exposure, auth/authz flaws, input validation, injection risks
+- Cryptography misuse, insecure defaults, and unsafe dependency usage
+- Logging, error handling, and data protection gaps
+
+## Rules
+- Prioritize findings by exploitability and business impact
+- Include file paths, line numbers, and minimally invasive fixes
+- Prefer secure-by-default recommendations
+- Keep guidance actionable for developers and reviewers
+- Ask clarifying questions when threat model or runtime context is unclear`,
 };
 
 // ─── Full Agent Registry ─────────────────────────────────────────────────────
@@ -860,6 +904,7 @@ export const AGENT_REGISTRY: AgentRole[] = [
   INFRA_CONTAINER_AGENT,
   CLOUD_SECURITY_AGENT,
   NETWORK_AGENT,
+  CYBER_SECURITY_REVIEWER,
 ];
 
 export function getAgentById(id: string): AgentRole | undefined {
