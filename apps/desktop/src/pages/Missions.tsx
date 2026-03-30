@@ -578,9 +578,9 @@ export default function Missions() {
     return formatDuration(end.getTime() - start.getTime());
   };
 
-  const getPhaseConfig = (type: PhaseType) => PHASE_CONFIG[type];
-  const getPhaseColors = (type: PhaseType) => PHASE_COLORS[type];
-  const getPhaseIcon = (type: PhaseType) => PHASE_ICONS[type];
+  const getPhaseConfig = (type: PhaseType) => PHASE_CONFIG[type] || PHASE_CONFIG.recon;
+  const getPhaseColors = (type: PhaseType) => PHASE_COLORS[type] || PHASE_COLORS.recon;
+  const getPhaseIcon = (type: PhaseType) => PHASE_ICONS[type] || PHASE_ICONS.recon;
 
   // ─── Render: Stats Bar ─────────────────────────────────────────────────────
 
@@ -612,7 +612,7 @@ export default function Missions() {
 
   const renderMissionCard = (mission: Mission) => {
     const isSelected = selectedMission?.id === mission.id;
-    const statusBadge = STATUS_BADGE[mission.status];
+    const statusBadge = STATUS_BADGE[mission.status] || STATUS_BADGE.created;
     const phaseConfig = getPhaseConfig(mission.current_phase);
     const phaseColors = getPhaseColors(mission.current_phase);
 
@@ -1200,8 +1200,8 @@ export default function Missions() {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold text-zinc-100">{m.name}</h2>
-              <Badge className={`text-[10px] ${STATUS_BADGE[m.status].className}`}>
-                {STATUS_BADGE[m.status].label}
+              <Badge className={`text-[10px] ${(STATUS_BADGE[m.status] || STATUS_BADGE.created).className}`}>
+                {(STATUS_BADGE[m.status] || STATUS_BADGE.created).label}
               </Badge>
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
