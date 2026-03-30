@@ -7,12 +7,16 @@ const execAsync = promisify(exec);
 const router = Router();
 
 // Whitelist of allowed security tool binaries
+// NOTE: curl intentionally excluded — it enables SSRF (arbitrary HTTP requests to internal services)
 const ALLOWED_TOOLS = new Set([
   'nmap', 'nuclei', 'httpx', 'subfinder', 'ffuf', 'sqlmap', 'nikto',
   'masscan', 'katana', 'dnsx', 'naabu', 'waybackurls', 'dalfox',
-  'gau', 'whois', 'dig', 'curl', 'ping', 'traceroute', 'gobuster',
+  'gau', 'whois', 'dig', 'ping', 'traceroute', 'gobuster',
   'feroxbuster', 'wfuzz', 'arjun', 'amass',
 ]);
+
+// Max concurrent tool executions to prevent resource exhaustion
+const MAX_CONCURRENT_EXECUTIONS = 10;
 
 // Quick scan presets
 const SCAN_PRESETS: Record<string, { command: string; args: string[]; description: string }> = {
@@ -127,6 +131,15 @@ export const activeExecutions = new Map<string, {
 // POST /api/tools/execute
 router.post('/execute', async (req: Request, res: Response): Promise<void> => {
   try {
+    // Enforce concurrent execution limit
+    if (activeExecutions.size >= MAX_CONCURRENT_EXECUTIONS) {
+      res.status(429).json({
+        error: `Too many concurrent executions (max ${MAX_CONCURRENT_EXECUTIONS}). Wait for running tasks to complete.`,
+        running: activeExecutions.size,
+      });
+      return;
+    }
+
     const { command, args = [], timeout = 300000 } = req.body;
 
     if (!command || typeof command !== 'string') {
@@ -251,6 +264,15 @@ function validateTarget(target: string): boolean {
 // POST /api/tools/scan — quick scan presets
 router.post('/scan', async (req: Request, res: Response): Promise<void> => {
   try {
+    // Enforce concurrent execution limit
+    if (activeExecutions.size >= MAX_CONCURRENT_EXECUTIONS) {
+      res.status(429).json({
+        error: `Too many concurrent executions (max ${MAX_CONCURRENT_EXECUTIONS}). Wait for running tasks to complete.`,
+        running: activeExecutions.size,
+      });
+      return;
+    }
+
     const { preset, target } = req.body;
 
     if (!preset || !target) {

@@ -29,10 +29,11 @@ declare global {
 }
 
 // Routes that skip auth
-const PUBLIC_PATHS = ['/api/auth/login'];
+const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/refresh', '/api/health'];
 
-// Prefixes that skip auth (read-only metrics, safe to expose behind nginx)
-const PUBLIC_PREFIXES = ['/api/system/', '/api/docker/', '/api/tools/available', '/api/setup/', '/api/health', '/api/memory/', '/api/fleet/register', '/api/fleet/heartbeat'];
+// Prefixes that skip auth — MINIMAL surface only
+// Everything else requires JWT. Docker, system, memory, setup are all auth-gated.
+const PUBLIC_PREFIXES = ['/api/tools/available', '/api/fleet/register', '/api/fleet/heartbeat'];
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Skip auth for non-API routes (static files, SPA)
