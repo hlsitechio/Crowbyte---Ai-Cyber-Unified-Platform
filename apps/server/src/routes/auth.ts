@@ -59,6 +59,9 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
       return;
     }
 
+    // Flag if using default credentials — frontend should force password change
+    const usingDefaults = !process.env.CROWBYTE_PASS && !process.env.CROWBYTE_PASS_HASH;
+
     const token = signToken({ username });
     const refreshToken = jwt.sign({ username, type: 'refresh' }, JWT_SECRET, { expiresIn: '7d' });
 
@@ -67,6 +70,7 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
       refreshToken,
       user: { username },
       expiresIn: 86400, // 24h in seconds
+      requiresPasswordChange: usingDefaults,
     });
   } catch (err) {
     console.error('[auth] Login error:', err);

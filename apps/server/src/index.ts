@@ -11,6 +11,7 @@ import compression from 'compression';
 import cors from 'cors';
 import { URL } from 'node:url';
 
+import rateLimit from 'express-rate-limit';
 import { authMiddleware, verifyToken } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import systemRoutes from './routes/system.js';
@@ -114,8 +115,17 @@ let errorStore: ErrorEntry[] = [];
 let networkStore: NetworkEntry[] = [];
 let navigationStore: NavigationEntry[] = [];
 
+// Rate limit error telemetry to prevent abuse (60 requests per minute per IP)
+const errorTelemetryLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: 'Too many error reports. Slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // POST /api/errors -- receive errors, network entries, and navigation from the client
-app.post('/api/errors', (req, res) => {
+app.post('/api/errors', errorTelemetryLimiter, (req, res) => {
   const { errors, network, navigation } = req.body;
 
   let storedErrors = 0;
@@ -283,6 +293,12 @@ app.get('/api/setup/status', (_req, res) => {
 });
 
 app.post('/api/setup/complete', (req, res) => {
+  // Setup requires auth now (removed from PUBLIC_PREFIXES)
+  if (!req.user) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+
   try {
     const { setupComplete, licenseTier, supabaseUrl, supabaseAnonKey, completedAt } = req.body;
     if (!setupComplete) {

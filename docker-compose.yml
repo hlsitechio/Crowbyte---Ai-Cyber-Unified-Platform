@@ -22,13 +22,13 @@ services:
     restart: unless-stopped
 
     ports:
-      - "${NOVNC_PORT:-6080}:6080"     # noVNC web UI
+      - "127.0.0.1:${NOVNC_PORT:-6080}:6080"  # noVNC — localhost only, front with nginx+auth
 
     environment:
       # Display
       - DISPLAY=:99
       - RESOLUTION=${RESOLUTION:-1920x1080x24}
-      - VNC_PASSWORD=${VNC_PASSWORD:-}
+      - VNC_PASSWORD=${VNC_PASSWORD:?VNC_PASSWORD is required — set it in .env}
 
       # CrowByte Config (passed to Electron)
       - NODE_ENV=production
@@ -94,12 +94,12 @@ services:
     profiles: ["ubuntu"]
 
     ports:
-      - "${NOVNC_PORT:-6080}:6080"
+      - "127.0.0.1:${NOVNC_PORT:-6080}:6080"  # localhost only
 
     environment:
       - DISPLAY=:99
       - RESOLUTION=${RESOLUTION:-1920x1080x24}
-      - VNC_PASSWORD=${VNC_PASSWORD:-}
+      - VNC_PASSWORD=${VNC_PASSWORD:?VNC_PASSWORD is required — set it in .env}
       - NODE_ENV=production
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY:-}
