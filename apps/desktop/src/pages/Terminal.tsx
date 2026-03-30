@@ -103,11 +103,11 @@ const Terminal = () => {
   const filename = exportTerminalTranscript(terminal.xterm, terminal.name);
 
   if (!filename) {
-  toast({ title:"Nothing to export", description:"Run a command to capture terminal output first." });
+  toast({ title: "Nothing to export", description: "Run a command to capture terminal output first." });
   return;
   }
 
-  toast({ title:"Session exported", description: filename });
+  toast({ title: "Session exported", description: filename });
   }, [activeTerminalId, toast]);
 
  // Search

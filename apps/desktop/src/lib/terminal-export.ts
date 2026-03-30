@@ -11,14 +11,14 @@ const sanitizeFilename = (value: string) =>
     .replace(/^-|-$/g, "")
     .toLowerCase();
 
-const createTimestamp = () => new Date().toISOString().replace(/[:.]/g, "-");
+const createFilenameTimestamp = () => new Date().toISOString().replace(/[:.]/g, "-");
 
 const getTerminalTranscript = (terminal: XTerm) => {
   const lines: string[] = [];
   const buffer = terminal.buffer.active;
 
-  for (let index = 0; index < buffer.length; index += 1) {
-    const line = buffer.getLine(index);
+  for (let lineIndex = 0; lineIndex < buffer.length; lineIndex += 1) {
+    const line = buffer.getLine(lineIndex);
     if (!line) continue;
     lines.push(line.translateToString(true));
   }
@@ -35,7 +35,7 @@ export const exportTerminalTranscript = (terminal: XTerm, sessionName: string) =
   if (!content.trim()) return null;
 
   const safeSessionName = sanitizeFilename(sessionName) || "terminal-session";
-  const filename = `crowbyte-${safeSessionName}-${createTimestamp()}.txt`;
+  const filename = `crowbyte-${safeSessionName}-${createFilenameTimestamp()}.txt`;
   const blob = new Blob([content], { type: EXPORT_MIME_TYPE });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
