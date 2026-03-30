@@ -95,7 +95,7 @@ const commandCenterItems = [
 
 const aiOperationsItems = [
  { title: "Chat", url: "/chat", icon: ChatDots },
- { title: "Search AI Agent", url: "/ai-agent", icon: Brain },
+ { title: "Support Agent", url: "/ai-agent", icon: Headset },
  { title: "Agent Builder", url: "/agent-builder", icon: Robot },
 ];
 
