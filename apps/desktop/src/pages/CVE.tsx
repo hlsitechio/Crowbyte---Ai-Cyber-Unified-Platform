@@ -765,7 +765,7 @@ const CVEPage = () => {
  {SEVERITY_ORDER.map(sev => {
  const group = groupedBySeverity[sev] || [];
  if (group.length === 0) return null;
- const config = SEVERITY_CONFIG[sev];
+ const config = SEVERITY_CONFIG[sev] || SEVERITY_CONFIG.MEDIUM;
  const isCollapsed = collapsedGroups.has(sev);
 
  return (

@@ -160,7 +160,7 @@ function FindingRow({
   finding: RedTeamFinding;
   onDelete: (id: string) => void;
 }) {
-  const sev = SEVERITY_CONFIG[finding.severity];
+  const sev = SEVERITY_CONFIG[finding.severity] || SEVERITY_CONFIG.info;
   return (
     <div className="flex items-center justify-between py-2 px-3 rounded-md bg-transparent group">
       <div className="flex items-center gap-3 min-w-0">
@@ -244,7 +244,7 @@ function DetailPanel({
     });
   };
 
-  const statusCfg = STATUS_CONFIG[operation.status];
+  const statusCfg = STATUS_CONFIG[operation.status] || STATUS_CONFIG.planned;
 
   return (
     <motion.div
@@ -971,7 +971,7 @@ const RedTeam = () => {
         <div className="space-y-3">
           {operations.map((op) => {
             const isExpanded = expandedId === op.id;
-            const sCfg = STATUS_CONFIG[op.status];
+            const sCfg = STATUS_CONFIG[op.status] || STATUS_CONFIG.planned;
             return (
               <motion.div
                 key={op.id}
@@ -992,7 +992,7 @@ const RedTeam = () => {
                           <h3 className="text-base font-semibold text-white truncate">
                             {op.name}
                           </h3>
-                          <span className={`h-2 w-2 rounded-full shrink-0 ${STATUS_DOT[op.status]}`} />
+                          <span className={`h-2 w-2 rounded-full shrink-0 ${STATUS_DOT[op.status] || STATUS_DOT.planned}`} />
                           <span className={`text-xs ${sCfg.color}`}>{sCfg.label}</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1 terminal-text truncate">
