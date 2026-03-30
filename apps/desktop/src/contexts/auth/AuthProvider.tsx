@@ -8,6 +8,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { loggingService } from '@/services/logging';
+import orchestrator from '@/services/agent-orchestrator';
 import { toast } from 'sonner';
 import { AuthContextType } from './types';
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Handle auth events - log to system logs
         if (event === 'SIGNED_IN') {
           loggingService.addLog('success', 'auth', 'User signed in successfully', `User: ${session?.user?.email}`);
+
+          // Auto-provision agent teams if user has none (first login)
+          if (session?.user?.id) {
+            orchestrator.getTeams(session.user.id).then((teams) => {
+              if (teams.length === 0) {
+                orchestrator.provisionAllTeams(session.user.id, 'free').then((newTeams) => {
+                  if (newTeams.length > 0) {
+                    loggingService.addLog('success', 'agents', `Auto-provisioned ${newTeams.length} agent team(s)`);
+                  }
+                }).catch(() => { /* silent — non-critical */ });
+              }
+            }).catch(() => { /* silent */ });
+          }
 
         } else if (event === 'SIGNED_OUT') {
           loggingService.addLog('info', 'auth', 'User signed out');
