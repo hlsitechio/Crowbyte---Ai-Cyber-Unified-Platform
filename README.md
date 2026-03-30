@@ -33,7 +33,7 @@ Phase-based operation planning from scope import through exploitation to final r
 Real-time vulnerability database with CVSS scoring, exploit status tracking, product correlation, and cross-referencing with Shodan. Search, filter, and bookmark CVEs relevant to your active engagements.
 
 ### Integrated Terminal *(Desktop only)*
-Full xterm.js terminal with tmux session management, powered by node-pty. Run Nmap, Nuclei, SQLMap, FFUF, or any CLI tool without leaving the platform. Multiple tabs, split panes, and shell presets.
+Full xterm.js terminal with tmux session management, powered by node-pty. Run Nmap, Nuclei, SQLMap, FFUF, or any CLI tool without leaving the platform. Multiple tabs, split panes, shell presets, and exportable session transcripts.
 
 ### Fleet Management
 Monitor endpoints, VPS nodes, and containers from a single dashboard. Real-time hardware metrics (CPU, RAM, disk, network), process inspection, and remote agent deployment. Built-in remote desktop with encrypted communication.

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from"react";
 import { Card } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
-import { Terminal as TerminalIcon, Plus, X, CaretDown, Brain, DesktopTower, Code, Sword, Pulse, MagnifyingGlass, ArrowsOut, ArrowsIn, Columns, Rows, GridFour, CaretRight, CaretLeft, ArrowUp, ArrowDown, ArrowCounterClockwise, SplitHorizontal, SplitVertical, ArrowsClockwise, TextT } from "@phosphor-icons/react";
+import { Terminal as TerminalIcon, Plus, X, CaretDown, Brain, DesktopTower, Code, Sword, Pulse, MagnifyingGlass, ArrowsOut, ArrowsIn, Columns, Rows, GridFour, CaretRight, CaretLeft, ArrowUp, ArrowDown, ArrowCounterClockwise, SplitHorizontal, SplitVertical, ArrowsClockwise, DownloadSimple } from "@phosphor-icons/react";
 import {
  DropdownMenu,
  DropdownMenuContent,
@@ -23,6 +23,7 @@ import { WebLinksAddon } from"@xterm/addon-web-links";
 import { SearchAddon } from"@xterm/addon-search";
 import"@xterm/xterm/css/xterm.css";
 import { useToast } from"@/hooks/use-toast";
+import { exportTerminalTranscript } from "@/lib/terminal-export";
 
 interface ShellType {
  id: string;
@@ -87,13 +88,27 @@ const Terminal = () => {
  }, [activeTerminalId, toast]);
 
  const pasteFromClipboard = useCallback(async () => {
- const terminal = terminalsRef.current.find(t => t.id === activeTerminalId);
- if (!terminal) return;
+  const terminal = terminalsRef.current.find(t => t.id === activeTerminalId);
+  if (!terminal) return;
  const text = await navigator.clipboard.readText();
  if (text && window.electronAPI?.terminalInput) {
  await window.electronAPI.terminalInput({ terminalId: terminal.id, data: text });
- }
- }, [activeTerminalId]);
+  }
+  }, [activeTerminalId]);
+
+  const exportActiveTerminal = useCallback(() => {
+  const terminal = terminalsRef.current.find(t => t.id === activeTerminalId);
+  if (!terminal) return;
+
+  const filename = exportTerminalTranscript(terminal.xterm, terminal.name);
+
+  if (!filename) {
+  toast({ title: "Nothing to export", description: "Run a command to capture terminal output first." });
+  return;
+  }
+
+  toast({ title: "Session exported", description: filename });
+  }, [activeTerminalId, toast]);
 
  // Search
  const doSearch = useCallback((query: string, direction: 'next' | 'prev' = 'next') => {
@@ -426,12 +441,23 @@ const Terminal = () => {
  </div>
  )}
 
- <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setSearchVisible(v => !v)} title="Search (Ctrl+Shift+F)">
- <MagnifyingGlass size={14} weight="bold" />
- </Button>
+  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setSearchVisible(v => !v)} title="Search (Ctrl+Shift+F)">
+  <MagnifyingGlass size={14} weight="bold" />
+  </Button>
 
- <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setIsFullscreen(f => !f)} title="Fullscreen">
- {isFullscreen ? <ArrowsIn size={14} weight="bold" /> : <ArrowsOut size={14} weight="bold" />}
+  <Button
+  variant="ghost"
+  size="sm"
+  className="h-6 gap-1 px-2 text-[11px]"
+  onClick={exportActiveTerminal}
+  title="Export terminal transcript"
+  disabled={!activeTerminalId}
+  >
+  <DownloadSimple size={14} weight="bold" /> Export
+  </Button>
+
+  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setIsFullscreen(f => !f)} title="Fullscreen">
+  {isFullscreen ? <ArrowsIn size={14} weight="bold" /> : <ArrowsOut size={14} weight="bold" />}
  </Button>
 
  <DropdownMenu>
@@ -597,10 +623,13 @@ const Terminal = () => {
  </ContextMenuItem>
  <ContextMenuSeparator />
 
- {/* Terminal actions */}
- <ContextMenuItem onClick={() => { const t = terminalsRef.current.find(t => t.id === activeTerminalId); if (t) t.xterm.clear(); }} className="gap-2">
- Clear <ContextMenuShortcut>Ctrl+Shift+K</ContextMenuShortcut>
- </ContextMenuItem>
+  {/* Terminal actions */}
+  <ContextMenuItem onClick={exportActiveTerminal} className="gap-2" disabled={!activeTerminalId}>
+  <DownloadSimple size={14} weight="bold" className="text-primary" /> Export Transcript
+  </ContextMenuItem>
+  <ContextMenuItem onClick={() => { const t = terminalsRef.current.find(t => t.id === activeTerminalId); if (t) t.xterm.clear(); }} className="gap-2">
+  Clear <ContextMenuShortcut>Ctrl+Shift+K</ContextMenuShortcut>
+  </ContextMenuItem>
  <ContextMenuItem onClick={() => setSearchVisible(v => !v)} className="gap-2">
  <MagnifyingGlass size={14} weight="bold" /> Search <ContextMenuShortcut>Ctrl+Shift+F</ContextMenuShortcut>
  </ContextMenuItem>
