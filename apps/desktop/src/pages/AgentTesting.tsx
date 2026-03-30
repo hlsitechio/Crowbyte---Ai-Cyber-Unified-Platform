@@ -712,7 +712,9 @@ export default function AgentTesting() {
  <div className="space-y-4">
  {testResults.reports.map((report: AgentTestReport, idx: number) => {
  const scoreBadge = getScoreBadge(report.overallScore);
- const avgDuration = (report.results.reduce((sum: number, t: TestResult) => sum + t.duration, 0) / Math.max(report.results.length, 1)).toFixed(0);
+ const avgDuration = report.results.length > 0
+  ? (report.results.reduce((sum: number, t: TestResult) => sum + t.duration, 0) / report.results.length).toFixed(0)
+  : '0';
 
  return (
  <Card key={idx} className="overflow-hidden">

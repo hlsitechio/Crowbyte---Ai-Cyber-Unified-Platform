@@ -354,7 +354,6 @@ class IPStatusService {
     let vpnProvider: string | undefined;
 
     const org = (ipInfo.org || ipInfo.isp || '').toLowerCase();
-    // @ts-expect-error - hostname might exist from some IP APIs
     const hostname = ((ipInfo as unknown as { hostname?: string }).hostname || '').toLowerCase();
 
     debugLog('🔍 ===== VPN DETECTION DEBUG =====');
