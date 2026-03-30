@@ -2,7 +2,7 @@
 # CrowByte — Continuous Integration
 #
 # Triggers: every push + pull request
-# Validates: TypeScript types, lint, web build, electron build
+# Validates: TypeScript types, lint, unit tests, web build, electron build
 # Security: ensures service key never leaks into web bundle
 ###############################################################################
 
@@ -17,7 +17,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    name: Lint, Type-check & Build
+    name: Lint, Type-check, Test & Build
 
     steps:
       - name: Checkout
@@ -42,6 +42,10 @@ jobs:
         working-directory: apps/desktop
         run: npx eslint . --max-warnings=0
 
+      - name: Unit tests
+        working-directory: apps/desktop
+        run: npm test
+
       - name: Build (web)
         working-directory: apps/desktop
         run: npm run build:web
@@ -63,3 +67,7 @@ jobs:
             exit 1
           fi
           echo "No service key in web bundle — PASS"
+
+      - name: Dependency audit
+        working-directory: apps/desktop
+        run: npm audit --audit-level=critical || true
