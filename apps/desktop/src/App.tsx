@@ -45,6 +45,7 @@ import Bookmarks from "./pages/Bookmarks";
 import RedTeam from "./pages/RedTeam";
 import Terminal from "./pages/Terminal";
 import AgentBuilder from "./pages/AgentBuilder";
+import AgentTeams from "./pages/AgentTeams";
 import Memory from "./pages/Memory";
 import MissionPlanner from "./pages/MissionPlanner";
 import CVE from "./pages/CVE";
@@ -77,11 +78,16 @@ import SubscriptionGate from "./pages/SubscriptionGate";
 import { verifyLicense, needsRecheck, CHECK_INTERVAL_MS, type LicenseStatus } from "@/services/license-guard";
 import { needsPreferencesSetup } from "@/services/subscription";
 import { IS_ELECTRON } from "@/lib/platform";
+import { useOrchestrator } from "@/hooks/useOrchestrator";
 
 const queryClient = new QueryClient();
 
 /** Layout wrapper that includes TitleBar — used for all routes except /landing */
-const AppWithTitleBar = () => (
+const AppWithTitleBar = () => {
+  // Start agent orchestrator queue when authenticated
+  useOrchestrator();
+
+  return (
   <>
     <TitleBar />
     <Routes>
@@ -143,6 +149,7 @@ const AppWithTitleBar = () => (
                     <Route path="/logs" element={<Logs />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/agent-builder" element={<AgentBuilder />} />
+                    <Route path="/agent-teams" element={<AgentTeams />} />
                     <Route path="/downloads" element={<Downloads />} />
                     <Route path="/settings" element={<SettingsLayout />}>
                       <Route index element={<Navigate to="/settings/profile" replace />} />
@@ -168,7 +175,8 @@ const AppWithTitleBar = () => (
       } />
     </Routes>
   </>
-);
+  );
+};
 
 const App = () => {
   const [setupComplete, setSetupComplete] = useState(setupService.isSetupComplete());

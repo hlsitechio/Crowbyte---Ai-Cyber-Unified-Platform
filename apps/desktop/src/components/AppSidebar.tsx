@@ -98,6 +98,7 @@ const aiOperationsItems = [
  { title: "Chat", url: "/chat", icon: ChatDots },
  { title: "Support Agent", url: "/ai-agent", icon: Headset },
  { title: "Agent Builder", url: "/agent-builder", icon: Robot },
+ { title: "Agent Teams", url: "/agent-teams", icon: Lightning },
 ];
 
 const redTeamItems = [
