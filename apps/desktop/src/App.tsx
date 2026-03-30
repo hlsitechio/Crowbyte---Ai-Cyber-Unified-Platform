@@ -15,6 +15,7 @@ import { BrowserPanelProvider } from "@/contexts/browser";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { BrowserPanel } from "@/components/BrowserPanel";
 import { BrowserPanelErrorBoundary } from "@/components/BrowserPanelErrorBoundary";
+import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { QAAgent } from "@/components/QAAgent";
 import { SupportBanner } from "@/components/SupportBanner";
 import { useCacheCleanup } from "@/hooks/use-cache-cleanup";
@@ -308,6 +309,7 @@ const App = () => {
   }
 
   return (
+    <GlobalErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter
         future={{
@@ -356,6 +358,7 @@ const App = () => {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
+    </GlobalErrorBoundary>
   );
 };
 
