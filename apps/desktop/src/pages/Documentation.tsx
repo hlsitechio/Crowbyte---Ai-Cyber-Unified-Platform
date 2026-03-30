@@ -54,7 +54,7 @@ const NAV_GROUPS: NavGroup[] = [
  color:"text-blue-500/70",
  icon: Lightning,
  items: [
- { id:"ai-agent", label:"Search AI Agent", icon: Brain, badge:"New" },
+ { id:"ai-agent", label:"Support Agent", icon: Brain, badge:"New" },
  { id:"agent-builder", label:"Agent Builder", icon: Robot },
  { id:"agent-testing", label:"Agent Testing", icon: TestTube },
  { id:"llm", label:"LLM Models", icon: Sparkle },
