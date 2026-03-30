@@ -133,3 +133,4 @@ agents/
 server/
 test-landing/
 SAAS-PLAN.md
+agent/__pycache__
