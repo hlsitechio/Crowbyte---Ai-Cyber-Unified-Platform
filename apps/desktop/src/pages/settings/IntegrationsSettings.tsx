@@ -78,7 +78,7 @@ function loadProviders(): Record<string, ProviderConfig> {
   try {
     const saved = localStorage.getItem("crowbyte_ai_providers");
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { /* ignore */ }
   return { ...DEFAULT_PROVIDERS };
 }
 

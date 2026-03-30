@@ -91,6 +91,7 @@ class ClaudeProvider {
       // Wire up listeners
       window.electronAPI!.removeClaudeListeners!();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window.electronAPI!.onClaudeStreamEvent!((raw: any) => {
         const events = this.parseStreamEvent(raw);
         for (const ev of events) {
@@ -109,6 +110,7 @@ class ClaudeProvider {
         resolve({ ok: false });
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window.electronAPI!.onClaudeStreamEnd!((data: any) => {
         for (const listener of this.listeners) {
           listener({ type: 'done', content: '' });
@@ -149,6 +151,7 @@ class ClaudeProvider {
   /**
    * Parse a raw NDJSON event from Claude CLI stream-json format
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseStreamEvent(raw: any): ClaudeStreamEvent[] {
     const events: ClaudeStreamEvent[] = [];
 
@@ -211,6 +214,7 @@ class ClaudeProvider {
       }
       events.push({
         type: 'system',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         content: `Claude Code v${raw.claude_code_version || '?'} | ${raw.model || 'unknown'} | ${raw.tools?.length || 0} tools | ${raw.mcp_servers?.filter((s: any) => s.status === 'connected').length || 0} MCP servers`,
         sessionId: raw.session_id,
       });

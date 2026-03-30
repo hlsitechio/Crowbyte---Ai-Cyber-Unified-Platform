@@ -22,6 +22,7 @@ class LoggingService {
       const storedLogs = localStorage.getItem(this.LOGS_STORAGE_KEY);
       if (storedLogs) {
         const parsedLogs = JSON.parse(storedLogs);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this.logs = parsedLogs.map((log: any) => ({
           ...log,
           timestamp: new Date(log.timestamp),

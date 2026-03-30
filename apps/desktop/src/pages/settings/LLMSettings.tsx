@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function LLMSettings() {
   const { toast } = useToast();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [models, setModels] = useState<any[]>([]);
   const [loadingModels, setLoadingModels] = useState(true);
   const [openClawConnected, setOpenClawConnected] = useState(false);

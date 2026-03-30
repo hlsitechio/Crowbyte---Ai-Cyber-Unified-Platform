@@ -25,7 +25,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { CONNECTOR_REGISTRY } from '../connectors/registry';
 import { getAgentsForConnector } from '../agents/soc/agent-registry';
 import { AGENT_REGISTRY } from '../agents/soc/agent-registry';
-import type { ConnectorManifest, ConnectorCategory, ConnectorStatus, AgentPermissionLevel, AgentRole } from '../connectors/types';
+import type { ConnectorManifest, ConnectorCategory, ConnectorStatus, AgentPermissionLevel, AgentRole, AuthMethod } from '../connectors/types';
 
 // ─── Icon Mapping ────────────────────────────────────────────────────────────
 
@@ -602,7 +602,7 @@ function ConnectForm({
  {connector.authMethods.length > 1 && (
  <div className="space-y-2">
  <Label className="text-zinc-300">Authentication Method</Label>
- <Select value={authMethod} onValueChange={v => setAuthMethod(v as any)}>
+         <Select value={authMethod} onValueChange={v => setAuthMethod(v as AuthMethod)}>
  <SelectTrigger className="border-zinc-700">
  <SelectValue />
  </SelectTrigger>

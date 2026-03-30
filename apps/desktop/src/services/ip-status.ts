@@ -56,6 +56,7 @@ class IPStatusService {
 
   /** Whether we're running in a browser (not Electron) — needs proxy for CORS */
   private get isWeb(): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return typeof window !== 'undefined' && !(window as any).electronAPI;
   }
 
@@ -133,6 +134,7 @@ class IPStatusService {
    * Try a single service with retry logic
    */
   private async tryServiceWithRetry(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     service: { name: string; url: string; isJSON?: boolean; isText?: boolean; extract: (data: any) => string },
     maxRetries = 2
   ): Promise<string | null> {
@@ -164,6 +166,7 @@ class IPStatusService {
             return null;
           }
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let data: any;
           let ip: string;
 
@@ -351,8 +354,8 @@ class IPStatusService {
     let vpnProvider: string | undefined;
 
     const org = (ipInfo.org || ipInfo.isp || '').toLowerCase();
-    // @ts-ignore - hostname might exist from some IP APIs
-    const hostname = ((ipInfo as any).hostname || '').toLowerCase();
+    // @ts-expect-error - hostname might exist from some IP APIs
+    const hostname = ((ipInfo as unknown as { hostname?: string }).hostname || '').toLowerCase();
 
     debugLog('🔍 ===== VPN DETECTION DEBUG =====');
     debugLog('🔍 Checking VPN for org/ISP:', org);
@@ -595,6 +598,7 @@ class IPStatusService {
     // ========================================
     debugLog('🔄 FALLBACK: Using Network Information API...');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nav: any = navigator;
     const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
@@ -852,7 +856,7 @@ class IPStatusService {
         }
 
         debugLog('✅ Phase 1 successful: Got detailed IP info');
-      } catch (phase1Error: any) {
+      } catch (phase1Error) {
         debugWarn('⚠️ Phase 1 failed:', phase1Error.message);
 
         // Phase 2: Fallback to simple IP fetch
@@ -861,7 +865,7 @@ class IPStatusService {
           const simpleIP = await this.fetchIPWithFallbacks();
           ipInfo = { ip: simpleIP };
           debugLog('✅ Phase 2 successful: Got simple IP');
-        } catch (phase2Error: any) {
+        } catch (phase2Error) {
           console.error('❌ Phase 2 failed:', phase2Error.message);
 
           // Phase 3: Final emergency fallback
@@ -916,7 +920,7 @@ class IPStatusService {
               localIP = ip;
             }
           }
-        } catch {}
+        } catch { /* ignore */ }
 
         const status: IPStatusData = {
           ip: ipInfo.ip!,
@@ -951,7 +955,7 @@ class IPStatusService {
         }
 
         return status;
-      } catch (enrichmentError: any) {
+      } catch (enrichmentError) {
         debugWarn('⚠️ Enrichment failed, returning basic status:', enrichmentError.message);
         loggingService.addLog('warning', 'network', 'IP enrichment partial failure', enrichmentError.message);
 
@@ -977,7 +981,7 @@ class IPStatusService {
 
         return basicStatus;
       }
-    } catch (outerError: any) {
+    } catch (outerError) {
       // Final fallback — suppress noisy logs, just debug
       console.debug('[IP] Fetch failed:', outerError?.message || 'unknown');
 
@@ -1211,6 +1215,7 @@ export default ipStatusService;
 
 // Debug helper - expose to window for console debugging
 if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).debugIPStatus = async () => {
     debugLog('🔧 === IP STATUS DEBUG ===');
     try {
@@ -1222,7 +1227,7 @@ if (typeof window !== 'undefined') {
       debugLog('📡 Network:', status.networkConnection?.type);
       debugLog('🗺️ Location:', status.city, status.region, status.country);
       return status;
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Debug Error:', error);
       console.error('Error details:', error.message);
       console.error('Stack:', error.stack);

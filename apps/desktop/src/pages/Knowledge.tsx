@@ -208,7 +208,7 @@ export default function Knowledge() {
    try {
      await supabase.from('knowledge_base').update({ view_count: (entry.view_count || 0) + 1 }).eq('id', entry.id);
      setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, view_count: (e.view_count || 0) + 1 } : e));
-   } catch {}
+   } catch { /* ignore */ }
  };
 
  const handleCopyContent = () => {

@@ -247,6 +247,7 @@ class E2ECrypto {
 
 // ─── Remote Control Service ────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RemoteEventCallback = (event: string, data: any) => void;
 
 class RemoteControlService {
@@ -287,6 +288,7 @@ class RemoteControlService {
     this.listeners.get(event)?.delete(callback);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private emit(event: string, data?: any): void {
     this.listeners.get(event)?.forEach(cb => {
       try { cb(event, data); } catch (e) { console.error('[RC] Event handler error:', e); }
@@ -782,6 +784,7 @@ class RemoteControlService {
   /**
    * Get session history from Supabase
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getSessionHistory(limit = 50): Promise<any[]> {
     const { data, error } = await supabase
       .from('remote_sessions')

@@ -290,6 +290,7 @@ const FEED_PROXY_MAP: Record<string, string> = {
   'emerging_threats_compromised': 'et-compromised',
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isWeb = typeof window !== 'undefined' && !(window as any).electronAPI;
 
 async function fetchFeed(feed: FeedConfig): Promise<NormalizedIOC[]> {

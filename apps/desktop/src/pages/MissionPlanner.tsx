@@ -87,7 +87,7 @@ const MissionPlanner = () => {
       ]);
       setPlans(fetchedPlans);
       setStats(fetchedStats);
-    } catch (err: any) {
+    } catch (err) {
       toast({ title: "Error", description: err.message || "Failed to load plans", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -116,7 +116,7 @@ const MissionPlanner = () => {
       setNewPlan({ name: '', type: 'pentest', objective: '', target_scope: '' });
       setSelectedPlan(created);
       toast({ title: "Plan Created", description: created.name });
-    } catch (err: any) {
+    } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
@@ -128,7 +128,7 @@ const MissionPlanner = () => {
       if (selectedPlan?.id === id) setSelectedPlan(null);
       loadPlans(); // refresh stats
       toast({ title: "Deleted", description: "Plan removed" });
-    } catch (err: any) {
+    } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
@@ -139,7 +139,7 @@ const MissionPlanner = () => {
       setPlans(prev => prev.map(p => p.id === id ? updated : p));
       if (selectedPlan?.id === id) setSelectedPlan(updated);
       loadPlans();
-    } catch (err: any) {
+    } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
@@ -162,7 +162,7 @@ const MissionPlanner = () => {
       };
       const generated = await missionPlannerAgent.generatePlan(request);
       setAiPreview(generated);
-    } catch (err: any) {
+    } catch (err) {
       toast({ title: "AI Generation Failed", description: err.message, variant: "destructive" });
     } finally {
       setAiGenerating(false);
@@ -194,7 +194,7 @@ const MissionPlanner = () => {
       setAiForm({ objective: '', type: 'pentest', targetScope: '', constraints: '' });
       setSelectedPlan(created);
       toast({ title: "AI Plan Saved", description: created.name });
-    } catch (err: any) {
+    } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
@@ -230,7 +230,7 @@ const MissionPlanner = () => {
       setPlans(prev => prev.map(p => p.id === updated.id ? updated : p));
       setSelectedPlan(updated);
       toast({ title: "Plan Modified", description: `${modificationType} applied` });
-    } catch (err: any) {
+    } catch (err) {
       toast({ title: "Modify Failed", description: err.message, variant: "destructive" });
     } finally {
       setModifying(null);
@@ -242,7 +242,7 @@ const MissionPlanner = () => {
   const togglePhase = (idx: number) => {
     setExpandedPhases(prev => {
       const next = new Set(prev);
-      next.has(idx) ? next.delete(idx) : next.add(idx);
+      if (next.has(idx)) { next.delete(idx); } else { next.add(idx); }
       return next;
     });
   };
@@ -354,7 +354,7 @@ const MissionPlanner = () => {
               Phases ({phases.length})
             </h2>
             <div className="space-y-2">
-              {phases.map((phase: any, idx: number) => {
+              {phases.map((phase: Record<string, unknown>, idx: number) => {
                 const isOpen = expandedPhases.has(idx);
                 const tasks = Array.isArray(phase.tasks) ? phase.tasks : [];
                 const tools = Array.isArray(phase.tools) ? phase.tools : [];
@@ -390,7 +390,7 @@ const MissionPlanner = () => {
                             )}
                             {tasks.length > 0 && (
                               <div className="space-y-1 mt-1">
-                                {tasks.map((task: any, ti: number) => (
+                                {tasks.map((task: Record<string, unknown>, ti: number) => (
                                   <div key={ti} className="flex items-center gap-2 text-xs pl-4">
                                     <span className={`w-1 h-1 rounded-full ${
                                       task.priority === 'critical' ? 'bg-red-500' :
@@ -422,7 +422,7 @@ const MissionPlanner = () => {
               Risks ({risks.length})
             </h2>
             <div className="space-y-2">
-              {risks.map((risk: any, idx: number) => (
+              {risks.map((risk: Record<string, unknown>, idx: number) => (
                 <div key={idx} className="flex items-start gap-2 text-sm">
                   <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${SEVERITY_COLORS[risk.severity] || 'bg-zinc-500'}`} />
                   <div className="flex-1">
@@ -447,7 +447,7 @@ const MissionPlanner = () => {
               Success Criteria
             </h2>
             <ul className="space-y-1">
-              {criteria.map((c: any, idx: number) => (
+              {criteria.map((c: string | Record<string, unknown>, idx: number) => (
                 <li key={idx} className="text-sm text-zinc-300 flex items-start gap-2">
                   <Crosshair size={12} weight="bold" className="text-emerald-500 mt-1 shrink-0" />
                   {typeof c === 'string' ? c : JSON.stringify(c)}

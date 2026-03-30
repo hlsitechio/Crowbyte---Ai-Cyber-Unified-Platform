@@ -16,7 +16,9 @@ export interface MissionPlan {
   start_date?: string;
   end_date?: string;
   estimated_duration?: number; // hours
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   phases: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   risks: any[];
   success_criteria: string[];
   failure_scenarios: string[];
@@ -27,6 +29,7 @@ export interface MissionPlan {
     recommendations: string[];
     warnings?: string[];
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attack_diagram?: any;
   notes?: string;
   lessons_learned?: string;
@@ -41,7 +44,9 @@ export interface CreateMissionPlanData {
   type: MissionPlan['type'];
   objective: string;
   target_scope?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   phases?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   risks?: any[];
   success_criteria?: string[];
   failure_scenarios?: string[];
@@ -195,6 +200,7 @@ class MissionPlansService {
    * Update plan status
    */
   async updateStatus(id: string, status: MissionPlan['status']): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updates: any = { status };
 
     // If marking as completed, set completed_at timestamp

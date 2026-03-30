@@ -131,11 +131,13 @@ export default function ProfileSettings() {
     // Try PasswordCredential API (works with Bitwarden, 1Password, browser built-in)
     if ('PasswordCredential' in window) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const cred = new (window as any).PasswordCredential({
           id: user.email || 'crowbyte-license',
           password: licenseKey,
           name: `CrowByte License Key (${tier})`,
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (navigator as any).credentials.store(cred);
         toast({
           title: "Saved to Password Manager",

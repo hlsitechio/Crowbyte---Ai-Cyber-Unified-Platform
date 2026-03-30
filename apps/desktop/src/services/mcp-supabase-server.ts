@@ -92,6 +92,7 @@ class SupabaseMCPServer {
           case 'update_user_settings':
             return await this.updateUserSettings(args as {
               userId: string;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               settings: Record<string, any>;
             });
 
@@ -124,6 +125,7 @@ class SupabaseMCPServer {
           case 'update_user_metadata':
             return await this.updateUserMetadata(args as {
               userId: string;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               metadata: Record<string, any>;
             });
 
@@ -154,7 +156,7 @@ class SupabaseMCPServer {
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
-      } catch (error: any) {
+      } catch (error) {
         return {
           content: [
             {
@@ -611,6 +613,7 @@ class SupabaseMCPServer {
 
   private async updateUserSettings(args: {
     userId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     settings: Record<string, any>;
   }) {
     const { data, error } = await this.supabase
@@ -775,6 +778,7 @@ class SupabaseMCPServer {
 
   private async updateUserMetadata(args: {
     userId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadata: Record<string, any>;
   }) {
     const { data, error } = await this.supabaseAdmin.auth.admin.updateUserById(

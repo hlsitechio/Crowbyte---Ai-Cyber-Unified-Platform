@@ -10,9 +10,11 @@ import { toast } from '@/hooks/use-toast';
 interface AttackTool {
   name: string;
   description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   execute: (args: any) => Promise<any>;
   parameters: {
     type: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     properties: Record<string, any>;
     required: string[];
   };
@@ -100,7 +102,8 @@ class HybridRedTeamAgent {
     response: string;
     provider: 'venice' | 'ollama';
     success: boolean;
-    toolCalls?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    toolCalls?: unknown[];
   }> {
     const {
       requestType = 'general',
@@ -197,12 +200,14 @@ class HybridRedTeamAgent {
    */
   private async executeWithOllama(
     prompt: string,
-    tools?: any[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tools?: unknown[]
   ): Promise<{
     response: string;
     provider: 'ollama';
     success: boolean;
-    toolCalls?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    toolCalls?: unknown[];
   }> {
     try {
       // Check if Ollama is available
@@ -266,6 +271,7 @@ class HybridRedTeamAgent {
     forceProvider?: 'venice' | 'ollama'
   ): Promise<{
     analysis: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toolCalls: any[];
     provider: 'venice' | 'ollama';
   }> {
@@ -389,6 +395,7 @@ class HybridRedTeamAgent {
   /**
    * Get tools as array for API calls (OpenAI format)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getToolsArray(): any[] {
     return Array.from(this.tools.values()).map(t => ({
       type: 'function',
@@ -403,7 +410,7 @@ class HybridRedTeamAgent {
   /**
    * Execute tool by name
    */
-  async executeTool(name: string, args: any): Promise<any> {
+  async executeTool(name: string, args: Record<string, unknown>): Promise<unknown> {
     const tool = this.tools.get(name);
     if (!tool) {
       throw new Error(`Tool ${name} not found`);

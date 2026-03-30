@@ -79,7 +79,7 @@ const extractRecommendations = (text: string): string[] => {
     }
     if (inSection) {
       // Numbered or bulleted items
-      const match = trimmed.match(/^(?:\d+[\.\)]\s*|[-*]\s+)(.+)/);
+      const match = trimmed.match(/^(?:\d+[.)]\s*|[-*]\s+)(.+)/);
       if (match) {
         recs.push(match[1].replace(/\*\*/g, ""));
       }

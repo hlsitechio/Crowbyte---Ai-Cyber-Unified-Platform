@@ -67,6 +67,7 @@ export async function createSupportSession(): Promise<string | null> {
   if (!user) return null;
 
   const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from(TABLE as any)
     .insert({
       user_id: user.id,
@@ -79,6 +80,7 @@ export async function createSupportSession(): Promise<string | null> {
         route: window.location.hash,
         appVersion: "2.0.0",
       },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
     .select("id")
     .single();
@@ -88,6 +90,7 @@ export async function createSupportSession(): Promise<string | null> {
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as any).id;
 }
 
@@ -135,7 +138,9 @@ export function startStreaming(
 
   // Update session status to active
   supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from(TABLE as any)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .update({ status: "active" } as any)
     .eq("id", sessionId)
     .then(() => {});
@@ -157,7 +162,9 @@ export async function stopStreaming(): Promise<void> {
 
   if (_sessionId) {
     await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from(TABLE as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .update({ status: "closed", closed_at: new Date().toISOString() } as any)
       .eq("id", _sessionId);
     _sessionId = null;
@@ -344,7 +351,9 @@ export function connectToSession(
       console.log("[support-agent] Connected to session:", sessionId);
       // Mark ourselves as support agent
       supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from(TABLE as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .update({ support_agent_id: "admin" } as any)
         .eq("id", sessionId)
         .then(() => {});
@@ -383,6 +392,7 @@ export function sendCommand(
  */
 export async function getActiveSessions(): Promise<SupportSession[]> {
   const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from(TABLE as any)
     .select("*")
     .in("status", ["pending", "active"])
@@ -392,6 +402,7 @@ export async function getActiveSessions(): Promise<SupportSession[]> {
     console.error("[support] Failed to fetch sessions:", error.message);
     return [];
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data || []).map((s: any) => ({
     id: s.id,
     userId: s.user_id,
@@ -409,12 +420,14 @@ export async function getActiveSessions(): Promise<SupportSession[]> {
  */
 export async function getSessionHistory(limit = 50): Promise<SupportSession[]> {
   const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from(TABLE as any)
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data || []).map((s: any) => ({
     id: s.id,
     userId: s.user_id,
@@ -435,6 +448,7 @@ export async function getMyPendingSession(): Promise<SupportSession | null> {
   if (!user) return null;
 
   const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from(TABLE as any)
     .select("*")
     .eq("user_id", user.id)
@@ -444,6 +458,7 @@ export async function getMyPendingSession(): Promise<SupportSession | null> {
     .single();
 
   if (error || !data) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const s = data as any;
   return {
     id: s.id,
@@ -476,8 +491,11 @@ export interface DebugAnalysis {
  */
 export function analyzeState(state: Record<string, unknown>): DebugAnalysis {
   const issues: DebugAnalysis["issues"] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const errors = (state.errors as any[]) || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const network = (state.networkLog as any[]) || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const perf = (state.performance as any) || {};
 
   // Check for JS errors
@@ -492,6 +510,7 @@ export function analyzeState(state: Record<string, unknown>): DebugAnalysis {
   }
 
   // Check for failed network requests
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const failedRequests = network.filter((n: any) => n.status >= 400 || n.status === 0);
   for (const req of failedRequests) {
     issues.push({
@@ -527,6 +546,7 @@ export function analyzeState(state: Record<string, unknown>): DebugAnalysis {
   }
 
   // Check auth state
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = state.session as any;
   if (session && !session.authenticated) {
     issues.push({

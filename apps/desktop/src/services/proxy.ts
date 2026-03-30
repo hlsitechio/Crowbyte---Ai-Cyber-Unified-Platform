@@ -4,6 +4,7 @@
  * This service transparently proxies through /api/proxy/* on the CrowByte server.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI;
 
 /** Base URL for the proxy API (same origin) */
@@ -12,7 +13,7 @@ const PROXY_BASE = '/api/proxy';
 /**
  * Fetch IP info. Returns ipinfo.io-style JSON.
  */
-export async function fetchIP(): Promise<any> {
+export async function fetchIP(): Promise<unknown> {
   if (isElectron) {
     // Direct fetch in Electron (no CORS)
     const res = await fetch('https://ipinfo.io/json', { signal: AbortSignal.timeout(5000) });
@@ -45,6 +46,7 @@ export async function fetchOpenClaw(path: string, options: RequestInit = {}): Pr
  * Available feeds: urlhaus-recent, threatfox, feodo-ipblocklist,
  *   blocklist-ssh, blocklist-brute, ci-badguys, et-compromised
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchFeed(feedId: string, body?: any): Promise<Response> {
   if (isElectron) {
     // Direct fetch — map feedId back to URL

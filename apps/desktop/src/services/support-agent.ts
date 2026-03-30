@@ -203,7 +203,7 @@ class SupportAgentService {
       const latencyMs = Date.now() - start;
       if (error) return { name: 'Supabase', status: 'error', message: error.message, latencyMs };
       return { name: 'Supabase', status: latencyMs > 3000 ? 'warning' : 'ok', message: `Connected (${latencyMs}ms)`, latencyMs };
-    } catch (e: any) {
+    } catch (e) {
       return { name: 'Supabase', status: 'error', message: e.message || 'Unreachable', latencyMs: Date.now() - start };
     }
   }
@@ -215,7 +215,7 @@ class SupportAgentService {
       const exp = data.session.expires_at;
       if (exp && exp * 1000 < Date.now()) return { name: 'Auth', status: 'error', message: 'Token expired' };
       return { name: 'Auth', status: 'ok', message: 'Session active' };
-    } catch (e: any) {
+    } catch (e) {
       return { name: 'Auth', status: 'error', message: e.message || 'Auth check failed' };
     }
   }
@@ -257,6 +257,7 @@ class SupportAgentService {
   private async checkErrorReporter(): Promise<HealthCheck> {
     try {
       // Check if GlitchTip / Sentry SDK is initialized on window
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sentry = (window as any).__SENTRY__;
       if (sentry) return { name: 'ErrorReporter', status: 'ok', message: 'Sentry/GlitchTip active' };
       return { name: 'ErrorReporter', status: 'warning', message: 'No error reporter detected' };
@@ -322,7 +323,7 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
       const msg = this.makeMessage('agent', reply || 'Sorry, I couldn\'t generate a response.');
       if (diagnostics) msg.diagnostics = diagnostics;
       return msg;
-    } catch (e: any) {
+    } catch (e) {
       return this.makeMessage('agent', `Support agent error: ${e.message || 'Failed to reach AI backend.'}\n\nYou can try running diagnostics or escalate to human support.`);
     }
   }
@@ -421,6 +422,7 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
     const channel = supabase
       .channel('user-notifications')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_notifications' }, (payload) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const row = payload.new as any;
         if (userId && row.user_id === userId) {
           callback(this.mapNotification(row));
@@ -443,6 +445,7 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (data || []).map((row: any) => ({
       id: row.id,
       subject: row.subject,
@@ -474,6 +477,7 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
     return { id: crypto.randomUUID(), role, content, timestamp: new Date() };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapNotification(row: any): UserNotification {
     return {
       id: row.id,

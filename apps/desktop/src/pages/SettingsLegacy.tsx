@@ -34,6 +34,7 @@ const Settings = () => {
  percentUsed: 0,
  });
  // LLM Models state
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const [models, setModels] = useState<any[]>([]);
  const [loadingModels, setLoadingModels] = useState(true);
  const [openClawConnected, setOpenClawConnected] = useState(false);
@@ -90,8 +91,7 @@ const Settings = () => {
  const loadAppSettings = async () => {
  if (window.electronAPI?.getAppSettings) {
  const result = await window.electronAPI.getAppSettings();
- if (result.success && result.settings) {
- }
+ if (result.success && result.settings) { /* TODO: apply settings */ }
  }
  };
 

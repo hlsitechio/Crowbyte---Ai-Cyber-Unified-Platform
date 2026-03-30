@@ -228,9 +228,11 @@ class PCMonitorService {
   /**
    * Parse CPU info from MCP response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseCPUInfo(data: any): CPUInfo {
     // Handle different response formats
     if (data.content && Array.isArray(data.content)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = data.content.find((c: any) => c.type === 'text');
       if (textContent?.text) {
         try {
@@ -261,8 +263,10 @@ class PCMonitorService {
   /**
    * Parse memory info from MCP response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseMemoryInfo(data: any): MemoryInfo {
     if (data.content && Array.isArray(data.content)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = data.content.find((c: any) => c.type === 'text');
       if (textContent?.text) {
         try {
@@ -296,8 +300,10 @@ class PCMonitorService {
   /**
    * Parse disk info from MCP response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseDiskInfo(data: any): DiskInfo {
     if (data.content && Array.isArray(data.content)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = data.content.find((c: any) => c.type === 'text');
       if (textContent?.text) {
         try {
@@ -327,8 +333,10 @@ class PCMonitorService {
   /**
    * Parse network info from MCP response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseNetworkInfo(data: any): NetworkInfo {
     if (data.content && Array.isArray(data.content)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = data.content.find((c: any) => c.type === 'text');
       if (textContent?.text) {
         try {
@@ -352,8 +360,10 @@ class PCMonitorService {
   /**
    * Parse host info from MCP response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseHostInfo(data: any): HostInfo {
     if (data.content && Array.isArray(data.content)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = data.content.find((c: any) => c.type === 'text');
       if (textContent?.text) {
         try {
@@ -391,8 +401,10 @@ class PCMonitorService {
   /**
    * Parse process info from MCP response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseProcessInfo(data: any): ProcessInfo[] {
     if (data.content && Array.isArray(data.content)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = data.content.find((c: any) => c.type === 'text');
       if (textContent?.text) {
         try {

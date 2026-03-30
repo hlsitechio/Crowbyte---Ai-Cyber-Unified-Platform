@@ -35,6 +35,7 @@ import { type NetworkDevice, type DeviceType, type DevicePort, DEVICE_TYPES } fr
 // ─── Node type registration ──────────────────────────────────────────────────
 
 const nodeTypes: NodeTypes = {
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  device: DeviceNode as any,
 };
 

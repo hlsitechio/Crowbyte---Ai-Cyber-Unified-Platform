@@ -14,6 +14,7 @@ export interface TestCase {
   id: string;
   name: string;
   description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   input: any;
   expectedBehavior: string;
   validationCriteria: string[];
@@ -26,6 +27,7 @@ export interface TestResult {
   passed: boolean;
   score: number; // 0-100
   duration: number; // ms
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   output: any;
   validationResults: Array<{
     criterion: string;
@@ -593,6 +595,7 @@ class AgentTesterService {
     agentName: string,
     testCases: TestCase[],
     executor: (testCase: TestCase) => Promise<{
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       output: any;
       duration: number;
       passed: boolean;
@@ -720,6 +723,7 @@ class AgentTesterService {
    */
   private validateOutput(
     testCase: TestCase,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     output: any,
     duration: number
   ): Array<{ criterion: string; passed: boolean; details: string }> {
@@ -808,6 +812,7 @@ class AgentTesterService {
   /**
    * Create failed report when agent test crashes
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createFailedReport(agentName: string, error: any): AgentTestReport {
     return {
       agentName,

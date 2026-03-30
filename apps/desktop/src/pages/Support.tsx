@@ -66,6 +66,7 @@ function SessionCard({
   isActive: boolean;
   onConnect: () => void;
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const meta = session.metadata as any;
   const timeAgo = getTimeAgo(session.createdAt);
 
@@ -141,6 +142,7 @@ function LogViewer({ logs }: { logs: SessionFrame[] }) {
   return (
     <div className="h-full overflow-y-auto font-mono text-[11px] space-y-0.5 p-2">
       {logs.map((log, i) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const d = log.data as any;
         const level = d?.level || log.type;
         const color = level === "error" ? "text-red-400" :
@@ -207,7 +209,7 @@ function StateInspector({ state }: { state: Record<string, unknown> | null }) {
               )}
               {isObj && !expanded && (
                 <span className="text-zinc-600 ml-1">
-                  {Array.isArray(value) ? `[${(value as any[]).length}]` : `{${Object.keys(value).length}}`}
+                  {Array.isArray(value) ? `[${(value as unknown[]).length}]` : `{${Object.keys(value as Record<string, unknown>).length}}`}
                 </span>
               )}
             </button>
@@ -521,7 +523,7 @@ export default function Support() {
                   </div>
                   <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
                     <AlertTriangle size={11} />
-                    <span className="text-zinc-300">{((activeSession.latestState.errors as any[]) || []).length} errors</span>
+                    <span className="text-zinc-300">{((activeSession.latestState.errors as unknown[]) || []).length} errors</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
                     <Activity size={11} />

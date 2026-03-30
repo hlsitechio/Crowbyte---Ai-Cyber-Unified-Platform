@@ -13,9 +13,13 @@ export interface MissionPlan {
   objective?: string;
   target_scope?: string;
   status: 'draft' | 'planning' | 'approved' | 'active' | 'completed' | 'failed';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   phases: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   risks: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   success_criteria: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   failure_scenarios: any[];
   timeline?: string;
   ai_assessment?: {
@@ -38,9 +42,13 @@ export interface CreateMissionPlanData {
   objective?: string;
   target_scope?: string;
   status?: MissionPlan['status'];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   phases?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   risks?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   success_criteria?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   failure_scenarios?: any[];
   timeline?: string;
   ai_assessment?: MissionPlan['ai_assessment'];

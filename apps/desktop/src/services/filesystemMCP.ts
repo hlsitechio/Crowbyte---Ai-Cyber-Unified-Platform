@@ -8,7 +8,9 @@ import { hasElectronAPI } from '@/lib/platform';
 declare global {
   interface Window {
     electronAPI: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       filesystemCall: (toolName: string, args: any) => Promise<{ success: boolean; data?: any; error?: string }>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       listFilesystemTools: () => Promise<{ success: boolean; tools?: any[]; error?: string }>;
     };
   }
@@ -17,6 +19,7 @@ declare global {
 export interface FilesystemTool {
   name: string;
   description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters: any;
 }
 
@@ -85,7 +88,7 @@ class FilesystemMCPService {
       }
 
       return response.data.content;
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to read file ${path}:`, error);
       throw new Error(`Failed to read file: ${error.message}`);
     }
@@ -104,7 +107,7 @@ class FilesystemMCPService {
       }
 
       console.log(`✅ File written successfully: ${path}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to write file ${path}:`, error);
       throw new Error(`Failed to write file: ${error.message}`);
     }
@@ -123,7 +126,7 @@ class FilesystemMCPService {
       }
 
       return response.data.entries || [];
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to list directory ${path}:`, error);
       throw new Error(`Failed to list directory: ${error.message}`);
     }
@@ -142,7 +145,7 @@ class FilesystemMCPService {
       }
 
       console.log(`✅ Directory created: ${path}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to create directory ${path}:`, error);
       throw new Error(`Failed to create directory: ${error.message}`);
     }
@@ -161,7 +164,7 @@ class FilesystemMCPService {
       }
 
       console.log(`✅ Deleted: ${path}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to delete ${path}:`, error);
       throw new Error(`Failed to delete: ${error.message}`);
     }
@@ -180,7 +183,7 @@ class FilesystemMCPService {
       }
 
       console.log(`✅ Moved successfully`);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to move ${source}:`, error);
       throw new Error(`Failed to move: ${error.message}`);
     }
@@ -199,7 +202,7 @@ class FilesystemMCPService {
       }
 
       return response.data.results || [];
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to search files:`, error);
       throw new Error(`Failed to search files: ${error.message}`);
     }
@@ -218,7 +221,7 @@ class FilesystemMCPService {
       }
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to get info for ${path}:`, error);
       throw new Error(`Failed to get info: ${error.message}`);
     }

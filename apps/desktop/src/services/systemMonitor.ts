@@ -59,6 +59,7 @@ class SystemMonitorService {
    * Get browser-based metrics (limited but works in web)
    */
   private getBrowserMetrics(): SystemMetrics {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nav = navigator as any;
 
     // Get memory info if available (Chrome)
@@ -71,6 +72,7 @@ class SystemMonitorService {
     }
 
     // Use performance.memory if available (Chrome only)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const perf = performance as any;
     if (perf.memory) {
       memoryUsed = perf.memory.usedJSHeapSize / (1024 * 1024 * 1024);
@@ -171,8 +173,11 @@ class SystemMonitorService {
   async getLocalIP(): Promise<string> {
     return new Promise((resolve) => {
       // This only works in some browsers with WebRTC
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const RTCPeerConnection = (window as any).RTCPeerConnection ||
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 (window as any).webkitRTCPeerConnection ||
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 (window as any).mozRTCPeerConnection;
 
       if (!RTCPeerConnection) {

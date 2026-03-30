@@ -233,6 +233,7 @@ class OpenClawService {
 
   /** Whether we're running in a browser (not Electron) — needs proxy for CORS */
   private get isWeb(): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return typeof window !== 'undefined' && !(window as any).electronAPI;
   }
 
@@ -381,6 +382,7 @@ class OpenClawService {
         conversationMessages.push({
           role: 'assistant',
           content: msg.content || '',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...({ tool_calls: msg.tool_calls } as any),
         });
 
@@ -410,8 +412,10 @@ class OpenClawService {
 
             // Add tool result to conversation
             conversationMessages.push({
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               role: 'tool' as any,
               content: result,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               ...({ tool_call_id: toolCall.id } as any),
             });
           } else if (fn.name === 'dispatch_agent') {
@@ -432,8 +436,10 @@ class OpenClawService {
             yield { type: 'tool_result', content: result, tool: 'dispatch_agent' };
 
             conversationMessages.push({
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               role: 'tool' as any,
               content: result,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               ...({ tool_call_id: toolCall.id } as any),
             });
           }
