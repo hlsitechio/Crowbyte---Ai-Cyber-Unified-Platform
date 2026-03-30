@@ -23,6 +23,10 @@ async function getAdminCredentials(): Promise<{ username: string; passwordHash: 
 
   if (!adminPasswordHash) {
     const plaintext = process.env.CROWBYTE_PASS ?? 'crowbyte';
+    if (!process.env.CROWBYTE_PASS && !process.env.CROWBYTE_PASS_HASH) {
+      console.warn('[!] CROWBYTE_PASS is not set. Using the default password "crowbyte".');
+      console.warn('[!] Change it immediately by setting CROWBYTE_PASS or CROWBYTE_PASS_HASH in your .env file.');
+    }
     adminPasswordHash = await bcrypt.hash(plaintext, 12);
   }
 

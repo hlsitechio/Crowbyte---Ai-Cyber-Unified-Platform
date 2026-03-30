@@ -165,7 +165,7 @@ def collect_metrics() -> dict:
 
 # ─── HTTP Client ─────────────────────────────────────────────────────────────
 
-def make_request(url: str, data: dict, api_key: str) -> dict:
+def make_request(url: str, data: dict, api_key: str, verify_ssl: bool = True) -> dict:
     """POST JSON to URL with API key auth. Returns parsed response."""
     body = json.dumps(data).encode('utf-8')
 
@@ -173,10 +173,13 @@ def make_request(url: str, data: dict, api_key: str) -> dict:
     req.add_header('Content-Type', 'application/json')
     req.add_header('X-API-Key', api_key)
 
-    # Allow self-signed certs
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    if verify_ssl:
+        ctx = ssl.create_default_context()
+    else:
+        # Only used when explicitly opted-in via config (e.g. self-signed dev certs)
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
 
     try:
         with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
@@ -206,6 +209,11 @@ def load_config() -> dict:
         print('[!] api_key not set in config', file=sys.stderr)
         sys.exit(1)
 
+    # Default to verifying SSL certificates; only disable if explicitly set to false
+    if config.get('verify_ssl', True) is False:
+        print('[!] WARNING: SSL certificate verification is disabled. '
+              'Set verify_ssl=true in config for production use.', file=sys.stderr)
+
     return config
 
 
@@ -225,7 +233,7 @@ signal.signal(signal.SIGINT, handle_signal)
 def register(config: dict, metrics: dict) -> bool:
     """Register agent with server. Returns True on success."""
     url = f"{config['server_url'].rstrip('/')}/api/fleet/register"
-    result = make_request(url, metrics, config['api_key'])
+    result = make_request(url, metrics, config['api_key'], config.get('verify_ssl', True))
 
     if result.get('ok'):
         print(f"[+] Registered: {result.get('action', 'ok')} (id: {result.get('id', '?')})")
@@ -247,7 +255,7 @@ def heartbeat(config: dict, metrics: dict) -> bool:
         'disk_usage': metrics['disk_usage'],
         'agent_version': metrics['agent_version'],
     }
-    result = make_request(url, payload, config['api_key'])
+    result = make_request(url, payload, config['api_key'], config.get('verify_ssl', True))
 
     if result.get('ok'):
         return True
