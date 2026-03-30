@@ -135,6 +135,21 @@ ipcMain.handle('onboarding:skip', () => {
 
 // ─── App Lifecycle ──────────────────────────────────────────────────────────
 
+// ─── Single Instance Lock ────────────────────────────────────────────────────
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  console.log('[-] Another instance is already running. Exiting.');
+  app.quit();
+}
+
+app.on('second-instance', () => {
+  // Focus existing window when user tries to launch another instance
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
 app.whenReady().then(() => {
   // Set dock/taskbar icon explicitly on Linux
   if (appIcon && process.platform === 'linux') {

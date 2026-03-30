@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth";
 import { useBrowserPanelSafe } from "@/contexts/browser";
 import { useLogs } from "@/contexts/logs";
 import { getUnreadCount } from "@/services/subscription";
+import { supportAgent } from "@/services/support-agent";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import {
@@ -142,12 +143,26 @@ export function AppSidebar() {
  const [workspaceName, setWorkspaceName] = useState(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
  const [feedUnread, setFeedUnread] = useState(0);
+ const [notifUnread, setNotifUnread] = useState(0);
 
  // Poll feed unread count every 60s
  useEffect(() => {
  const fetchCount = () => getUnreadCount().then(setFeedUnread).catch(() => {});
  fetchCount();
  const interval = setInterval(fetchCount, 60000);
+ return () => clearInterval(interval);
+ }, []);
+
+ // Poll notification unread count every 30s
+ useEffect(() => {
+ const fetchNotifs = async () => {
+ try {
+ const notifs = await supportAgent.getNotifications();
+ setNotifUnread(notifs.filter((n: any) => !n.read && !n.dismissed).length);
+ } catch { /* silent */ }
+ };
+ fetchNotifs();
+ const interval = setInterval(fetchNotifs, 30000);
  return () => clearInterval(interval);
  }, []);
 
@@ -238,6 +253,7 @@ export function AppSidebar() {
  const isItemActive = isActive(item.url);
  const showErrorBadge = item.url === '/logs' && unreadErrorCount > 0;
  const showFeedBadge = item.url === '/dashboard' && feedUnread > 0;
+ const showNotifBadge = item.url === '/ai-agent' && notifUnread > 0;
  const isCollapsed = state === "collapsed";
 
  const navContent = (
@@ -278,6 +294,9 @@ export function AppSidebar() {
  )}
  {showFeedBadge && (
  <span className="ml-auto flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-blue-500 text-[9px] text-white font-bold">{feedUnread > 99 ? "99+" : feedUnread}</span>
+ )}
+ {showNotifBadge && (
+ <span className="ml-auto flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-orange-500 text-[9px] text-white font-bold">{notifUnread > 9 ? "9+" : notifUnread}</span>
  )}
  </NavLink>
  </SidebarMenuButton>
@@ -322,6 +341,21 @@ export function AppSidebar() {
  </div>
  {state === "expanded" && (
  <span className="text-sm font-semibold text-zinc-100 tracking-wide flex-1">{workspaceName}</span>
+ )}
+ {/* Global notification bell */}
+ {state === "expanded" && (
+ <button
+ onClick={() => navigate('/ai-agent')}
+ className="relative text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0 p-1"
+ title="Notifications"
+ >
+ <Bell size={15} weight={notifUnread > 0 ? "fill" : "duotone"} className={notifUnread > 0 ? "text-orange-400" : ""} />
+ {notifUnread > 0 && (
+ <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[14px] h-3.5 px-0.5 rounded-full bg-orange-500 text-[8px] text-white font-bold">
+ {notifUnread > 9 ? "9+" : notifUnread}
+ </span>
+ )}
+ </button>
  )}
  <SidebarTrigger className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0" />
  </div>

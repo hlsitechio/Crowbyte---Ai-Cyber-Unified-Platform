@@ -468,6 +468,42 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
     };
   }
 
+  // ── Admin Operations ────────────────────────────────────────────────────
+
+  async getAllTickets(): Promise<any[]> {
+    const { data } = await supabase
+      .from('support_tickets')
+      .select('*')
+      .order('created_at', { ascending: false });
+    return data || [];
+  }
+
+  async updateTicketStatus(id: string, status: string, adminNotes?: string): Promise<void> {
+    const update: Record<string, unknown> = { status };
+    if (adminNotes) update.admin_notes = adminNotes;
+    if (status === 'resolved') update.resolved_at = new Date().toISOString();
+    await supabase.from('support_tickets').update(update).eq('id', id);
+  }
+
+  async assignTicket(id: string, assignedTo: string): Promise<void> {
+    await supabase.from('support_tickets').update({ assigned_to: assignedTo }).eq('id', id);
+  }
+
+  async pushNotification(userId: string, notification: {
+    type: string; title: string; message: string; actionUrl?: string;
+  }): Promise<void> {
+    await supabase.from('user_notifications').insert({
+      user_id: userId,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      action_url: notification.actionUrl || null,
+      source: 'admin',
+      read: false,
+      dismissed: false,
+    });
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private makeMessage(role: MessageRole, content: string): SupportMessage {
