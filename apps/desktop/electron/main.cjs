@@ -650,7 +650,8 @@ function createOnboardingWindow() {
     titleBarStyle: 'hidden',
   });
 
-  const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
+  const isForceProduction = process.env.NODE_ENV === 'production';
+  const isDev = !isForceProduction && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged);
   if (isDev) {
     mainWindow.loadURL('http://localhost:8081/#/onboarding');
     mainWindow.webContents.openDevTools({ mode: 'detach' });
@@ -743,7 +744,9 @@ function createWindow() {
   });
 
   // Load the app — dev server in development, built files in production
-  const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
+  // NODE_ENV=production overrides !app.isPackaged (Docker runs from source but needs prod mode)
+  const isForceProduction = process.env.NODE_ENV === 'production';
+  const isDev = !isForceProduction && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged);
   if (isDev) {
     mainWindow.loadURL('http://localhost:8081');
     console.log('[*] Loading from dev server: http://localhost:8081');

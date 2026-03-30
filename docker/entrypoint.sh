@@ -50,6 +50,7 @@ echo "[*] Starting CrowByte Terminal..."
 cd /app
 
 # Pass through all VITE_* env vars to Electron
+export NODE_ENV=production
 export ELECTRON_DISABLE_SECURITY_WARNINGS=true
 export ELECTRON_NO_ATTACH_CONSOLE=true
 
