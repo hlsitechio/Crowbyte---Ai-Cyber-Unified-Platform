@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ConversationsSidebar } from '@/components/ConversationsSidebar';
 import openClaw from '@/services/openclaw';
 import claudeProvider, { type ClaudeStreamEvent } from '@/services/claude-provider';
+import { IS_WEB } from '@/lib/platform';
 import { analyticsService } from '@/services/analytics';
 import { memoryEngine } from '@/services/memory-engine';
 import { isWebAiAvailable, streamChat, getModels as getWebModels, getUsage, getTierInfo, type AiModel } from '@/services/web-ai-chat';
@@ -42,7 +43,7 @@ const ProviderToggle = ({
   provider, setProvider, showCrowByte,
 }: { provider: Provider; setProvider: (p: Provider) => void; showCrowByte: boolean }) => (
   <div className="flex items-center bg-zinc-900/50 rounded-xl p-1 ring-1 ring-white/[0.06]">
-    {PROVIDERS.filter(p => p.id !== 'crowbyte' || showCrowByte).map(p => {
+    {PROVIDERS.filter(p => IS_WEB ? p.id === 'crowbyte' : (p.id !== 'crowbyte' || showCrowByte)).map(p => {
       const active = provider === p.id;
       return (
         <button
@@ -84,7 +85,7 @@ const Chat = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const [provider, setProvider] = useState<Provider>('claude');
+  const [provider, setProvider] = useState<Provider>(IS_WEB ? 'crowbyte' : 'claude');
   const [claudeModel, setClaudeModel] = useState('sonnet');
   const [openClawModel, setOpenClawModel] = useState('z-ai/glm5');
   const [openClawConnected, setOpenClawConnected] = useState(false);
