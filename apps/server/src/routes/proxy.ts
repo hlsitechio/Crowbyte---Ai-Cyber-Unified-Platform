@@ -9,8 +9,8 @@ import { Router, Request, Response } from 'express';
 
 const router = Router();
 
-const OPENCLAW_HOST = process.env.OPENCLAW_VPS_HOST || '187.124.85.249';
-const OPENCLAW_PORT = process.env.OPENCLAW_GATEWAY_PORT || '18789';
+// Use Traefik hostname (not raw IP+port) — gateway binds to 127.0.0.1 so direct access fails
+const OPENCLAW_BASE = process.env.OPENCLAW_VPS_URL || 'https://srv1459982.hstgr.cloud';
 const OPENCLAW_PASSWORD = process.env.OPENCLAW_GATEWAY_PASSWORD || '';
 
 /**
@@ -67,7 +67,7 @@ router.get('/nvd/*', async (req: Request, res: Response): Promise<void> => {
 router.all('/openclaw/*', async (req: Request, res: Response): Promise<void> => {
   // Strip the /api/proxy/openclaw prefix to get the downstream path
   const downstreamPath = req.originalUrl.replace(/^\/api\/proxy\/openclaw/, '');
-  const target = `https://${OPENCLAW_HOST}:${OPENCLAW_PORT}${downstreamPath}`;
+  const target = `${OPENCLAW_BASE}${downstreamPath}`;
 
   try {
     const headers: Record<string, string> = {
