@@ -13,6 +13,7 @@ import { ipStatusService, type IPStatusData } from"@/services/ip-status";
 import { systemMonitor, SystemMetrics } from"@/services/systemMonitor";
 import { endpointService, Endpoint } from"@/services/endpointService";
 import { openClaw } from"@/services/openclaw";
+import { IS_WEB } from"@/lib/platform";
 
 interface CVE {
  id: string;
@@ -615,8 +616,8 @@ const Dashboard = () => {
  <div className="space-y-6 p-6">
  <CommandCenterHeader news={news} />
 
- {/* Network Status Card - Compact */}
- <motion.div
+ {/* Network Status Card - Desktop only (exposes VPN/IP info) */}
+ {!IS_WEB && <motion.div
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4, delay: 0.1 }}
@@ -794,9 +795,9 @@ const Dashboard = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </motion.div>}
 
- {/* Quick Actions Row */}
+ {/* Quick Actions Row — web only shows CrowByte AI + CVE */}
  <div className="flex items-center gap-6">
  <motion.div
  initial={{ opacity: 0, y: 20 }}
@@ -812,6 +813,7 @@ const Dashboard = () => {
  </div>
  </motion.div>
 
+ {!IS_WEB && <>
  <motion.div
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
@@ -853,10 +855,39 @@ const Dashboard = () => {
  <span className="text-sm text-zinc-400 group-hover:text-white transition-colors">Network Scan</span>
  </div>
  </motion.div>
+ </>}
+
+ <motion.div
+ initial={{ opacity: 0, y: 20 }}
+ animate={{ opacity: 1, y: 0 }}
+ transition={{ duration: 0.3, delay: 0.25 }}
+ >
+ <div
+ className="flex items-center gap-2.5 cursor-pointer group"
+ onClick={() => navigate('/cve')}
+ >
+ <Database size={18} weight="fill" className="text-red-500" />
+ <span className="text-sm text-zinc-400 group-hover:text-white transition-colors">CVE Database</span>
+ </div>
+ </motion.div>
+
+ <motion.div
+ initial={{ opacity: 0, y: 20 }}
+ animate={{ opacity: 1, y: 0 }}
+ transition={{ duration: 0.3, delay: 0.3 }}
+ >
+ <div
+ className="flex items-center gap-2.5 cursor-pointer group"
+ onClick={() => navigate('/knowledge')}
+ >
+ <Database size={18} weight="fill" className="text-blue-500" />
+ <span className="text-sm text-zinc-400 group-hover:text-white transition-colors">Knowledge Base</span>
+ </div>
+ </motion.div>
  </div>
 
- {/* System Health — Kali + OpenClaw side by side */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+ {/* System Health — Kali + OpenClaw side by side (Desktop only) */}
+ {!IS_WEB && <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
  {/* Kali System Health */}
  <motion.div
  initial={{ opacity: 0, y: 20 }}
@@ -1117,7 +1148,7 @@ const Dashboard = () => {
  </CardContent>
  </Card>
  </motion.div>
- </div>
+ </div>}
 
  {/* Your Feed — personalized security intelligence from CrowByte agents */}
  <FeedPanel />
