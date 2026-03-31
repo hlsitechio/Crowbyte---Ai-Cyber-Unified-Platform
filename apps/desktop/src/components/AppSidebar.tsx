@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Brain, TreeStructure, BookOpen, ShieldCheck, GearSix, Terminal, Cpu, Pulse, Robot, ChatDots, SignOut, Sword, User, BookmarkSimple, FileText, ChartBar, Crosshair, ShieldWarning, Monitor, Scroll, Target, SidebarSimple, PlugsConnected, Funnel, Notebook, Lightning, Rocket, Bell, Cloud, DownloadSimple, Headset } from "@phosphor-icons/react";
+import { Brain, TreeStructure, BookOpen, ShieldCheck, GearSix, Terminal, Cpu, Pulse, Robot, ChatDots, SignOut, Sword, User, BookmarkSimple, FileText, ChartBar, Crosshair, ShieldWarning, Monitor, Scroll, Target, SidebarSimple, PlugsConnected, Funnel, Notebook, Lightning, Rocket, Bell, Cloud, DownloadSimple, Headset, Flask } from "@phosphor-icons/react";
+import { IS_WEB } from "@/lib/platform";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -88,35 +89,42 @@ const SECTION_DOT: Record<string, DotColor> = {
 
 // ─── Nav items ───────────────────────────────────────────────────────────────
 
-const commandCenterItems = [
+interface NavItem {
+ title: string;
+ url: string;
+ icon: typeof Pulse;
+ beta?: boolean; // Requires desktop beta access
+}
+
+const commandCenterItems: NavItem[] = [
  { title: "Dashboard", url: "/dashboard", icon: Pulse },
  { title: "Analytics", url: "/analytics", icon: ChartBar },
  { title: "Alert Center", url: "/alert-center", icon: Bell },
 ];
 
-const aiOperationsItems = [
+const aiOperationsItems: NavItem[] = [
  { title: "Chat", url: "/chat", icon: ChatDots },
  { title: "Support Agent", url: "/ai-agent", icon: Headset },
  { title: "Agent Builder", url: "/agent-builder", icon: Robot },
  { title: "Agent Teams", url: "/agent-teams", icon: Lightning },
 ];
 
-const redTeamItems = [
- { title: "Red Team", url: "/redteam", icon: Crosshair },
+const redTeamItems: NavItem[] = [
+ { title: "Red Team", url: "/redteam", icon: Crosshair, beta: true },
  { title: "Missions", url: "/missions", icon: Rocket },
  { title: "Mission Planner", url: "/mission-planner", icon: Target },
- { title: "Cyber Ops", url: "/cyber-ops", icon: Sword },
- { title: "Network Map", url: "/network-scanner", icon: TreeStructure },
+ { title: "Cyber Ops", url: "/cyber-ops", icon: Sword, beta: true },
+ { title: "Network Map", url: "/network-scanner", icon: TreeStructure, beta: true },
 ];
 
-const blueTeamItems = [
- { title: "Security Monitor", url: "/security-monitor", icon: ShieldCheck },
- { title: "Fleet Management", url: "/fleet", icon: Monitor },
+const blueTeamItems: NavItem[] = [
+ { title: "Security Monitor", url: "/security-monitor", icon: ShieldCheck, beta: true },
+ { title: "Fleet Management", url: "/fleet", icon: Monitor, beta: true },
  { title: "Detection Lab", url: "/detection-lab", icon: Lightning },
  { title: "Cloud Security", url: "/cloud-security", icon: Cloud },
 ];
 
-const intelligenceItems = [
+const intelligenceItems: NavItem[] = [
  { title: "CVE Database", url: "/cve", icon: ShieldWarning },
  { title: "Threat Intel", url: "/threat-intelligence", icon: ShieldWarning },
  { title: "Findings", url: "/findings", icon: Funnel },
@@ -126,8 +134,8 @@ const intelligenceItems = [
  { title: "Memory", url: "/memory", icon: Brain },
 ];
 
-const systemItems = [
- { title: "Terminal", url: "/terminal", icon: Terminal },
+const systemItems: NavItem[] = [
+ { title: "Terminal", url: "/terminal", icon: Terminal, beta: true },
  { title: "Logs", url: "/logs", icon: Scroll },
  { title: "Support", url: "/support", icon: Headset },
  { title: "Connectors", url: "/connectors", icon: PlugsConnected },
@@ -249,13 +257,14 @@ export function AppSidebar() {
  }
  };
 
- const renderNavItems = (items: typeof commandCenterItems, dotColor: DotColor, delayOffset: number = 0) => {
+ const renderNavItems = (items: NavItem[], dotColor: DotColor, delayOffset: number = 0) => {
  return items.map((item, index) => {
  const isItemActive = isActive(item.url);
  const showErrorBadge = item.url === '/logs' && unreadErrorCount > 0;
  const showFeedBadge = item.url === '/dashboard' && feedUnread > 0;
  const showNotifBadge = item.url === '/ai-agent' && notifUnread > 0;
  const isCollapsed = state === "collapsed";
+ const isBetaLocked = IS_WEB && item.beta;
 
  const navContent = (
  <motion.div
@@ -279,16 +288,23 @@ export function AppSidebar() {
  <SidebarMenuItem>
  <SidebarMenuButton asChild>
  <NavLink
- to={item.url}
+ to={isBetaLocked ? "#" : item.url}
  end
- className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${isCollapsed ? "gap-0 justify-center" : "gap-3"}`}
+ onClick={isBetaLocked ? (e: React.MouseEvent) => {
+ e.preventDefault();
+ navigate('/settings/billing');
+ } : undefined}
+ className={`relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${isCollapsed ? "gap-0 justify-center" : "gap-3"} ${isBetaLocked ? "opacity-70" : ""}`}
  >
  {!isCollapsed && <GlowDot color={dotColor} active={isItemActive} />}
- <item.icon size={16} weight="duotone" className={`flex-shrink-0 ${isItemActive ? "text-zinc-100" : "text-zinc-400"}`} />
+ <item.icon size={16} weight="duotone" className={`flex-shrink-0 ${isBetaLocked ? "text-zinc-600" : isItemActive ? "text-zinc-100" : "text-zinc-400"}`} />
  {!isCollapsed && (
- <span className={`text-[13px] ${isItemActive ? "text-zinc-100 font-medium" : "text-zinc-300"}`}>
+ <span className={`text-[13px] ${isBetaLocked ? "text-zinc-500" : isItemActive ? "text-zinc-100 font-medium" : "text-zinc-300"}`}>
  {item.title}
  </span>
+ )}
+ {!isCollapsed && isBetaLocked && (
+ <span className="ml-auto text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400/70 border border-blue-500/15">beta</span>
  )}
  {showErrorBadge && (
  <span className="ml-auto text-[10px] text-red-500">{unreadErrorCount}</span>
@@ -310,7 +326,7 @@ export function AppSidebar() {
  <Tooltip key={item.title} delayDuration={0}>
  <TooltipTrigger asChild>{navContent}</TooltipTrigger>
  <TooltipContent side="right" className="bg-zinc-900 border-zinc-700 text-zinc-200 text-xs px-2.5 py-1">
- {item.title}
+ {item.title}{isBetaLocked ? ' (Beta)' : ''}
  </TooltipContent>
  </Tooltip>
  );
