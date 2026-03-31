@@ -33,6 +33,9 @@ const STATIC_DIR = resolve(new URL('.', import.meta.url).pathname, '../../deskto
 
 const app = express();
 
+// Trust nginx reverse proxy (X-Forwarded-For for rate limiting)
+app.set('trust proxy', 1);
+
 // Security headers — relaxed CSP for SPA (allows inline styles/scripts needed by Vite-built app)
 app.use(helmet({
   contentSecurityPolicy: {
@@ -75,6 +78,59 @@ app.use('/api/fleet', fleetRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/proxy', proxyRoutes);
 app.use('/api/ai', aiRoutes);
+
+// ─── Beta Access Request ────────────────────────────────────────────────────
+
+app.post('/api/beta-request', async (req, res) => {
+  const { email, reason, user_id } = req.body;
+  if (!email) { res.status(400).json({ error: 'Email required' }); return; }
+
+  try {
+    // Store in Supabase
+    const SUPABASE_URL = process.env.SUPABASE_URL || '';
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      await fetch(`${SUPABASE_URL}/rest/v1/beta_requests`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ email, reason: reason || null, user_id: user_id || null }),
+        signal: AbortSignal.timeout(5000),
+      });
+    }
+
+    // Send notification email via Resend
+    const RESEND_KEY = process.env.RESEND_API_KEY;
+    const RESEND_FROM = process.env.RESEND_FROM || 'CrowByte <noreply@crowbyte.io>';
+    if (RESEND_KEY) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: RESEND_FROM,
+          to: ['hlarosesurprenant@gmail.com'],
+          subject: `[CrowByte] Beta Request: ${email}`,
+          html: `<h3>New Beta Access Request</h3>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>User ID:</strong> ${user_id || 'anonymous'}</p>
+            <p><strong>Reason:</strong> ${reason || 'Not provided'}</p>
+            <p><strong>Time:</strong> ${new Date().toISOString()}</p>`,
+        }),
+        signal: AbortSignal.timeout(5000),
+      }).catch(() => { /* non-blocking */ });
+    }
+
+    console.log(`[+] Beta request: ${email}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[!] Beta request error:', err);
+    res.status(500).json({ error: 'Failed to submit request' });
+  }
+});
 
 // ─── Error Monitoring (in-memory store) ─────────────────────────────────────
 

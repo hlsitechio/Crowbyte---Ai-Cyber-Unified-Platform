@@ -29,7 +29,7 @@ declare global {
 }
 
 // Routes that skip auth
-const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/refresh', '/api/health'];
+const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/refresh', '/api/health', '/api/beta-request'];
 
 // Prefixes that skip auth — MINIMAL surface only
 // Everything else requires JWT. Docker, system, memory, setup are all auth-gated.
