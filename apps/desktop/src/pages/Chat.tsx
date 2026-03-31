@@ -93,7 +93,7 @@ const Chat = () => {
 
   // Web AI
   const [webAiAvailable, setWebAiAvailable] = useState(false);
-  const [webAiModel, setWebAiModel] = useState('deepseek-ai/deepseek-r1');
+  const [webAiModel, setWebAiModel] = useState('deepseek-ai/deepseek-v3.2');
   const [webAiModels, setWebAiModels] = useState<AiModel[]>([]);
   const [webAiUsage, setWebAiUsage] = useState<{ current: number; limit: number | null; tier: string } | null>(null);
 
