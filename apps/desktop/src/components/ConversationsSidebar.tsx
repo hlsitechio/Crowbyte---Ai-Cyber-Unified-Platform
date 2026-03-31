@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,8 @@ import {
  X,
  CheckSquare,
  Square,
- CheckSquare as SquareCheck
+ CheckSquare as SquareCheck,
+ MagnifyingGlass,
 } from "@phosphor-icons/react";
 import {
  AlertDialog,
@@ -73,7 +74,24 @@ export function ConversationsSidebar({
  const [selectionMode, setSelectionMode] = useState(false);
  const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+ const [searchQuery, setSearchQuery] = useState("");
  const { toast } = useToast();
+
+ // Search filter
+ const filteredConversations = useMemo(() => {
+   if (!searchQuery.trim()) return unorganizedConversations;
+   const q = searchQuery.toLowerCase();
+   return unorganizedConversations.filter(c => c.title?.toLowerCase().includes(q));
+ }, [unorganizedConversations, searchQuery]);
+
+ const filteredFolders = useMemo(() => {
+   if (!searchQuery.trim()) return folders;
+   const q = searchQuery.toLowerCase();
+   return folders.map(f => ({
+     ...f,
+     conversations: f.conversations.filter(c => c.title?.toLowerCase().includes(q)),
+   })).filter(f => f.name.toLowerCase().includes(q) || f.conversations.length > 0);
+ }, [folders, searchQuery]);
 
  useEffect(() => {
  fetchData();
@@ -460,12 +478,22 @@ export function ConversationsSidebar({
 
  return (
  <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
- <div className="w-80 border-r border-border bg-card/30 backdrop-blur flex flex-col h-full">
- <div className="p-4 border-b border-border space-y-2">
+ <div className="w-72 border-r border-white/[0.04] bg-black/20 backdrop-blur-md flex flex-col h-full">
+ <div className="p-3 border-b border-white/[0.04] space-y-2">
+ {/* Search */}
+ <div className="relative">
+ <MagnifyingGlass size={14} weight="bold" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
+ <Input
+ value={searchQuery}
+ onChange={(e) => setSearchQuery(e.target.value)}
+ placeholder="Search chats..."
+ className="h-8 pl-8 text-xs bg-zinc-900/50 border-white/[0.06] placeholder:text-zinc-700"
+ />
+ </div>
  {!selectionMode ? (
  <>
- <Button onClick={onNewConversation} className="w-full bg-primary hover:bg-primary/90">
- <Plus size={16} weight="bold" className="mr-2" />
+ <Button onClick={onNewConversation} className="w-full h-8 text-xs bg-violet-600 hover:bg-violet-500 text-white">
+ <Plus size={14} weight="bold" className="mr-1.5" />
  New Chat
  </Button>
  <div className="flex gap-2">
@@ -585,7 +613,7 @@ export function ConversationsSidebar({
 
  <ScrollArea className="flex-1">
  <div className="p-4 space-y-2">
- {folders.map(folder => (
+ {filteredFolders.map(folder => (
  <DroppableFolderZone key={folder.id} folderId={folder.id}>
  <div>
  <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group">
@@ -659,7 +687,7 @@ export function ConversationsSidebar({
  </DroppableFolderZone>
  ))}
 
- {unorganizedConversations.length > 0 && (
+ {filteredConversations.length > 0 && (
  <DroppableFolderZone folderId="unorganized">
  <div className="mt-4">
  <div className="flex items-center gap-2 px-2 py-1 mb-1">
@@ -667,7 +695,7 @@ export function ConversationsSidebar({
  <span className="text-xs font-medium text-muted-foreground uppercase">Unorganized</span>
  </div>
  <div className="space-y-1">
- {unorganizedConversations.map(conv => (
+ {filteredConversations.map(conv => (
  <DraggableConversationItem key={conv.id} conversation={conv} showFolder />
  ))}
  </div>
