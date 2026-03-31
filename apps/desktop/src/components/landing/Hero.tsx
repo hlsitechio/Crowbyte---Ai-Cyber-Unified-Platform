@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { DownloadSimple } from "@phosphor-icons/react";
+import { Rocket } from "@phosphor-icons/react";
 import LaunchAppButton from "./LaunchAppButton";
 
 /* ------------------------------------------------------------------ */
@@ -451,16 +451,14 @@ export default function Hero() {
               <span className="relative z-10">Get Started</span>
             </LaunchAppButton>
 
-            {/* Secondary CTA — ghost pill */}
+            {/* Secondary CTA — beta waitlist */}
             <a
-              href="https://crowbyte.io/download"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="relative font-['JetBrains_Mono'] text-sm text-zinc-300 border border-white/[0.12] hover:border-white/[0.2] hover:bg-white/[0.04] px-6 py-3 rounded-full transition-all duration-300 inline-flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+              href="/beta"
+              className="relative font-['JetBrains_Mono'] text-sm text-zinc-300 border border-blue-500/20 hover:border-blue-500/40 hover:bg-blue-500/[0.04] px-6 py-3 rounded-full transition-all duration-300 inline-flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
             >
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-              <DownloadSimple size={16} weight="bold" />
-              <span>Download Now</span>
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-blue-400/30 to-transparent" />
+              <Rocket size={16} weight="bold" />
+              <span>Join Desktop Beta</span>
             </a>
           </motion.div>
         </div>

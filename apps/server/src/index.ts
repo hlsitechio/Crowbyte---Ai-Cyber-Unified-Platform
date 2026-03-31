@@ -82,50 +82,170 @@ app.use('/api/ai', aiRoutes);
 // ─── Beta Access Request ────────────────────────────────────────────────────
 
 app.post('/api/beta-request', async (req, res) => {
-  const { email, reason, user_id } = req.body;
+  const { email, reason, user_id, name, source, promo } = req.body;
   if (!email) { res.status(400).json({ error: 'Email required' }); return; }
 
   try {
-    // Store in Supabase
     const SUPABASE_URL = process.env.SUPABASE_URL || '';
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+    const supaHeaders = {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+    };
+
+    // Check for duplicate email
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      const dupCheck = await fetch(
+        `${SUPABASE_URL}/rest/v1/beta_requests?email=eq.${encodeURIComponent(email)}&select=id`,
+        { headers: supaHeaders, signal: AbortSignal.timeout(5000) }
+      );
+      const existing = await dupCheck.json();
+      if (Array.isArray(existing) && existing.length > 0) {
+        res.status(409).json({ error: 'Already on the waitlist!' });
+        return;
+      }
+    }
+
+    // Store in Supabase
     if (SUPABASE_URL && SUPABASE_KEY) {
       await fetch(`${SUPABASE_URL}/rest/v1/beta_requests`, {
         method: 'POST',
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
-        },
-        body: JSON.stringify({ email, reason: reason || null, user_id: user_id || null }),
+        headers: { ...supaHeaders, Prefer: 'return=minimal' },
+        body: JSON.stringify({
+          email,
+          reason: reason || null,
+          user_id: user_id || null,
+          name: name || null,
+          source: source || 'settings',
+          promo: promo || null,
+        }),
         signal: AbortSignal.timeout(5000),
       });
     }
 
-    // Send notification email via Resend
+    // Get waitlist count
+    let count = 0;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      const countRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/beta_requests?select=id`,
+        { headers: { ...supaHeaders, Prefer: 'count=exact' }, signal: AbortSignal.timeout(5000) }
+      );
+      const countHeader = countRes.headers.get('content-range');
+      if (countHeader) {
+        const match = countHeader.match(/\/(\d+)/);
+        if (match) count = parseInt(match[1], 10);
+      }
+    }
+
+    // Send notification email to admin
     const RESEND_KEY = process.env.RESEND_API_KEY;
     const RESEND_FROM = process.env.RESEND_FROM || 'CrowByte <noreply@crowbyte.io>';
     if (RESEND_KEY) {
-      await fetch('https://api.resend.com/emails', {
+      // 1. Admin notification
+      fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: RESEND_FROM,
           to: ['hlarosesurprenant@gmail.com'],
-          subject: `[CrowByte] Beta Request: ${email}`,
+          subject: `[CrowByte] Beta Request #${count}: ${email}`,
           html: `<h3>New Beta Access Request</h3>
             <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Name:</strong> ${name || 'Not provided'}</p>
             <p><strong>User ID:</strong> ${user_id || 'anonymous'}</p>
-            <p><strong>Reason:</strong> ${reason || 'Not provided'}</p>
+            <p><strong>Source:</strong> ${source || 'settings'}</p>
+            <p><strong>Promo:</strong> ${promo || 'none'}</p>
+            <p><strong>Use Case:</strong> ${reason || 'Not provided'}</p>
+            <p><strong>Waitlist #:</strong> ${count}</p>
             <p><strong>Time:</strong> ${new Date().toISOString()}</p>`,
         }),
         signal: AbortSignal.timeout(5000),
-      }).catch(() => { /* non-blocking */ });
+      }).catch(() => {});
+
+      // 2. Confirmation email to user
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: RESEND_FROM,
+          to: [email],
+          subject: 'You\'re on the CrowByte Beta waitlist!',
+          html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <h1 style="margin:0;font-size:28px;font-weight:700;">
+        <span style="color:#3b82f6;">Crow</span><span style="color:#f97316;">Byte</span>
+      </h1>
+    </div>
+
+    <!-- Main card -->
+    <div style="background:#111;border:1px solid #222;border-radius:12px;padding:32px 24px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;">🚀</div>
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">You're on the list!</h2>
+      <p style="color:#888;font-size:14px;line-height:1.6;margin:0 0 24px;">
+        Thanks for signing up for CrowByte Pro Desktop beta access.
+        We'll email you when a spot opens up.
+      </p>
+
+      ${promo === 'early-bird-15' ? `
+      <!-- Early bird callout -->
+      <div style="background:#1a1206;border:1px solid #f9731633;border-radius:8px;padding:16px;margin-bottom:24px;">
+        <p style="color:#f97316;font-size:13px;font-weight:600;margin:0 0 4px;">🔥 EARLY BIRD LOCKED IN</p>
+        <p style="color:#ccc;font-size:14px;margin:0;">
+          <strong style="color:#fff;">$15/mo</strong>
+          <span style="color:#666;text-decoration:line-through;margin-left:8px;">$19/mo</span>
+        </p>
+        <p style="color:#888;font-size:12px;margin:4px 0 0;">This price is locked forever for waitlist members.</p>
+      </div>
+      ` : ''}
+
+      <p style="color:#666;font-size:12px;margin:0 0 24px;">
+        Waitlist position: <strong style="color:#3b82f6;">#${count}</strong>
+      </p>
+
+      <!-- What's included -->
+      <div style="text-align:left;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;padding:20px;">
+        <p style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">What you'll get:</p>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#ccc;font-size:13px;">✦ All 7 AI models — unlimited messages</td></tr>
+          <tr><td style="padding:6px 0;color:#ccc;font-size:13px;">✦ Desktop app (Linux, Windows, macOS)</td></tr>
+          <tr><td style="padding:6px 0;color:#ccc;font-size:13px;">✦ Integrated terminal with tmux</td></tr>
+          <tr><td style="padding:6px 0;color:#ccc;font-size:13px;">✦ Fleet management & network scanner</td></tr>
+          <tr><td style="padding:6px 0;color:#ccc;font-size:13px;">✦ 3 custom AI agents</td></tr>
+          <tr><td style="padding:6px 0;color:#ccc;font-size:13px;">✦ Priority support</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin-top:24px;">
+      <a href="https://crowbyte.io" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 32px;border-radius:999px;">
+        Try Free Web App →
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center;margin-top:32px;padding-top:20px;border-top:1px solid #1a1a1a;">
+      <p style="color:#555;font-size:11px;margin:0;">
+        © 2026 HLSITech Inc. — <a href="https://crowbyte.io" style="color:#555;text-decoration:underline;">crowbyte.io</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`,
+        }),
+        signal: AbortSignal.timeout(5000),
+      }).catch(() => {});
     }
 
-    console.log(`[+] Beta request: ${email}`);
-    res.json({ ok: true });
+    console.log(`[+] Beta request #${count}: ${email} (source: ${source || 'settings'}, promo: ${promo || 'none'})`);
+    res.json({ ok: true, count });
   } catch (err) {
     console.error('[!] Beta request error:', err);
     res.status(500).json({ error: 'Failed to submit request' });
