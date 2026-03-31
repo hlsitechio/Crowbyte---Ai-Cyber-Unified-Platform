@@ -36,8 +36,8 @@ const plans: PlanTier[] = [
   },
   {
     name: "Pro Beta",
-    price: "$19",
-    subtitle: "For serious hunters",
+    price: "$15",
+    subtitle: "Early bird — $19 after beta",
     features: [
       { label: "AI Models", value: "All 7 models" },
       { label: "Messages", value: "Unlimited" },
@@ -47,8 +47,8 @@ const plans: PlanTier[] = [
       { label: "Desktop App", value: "Beta access" },
       { label: "Support", value: "Priority email" },
     ],
-    cta: "Join Pro Beta",
-    href: "/auth",
+    cta: "Join Beta Waitlist",
+    href: "/beta",
     highlight: true,
   },
   {

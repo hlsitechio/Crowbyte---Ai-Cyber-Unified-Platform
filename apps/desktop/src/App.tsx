@@ -67,6 +67,7 @@ import SecurityMonitor from "./pages/SecurityMonitor";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
+import BetaSignup from "./pages/BetaSignup";
 import Onboarding from "./pages/Onboarding";
 import Downloads from "./pages/Downloads";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -338,6 +339,9 @@ const App = () => {
           <Route path="/setup-preferences" element={
             <AuthProvider><PreferencesWizard /></AuthProvider>
           } />
+
+          {/* Beta signup — public, no auth */}
+          <Route path="/beta" element={<BetaSignup />} />
 
           {/* Public legal & contact pages — no auth required */}
           <Route path="/privacy" element={<PrivacyPolicy />} />
