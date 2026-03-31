@@ -326,22 +326,102 @@ app.post('/api/setup/complete', (req, res) => {
 app.get('/api/ai/models', (_req, res) => {
   res.json({
     models: [
-      { id: 'deepseek-ai/DeepSeek-V3', name: 'DeepSeek V3.2', provider: 'openclaw' },
-      { id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct', name: 'Qwen3 Coder 480B', provider: 'openclaw' },
-      { id: 'mistralai/Mistral-Large-2-Instruct-2501', name: 'Mistral Large 675B', provider: 'openclaw' },
-      { id: 'moonshotai/Kimi-K2-Instruct', name: 'Kimi K2', provider: 'openclaw' },
-      { id: 'THUDM/GLM-5-0185B-Chat', name: 'GLM5', provider: 'openclaw' },
+      { id: 'deepseek-ai/deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'nvidia' },
+      { id: 'qwen/qwen3-coder-480b-a35b-instruct', name: 'Qwen3 Coder 480B', provider: 'nvidia' },
+      { id: 'qwen/qwen3.5-397b-a17b', name: 'Qwen 3.5 397B', provider: 'nvidia' },
+      { id: 'mistralai/mistral-large-3-675b-instruct-2512', name: 'Mistral Large 675B', provider: 'nvidia' },
+      { id: 'moonshotai/kimi-k2-instruct', name: 'Kimi K2', provider: 'nvidia' },
+      { id: 'moonshotai/kimi-k2.5', name: 'Kimi K2.5', provider: 'nvidia' },
+      { id: 'z-ai/glm5', name: 'GLM5', provider: 'nvidia' },
     ],
     tier: 'free',
   });
 });
 
+// AI chat — proxy to NVIDIA/OpenClaw via Traefik and stream SSE back
+const NVIDIA_PROXY_URL = process.env.OPENCLAW_VPS_URL || 'https://srv1459982.hstgr.cloud';
+const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '';
+
+app.post('/api/ai/chat', async (req, res) => {
+  const { messages, model } = req.body;
+
+  if (!messages || !Array.isArray(messages)) {
+    res.status(400).json({ error: 'messages array required' });
+    return;
+  }
+
+  const targetModel = model || 'moonshotai/Kimi-K2-Instruct';
+
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+    };
+    if (NVIDIA_API_KEY) headers['Authorization'] = `Bearer ${NVIDIA_API_KEY}`;
+
+    const upstream = await fetch(`${NVIDIA_PROXY_URL}/nvidia/v1/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: targetModel,
+        messages,
+        stream: true,
+        max_tokens: 4096,
+        temperature: 0.7,
+      }),
+      signal: AbortSignal.timeout(120000),
+    });
+
+    if (!upstream.ok) {
+      const errText = await upstream.text().catch(() => 'Unknown error');
+      res.status(upstream.status).json({ error: errText });
+      return;
+    }
+
+    // Stream SSE through to client
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    if (upstream.body) {
+      const reader = (upstream.body as any).getReader();
+      const decoder = new TextDecoder();
+
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(decoder.decode(value, { stream: true }));
+          }
+        } catch { /* client disconnect */ }
+        res.end();
+      };
+
+      pump();
+
+      req.on('close', () => {
+        reader.cancel().catch(() => {});
+      });
+    } else {
+      res.end();
+    }
+  } catch (err) {
+    const msg = (err as Error).message || 'Proxy error';
+    if (!res.headersSent) {
+      res.status(502).json({ error: `AI proxy error: ${msg}` });
+    } else {
+      res.end();
+    }
+  }
+});
+
 app.get('/api/ai/usage', (_req, res) => {
   res.json({
-    used: 0,
-    limit: 10000,
-    remaining: 10000,
-    resetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
+    tier: 'free',
+    current: 0,
+    limit: null,
+    remaining: null,
   });
 });
 
