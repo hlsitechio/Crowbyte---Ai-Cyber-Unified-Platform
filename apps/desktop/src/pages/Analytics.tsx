@@ -126,8 +126,8 @@ const Analytics = () => {
 
   const [apiUsage, setApiUsage] = useState({
     count: 0,
-    limit: 5000,
-    remaining: 5000,
+    limit: 10000,
+    remaining: 10000,
     resetTime: new Date(),
     percentUsed: 0,
   });
@@ -391,6 +391,17 @@ const Analytics = () => {
       }
 
       setWeeklyUsage(result);
+
+      // Compute API usage from real weekly data
+      const totalCalls = result.reduce((sum, d) => sum + d.calls, 0);
+      const monthlyLimit = 10000; // Based on tier — free=1000, pro=10000, enterprise=unlimited
+      setApiUsage({
+        count: totalCalls,
+        limit: monthlyLimit,
+        remaining: Math.max(0, monthlyLimit - totalCalls),
+        resetTime: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+        percentUsed: Math.min(100, Math.round((totalCalls / monthlyLimit) * 100)),
+      });
     } catch {
       setWeeklyUsage([]);
     }
