@@ -569,7 +569,7 @@ class AgentOrchestrator {
         .from('agent_tasks')
         .select('*')
         .eq('status', 'queued')
-        .or('scheduled_at.is.null,scheduled_at.lte.' + new Date().toISOString())
+        .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')}`)
         .order('priority', { ascending: false })
         .order('created_at', { ascending: true })
         .limit(20);
