@@ -16,6 +16,9 @@ export interface AiModel {
   id: string;
   name: string;
   desc: string;
+  tier: string;
+  available: boolean;
+  locked: boolean;
 }
 
 export interface UsageInfo {
@@ -38,16 +41,20 @@ export function isWebAiAvailable(): boolean {
 }
 
 /**
- * Fetch available AI models.
+ * Fetch available AI models. Passes auth token for tier-aware filtering.
  */
-export async function getModels(): Promise<AiModel[]> {
+export async function getModels(): Promise<{ models: AiModel[]; tier: string }> {
   try {
-    const res = await fetch('/api/ai/models');
-    if (!res.ok) return [];
+    const token = await getAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/ai/models', { headers });
+    if (!res.ok) return { models: [], tier: 'free' };
     const data = await res.json();
-    return data.models || [];
+    return { models: data.models || [], tier: data.tier || 'free' };
   } catch {
-    return [];
+    return { models: [], tier: 'free' };
   }
 }
 
@@ -60,6 +67,37 @@ export async function getUsage(): Promise<UsageInfo | null> {
 
   try {
     const res = await fetch('/api/ai/usage', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export interface TierInfo {
+  tier: string;
+  limits: {
+    messagesPerDay: number;
+    models: number;
+    maxTokens: number;
+    agents: number;
+    knowledgeEntries: number;
+    apiAccess: boolean;
+  };
+  allTiers: Record<string, { price: number; messagesPerDay: number; models: number }>;
+}
+
+/**
+ * Fetch user's tier info and limits.
+ */
+export async function getTierInfo(): Promise<TierInfo | null> {
+  const token = await getAuthToken();
+  if (!token) return null;
+
+  try {
+    const res = await fetch('/api/ai/tier', {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;

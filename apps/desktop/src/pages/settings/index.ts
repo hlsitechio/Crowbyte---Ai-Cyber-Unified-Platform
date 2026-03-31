@@ -1,5 +1,6 @@
 export { default as SettingsLayout } from "./SettingsLayout";
 export { default as ProfileSettings } from "./ProfileSettings";
+export { default as BillingSettings } from "./BillingSettings";
 export { default as GeneralSettings } from "./GeneralSettings";
 export { default as MCPSettings } from "./MCPSettings";
 export { default as ToolsSettings } from "./ToolsSettings";

@@ -26,6 +26,7 @@ import Analytics from "./pages/Analytics";
 import {
   SettingsLayout,
   ProfileSettings,
+  BillingSettings,
   GeneralSettings,
   MCPSettings,
   ToolsSettings,
@@ -154,6 +155,7 @@ const AppWithTitleBar = () => {
                     <Route path="/settings" element={<SettingsLayout />}>
                       <Route index element={<Navigate to="/settings/profile" replace />} />
                       <Route path="profile" element={<ProfileSettings />} />
+                      <Route path="billing" element={<BillingSettings />} />
                       <Route path="general" element={<GeneralSettings />} />
                       <Route path="llm" element={<Navigate to="/settings/integrations" replace />} />
                       <Route path="mcp" element={<MCPSettings />} />
