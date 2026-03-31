@@ -6,10 +6,20 @@
 </p>
 
 <p align="center">
-  <a href="https://crowbyte.io"><img src="https://img.shields.io/badge/Website-crowbyte.io-3b82f6?style=flat-square&logo=globe&logoColor=white" alt="Website" /></a>
+  <a href="https://crowbyte.io"><img src="https://img.shields.io/badge/Web_App-crowbyte.io-3b82f6?style=flat-square&logo=globe&logoColor=white" alt="Web App" /></a>
+  <a href="https://github.com/hlsitechio/crowbyte/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/hlsitechio/crowbyte/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" /></a>
   <a href="https://github.com/hlsitechio/crowbyte/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=flat-square" alt="License" /></a>
-  <img src="https://img.shields.io/badge/Web%20%C2%B7%20Linux%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Docker-71717a?style=flat-square" alt="Platform" />
+  <img src="https://img.shields.io/badge/Platform-Web-3b82f6?style=flat-square" alt="Platform" />
 </p>
+
+<p align="center">
+  <img src="https://crowbyte.io/og-image.png" alt="CrowByte — AI-Powered Offensive Security Platform" width="720" />
+</p>
+
+---
+
+> **Web Beta is live!** Sign up free at [crowbyte.io](https://crowbyte.io).
+> Desktop apps (Linux, Windows, macOS) are in **closed beta** — request access from Settings > Billing.
 
 ---
 
@@ -17,14 +27,14 @@
 
 CrowByte is an **AI-powered cybersecurity platform** for penetration testers, bug bounty hunters, and red team operators. It replaces the workflow of juggling 20+ browser tabs, terminal windows, and note apps with a unified command center powered by AI.
 
-**Free** in your browser at [crowbyte.io](https://crowbyte.io). **Pro Beta** ($19/mo) unlocks all AI models, unlimited messages, and desktop beta access. **Enterprise** coming soon.
+**Currently available as a web app** at [crowbyte.io](https://crowbyte.io). Desktop apps are in closed beta with invite-only access.
 
 ---
 
 ## Core Features
 
 ### AI Agent Swarm
-Deploy up to 9 specialized AI agents on your own infrastructure. Agents handle reconnaissance, vulnerability analysis, exploit research, and report generation in parallel. Supports multiple LLM providers — bring your own API keys or use the built-in gateway.
+Deploy up to 9 specialized AI agents. Agents handle reconnaissance, vulnerability analysis, exploit research, and report generation in parallel. Supports multiple LLM providers — bring your own API keys or use the built-in gateway.
 
 ### Mission Pipeline
 Phase-based operation planning from scope import through exploitation to final report. Define objectives, track task dependencies, and manage status transitions across the entire engagement lifecycle.
@@ -32,10 +42,10 @@ Phase-based operation planning from scope import through exploitation to final r
 ### CVE Intelligence
 Real-time vulnerability database with CVSS scoring, exploit status tracking, product correlation, and cross-referencing with Shodan. Search, filter, and bookmark CVEs relevant to your active engagements.
 
-### Integrated Terminal *(Desktop only)*
+### Integrated Terminal *(Desktop beta only)*
 Full xterm.js terminal with tmux session management, powered by node-pty. Run Nmap, Nuclei, SQLMap, FFUF, or any CLI tool without leaving the platform. Multiple tabs, split panes, and shell presets.
 
-### Fleet Management
+### Fleet Management *(Desktop beta only)*
 Monitor endpoints, VPS nodes, and containers from a single dashboard. Real-time hardware metrics (CPU, RAM, disk, network), process inspection, and remote agent deployment. Built-in remote desktop with encrypted communication.
 
 ### Report Generator
@@ -59,19 +69,53 @@ Track cloud security posture across AWS, GCP, and Azure. Manage cloud account in
 
 ---
 
+## Web vs Desktop
+
+| Feature | Web (Free) | Desktop (Beta) |
+|---------|:----------:|:--------------:|
+| AI Chat | ✅ | ✅ |
+| CVE Intelligence | ✅ | ✅ |
+| Mission Pipeline | ✅ | ✅ |
+| Report Generator | ✅ | ✅ |
+| Knowledge Base | ✅ | ✅ |
+| Detection Rule Lab | ✅ | ✅ |
+| Cloud Security Dashboard | ✅ | ✅ |
+| Integrated Terminal | — | ✅ |
+| Fleet Management | — | ✅ |
+| Network Scanner | — | ✅ |
+| Red Team Ops | — | ✅ |
+| Security Monitor | — | ✅ |
+| CyberOps Toolkit | — | ✅ |
+
+Desktop beta access is invite-only. Request access from **Settings > Billing** inside the web app.
+
+---
+
 ## AI Infrastructure
 
-CrowByte ships with a 9-agent AI swarm powered by multiple frontier models. Enterprise users can route all operations through their own infrastructure.
+CrowByte ships with a multi-model AI gateway. Pro users get access to all models. Enterprise users can route operations through their own infrastructure.
 
-| Provider | Models | Notes |
-|----------|--------|-------|
-| **OpenClaw Gateway** | DeepSeek V3.2, Qwen3 Coder 480B, Qwen 3.5 397B, Mistral Large 675B, Kimi K2, GLM5 | Built-in proxy — included with Pro |
-| **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 | Native CLI integration with MCP tools |
+| Provider | Models | Availability |
+|----------|--------|:------------:|
+| **OpenClaw Gateway** | DeepSeek V3.2, Qwen3 Coder 480B, Qwen 3.5 397B, Mistral Large 675B, Kimi K2, GLM5 | Web + Desktop |
+| **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 | Desktop beta only |
 | **NVIDIA NIM** | Any NIM-hosted model | Via OpenClaw gateway |
-| **Self-hosted** | Ollama / vLLM | Any model on your hardware |
-| **Custom** | Any OpenAI-compatible endpoint | Bring your own API |
+| **Self-hosted** | Ollama / vLLM | Desktop only |
+| **Custom** | Any OpenAI-compatible endpoint | Desktop only |
 
-All AI features work with self-hosted models. No data leaves your machine unless you configure an external provider.
+The web app uses the OpenClaw gateway. Claude and self-hosted models require the desktop app (Electron IPC).
+
+---
+
+## Pricing
+
+| Tier | Price | Includes |
+|------|-------|----------|
+| **Free** | $0 | 3 AI models, 50 messages/day, web access, CVE database, knowledge base |
+| **Pro Beta** | $19/mo | All 7 AI models, unlimited messages, 3 custom agents, desktop beta access |
+| **Enterprise** | Coming Soon | Unlimited agents, API access, fleet management, dedicated SLA |
+
+Visit [crowbyte.io](https://crowbyte.io) to get started.
 
 ---
 
@@ -83,7 +127,6 @@ All AI features work with self-hosted models. No data leaves your machine unless
 - **Activity Logging** — Actions across auth, API, security, network, AI, and terminal are logged with timestamps, severity levels, and categorized tags. Filterable by level and tag. Exportable as CSV or JSON.
 - **No Telemetry** — CrowByte does not collect usage data, analytics, or tracking information. All activity logs stay on your device.
 - **Supabase Backend** — All data is stored in Supabase (PostgreSQL with Row Level Security). Self-hostable for full data sovereignty.
-- **Open Source** — Source code is publicly available for transparency and community contribution.
 
 ### Vulnerability Disclosure
 
@@ -97,34 +140,11 @@ See [SECURITY.md](SECURITY.md) for our full disclosure policy and response SLA.
 
 ---
 
-## Get Started
-
-| Tier | Access | How |
-|------|--------|-----|
-| **Free** | Web app | [crowbyte.io](https://crowbyte.io) — sign up, start in your browser |
-| **Pro Beta** | Web + Desktop (beta) | All AI models, unlimited messages, desktop beta access |
-| **Enterprise** | Coming Soon | Unlimited agents, API, fleet management, on-prem |
-
----
-
-## Pricing
-
-> **Web Beta is live!** Sign up free at [crowbyte.io](https://crowbyte.io). Desktop apps are in closed beta — request access from Settings > Billing.
-
-| Tier | Price | Includes |
-|------|-------|----------|
-| **Free** | $0 | 3 AI models, 50 messages/day, web access, CVE database, knowledge base |
-| **Pro Beta** | $19/mo | All 7 AI models, unlimited messages, 3 custom agents, desktop beta access |
-| **Enterprise** | Coming Soon | Unlimited agents, API access, fleet management, dedicated SLA |
-
-Visit [crowbyte.io](https://crowbyte.io) for details.
-
----
-
 ## Roadmap
 
-- [ ] Persistent audit logging with cloud sync (Supabase-backed)
-- [ ] Real-time SIEM connectors (Splunk, Elastic polling)
+- [ ] Stripe checkout for Pro Beta subscriptions
+- [ ] Persistent audit logging with cloud sync
+- [ ] Real-time SIEM connectors (Splunk, Elastic)
 - [ ] Automated terminal output capture for report evidence
 - [ ] Cloud security scanning (AWS/GCP/Azure API integration)
 - [ ] SBOM generation
@@ -137,7 +157,7 @@ Visit [crowbyte.io](https://crowbyte.io) for details.
 
 ## License
 
-See [LICENSE](LICENSE) for full terms.
+CrowByte is **proprietary software** owned by HLSITech Inc. The source code is publicly visible for transparency, but all rights are reserved. See [LICENSE](LICENSE) for full terms.
 
 | Document | Link |
 |----------|------|
