@@ -374,9 +374,32 @@ const Dashboard = () => {
  return () => clearInterval(interval);
  }, []);
 
- // Set default daily insight
+ // Dynamic daily insight based on real data
  useEffect(() => {
- setDailyInsight("CrowByte AI connected to OpenClaw agent swarm. 9 agents ready. NVIDIA free inference active.");
+ const buildInsight = async () => {
+   try {
+     const { supabase } = await import('@/lib/supabase');
+     const now = new Date();
+     const dayAgo = new Date(now.getTime() - 86400000).toISOString();
+     const [tasksRes, alertsRes, cveRes] = await Promise.all([
+       supabase.from('agent_tasks').select('id', { count: 'exact', head: true }).gte('created_at', dayAgo),
+       supabase.from('alerts').select('id', { count: 'exact', head: true }).eq('status', 'new'),
+       supabase.from('cves').select('id', { count: 'exact', head: true }).gte('created_at', dayAgo),
+     ]);
+     const parts: string[] = [];
+     const taskCount = tasksRes.count || 0;
+     const alertCount = alertsRes.count || 0;
+     const cveCount = cveRes.count || 0;
+     if (taskCount > 0) parts.push(`${taskCount} agent task${taskCount > 1 ? 's' : ''} completed today`);
+     if (alertCount > 0) parts.push(`${alertCount} unread alert${alertCount > 1 ? 's' : ''}`);
+     if (cveCount > 0) parts.push(`${cveCount} new CVE${cveCount > 1 ? 's' : ''} ingested`);
+     if (parts.length === 0) parts.push('All systems nominal — no new activity in the last 24h');
+     setDailyInsight(parts.join(' · '));
+   } catch {
+     setDailyInsight('CrowByte AI connected to OpenClaw agent swarm. 9 agents ready.');
+   }
+ };
+ buildInsight();
  }, []);
 
  // OpenClaw + Supabase health checks
