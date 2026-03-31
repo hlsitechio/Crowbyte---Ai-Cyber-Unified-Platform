@@ -17,7 +17,7 @@
 
 CrowByte is an **AI-powered cybersecurity platform** for penetration testers, bug bounty hunters, and red team operators. It replaces the workflow of juggling 20+ browser tabs, terminal windows, and note apps with a unified command center powered by AI.
 
-**Free** in your browser at [crowbyte.io](https://crowbyte.io). **Pro** unlocks desktop apps for Linux, Windows, and macOS. **Docker** for self-hosted deployments.
+**Free** in your browser at [crowbyte.io](https://crowbyte.io). **Pro Beta** ($19/mo) unlocks all AI models, unlimited messages, and desktop beta access. **Enterprise** coming soon.
 
 ---
 
@@ -83,7 +83,7 @@ All AI features work with self-hosted models. No data leaves your machine unless
 - **Activity Logging** — Actions across auth, API, security, network, AI, and terminal are logged with timestamps, severity levels, and categorized tags. Filterable by level and tag. Exportable as CSV or JSON.
 - **No Telemetry** — CrowByte does not collect usage data, analytics, or tracking information. All activity logs stay on your device.
 - **Supabase Backend** — All data is stored in Supabase (PostgreSQL with Row Level Security). Self-hostable for full data sovereignty.
-- **No Source Exposure** — Proprietary codebase. Binary distribution only. No source code in the repository.
+- **Open Source** — Source code is publicly available for transparency and community contribution.
 
 ### Vulnerability Disclosure
 
@@ -102,19 +102,20 @@ See [SECURITY.md](SECURITY.md) for our full disclosure policy and response SLA.
 | Tier | Access | How |
 |------|--------|-----|
 | **Free** | Web app | [crowbyte.io](https://crowbyte.io) — sign up, start in your browser |
-| **Pro** | Web + Desktop | Linux (.AppImage, .deb), Windows (.exe), macOS (.dmg) |
-| **Docker** | Self-hosted | `docker compose up -d` — access via browser on port 6080 |
+| **Pro Beta** | Web + Desktop (beta) | All AI models, unlimited messages, desktop beta access |
+| **Enterprise** | Coming Soon | Unlimited agents, API, fleet management, on-prem |
 
 ---
 
 ## Pricing
 
+> **Web Beta is live!** Sign up free at [crowbyte.io](https://crowbyte.io). Desktop apps are in closed beta — request access from Settings > Billing.
+
 | Tier | Price | Includes |
 |------|-------|----------|
-| **Free** | $0 | Web access, core features, community support |
-| **Pro** | $19/mo | Desktop apps, AI agent swarm, all features, priority support |
-| **Team** | $49/mo | 10 seats, shared findings, fleet management |
-| **Enterprise** | Custom | Unlimited seats, custom AI infra, dedicated support, SLA |
+| **Free** | $0 | 3 AI models, 50 messages/day, web access, CVE database, knowledge base |
+| **Pro Beta** | $19/mo | All 7 AI models, unlimited messages, 3 custom agents, desktop beta access |
+| **Enterprise** | Coming Soon | Unlimited agents, API access, fleet management, dedicated SLA |
 
 Visit [crowbyte.io](https://crowbyte.io) for details.
 
@@ -136,9 +137,7 @@ Visit [crowbyte.io](https://crowbyte.io) for details.
 
 ## License
 
-**Proprietary Software** — HLSITech Inc. All rights reserved.
-
-This repository contains documentation, legal documents, and release binaries only. The source code is not included and is not open source. Unauthorized copying, modification, distribution, or reverse engineering is strictly prohibited.
+See [LICENSE](LICENSE) for full terms.
 
 | Document | Link |
 |----------|------|
