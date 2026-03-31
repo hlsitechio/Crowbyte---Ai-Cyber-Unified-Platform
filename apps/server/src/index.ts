@@ -20,6 +20,7 @@ import dockerRoutes from './routes/docker.js';
 import memoryRoutes from './routes/memory.js';
 import fleetRoutes from './routes/fleet.js';
 import agentRoutes from './routes/agents.js';
+import proxyRoutes from './routes/proxy.js';
 import { handleTerminalConnection, getActiveSessions } from './ws/terminal.js';
 import { handleMetricsConnection, getConnectedClientsCount } from './ws/metrics.js';
 import { activeExecutions } from './routes/tools.js';
@@ -71,6 +72,7 @@ app.use('/api/docker', dockerRoutes);
 app.use('/api/memory', memoryRoutes);
 app.use('/api/fleet', fleetRoutes);
 app.use('/api/agents', agentRoutes);
+app.use('/api/proxy', proxyRoutes);
 
 // ─── Error Monitoring (in-memory store) ─────────────────────────────────────
 
