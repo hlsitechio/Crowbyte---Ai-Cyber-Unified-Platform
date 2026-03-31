@@ -556,13 +556,13 @@ const Chat = () => {
  }
 
  const chatStartTime = Date.now();
+ const activeModel = provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel;
 
  try {
  if (provider === 'claude') await sendClaude(userMessage);
  else if (provider === 'openclaw') await sendOpenClaw(userMessage);
  else await sendCrowByte(userMessage);
 
- const activeModel = provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel;
  await analyticsService.logChat({
  model: activeModel,
  messageLength: messages.length,

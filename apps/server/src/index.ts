@@ -322,6 +322,29 @@ app.post('/api/setup/complete', (req, res) => {
   }
 });
 
+// AI model listing (web client CrowByte AI provider)
+app.get('/api/ai/models', (_req, res) => {
+  res.json({
+    models: [
+      { id: 'deepseek-ai/DeepSeek-V3', name: 'DeepSeek V3.2', provider: 'openclaw' },
+      { id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct', name: 'Qwen3 Coder 480B', provider: 'openclaw' },
+      { id: 'mistralai/Mistral-Large-2-Instruct-2501', name: 'Mistral Large 675B', provider: 'openclaw' },
+      { id: 'moonshotai/Kimi-K2-Instruct', name: 'Kimi K2', provider: 'openclaw' },
+      { id: 'THUDM/GLM-5-0185B-Chat', name: 'GLM5', provider: 'openclaw' },
+    ],
+    tier: 'free',
+  });
+});
+
+app.get('/api/ai/usage', (_req, res) => {
+  res.json({
+    used: 0,
+    limit: 10000,
+    remaining: 10000,
+    resetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
+  });
+});
+
 // Health check (no auth)
 app.get('/api/health', (_req, res) => {
   res.json({
