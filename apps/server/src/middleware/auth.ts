@@ -33,6 +33,7 @@ const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/refresh', '/api/health'];
 
 // Prefixes that skip auth — MINIMAL surface only
 // Everything else requires JWT. Docker, system, memory, setup are all auth-gated.
+// /api/ai/ handles its own auth (Supabase JWT) — /models is public, /chat requires auth
 const PUBLIC_PREFIXES = ['/api/tools/available', '/api/fleet/register', '/api/fleet/heartbeat', '/api/agents/status', '/api/errors', '/api/proxy/', '/api/ai/'];
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {

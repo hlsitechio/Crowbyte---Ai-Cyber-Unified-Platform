@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import {
   GearSix, Sparkle, Robot, Lightning, SidebarSimple,
-  CurrencyDollar,
+  CurrencyDollar, Lock, Crown,
 } from '@phosphor-icons/react';
 import { useToast } from '@/hooks/use-toast';
 import { ConversationsSidebar } from '@/components/ConversationsSidebar';
@@ -19,7 +19,7 @@ import openClaw from '@/services/openclaw';
 import claudeProvider, { type ClaudeStreamEvent } from '@/services/claude-provider';
 import { analyticsService } from '@/services/analytics';
 import { memoryEngine } from '@/services/memory-engine';
-import { isWebAiAvailable, streamChat, getModels as getWebModels, getUsage, type AiModel } from '@/services/web-ai-chat';
+import { isWebAiAvailable, streamChat, getModels as getWebModels, getUsage, getTierInfo, type AiModel } from '@/services/web-ai-chat';
 
 // Chat sub-components
 import { AssistantMessage, UserMessage, TypingIndicator, type Message } from '@/components/chat/ChatMessage';
@@ -113,8 +113,8 @@ const Chat = () => {
 
       if (isWebAiAvailable()) {
         setWebAiAvailable(true);
-        const [models, usage] = await Promise.all([getWebModels(), getUsage()]);
-        if (models.length > 0) setWebAiModels(models);
+        const [modelsResult, usage] = await Promise.all([getWebModels(), getUsage()]);
+        if (modelsResult.models.length > 0) setWebAiModels(modelsResult.models);
         if (usage) setWebAiUsage({ current: usage.current, limit: usage.limit, tier: usage.tier });
         if (!window.electronAPI?.claudeChat) setProvider('crowbyte');
       }
@@ -557,20 +557,41 @@ const Chat = () => {
               </Select>
             ) : (
               <div className="flex items-center gap-2">
-                <Select value={webAiModel} onValueChange={setWebAiModel}>
-                  <SelectTrigger className="w-[200px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
+                <Select value={webAiModel} onValueChange={(v) => {
+                  const model = webAiModels.find(m => m.id === v);
+                  if (model?.locked) {
+                    toast({ title: 'Model Locked', description: `${model.name} requires Pro tier. Upgrade in Settings.`, variant: 'destructive' });
+                    return;
+                  }
+                  setWebAiModel(v);
+                }}>
+                  <SelectTrigger className="w-[220px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {webAiModels.map(m => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      <SelectItem key={m.id} value={m.id} disabled={m.locked}>
+                        <span className="flex items-center gap-1.5">
+                          {m.locked && <Lock size={11} weight="bold" className="text-zinc-500" />}
+                          {m.name}
+                          {m.tier === 'pro' && !m.locked && <Crown size={11} weight="fill" className="text-amber-400" />}
+                        </span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {webAiUsage && webAiUsage.limit !== null && (
-                  <span className="text-[10px] text-blue-400/70 font-mono whitespace-nowrap">
-                    {webAiUsage.current}/{webAiUsage.limit}
-                  </span>
+                {/* Tier badge + usage */}
+                {webAiUsage && (
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-5 border-blue-500/20 text-blue-400 uppercase">
+                      {webAiUsage.tier}
+                    </Badge>
+                    {webAiUsage.limit !== null && (
+                      <span className="text-[10px] text-blue-400/70 font-mono whitespace-nowrap">
+                        {webAiUsage.current}/{webAiUsage.limit}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
             )}
