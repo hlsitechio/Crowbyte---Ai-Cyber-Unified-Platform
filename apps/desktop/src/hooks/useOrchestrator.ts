@@ -3,21 +3,31 @@
  * Call once at the app root level.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth';
 import orchestrator from '@/services/agent-orchestrator';
 
 export function useOrchestrator() {
   const { user } = useAuth();
+  const startedRef = useRef(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) {
+      if (startedRef.current) {
+        orchestrator.stop();
+        startedRef.current = false;
+      }
+      return;
+    }
 
-    // Start queue processor with 10s polling interval
-    orchestrator.start(10000);
+    if (!startedRef.current) {
+      orchestrator.start(10000);
+      startedRef.current = true;
+    }
 
     return () => {
       orchestrator.stop();
+      startedRef.current = false;
     };
-  }, [user]);
+  }, [user?.id]);
 }

@@ -38,10 +38,10 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'data:', 'https:', 'https://fonts.gstatic.com'],
       imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
       connectSrc: ["'self'", 'wss:', 'ws:', 'https:'],
-      fontSrc: ["'self'", 'data:', 'https:'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'", 'blob:'],
       frameSrc: ["'none'"],
