@@ -37,6 +37,29 @@ router.get('/ip', async (_req: Request, res: Response): Promise<void> => {
 });
 
 /**
+ * GET /api/proxy/nvd/*
+ * Proxy to NVD API (avoids CORS on web)
+ */
+router.get('/nvd/*', async (req: Request, res: Response): Promise<void> => {
+  const downstreamPath = req.originalUrl.replace(/^\/api\/proxy\/nvd/, '');
+  const target = `https://services.nvd.nist.gov${downstreamPath}`;
+
+  try {
+    const response = await fetch(target, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    const data = await response.text();
+    res.status(response.status);
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'application/json');
+    res.send(data);
+  } catch (err) {
+    res.status(502).json({ error: 'Failed to reach NVD API', detail: (err as Error).message });
+  }
+});
+
+/**
  * ALL /api/proxy/openclaw/*
  * Proxy to OpenClaw VPS gateway (NVIDIA proxy, gateway API)
  * Preserves method, headers, and body.

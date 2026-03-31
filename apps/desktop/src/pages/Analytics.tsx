@@ -287,7 +287,11 @@ const Analytics = () => {
       const start = performance.now();
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch("https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=1", {
+      const isWeb = typeof window !== 'undefined' && !(window as any).electronAPI;
+      const nvdUrl = isWeb
+        ? '/api/proxy/nvd/rest/json/cves/2.0/?resultsPerPage=1'
+        : 'https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=1';
+      const res = await fetch(nvdUrl, {
         signal: controller.signal,
       });
       clearTimeout(timeout);
