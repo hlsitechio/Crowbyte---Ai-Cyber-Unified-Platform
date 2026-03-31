@@ -759,110 +759,120 @@ class AgentOrchestrator {
 
   /**
    * Dispatch a command to the OpenClaw VPS agent swarm.
-   * Returns the agent's output.
+   * Routes through our Express server relay API (/api/agents/dispatch).
+   * Falls back to Electron IPC SSH for desktop mode.
    */
   private async dispatchToVPS(
     agentType: string,
     command: string,
     timeoutMs: number
   ): Promise<Record<string, unknown>> {
-    const OPENCLAW_GATEWAY = 'https://srv1459982.hstgr.cloud';
-    const OPENCLAW_PASSWORD = 'iloveWintersun6?6';
-
-    // Map our agent types to OpenClaw agent names
-    const openclawAgentMap: Record<string, string> = {
-      recon: 'recon',
-      hunter: 'hunter',
-      triage: 'analyst',
-      sentinel: 'sentinel',
-      intel: 'intel',
-      'bug-watcher': 'intel',
-      coder: 'gpt',
-      reviewer: 'analyst',
-      tester: 'gpt',
-      debugger: 'gpt',
-      docs: 'gpt',
-      cicd: 'commander',
-      deployer: 'commander',
-      monitor: 'sentinel',
-      incident: 'commander',
-      support: 'obsidian',
-      onboard: 'obsidian',
-      escalation: 'commander',
-    };
-
-    const openclawAgent = openclawAgentMap[agentType] || 'main';
-
+    // Try server relay first (works for both web and desktop)
     try {
+      const serverUrl = this.getServerUrl();
       const controller = new AbortController();
-      const timeout = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
+      const abortTimeout = timeoutMs > 0
+        ? setTimeout(() => controller.abort(), timeoutMs + 15000) // Extra 15s for SSH overhead
+        : null;
 
-      const response = await fetch(`${OPENCLAW_GATEWAY}/api/agent/task`, {
+      const response = await fetch(`${serverUrl}/api/agents/dispatch`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENCLAW_PASSWORD}`,
+          'Authorization': `Bearer ${this.getAuthToken()}`,
         },
         body: JSON.stringify({
-          agent: openclawAgent,
-          message: command,
-          timeout: timeoutMs,
+          agent_type: agentType,
+          command,
+          timeout_seconds: Math.ceil(timeoutMs / 1000),
         }),
         signal: controller.signal,
       });
 
-      if (timeout) clearTimeout(timeout);
-
-      if (!response.ok) {
-        // Fallback: try SSH dispatch
-        return await this.dispatchViaSSH(openclawAgent, command);
-      }
+      if (abortTimeout) clearTimeout(abortTimeout);
 
       const result = await response.json();
-      return {
-        success: true,
-        agent: openclawAgent,
-        output: result.response || result.output || result,
-        timestamp: new Date().toISOString(),
-      };
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || `Server returned ${response.status}`);
+      }
+
+      return result;
     } catch (err) {
-      // Fallback to SSH on network error
-      console.warn('[orchestrator] Gateway failed, trying SSH fallback');
-      return await this.dispatchViaSSH(openclawAgent, command);
+      console.warn('[orchestrator] Server relay failed, trying Electron IPC fallback:', (err as Error).message);
+
+      // Fallback: Electron IPC → SSH (desktop only)
+      return await this.dispatchViaElectronSSH(agentType, command);
     }
   }
 
   /**
-   * SSH fallback for agent dispatch.
-   * Only works in Electron (not web).
+   * Get the CrowByte server URL.
    */
-  private async dispatchViaSSH(agent: string, command: string): Promise<Record<string, unknown>> {
-    // In Electron, we'd use node-pty or child_process via IPC
-    // In web, this is a no-op — tasks must go through the gateway
+  private getServerUrl(): string {
+    // Check for configured server URL
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      // If running on crowbyte.io, use same origin
+      if (origin.includes('crowbyte.io')) return origin;
+    }
+    // Default: local Express server
+    return import.meta.env.VITE_SERVER_URL || 'https://crowbyte.io';
+  }
+
+  /**
+   * Get the current auth token for API calls.
+   */
+  private getAuthToken(): string {
+    // Try to get from Supabase session
+    const storageKey = Object.keys(localStorage).find(k => k.includes('supabase') && k.includes('auth'));
+    if (storageKey) {
+      try {
+        const session = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        return session?.access_token || '';
+      } catch { /* ignore */ }
+    }
+    return '';
+  }
+
+  /**
+   * SSH fallback via Electron IPC (desktop only).
+   */
+  private async dispatchViaElectronSSH(agentType: string, command: string): Promise<Record<string, unknown>> {
     const isElectron = typeof window !== 'undefined' && !!(window as Record<string, unknown>).electronAPI;
 
     if (!isElectron) {
-      throw new Error('SSH fallback not available in web mode. Gateway unreachable.');
+      throw new Error('Agent dispatch failed: server relay unreachable and SSH not available in web mode');
     }
 
-    // Dispatch via Electron IPC → main process → SSH
     const electronAPI = (window as Record<string, unknown>).electronAPI as Record<string, (...args: unknown[]) => Promise<unknown>>;
 
-    if (electronAPI?.executeCommand) {
-      const escapedCommand = command.replace(/'/g, "'\\''");
-      const sshCmd = `ssh -o ConnectTimeout=10 root@187.124.85.249 "export OPENCLAW_GATEWAY_PASSWORD='iloveWintersun6?6' && openclaw agent --agent ${agent} --local -m '${escapedCommand}'"`;
-
-      const result = await electronAPI.executeCommand(sshCmd);
-      return {
-        success: true,
-        agent,
-        output: result,
-        method: 'ssh',
-        timestamp: new Date().toISOString(),
-      };
+    if (!electronAPI?.executeCommand) {
+      throw new Error('Electron executeCommand IPC not available');
     }
 
-    throw new Error('No execution channel available');
+    const agentMap: Record<string, string> = {
+      recon: 'recon', hunter: 'hunter', triage: 'analyst',
+      sentinel: 'sentinel', intel: 'intel', 'bug-watcher': 'intel',
+      coder: 'gpt', reviewer: 'analyst', tester: 'gpt',
+      debugger: 'gpt', docs: 'gpt', cicd: 'commander',
+      deployer: 'commander', monitor: 'sentinel', incident: 'commander',
+      support: 'obsidian', onboard: 'obsidian', escalation: 'commander',
+    };
+
+    const openclawAgent = agentMap[agentType] || 'main';
+    const escapedCommand = command.replace(/'/g, "'\\''");
+    const sshCmd = `ssh -o ConnectTimeout=10 root@187.124.85.249 "openclaw agent --agent ${openclawAgent} --local --json -m '${escapedCommand}'"`;
+
+    const result = await electronAPI.executeCommand(sshCmd);
+    return {
+      success: true,
+      agent: openclawAgent,
+      agent_type: agentType,
+      output: result,
+      method: 'ssh-ipc',
+      timestamp: new Date().toISOString(),
+    };
   }
 
   // ── Scheduling ──────────────────────────────────────────────────────────
