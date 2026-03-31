@@ -120,6 +120,10 @@ export default function AgentTeams() {
   const [newTaskInput, setNewTaskInput] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState('50');
 
+  // VPS health
+  const [vpsOnline, setVpsOnline] = useState<boolean | null>(null);
+  const [vpsVersion, setVpsVersion] = useState('');
+
   // New schedule dialog
   const [showNewSchedule, setShowNewSchedule] = useState(false);
   const [schedName, setSchedName] = useState('');
@@ -155,6 +159,14 @@ export default function AgentTeams() {
         setInstances(teamInstances);
         setSchedules(teamSchedules);
       }
+      // Check VPS health (non-blocking)
+      fetch(`${window.location.origin}/api/agents/status`)
+        .then(r => r.json())
+        .then(data => {
+          setVpsOnline(data.online);
+          setVpsVersion(data.version || '');
+        })
+        .catch(() => setVpsOnline(false));
     } catch (err) {
       console.error('[AgentTeams] Load error:', err);
     } finally {
@@ -295,6 +307,13 @@ export default function AgentTeams() {
           <Badge variant="outline" className="text-xs">
             {teams.length} teams
           </Badge>
+          {vpsOnline !== null && (
+            <div className="flex items-center gap-1.5 text-xs">
+              <div className={`w-2 h-2 rounded-full ${vpsOnline ? 'bg-green-400' : 'bg-red-400'}`} />
+              <span className="text-zinc-500">VPS {vpsOnline ? 'Online' : 'Offline'}</span>
+              {vpsVersion && <span className="text-zinc-600 text-[10px]">{vpsVersion.slice(0, 30)}</span>}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={loadData}>
@@ -810,55 +829,112 @@ function TaskRow({
   onRetry: (id: string) => void;
   expanded?: boolean;
 }) {
+  const [showOutput, setShowOutput] = useState(false);
   const statusInfo = STATUS_BADGE[task.status] || STATUS_BADGE.queued;
   const typeLabel = TASK_TYPE_LABELS[task.task_type as TaskType] || task.task_type;
+  const hasOutput = task.output && Object.keys(task.output).length > 0;
+  const hasError = !!task.error;
+  const durationMs = task.started_at && task.completed_at
+    ? new Date(task.completed_at).getTime() - new Date(task.started_at).getTime()
+    : null;
 
   return (
-    <div className="flex items-center justify-between p-3 bg-zinc-900/50 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors">
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className={`w-1.5 h-8 rounded-full ${
-          task.status === 'running' ? 'bg-blue-400 animate-pulse' :
-          task.status === 'completed' ? 'bg-green-400' :
-          task.status === 'failed' ? 'bg-red-400' :
-          task.status === 'queued' ? 'bg-amber-400' : 'bg-zinc-600'
-        }`} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{task.agent_type}</span>
-            <span className="text-xs text-zinc-500">→</span>
-            <span className="text-xs text-zinc-400">{typeLabel}</span>
-            <Badge variant={statusInfo.variant} className="text-[10px] h-5">
-              {statusInfo.label}
-            </Badge>
-            {task.priority > 75 && (
-              <AlertTriangle className="w-3 h-3 text-amber-400" />
-            )}
-          </div>
-          {expanded && (
-            <div className="mt-1 text-xs text-zinc-500 truncate max-w-[500px]">
-              {task.error || JSON.stringify(task.input).slice(0, 100)}
+    <div className="bg-zinc-900/50 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors">
+      <div
+        className="flex items-center justify-between p-3 cursor-pointer"
+        onClick={() => (hasOutput || hasError) && setShowOutput(!showOutput)}
+      >
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className={`w-1.5 h-8 rounded-full ${
+            task.status === 'running' ? 'bg-blue-400 animate-pulse' :
+            task.status === 'completed' ? 'bg-green-400' :
+            task.status === 'failed' ? 'bg-red-400' :
+            task.status === 'queued' ? 'bg-amber-400' : 'bg-zinc-600'
+          }`} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">{task.agent_type}</span>
+              <span className="text-xs text-zinc-500">&rarr;</span>
+              <span className="text-xs text-zinc-400">{typeLabel}</span>
+              <Badge variant={statusInfo.variant} className="text-[10px] h-5">
+                {statusInfo.label}
+              </Badge>
+              {task.priority > 75 && (
+                <AlertTriangle className="w-3 h-3 text-amber-400" />
+              )}
+              {(hasOutput || hasError) && (
+                <ChevronRight className={`w-3 h-3 text-zinc-500 transition-transform ${showOutput ? 'rotate-90' : ''}`} />
+              )}
             </div>
-          )}
-          <div className="flex gap-3 mt-0.5 text-[10px] text-zinc-600">
-            <span>P{task.priority}</span>
-            {task.started_at && <span>Started: {new Date(task.started_at).toLocaleTimeString()}</span>}
-            {task.completed_at && <span>Done: {new Date(task.completed_at).toLocaleTimeString()}</span>}
-            {task.retry_count > 0 && <span className="text-amber-500">Retry {task.retry_count}/{task.max_retries}</span>}
+            {expanded && !showOutput && (
+              <div className="mt-1 text-xs text-zinc-500 truncate max-w-[500px]">
+                {task.error || JSON.stringify(task.input).slice(0, 120)}
+              </div>
+            )}
+            <div className="flex gap-3 mt-0.5 text-[10px] text-zinc-600">
+              <span>P{task.priority}</span>
+              {task.started_at && <span>Started: {new Date(task.started_at).toLocaleTimeString()}</span>}
+              {durationMs !== null && <span className="text-zinc-400">{(durationMs / 1000).toFixed(1)}s</span>}
+              {task.retry_count > 0 && <span className="text-amber-500">Retry {task.retry_count}/{task.max_retries}</span>}
+            </div>
           </div>
         </div>
+        <div className="flex items-center gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+          {(task.status === 'queued' || task.status === 'assigned') && (
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onCancel(task.id)}>
+              <XCircle className="w-3.5 h-3.5 text-zinc-500" />
+            </Button>
+          )}
+          {task.status === 'failed' && task.retry_count < task.max_retries && (
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRetry(task.id)}>
+              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-1 ml-2">
-        {(task.status === 'queued' || task.status === 'assigned') && (
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onCancel(task.id)}>
-            <XCircle className="w-3.5 h-3.5 text-zinc-500" />
-          </Button>
+
+      {/* Expandable Output Panel */}
+      <AnimatePresence>
+        {showOutput && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 space-y-2">
+              {/* Input */}
+              <div className="border-t border-zinc-800 pt-2">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-600 mb-1">Input</p>
+                <pre className="text-xs text-zinc-400 bg-black/30 rounded p-2 overflow-x-auto max-h-32 whitespace-pre-wrap font-mono">
+                  {JSON.stringify(task.input, null, 2)}
+                </pre>
+              </div>
+
+              {/* Output */}
+              {hasOutput && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-green-600 mb-1">Output</p>
+                  <pre className="text-xs text-green-300/80 bg-black/30 rounded p-2 overflow-x-auto max-h-64 whitespace-pre-wrap font-mono">
+                    {typeof task.output === 'string' ? task.output : JSON.stringify(task.output, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Error */}
+              {hasError && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-red-600 mb-1">Error</p>
+                  <pre className="text-xs text-red-300/80 bg-red-950/20 rounded p-2 overflow-x-auto max-h-32 whitespace-pre-wrap font-mono">
+                    {task.error}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
-        {task.status === 'failed' && task.retry_count < task.max_retries && (
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRetry(task.id)}>
-            <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-          </Button>
-        )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }
