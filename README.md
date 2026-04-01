@@ -49,17 +49,18 @@ Full xterm.js terminal with tmux session management, powered by node-pty. Run Nm
 Monitor endpoints, VPS nodes, and containers from a single dashboard. Real-time hardware metrics (CPU, RAM, disk, network), process inspection, and remote agent deployment. Built-in remote desktop with encrypted communication.
 
 ### Report Generator
-Generate professional pentest and bug bounty reports. Templates for HackerOne, Bugcrowd, and custom formats. Pull findings into structured reports with severity, evidence, and reproduction steps. Export as Markdown, HTML, or platform-specific JSON.
+Generate professional pentest and bug bounty reports. Templates for HackerOne, Bugcrowd, and custom formats. Pull findings into structured reports with severity, evidence, and reproduction steps. Export as Markdown, HTML, PDF-ready HTML, HackerOne JSON, Bugcrowd JSON, or Raw JSON.
 
 ### Detection Rule Lab
 Author, test, and manage detection rules across formats:
 - **SIGMA** rules for SIEM correlation
 - **KQL** queries for Azure Sentinel / Elastic
+- **SPL** (Splunk Processing Language) for Splunk searches
 - **YARA** rules for malware analysis
 - **Snort / Suricata** signatures for network detection
 
 ### Alert Center
-Centralized alert management with support for multiple source types. Ingest, triage, and correlate alerts with your findings. Connector framework for Splunk, Elasticsearch, and webhook sources.
+Centralized alert management with support for multiple source types. Ingest, triage, and correlate alerts with your findings. Connector framework for Splunk, Elastic SIEM, Microsoft Sentinel, CrowdStrike Falcon, Syslog, PagerDuty, and webhook sources.
 
 ### Knowledge Base
 Searchable research database for techniques, tool notes, methodology references, and engagement intelligence. Tag, categorize, and attach files. Full-text search across all entries.
@@ -97,7 +98,7 @@ CrowByte ships with a multi-model AI gateway. Pro users get access to all models
 
 | Provider | Models | Availability |
 |----------|--------|:------------:|
-| **OpenClaw Gateway** | DeepSeek V3.2, Qwen3 Coder 480B, Qwen 3.5 397B, Mistral Large 675B, Kimi K2, GLM5 | Web + Desktop |
+| **OpenClaw Gateway** | DeepSeek V3.2, Qwen3 Coder 480B, Qwen 3.5 397B, Mistral Large 675B, Devstral 123B, Kimi K2, GLM5 | Web + Desktop |
 | **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 | Desktop beta only |
 | **NVIDIA NIM** | Any NIM-hosted model | Via OpenClaw gateway |
 | **Self-hosted** | Ollama / vLLM | Desktop only |
@@ -111,11 +112,11 @@ The web app uses the OpenClaw gateway. Claude and self-hosted models require the
 
 | Tier | Price | Includes |
 |------|-------|----------|
-| **Free** | $0 | 3 AI models, 50 messages/day, web access, CVE database, knowledge base |
-| **Pro Beta** | $19/mo | All 7 AI models, unlimited messages, 3 custom agents, desktop beta access |
-| **Enterprise** | Coming Soon | Unlimited agents, API access, fleet management, dedicated SLA |
+| **Free** | $0 | Web access, CVE database, knowledge base, limited AI chat |
+| **Pro** | $29/mo or $290/yr | Web + Desktop app, 10 custom agents, all MCP tools, 3 VPS agents, 5 red team ops, priority email support |
+| **Team** | $79/mo or $790/yr | Everything in Pro, unlimited custom agents, 9 VPS agents, unlimited red team ops, early beta access, priority + chat support |
 
-Visit [crowbyte.io](https://crowbyte.io) to get started.
+Payment is processed via PayPal. Visit [crowbyte.io](https://crowbyte.io) to get started.
 
 ---
 
