@@ -12,10 +12,6 @@
   <img src="https://img.shields.io/badge/Platform-Web-3b82f6?style=flat-square" alt="Platform" />
 </p>
 
-<p align="center">
-  <img src="https://crowbyte.io/og-image.png" alt="CrowByte — AI-Powered Offensive Security Platform" width="720" />
-</p>
-
 ---
 
 > **Web Beta is live!** Sign up free at [crowbyte.io](https://crowbyte.io).
