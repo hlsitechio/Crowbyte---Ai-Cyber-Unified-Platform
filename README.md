@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="https://crowbyte.io/og-image.png" alt="CrowByte — The Unified AI Platform for Security Teams" width="800" />
+  <img src="https://crowbyte.io/og-image.png?v=2" alt="CrowByte — The Unified AI Platform for Security Teams" width="800" />
 </p>
 
 ---
