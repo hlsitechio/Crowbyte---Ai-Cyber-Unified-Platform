@@ -72,5 +72,5 @@ All from one window.
 ---
 
 <p align="center">
-  Built by <a href="https://x.com/raabordes">Rainkode</a> — by hackers, for hackers.
+  Built by <a href="https://x.com/rainkode174818">Rainkode</a> — by hackers, for hackers.
 </p>
