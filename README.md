@@ -22,33 +22,27 @@
 
 ## The Problem
 
-Penetration testers juggle 20+ browser tabs, terminal windows, note apps, and reporting tools every single engagement. Context gets lost. Findings slip through the cracks. Reports take hours to assemble.
+Every engagement starts the same way — twenty browser tabs, a handful of terminals, a notes app, a reporting template, and the constant fear of losing context mid-hunt. Your tools don't talk to each other. Your findings live in five different places. Reports take longer to write than the actual testing.
 
 ## The Solution
 
-CrowByte replaces your fragmented workflow with **one unified command center** — AI-powered, built for offensive security.
+CrowByte puts your entire offensive security workflow in **one window**.
 
-- **9 autonomous AI agents** working in parallel across your engagement
-- **7 LLM providers** with 12+ models — use the right brain for the right job
-- **53 integrated pages** covering every phase from recon to final report
-- **Real-time CVE intelligence** powered by NVD, Shodan CVEDB, and CISA KEV
-- **Professional report generation** in HackerOne and Bugcrowd formats
-- **Detection Rule Lab** for SIGMA, KQL, YARA, and Snort/Suricata
-- **Fleet management** with encrypted remote desktop
-- **Integrated terminal** with tmux session management
+- **AI agents that actually hunt** — deploy them on a target, they run recon, flag vulns, and feed results back to you
+- **CVE intelligence that stays current** — real-time data from NVD, Shodan, and CISA KEV, searchable and bookmarkable
+- **Reports that write themselves** — findings auto-populate into HackerOne and Bugcrowd-ready formats
+- **A terminal that remembers** — integrated shell with session management, output capture, and evidence linking
+- **Detection rules you can test** — author SIGMA, YARA, KQL, and Snort rules without leaving the platform
+- **Fleet-wide visibility** — monitor your VPS nodes, containers, and endpoints with encrypted remote access
 
 ## Who Is It For
 
-- **Bug bounty hunters** — manage programs, track findings, generate submission-ready reports
+- **Bug bounty hunters** — manage programs, track findings, submit reports faster
 - **Penetration testers** — plan engagements, run tools, document everything in one place
-- **Red team operators** — coordinate operations, deploy agents, maintain persistent access
-- **Security engineers** — build detection rules, monitor alerts, manage compliance
+- **Red team operators** — coordinate operations, deploy agents, maintain persistence
+- **Security engineers** — build detections, monitor alerts, manage compliance
 
 ## How It Works
-
-```
-Scope Import → Recon → Enumeration → Vulnerability Analysis → Exploitation → Reporting
-```
 
 Define your target. Deploy AI agents. Discover vulnerabilities. Chain findings for maximum impact. Generate a professional report. Submit.
 
@@ -58,16 +52,16 @@ All from one window.
 
 | Tier | Price | What You Get |
 |------|-------|--------------|
-| **Free** | $0 | 3 AI models, 50 messages/day, CVE database, knowledge base |
-| **Pro** | $19/mo | All models, unlimited messages, custom agents, desktop access |
-| **Enterprise** | Contact us | Unlimited everything, API access, fleet management, dedicated SLA |
+| **Free** | $0 | AI chat, CVE database, knowledge base, web access |
+| **Pro** | $19/mo | All models, unlimited usage, custom agents, desktop app |
+| **Enterprise** | Contact us | Full platform, API access, fleet management, dedicated SLA |
 
 ## Security & Privacy
 
 - **Zero telemetry** — no usage data leaves your machine
 - **End-to-end encryption** — AES-256-GCM for remote desktop and conversations
-- **Self-hostable** — full data sovereignty with your own Supabase backend
-- **Row Level Security** — PostgreSQL RLS on every table
+- **Self-hostable** — full data sovereignty with your own backend
+- **Row Level Security** — every database table, every query
 
 ## Links
 
