@@ -64,6 +64,18 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// General API rate limiter (100 requests per minute per IP)
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests. Slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === '/api/health',
+});
+
+app.use('/api/', apiLimiter);
+
 // JWT auth for API routes
 app.use(authMiddleware);
 

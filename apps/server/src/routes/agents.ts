@@ -7,11 +7,19 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
+import { spawn } from 'node:child_process';
+import rateLimit from 'express-rate-limit';
 
-const execAsync = promisify(exec);
 const router = Router();
+
+// Rate limiter for agent endpoints
+const agentLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: { error: 'Too many agent dispatches. Slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // OpenClaw VPS config
 const VPS_HOST = process.env.OPENCLAW_VPS_HOST || '187.124.85.249';
@@ -27,7 +35,7 @@ const MAX_CONCURRENT_DISPATCHES = 10;
  * POST /api/agents/dispatch
  * Execute an agent command on the OpenClaw VPS via SSH.
  */
-router.post('/dispatch', async (req: Request, res: Response): Promise<void> => {
+router.post('/dispatch', agentLimiter, async (req: Request, res: Response): Promise<void> => {
   const { agent_type, command, timeout_seconds, session_id } = req.body;
 
   if (!agent_type || !command) {
@@ -69,25 +77,35 @@ router.post('/dispatch', async (req: Request, res: Response): Promise<void> => {
   activeDispatches.set(dispatchId, { startedAt: Date.now(), agentType: agent_type });
 
   try {
-    // Escape the command for SSH
-    const escapedCommand = command
-      .replace(/\\/g, '\\\\')
-      .replace(/'/g, "'\\''")
-      .replace(/"/g, '\\"')
-      .replace(/\$/g, '\\$')
-      .replace(/`/g, '\\`');
-
-    // Build the openclaw command — merge stderr into stdout (openclaw outputs JSON on stderr)
-    const sessionFlag = session_id ? `--session-id "${session_id}"` : '';
-    const openclawCmd = `openclaw agent --agent ${openclawAgent} --local --json --timeout ${taskTimeout} ${sessionFlag} -m '${escapedCommand}' 2>&1`;
-
-    const sshCmd = `ssh -o ConnectTimeout=${SSH_TIMEOUT} -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "${openclawCmd}"`;
+    // Build SSH args as an array — no shell interpolation, no escaping needed
+    const sshArgs = [
+      '-o', `ConnectTimeout=${SSH_TIMEOUT}`,
+      '-o', 'StrictHostKeyChecking=no',
+      `${VPS_USER}@${VPS_HOST}`,
+      'openclaw', 'agent',
+      '--agent', openclawAgent,
+      '--local', '--json',
+      '--timeout', String(taskTimeout),
+      ...(session_id ? ['--session-id', String(session_id)] : []),
+      '-m', command,
+    ];
 
     console.log(`[agents] Dispatching to ${openclawAgent}: ${command.slice(0, 100)}...`);
 
-    const { stdout, stderr } = await execAsync(sshCmd, {
-      timeout: (taskTimeout + SSH_TIMEOUT + 5) * 1000,
-      maxBuffer: 10 * 1024 * 1024, // 10MB
+    const { stdout, stderr } = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+      const child = spawn('ssh', sshArgs, {
+        timeout: (taskTimeout + SSH_TIMEOUT + 5) * 1000,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      let stdoutBuf = '';
+      let stderrBuf = '';
+      child.stdout.on('data', (d: Buffer) => { stdoutBuf += d.toString(); });
+      child.stderr.on('data', (d: Buffer) => { stderrBuf += d.toString(); });
+      child.on('close', (code) => {
+        if (code !== 0 && !stdoutBuf) reject(new Error(`SSH exited with code ${code}: ${stderrBuf}`));
+        else resolve({ stdout: stdoutBuf, stderr: stderrBuf });
+      });
+      child.on('error', reject);
     });
 
     // Extract the JSON output from stdout
@@ -180,12 +198,20 @@ router.post('/dispatch', async (req: Request, res: Response): Promise<void> => {
  * GET /api/agents/status
  * Check VPS connectivity and agent health.
  */
-router.get('/status', async (_req: Request, res: Response): Promise<void> => {
+router.get('/status', agentLimiter, async (_req: Request, res: Response): Promise<void> => {
   try {
-    const { stdout } = await execAsync(
-      `ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "openclaw --version 2>&1; echo '---'; docker ps --format '{{.Names}} {{.Status}}' 2>/dev/null | head -15"`,
-      { timeout: 15000 }
-    );
+    const { stdout } = await new Promise<{ stdout: string }>((resolve, reject) => {
+      const child = spawn('ssh', [
+        '-o', 'ConnectTimeout=5',
+        '-o', 'StrictHostKeyChecking=no',
+        `${VPS_USER}@${VPS_HOST}`,
+        'bash', '-c', 'openclaw --version 2>&1; echo "---"; docker ps --format "{{.Names}} {{.Status}}" 2>/dev/null | head -15',
+      ], { timeout: 15000, stdio: ['ignore', 'pipe', 'pipe'] });
+      let stdoutBuf = '';
+      child.stdout.on('data', (d: Buffer) => { stdoutBuf += d.toString(); });
+      child.on('close', () => resolve({ stdout: stdoutBuf }));
+      child.on('error', reject);
+    });
 
     const parts = stdout.split('---');
     const version = parts[0]?.trim() || 'unknown';
@@ -219,7 +245,7 @@ router.get('/status', async (_req: Request, res: Response): Promise<void> => {
  * POST /api/agents/batch
  * Submit multiple agent commands. Returns results as they complete.
  */
-router.post('/batch', async (req: Request, res: Response): Promise<void> => {
+router.post('/batch', agentLimiter, async (req: Request, res: Response): Promise<void> => {
   const { tasks } = req.body;
 
   if (!Array.isArray(tasks) || tasks.length === 0) {
@@ -245,13 +271,32 @@ router.post('/batch', async (req: Request, res: Response): Promise<void> => {
       };
 
       const openclawAgent = agentMap[task.agent_type] || 'main';
-      const escapedCommand = task.command.replace(/'/g, "'\\''").replace(/"/g, '\\"').replace(/\$/g, '\\$');
       const timeout = task.timeout_seconds || AGENT_TIMEOUT;
 
-      const { stdout } = await execAsync(
-        `ssh -o ConnectTimeout=${SSH_TIMEOUT} -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "openclaw agent --agent ${openclawAgent} --local --json --timeout ${timeout} -m '${escapedCommand}'"`,
-        { timeout: (timeout + SSH_TIMEOUT + 5) * 1000, maxBuffer: 10 * 1024 * 1024 }
-      );
+      const sshArgs = [
+        '-o', `ConnectTimeout=${SSH_TIMEOUT}`,
+        '-o', 'StrictHostKeyChecking=no',
+        `${VPS_USER}@${VPS_HOST}`,
+        'openclaw', 'agent',
+        '--agent', openclawAgent,
+        '--local', '--json',
+        '--timeout', String(timeout),
+        '-m', task.command,
+      ];
+
+      const { stdout } = await new Promise<{ stdout: string }>((resolve, reject) => {
+        const child = spawn('ssh', sshArgs, {
+          timeout: (timeout + SSH_TIMEOUT + 5) * 1000,
+          stdio: ['ignore', 'pipe', 'pipe'],
+        });
+        let stdoutBuf = '';
+        child.stdout.on('data', (d: Buffer) => { stdoutBuf += d.toString(); });
+        child.on('close', (code) => {
+          if (code !== 0 && !stdoutBuf) reject(new Error(`SSH exited with code ${code}`));
+          else resolve({ stdout: stdoutBuf });
+        });
+        child.on('error', reject);
+      });
 
       let output: unknown;
       try { output = JSON.parse(stdout); } catch { output = stdout.trim(); }

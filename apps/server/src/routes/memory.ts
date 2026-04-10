@@ -7,9 +7,22 @@ import { Router, Request, Response } from 'express';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync } from 'node:fs';
+import rateLimit from 'express-rate-limit';
 
 const execFileAsync = promisify(execFile);
 const router = Router();
+
+// Rate limit memory routes: 60 per minute per IP
+const memoryLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: 'Too many memory requests. Slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiter to all routes in this router
+router.use(memoryLimiter);
 
 // Path to memory-engine bridge script
 const BRIDGE_PATH = process.env.MEMORY_BRIDGE_PATH || '/opt/crowbyte/memory-engine/bridge.py';

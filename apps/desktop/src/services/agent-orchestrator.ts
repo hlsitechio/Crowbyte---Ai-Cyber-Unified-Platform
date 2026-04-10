@@ -813,8 +813,11 @@ class AgentOrchestrator {
     // Check for configured server URL
     if (typeof window !== 'undefined') {
       const origin = window.location.origin;
-      // If running on crowbyte.io, use same origin
-      if (origin.includes('crowbyte.io')) return origin;
+      // If running on crowbyte.io, use same origin (strict hostname check)
+      try {
+        const hostname = new URL(origin).hostname;
+        if (hostname === 'crowbyte.io' || hostname.endsWith('.crowbyte.io')) return origin;
+      } catch {}
     }
     // Default: local Express server
     return import.meta.env.VITE_SERVER_URL || 'https://crowbyte.io';

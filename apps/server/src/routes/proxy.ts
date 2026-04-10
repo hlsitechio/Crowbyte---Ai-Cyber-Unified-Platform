@@ -42,6 +42,19 @@ router.get('/ip', async (_req: Request, res: Response): Promise<void> => {
  */
 router.get('/nvd/*', async (req: Request, res: Response): Promise<void> => {
   const downstreamPath = req.originalUrl.replace(/^\/api\/proxy\/nvd/, '');
+
+  // Validate: only allow NVD REST API paths (prevent SSRF to internal services)
+  if (!/^\/rest\/json\//.test(downstreamPath)) {
+    res.status(400).json({ error: 'Invalid NVD API path' });
+    return;
+  }
+
+  // Block path traversal and protocol smuggling
+  if (downstreamPath.includes('..') || downstreamPath.includes('\\') || downstreamPath.includes('\r') || downstreamPath.includes('\n')) {
+    res.status(400).json({ error: 'Invalid characters in path' });
+    return;
+  }
+
   const target = `https://services.nvd.nist.gov${downstreamPath}`;
 
   try {
