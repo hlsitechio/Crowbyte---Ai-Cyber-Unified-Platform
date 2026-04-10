@@ -63,14 +63,14 @@ All from one window.
 - **Self-hostable** — full data sovereignty with your own backend
 - **Row Level Security** — every database table, every query
 
-## Links
-
-- **Web App**: [crowbyte.io](https://crowbyte.io)
-- **Support**: [support@crowbyte.io](mailto:support@crowbyte.io)
-- **Security**: [security@crowbyte.io](mailto:security@crowbyte.io)
-
 ---
 
 <p align="center">
-  Built by <a href="https://x.com/rainkode174818">Rainkode</a> — by hackers, for hackers.
+  <a href="https://crowbyte.io">crowbyte.io</a> &bull;
+  <a href="mailto:support@crowbyte.io">Support</a> &bull;
+  <a href="mailto:security@crowbyte.io">Security</a>
+</p>
+
+<p align="center">
+  <sub>Built by <a href="https://x.com/rainkode174818">@Rainkode</a></sub>
 </p>
