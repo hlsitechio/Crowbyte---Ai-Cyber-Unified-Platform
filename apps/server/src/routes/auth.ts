@@ -15,6 +15,15 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limit all other auth routes: 30 per 15 minutes per IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'Too many auth attempts. Try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Hash the default password at startup
 let adminPasswordHash: string | null = null;
 
@@ -79,7 +88,7 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
 });
 
 // POST /api/auth/refresh
-router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
+router.post('/refresh', authLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { refreshToken } = req.body;
 

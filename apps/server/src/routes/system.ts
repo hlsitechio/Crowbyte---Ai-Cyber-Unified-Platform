@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import si from 'systeminformation';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import rateLimit from 'express-rate-limit';
 import {
   readCpuUsage,
   readMemory,
@@ -13,6 +14,18 @@ import {
 
 const execAsync = promisify(exec);
 const router = Router();
+
+// Rate limit system routes: 60 per minute per IP
+const systemLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: 'Too many system requests. Slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiter to all routes in this router
+router.use(systemLimiter);
 
 // GET /api/system/overview
 router.get('/overview', async (_req: Request, res: Response): Promise<void> => {

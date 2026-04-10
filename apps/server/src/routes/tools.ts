@@ -1,10 +1,19 @@
 import { Router, Request, Response } from 'express';
 import { exec, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
+import rateLimit from 'express-rate-limit';
 // access/constants removed — not currently needed
 
 const execAsync = promisify(exec);
 const router = Router();
+
+const toolExecuteLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { error: 'Too many tool executions. Slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Whitelist of allowed security tool binaries
 // NOTE: curl intentionally excluded — it enables SSRF (arbitrary HTTP requests to internal services)
@@ -129,7 +138,7 @@ export const activeExecutions = new Map<string, {
 }>();
 
 // POST /api/tools/execute
-router.post('/execute', async (req: Request, res: Response): Promise<void> => {
+router.post('/execute', toolExecuteLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     // Enforce concurrent execution limit
     if (activeExecutions.size >= MAX_CONCURRENT_EXECUTIONS) {
@@ -155,6 +164,14 @@ router.post('/execute', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // After validating the command is in ALLOWED_TOOLS, resolve to the FULL binary path
+    const binaryName = command.split('/').pop()?.split(' ')[0] ?? '';
+    const resolvedPath = await findToolPath(binaryName);
+    if (!resolvedPath) {
+      res.status(404).json({ error: `Tool '${binaryName}' is whitelisted but not found on system` });
+      return;
+    }
+
     if (!Array.isArray(args)) {
       res.status(400).json({ error: 'args must be an array of strings' });
       return;
@@ -165,8 +182,8 @@ router.post('/execute', async (req: Request, res: Response): Promise<void> => {
 
     const executionId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-    // Spawn the process
-    const child = spawn(command, cleanArgs, {
+    // Use resolved absolute path, not user-supplied command
+    const child = spawn(resolvedPath, cleanArgs, {
       timeout: maxTimeout,
       env: { ...process.env, TERM: 'xterm-256color' },
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -262,7 +279,7 @@ function validateTarget(target: string): boolean {
 }
 
 // POST /api/tools/scan — quick scan presets
-router.post('/scan', async (req: Request, res: Response): Promise<void> => {
+router.post('/scan', toolExecuteLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     // Enforce concurrent execution limit
     if (activeExecutions.size >= MAX_CONCURRENT_EXECUTIONS) {

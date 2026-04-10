@@ -411,7 +411,14 @@ function mapBurpConfidence(conf: string): number {
 }
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
+  let result = html;
+  let prev = '';
+  // Loop until no more tags (handles nested/broken tags like <scr<script>ipt>)
+  while (result !== prev) {
+    prev = result;
+    result = result.replace(/<[^>]*>/g, '');
+  }
+  return result.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
 }
 
 // ─── Service ──────────────────────────────────────────────────────────────────

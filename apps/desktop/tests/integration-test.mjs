@@ -643,6 +643,7 @@ test('Scope parsing handles all field types', () => {
 
   const allTargets = [...scope.domains, ...scope.ips, ...scope.urls];
   assert(allTargets.length === 5);
+  // lgtm[js/incomplete-url-substring-sanitization] — Array.includes on string array, not URL validation
   assert(!allTargets.includes('dev.target.com'), 'Exclusions should not be in targets');
 });
 

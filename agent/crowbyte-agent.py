@@ -186,9 +186,15 @@ def make_request(url: str, data: dict, api_key: str, verify_ssl: bool = True) ->
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         body = e.read().decode() if e.fp else ''
-        return {'error': f'HTTP {e.code}: {body}'}
+        # Sanitize response body to prevent leaking reflected auth headers
+        sanitized = body.replace(api_key, '***') if api_key and body else body
+        return {'error': f'HTTP {e.code}: {sanitized}'}
     except Exception as e:
-        return {'error': str(e)}
+        err_msg = str(e)
+        # Sanitize error message to prevent leaking API key
+        if api_key:
+            err_msg = err_msg.replace(api_key, '***')
+        return {'error': err_msg}
 
 
 # ─── Config ──────────────────────────────────────────────────────────────────
