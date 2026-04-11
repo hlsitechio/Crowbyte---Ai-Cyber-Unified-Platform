@@ -47,6 +47,7 @@ export async function activateSubscription(opts: {
   period: "monthly" | "annual";
   orderId: string;
   paypalEmail?: string;
+  paypalTransactionId?: string;
   status?: ActivateStatus;
 }): Promise<ActivationResult> {
   const { data: { user } } = await supabase.auth.getUser();

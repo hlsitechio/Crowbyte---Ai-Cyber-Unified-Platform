@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { FloppyDisk, Trash, ArrowsClockwise, Wrench, Database } from "@phosphor-icons/react";
+import { UilSave, UilTrashAlt, UilSync, UilWrench, UilDatabase } from "@iconscout/react-unicons";
 import { useToast } from "@/hooks/use-toast";
 import { useLogs } from "@/contexts/logs";
 import { cacheService, type CacheStats } from "@/services/cache";
@@ -161,7 +161,7 @@ export default function AdvancedSettings() {
               onClick={handleSaveAdvanced}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              <FloppyDisk size={16} weight="bold" className="mr-2" />
+              <UilSave size={16} className="mr-2" />
               Save Advanced Settings
             </Button>
           </div>
@@ -194,7 +194,7 @@ export default function AdvancedSettings() {
               disabled={logs.length === 0}
               className="bg-transparent hover:bg-white/[0.03] border border-transparent"
             >
-              <Trash size={16} weight="bold" className="mr-2" />
+              <UilTrashAlt size={16} className="mr-2" />
               Clear Logs
             </Button>
           </div>
@@ -205,7 +205,7 @@ export default function AdvancedSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Database size={20} weight="duotone" />
+            <UilDatabase size={20} />
             Cache Management
           </CardTitle>
           <CardDescription>Monitor and manage Supabase cache for API responses and conversations</CardDescription>
@@ -213,7 +213,7 @@ export default function AdvancedSettings() {
         <CardContent className="space-y-4">
           {loadingCache ? (
             <div className="flex items-center justify-center py-8">
-              <ArrowsClockwise size={32} weight="duotone" className="animate-spin text-primary" />
+              <UilSync size={32} className="animate-spin text-primary" />
             </div>
           ) : (
             <>
@@ -270,7 +270,7 @@ export default function AdvancedSettings() {
                   disabled={loadingCache}
                   className="flex-1"
                 >
-                  <ArrowsClockwise size={16} weight="bold" className={`mr-2 ${loadingCache ? 'animate-spin' : ''}`} />
+                  <UilSync size={16} className={`mr-2 ${loadingCache ? 'animate-spin' : ''}`} />
                   Refresh Stats
                 </Button>
                 <Button
@@ -279,7 +279,7 @@ export default function AdvancedSettings() {
                   size="sm"
                   className="flex-1"
                 >
-                  <Wrench size={16} weight="bold" className="mr-2" />
+                  <UilWrench size={16} className="mr-2" />
                   Cleanup Expired
                 </Button>
                 <Button
@@ -289,7 +289,7 @@ export default function AdvancedSettings() {
                   disabled={clearingCache || cacheStats.length === 0}
                   className="flex-1 bg-transparent hover:bg-white/[0.03] border border-transparent"
                 >
-                  <Trash size={16} weight="bold" className="mr-2" />
+                  <UilTrashAlt size={16} className="mr-2" />
                   Clear All Cache
                 </Button>
               </div>

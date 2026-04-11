@@ -665,7 +665,7 @@ class AgentTesterService {
         console.error(`[ERROR] Test ${testCase.id} failed:`, error);
         console.error(`[ERROR] Error type:`, error instanceof Error ? error.constructor.name : typeof error);
         console.error(`[ERROR] Error message:`, error instanceof Error ? error.message : String(error));
-        console.error(`[ERROR] Stack trace:`, error instanceof Error ? error.stack : 'No stack trace');
+        console.error(`[ERROR] UilLayerGroup trace:`, error instanceof Error ? error.stack : 'No stack trace');
         console.log(`  ❌ ${testCase.name} - FAILED`);
 
         results.push({

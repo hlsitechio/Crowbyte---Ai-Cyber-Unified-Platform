@@ -9,13 +9,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Headset,
-  X,
-  Shield,
-  Eye,
-  WifiHigh,
-  Check,
-} from "lucide-react";
+  UilHeadphones,
+  UilTimes,
+  UilShield,
+  UilEye,
+  UilWifi,
+  UilCheck,
+} from "@iconscout/react-unicons";
 import {
   createSupportSession,
   startStreaming,
@@ -105,7 +105,7 @@ export function SupportBanner() {
         className="fixed bottom-4 right-4 z-50 w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-blue-500/10 hover:border-blue-500/30 transition-all flex items-center justify-center group"
         title="Request live support"
       >
-        <Headset size={16} className="text-zinc-500 group-hover:text-blue-400 transition-colors" />
+        <UilHeadphones size={16} className="text-zinc-500 group-hover:text-blue-400 transition-colors" />
       </button>
     );
   }
@@ -125,11 +125,11 @@ export function SupportBanner() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-[#111] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full space-y-5"
+              className="bg-popover border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full space-y-5"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                  <Headset size={20} className="text-blue-400" />
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <UilHeadphones size={20} className="text-blue-400" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-white">Live Support Session</h3>
@@ -143,9 +143,9 @@ export function SupportBanner() {
                 </p>
                 <div className="space-y-1.5">
                   {[
-                    [Eye, "Your current page and navigation"],
-                    [Shield, "Error logs and console output"],
-                    [WifiHigh, "Network requests and performance"],
+                    [UilEye, "Your current page and navigation"],
+                    [UilShield, "Error logs and console output"],
+                    [UilWifi, "Network requests and performance"],
                   ].map(([Icon, label], i) => (
                     <div key={i} className="flex items-center gap-2 text-xs text-zinc-500">
                       <Icon size={12} className="text-zinc-600 flex-shrink-0" />
@@ -171,7 +171,7 @@ export function SupportBanner() {
                   onClick={handleAccept}
                   className="flex-1 h-9 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-medium transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Check size={12} /> Accept & Connect
+                  <UilCheck size={12} /> Accept & Connect
                 </button>
               </div>
             </motion.div>
@@ -185,7 +185,7 @@ export function SupportBanner() {
           initial={{ y: -40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -40, opacity: 0 }}
-          className="fixed top-10 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-3 px-4 py-2 rounded-full bg-[#111]/90 border border-white/[0.08] backdrop-blur-xl shadow-2xl"
+          className="fixed top-10 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-3 px-4 py-2 rounded-full bg-popover/90 border border-white/[0.08] backdrop-blur-xl shadow-2xl"
         >
           {/* Status dot */}
           <div className="relative">
@@ -220,7 +220,7 @@ export function SupportBanner() {
             className="w-6 h-6 rounded-full bg-white/[0.06] hover:bg-red-500/20 border border-white/[0.06] hover:border-red-500/30 flex items-center justify-center transition-all"
             title="End support session"
           >
-            <X size={12} className="text-zinc-400 hover:text-red-400" />
+            <UilTimes size={12} className="text-zinc-400 hover:text-red-400" />
           </button>
         </motion.div>
       )}

@@ -9,3 +9,5 @@ export { default as AgentTestingSettings } from "./AgentTestingSettings";
 export { default as SecuritySettings } from "./SecuritySettings";
 export { default as IntegrationsSettings } from "./IntegrationsSettings";
 export { default as AdvancedSettings } from "./AdvancedSettings";
+export { default as ConnectorsSettings } from "./ConnectorsSettings";
+export { default as OnboardingSettings } from "./OnboardingSettings";

@@ -1136,7 +1136,7 @@ class ErrorMonitor {
           category: 'format',
           severity: 'warning',
           rule: 'lucide-icon',
-          message: 'Non-Phosphor (Lucide) icon detected — should be migrated to @phosphor-icons/react',
+          message: 'Non-Unicons icon detected — should be migrated to @iconscout/react-unicons',
           element: this.describeElement(parent || svg as unknown as HTMLElement),
           selector: this.buildSelector(parent || svg as unknown as HTMLElement),
           page,
@@ -1401,7 +1401,7 @@ class ErrorMonitor {
 export const errorMonitor = new ErrorMonitor();
 
 // ---------------------------------------------------------------------------
-// Claude Code Bridge — allows external control of QA Agent
+// Claude UilBracketsCurly Bridge — allows external control of QA Agent
 // Call from Chrome DevTools or mcp__claude-in-chrome__javascript_tool
 // ---------------------------------------------------------------------------
 
@@ -1462,7 +1462,7 @@ if (typeof window !== 'undefined') {
       };
     },
 
-    /** Get compact summary for Claude Code consumption */
+    /** Get compact summary for Claude UilBracketsCurly consumption */
     report() {
       const s = (window as any).__qaAgent.status();
       const failed = (window as any).__qaAgent.failedRequests();

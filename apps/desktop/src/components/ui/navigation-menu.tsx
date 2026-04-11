@@ -1,8 +1,7 @@
 import * as React from "react";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
-import { CaretDown } from "@phosphor-icons/react";
-
+import { UilAngleDown } from "@iconscout/react-unicons";
 import { cn } from "@/lib/utils";
 
 const NavigationMenu = React.forwardRef<
@@ -48,9 +47,8 @@ const NavigationMenuTrigger = React.forwardRef<
     {...props}
   >
     {children}{" "}
-    <CaretDown
+    <UilAngleDown
       size={12}
-      weight="bold"
       className="relative top-[1px] ml-1 transition duration-200 group-data-[state=open]:rotate-180"
       aria-hidden="true"
     />

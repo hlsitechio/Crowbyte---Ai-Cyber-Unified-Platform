@@ -42,45 +42,7 @@ import {
   type CreateFindingData,
 } from "@/services/findings-engine";
 import { triageEngine } from "@/services/triage-engine";
-import {
-  Crosshair,
-  MagnifyingGlass,
-  Plus,
-  DownloadSimple,
-  TreeStructure,
-  Atom,
-  Database,
-  Bug,
-  Eye,
-  PencilSimple,
-  Terminal,
-  Funnel,
-  X,
-  CaretDown,
-  CaretRight,
-  CaretLeft,
-  CheckSquare,
-  Square,
-  MinusSquare,
-  Trash,
-  ShieldCheck,
-  ShieldSlash,
-  ShieldWarning,
-  CheckCircle,
-  Link,
-  Clock,
-  Tag,
-  ArrowsDownUp,
-  SortAscending,
-  SortDescending,
-  Copy,
-  FileText,
-  Warning,
-  ArrowSquareOut,
-  DotsThreeVertical,
-  Target,
-  Lightning,
-} from "@phosphor-icons/react";
+import { UilCrosshair, UilSearch, UilPlus, UilDownloadAlt, UilSitemap, UilDatabase, UilBug, UilEye, UilPen, UilWindow, UilFilter, UilTimes, UilAngleDown, UilAngleRight, UilAngleLeft, UilCheckSquare, UilSquare, UilMinusSquare, UilTrashAlt, UilShieldCheck, UilShieldSlash, UilShieldExclamation, UilCheckCircle, UilLink, UilClock, UilTag, UilArrowsV, UilSortAmountUp, UilSortAmountDown, UilCopy, UilFileAlt, UilExclamationTriangle, UilExternalLinkAlt, UilEllipsisV, UilFocusTarget, UilBolt } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 
@@ -126,34 +88,34 @@ const TYPES: { value: FindingType | "all"; label: string }[] = [
 
 const SEVERITY_COLORS: Record<FindingSeverity, { badge: string; dot: string }> = {
   critical: {
-    badge: "bg-red-500/20 text-red-400 border border-red-500/30",
+    badge: "bg-red-500/20 text-red-400",
     dot: "bg-red-500",
   },
   high: {
-    badge: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
+    badge: "bg-orange-500/20 text-orange-400",
     dot: "bg-orange-500",
   },
   medium: {
-    badge: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+    badge: "bg-yellow-500/20 text-yellow-400",
     dot: "bg-yellow-500",
   },
   low: {
-    badge: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+    badge: "bg-blue-500/20 text-blue-400",
     dot: "bg-blue-500",
   },
   info: {
-    badge: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+    badge: "bg-zinc-500/20 text-zinc-400",
     dot: "bg-zinc-500",
   },
 };
 
 const STATUS_COLORS: Record<FindingStatus, string> = {
-  open: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-  confirmed: "bg-red-500/20 text-red-400 border border-red-500/30",
-  false_positive: "bg-zinc-500/20 text-zinc-500 border border-zinc-500/30",
-  resolved: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  accepted_risk: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
-  duplicate: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
+  open: "bg-emerald-500/20 text-emerald-400",
+  confirmed: "bg-red-500/20 text-red-400",
+  false_positive: "bg-zinc-500/20 text-zinc-500",
+  resolved: "bg-blue-500/20 text-blue-400",
+  accepted_risk: "bg-amber-500/20 text-amber-400",
+  duplicate: "bg-purple-500/20 text-purple-400",
 };
 
 const STATUS_LABELS: Record<FindingStatus, string> = {
@@ -166,12 +128,12 @@ const STATUS_LABELS: Record<FindingStatus, string> = {
 };
 
 const SOURCE_ICONS: Record<string, React.ComponentType<{ size?: number; weight?: string; className?: string }>> = {
-  nmap: TreeStructure,
-  nuclei: Atom,
-  sqlmap: Database,
-  burp: Bug,
-  shodan: Eye,
-  manual: PencilSimple,
+  nmap: UilSitemap,
+  nuclei: UilBug,
+  sqlmap: UilDatabase,
+  burp: UilBug,
+  shodan: UilEye,
+  manual: UilPen,
 };
 
 const PAGE_SIZE = 50;
@@ -603,10 +565,10 @@ export default function Findings() {
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ArrowsDownUp size={14} weight="duotone" className="text-zinc-600" />;
+    if (sortField !== field) return <UilArrowsV size={14} className="text-zinc-600" />;
     return sortDir === "asc"
-      ? <SortAscending size={14} weight="duotone" className="text-blue-400" />
-      : <SortDescending size={14} weight="duotone" className="text-blue-400" />;
+      ? <UilSortAmountUp size={14} className="text-blue-400" />
+      : <UilSortAmountDown size={14} className="text-blue-400" />;
   };
 
   // ─── Clear Filters ─────────────────────────────────────────────────────────
@@ -624,8 +586,8 @@ export default function Findings() {
   // ─── Source Icon Helper ────────────────────────────────────────────────────
 
   const SourceIcon = ({ source, size = 16 }: { source: string; size?: number }) => {
-    const Icon = SOURCE_ICONS[source] || Terminal;
-    return <Icon size={size} weight="duotone" />;
+    const Icon = SOURCE_ICONS[source] || UilWindow;
+    return <Icon size={size} />;
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -643,7 +605,7 @@ export default function Findings() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
-                <Crosshair size={20} weight="duotone" className="text-red-400" />
+                <UilCrosshair size={20} className="text-red-400" />
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-zinc-100">Findings</h1>
@@ -657,17 +619,17 @@ export default function Findings() {
                 onClick={() => setImportDialogOpen(true)}
                 className="gap-1.5"
               >
-                <DownloadSimple size={16} weight="duotone" />
+                <UilDownloadAlt size={16} />
                 Import Findings
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleAITriage}
-                className="gap-1.5 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                className="gap-1.5 text-cyan-400 hover:bg-cyan-500/10"
                 disabled={triageRunning}
               >
-                <Lightning size={16} weight="duotone" />
+                <UilBolt size={16} />
                 {triageRunning ? 'Triaging...' : 'AI Triage'}
               </Button>
               <Button
@@ -675,7 +637,7 @@ export default function Findings() {
                 onClick={() => setNewFindingDialogOpen(true)}
                 className="gap-1.5"
               >
-                <Plus size={16} weight="bold" />
+                <UilPlus size={16} />
                 New Finding
               </Button>
             </div>
@@ -683,7 +645,7 @@ export default function Findings() {
 
           {/* Search */}
           <div className="relative mt-4">
-            <MagnifyingGlass size={16} weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <UilSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <Input
               placeholder="Search findings by title, host, or description..."
               value={search}
@@ -695,7 +657,7 @@ export default function Findings() {
                 onClick={() => setSearch("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
               >
-                <X size={14} />
+                <UilTimes size={14} />
               </button>
             )}
           </div>
@@ -714,7 +676,7 @@ export default function Findings() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Total Findings</span>
-                  <Target size={16} weight="duotone" className="text-zinc-600" />
+                  <UilFocusTarget size={16} className="text-zinc-600" />
                 </div>
                 {loading ? (
                   <Skeleton className="h-7 w-16" />
@@ -767,7 +729,7 @@ export default function Findings() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Confirmed</span>
-                  <ShieldWarning size={16} weight="duotone" className="text-red-500" />
+                  <UilShieldExclamation size={16} className="text-red-500" />
                 </div>
                 {loading ? (
                   <Skeleton className="h-7 w-16" />
@@ -782,7 +744,7 @@ export default function Findings() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Unique Targets</span>
-                  <Crosshair size={16} weight="duotone" className="text-emerald-500" />
+                  <UilCrosshair size={16} className="text-emerald-500" />
                 </div>
                 {loading ? (
                   <Skeleton className="h-7 w-16" />
@@ -797,7 +759,7 @@ export default function Findings() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">FP Rate</span>
-                  <ShieldSlash size={16} weight="duotone" className="text-zinc-500" />
+                  <UilShieldSlash size={16} className="text-zinc-500" />
                 </div>
                 {loading ? (
                   <Skeleton className="h-7 w-16" />
@@ -819,7 +781,7 @@ export default function Findings() {
           className="flex-none px-6 pb-3"
         >
           <div className="flex items-center gap-2 flex-wrap">
-            <Funnel size={16} weight="duotone" className="text-zinc-500" />
+            <UilFilter size={16} className="text-zinc-500" />
 
             <Select value={filterSource} onValueChange={(v) => setFilterSource(v as FindingSource | "all")}>
               <SelectTrigger className="w-[140px] h-8 text-xs bg-zinc-900/50 border-zinc-800">
@@ -867,7 +829,7 @@ export default function Findings() {
 
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs text-zinc-500 hover:text-zinc-300 gap-1">
-                <X size={12} />
+                <UilTimes size={12} />
                 Clear Filters
               </Button>
             )}
@@ -887,23 +849,23 @@ export default function Findings() {
               exit={{ opacity: 0, height: 0 }}
               className="flex-none px-6 pb-3"
             >
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10">
                 <span className="text-xs text-blue-400 font-medium">{selectedIds.size} selected</span>
                 <Separator orientation="vertical" className="h-4" />
                 <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => bulkUpdateStatus("confirmed")}>
-                  <ShieldWarning size={14} weight="duotone" className="text-red-400" />
+                  <UilShieldExclamation size={14} className="text-red-400" />
                   Confirm
                 </Button>
                 <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => bulkUpdateStatus("false_positive")}>
-                  <ShieldSlash size={14} weight="duotone" className="text-zinc-400" />
+                  <UilShieldSlash size={14} className="text-zinc-400" />
                   Mark FP
                 </Button>
                 <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => bulkUpdateStatus("resolved")}>
-                  <CheckCircle size={14} weight="duotone" className="text-blue-400" />
+                  <UilCheckCircle size={14} className="text-blue-400" />
                   Resolve
                 </Button>
                 <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-red-400 hover:text-red-300" onClick={bulkDelete}>
-                  <Trash size={14} weight="duotone" />
+                  <UilTrashAlt size={14} />
                   Delete
                 </Button>
                 <div className="ml-auto">
@@ -941,7 +903,7 @@ export default function Findings() {
                 Title <SortIcon field="title" />
               </button>
               <button onClick={() => handleSort("target_host")} className="flex items-center gap-1 hover:text-zinc-300 transition-colors">
-                Target <SortIcon field="target_host" />
+                UilFocusTarget <SortIcon field="target_host" />
               </button>
               <button onClick={() => handleSort("source")} className="flex items-center gap-1 hover:text-zinc-300 transition-colors">
                 Source <SortIcon field="source" />
@@ -978,7 +940,7 @@ export default function Findings() {
                 </div>
               ) : paginatedFindings.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-zinc-600">
-                  <Crosshair size={48} weight="duotone" className="mb-3 text-zinc-700" />
+                  <UilCrosshair size={48} className="mb-3 text-zinc-700" />
                   <p className="text-sm font-medium text-zinc-500">No findings yet</p>
                   <p className="text-xs text-zinc-600 mt-1">Run a scan or import results to see them here.</p>
                 </div>
@@ -1013,15 +975,15 @@ export default function Findings() {
                         {/* Title */}
                         <div className="flex items-center gap-2 min-w-0">
                           {expandedId === finding.id ? (
-                            <CaretDown size={12} className="text-zinc-500 flex-none" />
+                            <UilAngleDown size={12} className="text-zinc-500 flex-none" />
                           ) : (
-                            <CaretRight size={12} className="text-zinc-600 flex-none" />
+                            <UilAngleRight size={12} className="text-zinc-600 flex-none" />
                           )}
                           <span className="truncate text-zinc-200">{finding.title}</span>
                           {finding.included_in_report && (
                             <Tooltip>
                               <TooltipTrigger>
-                                <FileText size={12} weight="duotone" className="text-blue-400 flex-none" />
+                                <UilFileAlt size={12} className="text-blue-400 flex-none" />
                               </TooltipTrigger>
                               <TooltipContent side="top">
                                 <p className="text-xs">Included in report</p>
@@ -1030,7 +992,7 @@ export default function Findings() {
                           )}
                         </div>
 
-                        {/* Target */}
+                        {/* UilFocusTarget */}
                         <div className="text-zinc-400 text-xs truncate font-mono">
                           {finding.target_host}{finding.target_port ? `:${finding.target_port}` : ""}
                         </div>
@@ -1097,7 +1059,7 @@ export default function Findings() {
                                 {finding.evidence && Object.keys(finding.evidence).length > 0 && (
                                   <div>
                                     <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">Evidence</h4>
-                                    <pre className="text-xs text-zinc-400 bg-zinc-950/50 rounded-md p-3 overflow-x-auto border border-zinc-800/50 font-mono max-h-48">
+                                    <pre className="text-xs text-zinc-400 bg-zinc-900/50 rounded-md p-3 overflow-x-auto border border-zinc-800/50 font-mono max-h-48">
                                       {JSON.stringify(finding.evidence, null, 2)}
                                     </pre>
                                   </div>
@@ -1110,7 +1072,7 @@ export default function Findings() {
                                       <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">CVEs</h4>
                                       <div className="flex flex-wrap gap-1">
                                         {(finding.cve_ids || []).map(cve => (
-                                          <Badge key={cve} variant="outline" className="text-[10px] font-mono border-red-500/30 text-red-400 cursor-pointer hover:bg-red-500/10">
+                                          <Badge key={cve} variant="outline" className="text-[10px] font-mono text-red-400 cursor-pointer hover:bg-red-500/10">
                                             {cve}
                                           </Badge>
                                         ))}
@@ -1122,7 +1084,7 @@ export default function Findings() {
                                       <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">CWEs</h4>
                                       <div className="flex flex-wrap gap-1">
                                         {(finding.cwe_ids || []).map(cwe => (
-                                          <Badge key={cwe} variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-400">
+                                          <Badge key={cwe} variant="outline" className="text-[10px] font-mono text-amber-400">
                                             {cwe}
                                           </Badge>
                                         ))}
@@ -1138,7 +1100,7 @@ export default function Findings() {
                                     <div className="flex flex-wrap gap-1">
                                       {(finding.tags || []).map(tag => (
                                         <Badge key={tag} variant="outline" className="text-[10px] border-zinc-700 text-zinc-400">
-                                          <Tag size={10} weight="duotone" className="mr-0.5" />
+                                          <Tag size={10} className="mr-0.5" />
                                           {tag}
                                         </Badge>
                                       ))}
@@ -1154,7 +1116,7 @@ export default function Findings() {
                                       value={editingTriageNotes}
                                       onChange={(e) => setEditingTriageNotes(e.target.value)}
                                       placeholder="Add triage notes..."
-                                      className="text-xs bg-zinc-950/50 border-zinc-800 min-h-[60px] resize-none"
+                                      className="text-xs bg-zinc-900/50 border-zinc-800 min-h-[60px] resize-none"
                                     />
                                     <Button
                                       variant="outline"
@@ -1172,18 +1134,18 @@ export default function Findings() {
                                   <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">Timeline</h4>
                                   <div className="flex gap-4 text-xs text-zinc-500">
                                     <div className="flex items-center gap-1">
-                                      <Clock size={12} weight="duotone" />
+                                      <UilClock size={12} />
                                       <span>Created: {new Date(finding.created_at).toLocaleString()}</span>
                                     </div>
                                     {finding.triaged_at && (
                                       <div className="flex items-center gap-1">
-                                        <ShieldCheck size={12} weight="duotone" />
+                                        <UilShieldCheck size={12} />
                                         <span>Triaged: {new Date(finding.triaged_at).toLocaleString()}</span>
                                       </div>
                                     )}
                                     {finding.updated_at && finding.updated_at !== finding.created_at && (
                                       <div className="flex items-center gap-1">
-                                        <Clock size={12} weight="duotone" />
+                                        <UilClock size={12} />
                                         <span>Updated: {new Date(finding.updated_at).toLocaleString()}</span>
                                       </div>
                                     )}
@@ -1200,7 +1162,7 @@ export default function Findings() {
                                     value={finding.status}
                                     onValueChange={(v) => handleUpdateStatus(finding.id, v as FindingStatus)}
                                   >
-                                    <SelectTrigger className="h-8 text-xs bg-zinc-950/50 border-zinc-800">
+                                    <SelectTrigger className="h-8 text-xs bg-zinc-900/50 border-zinc-800">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1226,7 +1188,7 @@ export default function Findings() {
                                       handleToggleReport(finding);
                                     }}
                                   >
-                                    <FileText size={12} weight="duotone" />
+                                    <UilFileAlt size={12} />
                                     {finding.included_in_report ? "In Report" : "Add"}
                                   </Button>
                                 </div>
@@ -1245,7 +1207,7 @@ export default function Findings() {
                                     }}
                                     disabled={loadingCorrelation}
                                   >
-                                    <Link size={14} weight="duotone" />
+                                    <UilLink size={14} />
                                     {loadingCorrelation ? "Correlating..." : "Find Related"}
                                   </Button>
 
@@ -1255,7 +1217,7 @@ export default function Findings() {
                                       {correlatedFindings.map(cf => (
                                         <div
                                           key={cf.id}
-                                          className="flex items-center gap-1.5 p-1.5 rounded bg-zinc-950/50 text-xs hover:bg-zinc-800/50 cursor-pointer"
+                                          className="flex items-center gap-1.5 p-1.5 rounded bg-zinc-900/50 text-xs hover:bg-zinc-800/50 cursor-pointer"
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleExpand(cf);
@@ -1334,7 +1296,7 @@ export default function Findings() {
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   >
-                    <CaretLeft size={14} />
+                    <UilAngleLeft size={14} />
                   </Button>
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum: number;
@@ -1366,7 +1328,7 @@ export default function Findings() {
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   >
-                    <CaretRight size={14} />
+                    <UilAngleRight size={14} />
                   </Button>
                 </div>
               </div>
@@ -1379,7 +1341,7 @@ export default function Findings() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <DownloadSimple size={18} weight="duotone" />
+                <UilDownloadAlt size={18} />
                 Import Findings
               </DialogTitle>
               <DialogDescription>
@@ -1414,13 +1376,13 @@ export default function Findings() {
                     setImportPreview(null);
                   }}
                   placeholder='Paste JSON output here... (e.g. nmap XML-to-JSON, nuclei JSONL, sqlmap results)'
-                  className="mt-1 font-mono text-xs bg-zinc-950/50 border-zinc-800 min-h-[200px] resize-y"
+                  className="mt-1 font-mono text-xs bg-zinc-900/50 border-zinc-800 min-h-[200px] resize-y"
                 />
               </div>
 
               {importPreview !== null && (
                 <div className="text-sm text-emerald-400 flex items-center gap-1.5">
-                  <CheckCircle size={14} weight="duotone" />
+                  <UilCheckCircle size={14} />
                   {importPreview} item{importPreview !== 1 ? "s" : ""} parsed. Ready to import.
                 </div>
               )}
@@ -1447,7 +1409,7 @@ export default function Findings() {
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Plus size={18} weight="bold" />
+                <UilPlus size={18} />
                 New Finding
               </DialogTitle>
               <DialogDescription>
@@ -1468,7 +1430,7 @@ export default function Findings() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-zinc-500">Target Host *</Label>
+                  <Label className="text-xs text-zinc-500">UilFocusTarget Host *</Label>
                   <Input
                     value={newFinding.target_host || ""}
                     onChange={(e) => setNewFinding(prev => ({ ...prev, target_host: e.target.value }))}

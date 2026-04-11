@@ -8,7 +8,7 @@
  * - Manual node creation/editing
  * - Connection management
  * - Save/load network maps
- * - Layout algorithms (tree, radial, grid)
+ * - UilWindowGrid algorithms (tree, radial, grid)
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TreeStructure, DesktopTower, Play, Square, CircleNotch, Terminal, Clock, Lightning, Shield, Warning, Eye, Crosshair, WifiHigh, Funnel, Plus, Trash, DownloadSimple, UploadSimple, Layout, GridFour, GitBranch, Copy, MagnifyingGlass, Cpu, Lock, LockOpen, ArrowSquareOut, MapTrifold, ArrowsOut, CaretRight, FloppyDisk, FolderOpen, ArrowCounterClockwise, Skull, Globe, Stack } from "@phosphor-icons/react";
+import { UilSitemap, UilDesktopAlt, UilPlay, UilSquare, UilSpinner, UilWindow, UilClock, UilBolt, UilShield, UilExclamationTriangle, UilEye, UilCrosshair, UilWifi, UilFilter, UilPlus, UilTrashAlt, UilDownloadAlt, UilUpload, UilWindowGrid, UilGrid, UilCodeBranch, UilCopy, UilSearch, UilProcessor, UilLock, UilLockOpenAlt, UilExternalLinkAlt, UilMap, UilExpandArrows, UilAngleRight, UilSave, UilFolderOpen, UilHistory, UilExclamation, UilGlobe, UilLayerGroup } from "@iconscout/react-unicons";
 import { useToast } from '@/hooks/use-toast';
 import { DeviceNode } from '@/components/network/DeviceNode';
 import { NodeEditor } from '@/components/network/NodeEditor';
@@ -50,15 +50,15 @@ interface ScanProfile {
 }
 
 const SCAN_PROFILES: ScanProfile[] = [
- { id: 'quick', name: 'Quick', args: '-T4 -F --open', description: 'Top 100 ports, fast', icon: <Lightning size={14} weight="bold" />, color: 'text-emerald-500' },
- { id: 'top1000', name: 'Top 1000', args: '-T4 --top-ports 1000 --open', description: 'Top 1000 ports', icon: <TreeStructure size={14} weight="bold" />, color: 'text-blue-500' },
- { id: 'service', name: 'Services', args: '-sV -sC -T4 --open', description: 'Version + scripts', icon: <DesktopTower size={14} weight="bold" />, color: 'text-cyan-500' },
- { id: 'stealth', name: 'Stealth', args: '-sS -T2 --open', description: 'SYN scan, slow', icon: <Eye size={14} weight="bold" />, color: 'text-violet-500' },
- { id: 'vuln', name: 'Vuln Scan', args: '-sV --script vuln -T4', description: 'NSE vuln scripts', icon: <Warning size={14} weight="bold" />, color: 'text-red-500' },
- { id: 'full', name: 'Full', args: '-p- -sV -sC -T4 --open', description: 'All 65535 ports', icon: <Shield size={14} weight="bold" />, color: 'text-amber-500' },
- { id: 'ping', name: 'Ping Sweep', args: '-sn', description: 'Host discovery', icon: <Crosshair size={14} weight="bold" />, color: 'text-emerald-500' },
- { id: 'os', name: 'OS Detect', args: '-O -sV -T4 --open', description: 'OS fingerprinting', icon: <Terminal size={14} weight="bold" />, color: 'text-pink-500' },
- { id: 'custom', name: 'Custom', args: '', description: 'Your flags', icon: <Funnel size={14} weight="bold" />, color: 'text-zinc-500' },
+ { id: 'quick', name: 'Quick', args: '-T4 -F --open', description: 'Top 100 ports, fast', icon: <UilBolt size={14} />, color: 'text-emerald-500' },
+ { id: 'top1000', name: 'Top 1000', args: '-T4 --top-ports 1000 --open', description: 'Top 1000 ports', icon: <UilSitemap size={14} />, color: 'text-blue-500' },
+ { id: 'service', name: 'Services', args: '-sV -sC -T4 --open', description: 'Version + scripts', icon: <UilDesktopAlt size={14} />, color: 'text-cyan-500' },
+ { id: 'stealth', name: 'Stealth', args: '-sS -T2 --open', description: 'SYN scan, slow', icon: <UilEye size={14} />, color: 'text-violet-500' },
+ { id: 'vuln', name: 'Vuln Scan', args: '-sV --script vuln -T4', description: 'NSE vuln scripts', icon: <UilExclamationTriangle size={14} />, color: 'text-red-500' },
+ { id: 'full', name: 'Full', args: '-p- -sV -sC -T4 --open', description: 'All 65535 ports', icon: <UilShield size={14} />, color: 'text-amber-500' },
+ { id: 'ping', name: 'Ping Sweep', args: '-sn', description: 'Host discovery', icon: <UilCrosshair size={14} />, color: 'text-emerald-500' },
+ { id: 'os', name: 'OS Detect', args: '-O -sV -T4 --open', description: 'OS fingerprinting', icon: <UilWindow size={14} />, color: 'text-pink-500' },
+ { id: 'custom', name: 'Custom', args: '', description: 'Your flags', icon: <UilFilter size={14} />, color: 'text-zinc-500' },
 ];
 
 // ─── nmap parser ─────────────────────────────────────────────────────────────
@@ -148,7 +148,7 @@ function inferDeviceType(host: ParsedHost): DeviceType {
  return 'unknown';
 }
 
-// ─── Layout algorithms ───────────────────────────────────────────────────────
+// ─── UilWindowGrid algorithms ───────────────────────────────────────────────────────
 
 function layoutNodes(nodes: Node[], style: 'grid' | 'tree' | 'radial'): Node[] {
  if (nodes.length === 0) return nodes;
@@ -354,7 +354,7 @@ export default function NetworkScanner() {
  toast({ title: 'Device removed' });
  };
 
- // ─── Layout ──────────────────────────────────────────────────────────
+ // ─── UilWindowGrid ──────────────────────────────────────────────────────────
 
  const applyLayout = (style: 'grid' | 'tree' | 'radial') => {
  setLayoutStyle(style);
@@ -546,45 +546,45 @@ export default function NetworkScanner() {
  {/* Title + stats */}
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-3">
- <MapTrifold size={20} weight="duotone" className="text-primary" />
+ <UilMap size={20} className="text-primary" />
  <span className="text-lg font-bold text-white">Network Map</span>
  <Separator orientation="vertical" className="h-5 bg-zinc-700" />
  <div className="flex items-center gap-3 text-[11px]">
- <span className="text-zinc-400"><DesktopTower size={12} weight="bold" className="inline mr-1" />{deviceCount} devices</span>
+ <span className="text-zinc-400"><UilDesktopAlt size={12} className="inline mr-1" />{deviceCount} devices</span>
  <span className="text-emerald-500">{upCount} up</span>
- <span className="text-cyan-500"><LockOpen size={12} weight="bold" className="inline mr-1" />{totalPorts} ports</span>
- <span className="text-zinc-500"><GitBranch size={12} weight="bold" className="inline mr-1" />{connectionCount} links</span>
+ <span className="text-cyan-500"><UilLockOpenAlt size={12} className="inline mr-1" />{totalPorts} ports</span>
+ <span className="text-zinc-500"><UilCodeBranch size={12} className="inline mr-1" />{connectionCount} links</span>
  </div>
  </div>
 
  <div className="flex items-center gap-1">
- {/* Layout buttons */}
+ {/* UilWindowGrid buttons */}
  <Button variant="ghost" size="sm" className={`h-7 text-[10px] gap-1 ${layoutStyle === 'tree' ? 'bg-primary/10' : ''}`}
  onClick={() => applyLayout('tree')} title="Tree layout">
- <GitBranch size={12} weight="bold" /> Tree
+ <UilCodeBranch size={12} /> Tree
  </Button>
  <Button variant="ghost" size="sm" className={`h-7 text-[10px] gap-1 ${layoutStyle === 'grid' ? 'bg-primary/10' : ''}`}
  onClick={() => applyLayout('grid')} title="Grid layout">
- <GridFour size={12} weight="bold" /> Grid
+ <UilGrid size={12} /> Grid
  </Button>
  <Button variant="ghost" size="sm" className={`h-7 text-[10px] gap-1 ${layoutStyle === 'radial' ? 'bg-primary/10' : ''}`}
  onClick={() => applyLayout('radial')} title="Radial layout">
- <Layout size={12} weight="bold" /> Radial
+ <UilWindowGrid size={12} /> Radial
  </Button>
 
  <Separator orientation="vertical" className="h-5 bg-zinc-700 mx-1" />
 
  <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={handleAddNode}>
- <Plus size={12} weight="bold" /> Add Device
+ <UilPlus size={12} /> Add Device
  </Button>
  <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={saveMap}>
- <DownloadSimple size={12} weight="bold" /> Save
+ <UilDownloadAlt size={12} /> Save
  </Button>
  <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={loadMap}>
- <UploadSimple size={12} weight="bold" /> Load
+ <UilUpload size={12} /> Load
  </Button>
  <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1 text-zinc-500" onClick={clearMap}>
- <ArrowCounterClockwise size={12} weight="bold" /> Reset
+ <UilHistory size={12} /> Reset
  </Button>
  </div>
  </div>
@@ -627,14 +627,14 @@ export default function NetworkScanner() {
  className="h-8 gap-1.5 min-w-[90px]"
  >
  {isScanning ? (
- <><CircleNotch size={12} weight="bold" className="animate-spin" /> {formatElapsed(elapsed)}</>
+ <><UilSpinner size={12} className="animate-spin" /> {formatElapsed(elapsed)}</>
  ) : (
- <><Play size={12} weight="bold" /> Scan</>
+ <><UilPlay size={12} /> Scan</>
  )}
  </Button>
  {isScanning && (
  <Button variant="destructive" size="sm" className="h-8 w-8 p-0" onClick={() => setIsScanning(false)}>
- <Square size={12} weight="bold" />
+ <UilSquare size={12} />
  </Button>
  )}
  </div>
@@ -643,15 +643,15 @@ export default function NetworkScanner() {
  <div className="flex items-center gap-0.5 bg-transparent rounded-md p-0.5">
  <Button variant={activeTab === 'map' ? 'default' : 'ghost'} size="sm"
  className="h-7 text-[10px] gap-1 px-2" onClick={() => setActiveTab('map')}>
- <MapTrifold size={12} weight="bold" /> Map
+ <UilMap size={12} /> Map
  </Button>
  <Button variant={activeTab === 'scanner' ? 'default' : 'ghost'} size="sm"
  className="h-7 text-[10px] gap-1 px-2" onClick={() => setActiveTab('scanner')}>
- <TreeStructure size={12} weight="bold" /> Devices
+ <UilSitemap size={12} /> Devices
  </Button>
  <Button variant={activeTab === 'raw' ? 'default' : 'ghost'} size="sm"
  className="h-7 text-[10px] gap-1 px-2" onClick={() => setActiveTab('raw')}>
- <Terminal size={12} weight="bold" /> Output
+ <UilWindow size={12} /> Output
  </Button>
  </div>
  </div>
@@ -718,7 +718,7 @@ export default function NetworkScanner() {
  {nodes.length === 0 ? (
  <div className="flex items-center justify-center h-60">
  <div className="text-center space-y-2">
- <TreeStructure size={40} weight="duotone" className="mx-auto text-zinc-700" />
+ <UilSitemap size={40} className="mx-auto text-zinc-700" />
  <p className="text-sm text-zinc-500">No devices on map</p>
  <p className="text-xs text-zinc-600">Run a scan or add devices manually</p>
  </div>
@@ -749,7 +749,7 @@ export default function NetworkScanner() {
  {d.ports.length > 0 && (
  <span className="text-[9px] text-zinc-400">{d.ports.filter(p => p.state === 'open').length} ports</span>
  )}
- <CaretRight size={12} weight="bold" />
+ <UilAngleRight size={12} />
  </div>
  </div>
  );
@@ -765,7 +765,7 @@ export default function NetworkScanner() {
  <div className="h-full relative p-2">
  <pre
  ref={outputRef}
- className="absolute inset-2 bg-[#0c0c0c] border rounded-lg p-3 overflow-auto text-xs font-mono text-emerald-500/80 whitespace-pre-wrap leading-relaxed"
+ className="absolute inset-2 bg-zinc-900 border rounded-lg p-3 overflow-auto text-xs font-mono text-emerald-500/80 whitespace-pre-wrap leading-relaxed"
  >
  {rawOutput || (isScanning ? 'Waiting for nmap output...\n' : 'Run a scan to see raw output here.\nResults will auto-populate the network map.')}
  </pre>
@@ -775,7 +775,7 @@ export default function NetworkScanner() {
  className="absolute top-4 right-4 h-6 text-[10px] gap-1 bg-black/50 z-10"
  onClick={() => { navigator.clipboard.writeText(rawOutput); toast({ title: 'Copied' }); }}
  >
- <Copy size={10} weight="bold" /> Copy
+ <UilCopy size={10} /> UilCopy
  </Button>
  )}
  </div>

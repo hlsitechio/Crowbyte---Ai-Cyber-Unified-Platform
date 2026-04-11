@@ -1,4 +1,5 @@
-import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
+import type { ComponentType } from "react";
+type PhosphorIcon = ComponentType<{ size?: number | string; color?: string; className?: string }>;
 
 export type DocSection =
   // Getting Started

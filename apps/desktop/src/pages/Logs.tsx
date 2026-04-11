@@ -4,18 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { WarningCircle, CheckCircle, Info, XCircle, Warning, Funnel, ArrowsClockwise, Scroll, Trash, DownloadSimple } from "@phosphor-icons/react";
+import { UilExclamationCircle, UilCheckCircle, UilInfoCircle, UilTimesCircle, UilExclamationTriangle, UilFilter, UilSync, UilScroll, UilTrashAlt, UilDownloadAlt } from "@iconscout/react-unicons";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
 const levelIcons: Record<LogLevel, React.ReactNode> = {
- info: <Info size={16} weight="bold" className="text-blue-500" />,
- success: <CheckCircle size={16} weight="bold" className="text-emerald-500" />,
- warning: <Warning size={16} weight="bold" className="text-amber-500" />,
- error: <XCircle size={16} weight="bold" className="text-red-500" />,
- system: <WarningCircle size={16} weight="bold" className="text-violet-500" />,
+ info: <UilInfoCircle size={16} className="text-blue-500" />,
+ success: <UilCheckCircle size={16} className="text-emerald-500" />,
+ warning: <UilExclamationTriangle size={16} className="text-amber-500" />,
+ error: <UilTimesCircle size={16} className="text-red-500" />,
+ system: <UilExclamationCircle size={16} className="text-violet-500" />,
 };
 
 const levelColors: Record<LogLevel, string> = {
@@ -143,7 +143,7 @@ export default function Logs() {
  >
  <div className="flex items-center gap-3">
  <div className="h-12 w-12 flex items-center justify-center rounded-lg bg-primary/10">
- <Scroll size={24} weight="duotone" className="text-primary" />
+ <UilScroll size={24} className="text-primary" />
  </div>
  <div>
  <h1 className="text-3xl font-bold text-gradient-silver">System Logs</h1>
@@ -169,7 +169,7 @@ export default function Logs() {
  onClick={handleRefresh}
  className="gap-2"
  >
- <ArrowsClockwise size={16} weight="bold" />
+ <UilSync size={16} />
  Refresh
  </Button>
  <DropdownMenu>
@@ -180,7 +180,7 @@ export default function Logs() {
  disabled={filteredLogs.length === 0}
  className="gap-2"
  >
- <DownloadSimple size={16} weight="bold" />
+ <UilDownloadAlt size={16} />
  Export
  </Button>
  </DropdownMenuTrigger>
@@ -196,7 +196,7 @@ export default function Logs() {
  disabled={logs.length === 0}
  className="gap-2 bg-transparent hover:bg-white/[0.03] border border-transparent"
  >
- <Trash size={16} weight="bold" />
+ <UilTrashAlt size={16} />
  Delete All
  </Button>
  </div>
@@ -212,7 +212,7 @@ export default function Logs() {
  <CardHeader>
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Funnel size={20} weight="duotone" className="text-primary" />
+ <UilFilter size={20} className="text-primary" />
  <CardTitle>Filters</CardTitle>
  </div>
  <Button
@@ -239,7 +239,7 @@ export default function Logs() {
  <SelectItem value="auth">Auth</SelectItem>
  <SelectItem value="api">API</SelectItem>
  <SelectItem value="navigation">Navigation</SelectItem>
- <SelectItem value="database">Database</SelectItem>
+ <SelectItem value="database">UilDatabase</SelectItem>
  <SelectItem value="security">Security</SelectItem>
  <SelectItem value="user">User</SelectItem>
  <SelectItem value="system">System</SelectItem>
@@ -260,9 +260,9 @@ export default function Logs() {
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="all">All Levels</SelectItem>
- <SelectItem value="info">Info</SelectItem>
+ <SelectItem value="info">UilInfoCircle</SelectItem>
  <SelectItem value="success">Success</SelectItem>
- <SelectItem value="warning">Warning</SelectItem>
+ <SelectItem value="warning">UilExclamationTriangle</SelectItem>
  <SelectItem value="error">Error</SelectItem>
  <SelectItem value="system">System</SelectItem>
  </SelectContent>
@@ -288,7 +288,7 @@ export default function Logs() {
  <ScrollArea className="h-[600px] pr-4">
  {filteredLogs.length === 0 ? (
  <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
- <Scroll size={64} weight="duotone" className="mb-4 opacity-20" />
+ <UilScroll size={64} className="mb-4 opacity-20" />
  <p className="text-lg font-medium">No logs found</p>
  <p className="text-sm">
  {selectedTag !== 'all' || selectedLevel !== 'all'

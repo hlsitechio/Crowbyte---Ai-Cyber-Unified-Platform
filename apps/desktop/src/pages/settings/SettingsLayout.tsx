@@ -1,20 +1,29 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { User as UserIcon, GearSix, TreeStructure, Wrench, Database, Flask, ShieldCheck, Plugs, SlidersHorizontal, CreditCard } from "@phosphor-icons/react";
+import { UilUser, UilCog, UilSitemap, UilWrench, UilDatabase, UilFlask, UilShieldCheck, UilPlug, UilSliderH, UilCreditCard, UilRocket, UilHeartRate } from "@iconscout/react-unicons";
+import { useAuth } from "@/contexts/auth";
+import { isAdmin } from "@/lib/admin";
+import { IS_WEB } from "@/lib/platform";
 
 const settingsNav = [
-  { label: "Profile", path: "/settings/profile", icon: UserIcon },
-  { label: "Billing", path: "/settings/billing", icon: CreditCard },
-  { label: "General", path: "/settings/general", icon: GearSix },
-  { label: "MCP Connectors", path: "/settings/mcp", icon: TreeStructure },
-  { label: "AI Tools", path: "/settings/tools", icon: Wrench },
-  { label: "Memory", path: "/settings/memory", icon: Database },
-  { label: "Agent Testing", path: "/settings/testing", icon: Flask },
-  { label: "Security", path: "/settings/security", icon: ShieldCheck },
-  { label: "Integrations", path: "/settings/integrations", icon: Plugs },
-  { label: "Advanced", path: "/settings/advanced", icon: SlidersHorizontal },
+  { label: "Profile", path: "/settings/profile", icon: UilUser },
+  { label: "Billing", path: "/settings/billing", icon: UilCreditCard },
+  { label: "General", path: "/settings/general", icon: UilCog },
+  { label: "MCP Connectors", path: "/settings/mcp", icon: UilSitemap, adminOnly: true },
+  { label: "AI Tools", path: "/settings/tools", icon: UilWrench },
+  { label: "Memory", path: "/settings/memory", icon: UilDatabase, adminOnly: true },
+  { label: "Agent Testing", path: "/settings/testing", icon: UilFlask, adminOnly: true },
+  { label: "Intel Connectors", path: "/settings/connectors", icon: UilHeartRate },
+  { label: "Security", path: "/settings/security", icon: UilShieldCheck },
+  { label: "Integrations", path: "/settings/integrations", icon: UilPlug, adminOnly: true },
+  { label: "Advanced", path: "/settings/advanced", icon: UilSliderH, adminOnly: true },
+  { label: "Setup Wizard", path: "/settings/onboarding", icon: UilRocket },
 ];
 
 export default function SettingsLayout() {
+  const { user } = useAuth();
+  const admin = isAdmin(user?.id);
+  const visibleNav = settingsNav.filter(item => !IS_WEB || !item.adminOnly || admin);
+
   return (
     <div className="space-y-6">
       <div>
@@ -23,7 +32,7 @@ export default function SettingsLayout() {
       </div>
 
       <nav className="flex items-center gap-1 overflow-x-auto pb-2">
-        {settingsNav.map(item => (
+        {visibleNav.map(item => (
           <NavLink
             key={item.path}
             to={item.path}
@@ -35,7 +44,7 @@ export default function SettingsLayout() {
               }`
             }
           >
-            <item.icon size={14} weight="bold" />
+            <item.icon size={14} />
             {item.label}
           </NavLink>
         ))}

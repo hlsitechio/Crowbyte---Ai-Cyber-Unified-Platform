@@ -244,7 +244,7 @@ ${JSON.stringify(plan, null, 2)}
 
 Provide:
 1. Overall score (0-100)
-2. Key strengths
+2. UilKeySkeleton strengths
 3. Critical weaknesses
 4. Actionable recommendations
 

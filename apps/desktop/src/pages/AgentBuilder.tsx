@@ -10,7 +10,7 @@ import { Switch } from"@/components/ui/switch";
 import { Badge } from"@/components/ui/badge";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
-import { Plus, UploadSimple, Trash, GearSix, PaperPlaneTilt, Robot, Code, MagnifyingGlass, Image, Database, Shield } from "@phosphor-icons/react";
+import { UilPlus, UilUpload, UilTrashAlt, UilCog, UilPlaneFly, UilRobot, UilBracketsCurly, UilSearch, UilImage, UilDatabase, UilShield } from "@iconscout/react-unicons";
 import { Separator } from"@/components/ui/separator";
 import { useToast } from"@/hooks/use-toast";
 import { customAgentsService, type CustomAgent } from"@/services/custom-agents";
@@ -365,10 +365,10 @@ const AgentBuilder = () => {
  <Label className="text-white">Agent Avatar</Label>
  <div className="mt-2 flex items-center gap-4">
  <div className="h-20 w-20 rounded-full border-2 border-dashed border-border flex items-center justify-center">
- <Robot size={32} weight="duotone" className="text-muted-foreground" />
+ <UilRobot size={32} className="text-muted-foreground" />
  </div>
  <Button variant="outline" size="sm" className="border-border text-white hover:bg-primary/10">
- <UploadSimple size={12} weight="bold" className="mr-2" />
+ <UilUpload size={12} className="mr-2" />
  Upload
  </Button>
  </div>
@@ -432,7 +432,7 @@ const AgentBuilder = () => {
  onClick={() => removeConversationStarter(index)}
  className="border-border text-white hover:bg-destructive/10"
  >
- <Trash size={16} weight="bold" />
+ <UilTrashAlt size={16} />
  </Button>
  </div>
  ))}
@@ -442,7 +442,7 @@ const AgentBuilder = () => {
  onClick={addConversationStarter}
  className="border-border text-white hover:bg-primary/10"
  >
- <Plus size={12} weight="bold" className="mr-2" />
+ <UilPlus size={12} className="mr-2" />
  Add Starter
  </Button>
  </div>
@@ -461,7 +461,7 @@ const AgentBuilder = () => {
  size="sm"
  className="mt-2 border-border text-white hover:bg-primary/10"
  >
- <UploadSimple size={12} weight="bold" className="mr-2" />
+ <UilUpload size={12} className="mr-2" />
  Upload Files
  </Button>
  </div>
@@ -511,7 +511,7 @@ const AgentBuilder = () => {
  <div className="mt-3 space-y-3">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <MagnifyingGlass size={16} weight="bold" className="text-primary" />
+ <UilSearch size={16} className="text-primary" />
  <span className="text-sm text-white">Web Search</span>
  </div>
  <Switch
@@ -523,8 +523,8 @@ const AgentBuilder = () => {
  </div>
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Code size={16} weight="bold" className="text-primary" />
- <span className="text-sm text-white">Code Execution</span>
+ <UilBracketsCurly size={16} className="text-primary" />
+ <span className="text-sm text-white">UilBracketsCurly Execution</span>
  </div>
  <Switch
  checked={capabilities.codeExecution}
@@ -535,7 +535,7 @@ const AgentBuilder = () => {
  </div>
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Shield size={16} weight="bold" className="text-primary" />
+ <UilShield size={16} className="text-primary" />
  <span className="text-sm text-white">MCP Tools</span>
  </div>
  <Switch
@@ -547,7 +547,7 @@ const AgentBuilder = () => {
  </div>
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Database size={16} weight="bold" className="text-primary" />
+ <UilDatabase size={16} className="text-primary" />
  <span className="text-sm text-white">File Access</span>
  </div>
  <Switch
@@ -572,7 +572,7 @@ const AgentBuilder = () => {
  onClick={addTool}
  className="border-border text-white hover:bg-primary/10"
  >
- <Plus size={12} weight="bold" className="mr-2" />
+ <UilPlus size={12} className="mr-2" />
  Add Tool
  </Button>
  </div>
@@ -584,7 +584,7 @@ const AgentBuilder = () => {
  <Card key={tool.id} className="p-4 ring-1 ring-white/[0.06] space-y-3">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Shield size={16} weight="bold" className="text-primary" />
+ <UilShield size={16} className="text-primary" />
  <Badge variant="secondary">Custom Tool</Badge>
  </div>
  <Button
@@ -593,7 +593,7 @@ const AgentBuilder = () => {
  onClick={() => removeTool(tool.id)}
  className="h-8 w-8 text-muted-foreground hover:text-destructive"
  >
- <Trash size={16} weight="bold" />
+ <UilTrashAlt size={16} />
  </Button>
  </div>
  <Input
@@ -626,7 +626,7 @@ const AgentBuilder = () => {
  onClick={handleSaveAgent}
  disabled={saving}
  >
- <GearSix size={16} weight="bold" className="mr-2" />
+ <UilCog size={16} className="mr-2" />
  {saving ?"Saving..." :"Save Configuration"}
  </Button>
  </div>
@@ -691,7 +691,7 @@ const AgentBuilder = () => {
  onClick={sendPreviewMessage}
  className="bg-primary hover:bg-primary/90 text-primary-foreground"
  >
- <PaperPlaneTilt size={16} weight="bold" />
+ <UilPlaneFly size={16} />
  </Button>
  </div>
  </div>

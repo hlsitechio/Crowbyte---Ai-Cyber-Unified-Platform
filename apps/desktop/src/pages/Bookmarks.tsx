@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { bookmarksService, type Bookmark, type BookmarkCategory, DEFAULT_CATEGORIES } from "@/services/bookmarks";
-import { BookmarkSimple as BookmarkIcon, MagnifyingGlass, Plus, Trash, PencilSimple, ArrowSquareOut, Tag, Folder, FolderPlus } from "@phosphor-icons/react";
+import { UilBookmark, UilSearch, UilPlus, UilTrashAlt, UilPen, UilExternalLinkAlt, UilTag, UilFolder, UilFolderPlus } from "@iconscout/react-unicons";
 import { motion } from "framer-motion";
 
 const Bookmarks = () => {
@@ -34,7 +34,7 @@ const Bookmarks = () => {
  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
  const [newCategory, setNewCategory] = useState({
  name: "",
- icon: "Folder",
+ icon: "UilFolder",
  color: "#6b7280",
  });
 
@@ -158,7 +158,7 @@ const Bookmarks = () => {
  });
 
  setCategoryDialogOpen(false);
- setNewCategory({ name: "", icon: "Folder", color: "#6b7280" });
+ setNewCategory({ name: "", icon: "UilFolder", color: "#6b7280" });
  loadData();
  } catch (error: unknown) {
  toast({
@@ -181,7 +181,7 @@ const Bookmarks = () => {
  <div className="flex items-center justify-between">
  <div>
  <h1 className="text-4xl font-bold text-gradient-silver flex items-center gap-3">
- <BookmarkIcon size={40} weight="duotone" className="text-primary" />
+ <UilBookmark size={40} className="text-primary" />
  Bookmarks
  </h1>
  <p className="text-sm text-muted-foreground mt-2">
@@ -193,7 +193,7 @@ const Bookmarks = () => {
  <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
  <DialogTrigger asChild>
  <Button variant="outline">
- <FolderPlus size={16} weight="bold" className="mr-2" />
+ <UilFolderPlus size={16} className="mr-2" />
  New Category
  </Button>
  </DialogTrigger>
@@ -234,7 +234,7 @@ const Bookmarks = () => {
  <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
  <DialogTrigger asChild>
  <Button>
- <Plus size={16} weight="bold" className="mr-2" />
+ <UilPlus size={16} className="mr-2" />
  Add Bookmark
  </Button>
  </DialogTrigger>
@@ -313,7 +313,7 @@ const Bookmarks = () => {
  </CardHeader>
  <CardContent className="space-y-4">
  <div className="relative">
- <MagnifyingGlass size={16} weight="bold" className="absolute left-3 top-3 text-muted-foreground" />
+ <UilSearch size={16} className="absolute left-3 top-3 text-muted-foreground" />
  <Input
  placeholder="Search bookmarks..."
  value={searchQuery}
@@ -356,7 +356,7 @@ const Bookmarks = () => {
  ) : filteredBookmarks.length === 0 ? (
  <Card>
  <CardContent className="text-center py-12">
- <BookmarkIcon size={64} weight="duotone" className="mx-auto mb-4 text-muted-foreground/50" />
+ <UilBookmark size={64} className="mx-auto mb-4 text-muted-foreground/50" />
  <p className="text-muted-foreground">
  {searchQuery ? "No bookmarks match your search" : "No bookmarks yet. Add your first bookmark!"}
  </p>
@@ -398,14 +398,14 @@ const Bookmarks = () => {
  size="sm" className="h-7 w-7 p-0"
  onClick={() => window.open(bookmark.url, '_blank')}
  >
- <ArrowSquareOut size={12} weight="bold" />
+ <UilExternalLinkAlt size={12} />
  </Button>
  <Button
  variant="ghost"
  size="sm" className="h-7 w-7 p-0 text-red-500 hover:text-red-300"
  onClick={() => handleDeleteBookmark(bookmark.id)}
  >
- <Trash size={12} weight="bold" />
+ <UilTrashAlt size={12} />
  </Button>
  </div>
  </div>
@@ -425,12 +425,12 @@ const Bookmarks = () => {
  color: getCategoryColor(bookmark.category),
  }}
  >
- <Folder size={12} weight="bold" className="mr-1" />
+ <UilFolder size={12} className="mr-1" />
  {bookmark.category}
  </Badge>
  {bookmark.tags.map(tag => (
  <Badge key={tag} variant="secondary" className="text-xs">
- <Tag size={12} weight="bold" className="mr-1" />
+ <Tag size={12} className="mr-1" />
  {tag}
  </Badge>
  ))}

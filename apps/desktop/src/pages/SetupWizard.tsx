@@ -12,7 +12,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Key, Database, DesktopTower, BuildingOffice, Rocket, CaretRight, CaretLeft, Check, X, CircleNotch, ArrowSquareOut, Copy, Eye, EyeSlash, Lightning, Crown, Users, Terminal as TerminalIcon, Warning, CheckCircle, XCircle, Info, ArrowRight, Sparkle } from "@phosphor-icons/react";
+import { UilShield, UilKeySkeleton, UilDatabase, UilDesktopAlt, UilBuilding, UilRocket, UilAngleRight, UilAngleLeft, UilCheck, UilTimes, UilSpinner, UilExternalLinkAlt, UilCopy, UilEye, UilEyeSlash, UilBolt, UilAward, UilUsersAlt, UilWindow, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilInfoCircle, UilArrowRight, UilStar } from "@iconscout/react-unicons";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,12 +34,12 @@ interface StepProps {
 const EULA_VERSION = '1.0.0';
 
 const STEPS = [
- { id: 'welcome', label: 'Welcome', icon: Shield },
- { id: 'license', label: 'License', icon: Key },
- { id: 'database', label: 'Database', icon: Database },
- { id: 'vps', label: 'VPS Setup', icon: DesktopTower },
- { id: 'workspace', label: 'Workspace', icon: BuildingOffice },
- { id: 'ready', label: 'Launch', icon: Rocket },
+ { id: 'welcome', label: 'Welcome', icon: UilShield },
+ { id: 'license', label: 'License', icon: UilKeySkeleton },
+ { id: 'database', label: 'UilDatabase', icon: UilDatabase },
+ { id: 'vps', label: 'VPS Setup', icon: UilDesktopAlt },
+ { id: 'workspace', label: 'Workspace', icon: UilBuilding },
+ { id: 'ready', label: 'Launch', icon: UilRocket },
 ];
 
 // ─── Step 1: Welcome + EULA ────────────────────────────────────────────────
@@ -67,7 +67,7 @@ function WelcomeStep({ onNext }: StepProps) {
  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
  className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
  >
- <Shield className="w-10 h-10 text-white" />
+ <UilShield className="w-10 h-10 text-white" />
  </motion.div>
  <h2 className="text-2xl font-bold text-white">Welcome to CrowByte Terminal</h2>
  <p className="text-zinc-400 max-w-md mx-auto">
@@ -98,7 +98,7 @@ function WelcomeStep({ onNext }: StepProps) {
  onClick={() => setShowEula(!showEula)}
  >
  <span>End User License Agreement (EULA v{EULA_VERSION})</span>
- {showEula ? <CaretLeft size={16} weight="bold" /> : <CaretRight size={16} weight="bold" />}
+ {showEula ? <UilAngleLeft size={16} /> : <UilAngleRight size={16} />}
  </Button>
  <AnimatePresence>
  {showEula && (
@@ -108,7 +108,7 @@ function WelcomeStep({ onNext }: StepProps) {
  exit={{ height: 0, opacity: 0 }}
  className="overflow-hidden"
  >
- <div className="max-h-48 overflow-y-auto rounded-lg bg-zinc-950 border p-4 text-xs text-zinc-400 font-mono">
+ <div className="max-h-48 overflow-y-auto rounded-lg bg-zinc-900 border p-4 text-xs text-zinc-400 font-mono">
  <p className="text-amber-500 font-bold mb-2">DUAL-USE SOFTWARE WARNING</p>
  <p className="mb-2">
  CrowByte Terminal contains offensive security tools that can damage target systems.
@@ -165,13 +165,13 @@ function WelcomeStep({ onNext }: StepProps) {
  onClick={handleAccept}
  >
  Accept & Continue
- <CaretRight size={16} weight="bold" className="ml-2" />
+ <UilAngleRight size={16} className="ml-2" />
  </Button>
  </div>
  );
 }
 
-// ─── Step 2: License Key ───────────────────────────────────────────────────
+// ─── Step 2: License UilKeySkeleton ───────────────────────────────────────────────────
 
 function LicenseStep({ onNext, onBack }: StepProps) {
  const [licenseKey, setLicenseKey] = useState('');
@@ -184,7 +184,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  id: 'community',
  name: 'Community',
  price: 'Free',
- icon: TerminalIcon,
+ icon: UilWindow,
  color: 'text-zinc-400',
  bg: 'bg-white/[0.05]',
  features: ['3 targets', '3 endpoints', 'AI chat', 'Core scanning tools', 'CVE database'],
@@ -193,7 +193,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  id: 'professional',
  name: 'Professional',
  price: '$299-499/yr',
- icon: Lightning,
+ icon: UilBolt,
  color: 'text-blue-500',
  bg: 'bg-transparent',
  features: ['Unlimited targets', '25 endpoints', 'VPS agents', 'Fleet management', 'Remote desktop', 'API access', 'Export reports'],
@@ -202,7 +202,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  id: 'team',
  name: 'Team',
  price: '$799-1,499/yr',
- icon: Users,
+ icon: UilUsersAlt,
  color: 'text-violet-500',
  bg: 'bg-transparent',
  features: ['Everything in Pro', 'Unlimited endpoints', 'Team collaboration', 'Custom agents', 'Priority support'],
@@ -211,7 +211,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  id: 'enterprise',
  name: 'Enterprise',
  price: 'Custom',
- icon: Crown,
+ icon: UilAward,
  color: 'text-amber-500',
  bg: 'bg-transparent',
  features: ['Everything in Team', 'SSO/SAML', 'SLA', 'On-prem option', 'Dedicated support'],
@@ -255,14 +255,14 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  <Card key={tier.id} className={`${tier.bg} hover:transition-colors cursor-default`}>
  <CardContent className="p-3 space-y-2">
  <div className="flex items-center gap-2">
- <tier.icon size={16} weight="bold" className={`${tier.color}`} />
+ <tier.icon size={16} className={`${tier.color}`} />
  <span className={`text-sm font-semibold ${tier.color}`}>{tier.name}</span>
  </div>
  <p className="text-xs font-mono text-zinc-300">{tier.price}</p>
  <ul className="text-[10px] text-zinc-500 space-y-0.5">
  {tier.features.map((f) => (
  <li key={f} className="flex items-center gap-1">
- <Check size={10} weight="bold" className="text-blue-400 flex-shrink-0" />
+ <UilCheck size={10} className="text-blue-400 flex-shrink-0" />
  {f}
  </li>
  ))}
@@ -276,7 +276,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
 
  {/* License key input */}
  <div className="space-y-3">
- <Label className="text-sm text-zinc-300">License Key</Label>
+ <Label className="text-sm text-zinc-300">License UilKeySkeleton</Label>
  <div className="flex gap-2">
  <div className="relative flex-1">
  <Input
@@ -291,7 +291,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  size="sm" className="h-7 w-7 absolute right-1 top-1/2 -translate-y-1/2 p-0"
  onClick={() => setShowKey(!showKey)}
  >
- {showKey ? <EyeSlash size={14} weight="bold" /> : <Eye size={14} weight="bold" />}
+ {showKey ? <UilEyeSlash size={14} /> : <UilEye size={14} />}
  </Button>
  </div>
  <Button
@@ -299,7 +299,7 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  disabled={!licenseKey || loading}
  className="bg-blue-600 hover:bg-blue-500"
  >
- {loading ? <CircleNotch size={16} weight="bold" className="animate-spin" /> : 'Activate'}
+ {loading ? <UilSpinner size={16} className="animate-spin" /> : 'Activate'}
  </Button>
  </div>
 
@@ -312,34 +312,34 @@ function LicenseStep({ onNext, onBack }: StepProps) {
  result.valid ? 'bg-transparent text-blue-400' : 'bg-transparent text-red-500'
  }`}
  >
- {result.valid ? <CheckCircle size={16} weight="bold" /> : <XCircle size={16} weight="bold" />}
+ {result.valid ? <UilCheckCircle size={16} /> : <UilTimesCircle size={16} />}
  {result.valid ? `Activated: ${result.tier} tier` : result.error}
  </motion.div>
  )}
 
  <p className="text-xs text-zinc-600">
- Don't have a key? <button className="text-blue-400 hover:underline" onClick={handleCommunity}>Start with Community (free)</button> or <a href="https://crowbyte.io/pricing" target="_blank" className="text-blue-400 hover:underline">purchase a license</a>.
+ Don't have a key? <button className="text-blue-400 hover:underline" onClick={handleCommunity}>Start with Community (free)</button> or <button className="text-blue-400 hover:underline" onClick={() => { const url = 'https://crowbyte.io/payments'; window.electronAPI?.openExternal?.(url) || window.open(url, '_blank'); }}>purchase a license</button>.
  </p>
  </div>
 
  {/* Nav */}
  <div className="flex justify-between">
  <Button variant="ghost" onClick={onBack} className="text-zinc-400">
- <CaretLeft size={16} weight="bold" className="mr-2" /> Back
+ <UilAngleLeft size={16} className="mr-2" /> Back
  </Button>
  <Button
  onClick={onNext}
  disabled={!result?.valid}
  className="bg-blue-600 hover:bg-blue-500"
  >
- Continue <CaretRight size={16} weight="bold" className="ml-2" />
+ Continue <UilAngleRight size={16} className="ml-2" />
  </Button>
  </div>
  </div>
  );
 }
 
-// ─── Step 3: Database (Supabase) ───────────────────────────────────────────
+// ─── Step 3: UilDatabase (Supabase) ───────────────────────────────────────────
 
 function DatabaseStep({ onNext, onBack }: StepProps) {
  const [supabaseUrl, setSupabaseUrl] = useState('');
@@ -351,7 +351,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
 
  const handleTest = async () => {
  if (!supabaseUrl || !anonKey) {
- toast.error('Both URL and Anon Key are required');
+ toast.error('Both URL and Anon UilKeySkeleton are required');
  return;
  }
  setTesting(true);
@@ -379,7 +379,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  return (
  <div className="space-y-6">
  <div className="text-center space-y-2">
- <h2 className="text-xl font-bold text-white">Connect Your Database</h2>
+ <h2 className="text-xl font-bold text-white">Connect Your UilDatabase</h2>
  <p className="text-sm text-zinc-400">CrowByte uses Supabase (PostgreSQL) for CVEs, knowledge base, bookmarks, and more.</p>
  </div>
 
@@ -390,7 +390,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  onClick={handleHosted}
  >
  <CardContent className="p-4 text-center space-y-2">
- <Sparkle size={32} weight="duotone" className="text-blue-400 mx-auto" />
+ <UilStar size={32} className="text-blue-400 mx-auto" />
  <p className="text-sm font-semibold text-white">CrowByte Hosted</p>
  <p className="text-[10px] text-zinc-500">We manage everything. Zero config.</p>
  <span className="text-[10px] text-blue-400">Recommended</span>
@@ -402,7 +402,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  onClick={() => setUseHosted(false)}
  >
  <CardContent className="p-4 text-center space-y-2">
- <Database size={32} weight="duotone" className="text-blue-500 mx-auto" />
+ <UilDatabase size={32} className="text-blue-500 mx-auto" />
  <p className="text-sm font-semibold text-white">Self-Hosted</p>
  <p className="text-[10px] text-zinc-500">Your own Supabase instance.</p>
  <span className="text-[10px] text-blue-500">Enterprise</span>
@@ -427,7 +427,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  />
  </div>
  <div className="space-y-2">
- <Label className="text-sm text-zinc-300">Anon (Public) Key</Label>
+ <Label className="text-sm text-zinc-300">Anon (Public) UilKeySkeleton</Label>
  <Input
  placeholder="eyJhbGciOiJIUzI1NiIs..."
  value={anonKey}
@@ -441,7 +441,7 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  onClick={handleTest}
  disabled={testing || !supabaseUrl || !anonKey}
  >
- {testing ? <CircleNotch size={16} weight="bold" className="animate-spin mr-2" /> : <Database size={16} weight="bold" className="mr-2" />}
+ {testing ? <UilSpinner size={16} className="animate-spin mr-2" /> : <UilDatabase size={16} className="mr-2" />}
  Test Connection
  </Button>
  </motion.div>
@@ -456,21 +456,21 @@ function DatabaseStep({ onNext, onBack }: StepProps) {
  status === 'success' ? 'bg-transparent text-blue-400' : 'bg-transparent text-red-500'
  }`}
  >
- {status === 'success' ? <CheckCircle size={16} weight="bold" /> : <XCircle size={16} weight="bold" />}
- {status === 'success' ? (useHosted ? 'CrowByte hosted database selected' : 'Database connected') : errorMsg}
+ {status === 'success' ? <UilCheckCircle size={16} /> : <UilTimesCircle size={16} />}
+ {status === 'success' ? (useHosted ? 'CrowByte hosted database selected' : 'UilDatabase connected') : errorMsg}
  </motion.div>
  )}
 
  <div className="flex justify-between">
  <Button variant="ghost" onClick={onBack} className="text-zinc-400">
- <CaretLeft size={16} weight="bold" className="mr-2" /> Back
+ <UilAngleLeft size={16} className="mr-2" /> Back
  </Button>
  <Button
  onClick={onNext}
  disabled={status !== 'success'}
  className="bg-blue-600 hover:bg-blue-500"
  >
- Continue <CaretRight size={16} weight="bold" className="ml-2" />
+ Continue <UilAngleRight size={16} className="ml-2" />
  </Button>
  </div>
  </div>
@@ -519,7 +519,7 @@ function VpsStep({ onNext, onBack, config }: StepProps) {
 
  {!isPro && (
  <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-transparent">
- <Warning size={20} weight="duotone" className="text-amber-500 flex-shrink-0" />
+ <UilExclamationTriangle size={20} className="text-amber-500 flex-shrink-0" />
  <div className="text-sm">
  <p className="text-amber-500 font-medium">Professional+ Required</p>
  <p className="text-amber-500/70 text-xs">VPS agents are available on Professional, Team, and Enterprise plans.</p>
@@ -568,7 +568,7 @@ function VpsStep({ onNext, onBack, config }: StepProps) {
  onClick={handleTest}
  disabled={testing || (!vpsHost && !vpsIp)}
  >
- {testing ? <CircleNotch size={16} weight="bold" className="animate-spin mr-2" /> : <DesktopTower size={16} weight="bold" className="mr-2" />}
+ {testing ? <UilSpinner size={16} className="animate-spin mr-2" /> : <UilDesktopAlt size={16} className="mr-2" />}
  Test VPS Connection
  </Button>
  )}
@@ -584,16 +584,16 @@ function VpsStep({ onNext, onBack, config }: StepProps) {
  'bg-transparent text-red-500'
  }`}
  >
- {status === 'success' ? <CheckCircle size={16} weight="bold" /> :
- status === 'warning' ? <Info size={16} weight="bold" /> :
- <XCircle size={16} weight="bold" />}
+ {status === 'success' ? <UilCheckCircle size={16} /> :
+ status === 'warning' ? <UilInfoCircle size={16} /> :
+ <UilTimesCircle size={16} />}
  {statusMsg}
  </motion.div>
  )}
 
  <div className="flex justify-between">
  <Button variant="ghost" onClick={onBack} className="text-zinc-400">
- <CaretLeft size={16} weight="bold" className="mr-2" /> Back
+ <UilAngleLeft size={16} className="mr-2" /> Back
  </Button>
  <div className="flex gap-2">
  <Button variant="ghost" onClick={handleSkip} className="text-zinc-500">
@@ -604,7 +604,7 @@ function VpsStep({ onNext, onBack, config }: StepProps) {
  disabled={isPro && !vpsHost && !vpsIp && status === 'idle'}
  className="bg-blue-600 hover:bg-blue-500"
  >
- Continue <CaretRight size={16} weight="bold" className="ml-2" />
+ Continue <UilAngleRight size={16} className="ml-2" />
  </Button>
  </div>
  </div>
@@ -662,14 +662,14 @@ function WorkspaceStep({ onNext, onBack }: StepProps) {
 
  <div className="flex justify-between">
  <Button variant="ghost" onClick={onBack} className="text-zinc-400">
- <CaretLeft size={16} weight="bold" className="mr-2" /> Back
+ <UilAngleLeft size={16} className="mr-2" /> Back
  </Button>
  <Button
  onClick={handleContinue}
  disabled={!workspaceName}
  className="bg-blue-600 hover:bg-blue-500"
  >
- Continue <CaretRight size={16} weight="bold" className="ml-2" />
+ Continue <UilAngleRight size={16} className="ml-2" />
  </Button>
  </div>
  </div>
@@ -700,7 +700,7 @@ function ReadyStep({ onNext, config }: StepProps) {
  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
  className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
  >
- <Rocket className="w-10 h-10 text-white" />
+ <UilRocket className="w-10 h-10 text-white" />
  </motion.div>
  <h2 className="text-2xl font-bold text-white">You're All Set</h2>
  <p className="text-sm text-zinc-400">CrowByte Terminal is configured and ready to launch.</p>
@@ -716,7 +716,7 @@ function ReadyStep({ onNext, config }: StepProps) {
  </div>
  <Separator className="bg-white/[0.06]" />
  <div className="flex justify-between items-center">
- <span className="text-sm text-zinc-500">Database</span>
+ <span className="text-sm text-zinc-500">UilDatabase</span>
  <span className="text-sm text-blue-400">
  {config.supabaseUrl ? 'Connected' : 'Hosted'}
  </span>
@@ -739,7 +739,7 @@ function ReadyStep({ onNext, config }: StepProps) {
  className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-lg font-semibold shadow-lg shadow-blue-500/20"
  onClick={handleLaunch}
  >
- <Rocket size={20} weight="duotone" className="mr-2" />
+ <UilRocket size={20} className="mr-2" />
  Launch CrowByte
  </Button>
 
@@ -785,7 +785,7 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  const CurrentStepComponent = stepComponents[currentStep];
 
  return (
- <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+ <div className="min-h-screen bg-background flex items-center justify-center p-4">
  {/* Background grid effect */}
  <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_70%)]" />
  <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
@@ -809,9 +809,9 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  isDone ? 'text-blue-400' : 'text-zinc-600'
  }`}>
  {isDone ? (
- <Check size={14} weight="bold" />
+ <UilCheck size={14} />
  ) : (
- <Icon size={14} weight="bold" />
+ <Icon size={14} />
  )}
  <span className="hidden sm:inline">{step.label}</span>
  </div>
@@ -833,7 +833,7 @@ export default function SetupWizard({ onComplete }: { onComplete: () => void }) 
  </div>
 
  {/* Step content */}
- <div className="bg-zinc-950 border rounded-xl p-6 shadow-2xl">
+ <div className="bg-zinc-900 border rounded-xl p-6 shadow-2xl">
  <AnimatePresence mode="wait">
  <motion.div
  key={currentStep}

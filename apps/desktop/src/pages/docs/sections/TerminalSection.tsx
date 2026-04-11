@@ -1,15 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Terminal } from "@phosphor-icons/react";
+import { UilWindow } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function TerminalSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Terminal} title="Terminal" description="Full xterm.js terminal with tmux integration, multi-tab support, and 50K scrollback" status="ready" />
+      <DocHeader icon={UilWindow} title="UilWindow" description="Full xterm.js terminal with tmux integration, multi-tab support, and 50K scrollback" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>The Terminal page provides a full terminal emulator using <strong className="text-foreground">xterm.js</strong> with
+          <p>The UilWindow page provides a full terminal emulator using <strong className="text-foreground">xterm.js</strong> with
             FitAddon (auto-resize), WebLinksAddon (clickable URLs), and SearchAddon (Ctrl+F search).
             Each tab spawns an independent shell via Electron's <code className="text-primary">node-pty</code>.</p>
           <p>Shell presets include <strong className="text-foreground">tmux</strong> (default), zsh, bash, and fish.
@@ -19,7 +19,7 @@ export function TerminalSection() {
       <Card><CardHeader><CardTitle>xterm.js Configuration</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
-            <div className="text-zinc-500"># Terminal.tsx — xterm config</div>
+            <div className="text-zinc-500"># UilWindow.tsx — xterm config</div>
             <div>&nbsp;</div>
             <div><span className="text-primary">fontFamily</span>:    "JetBrains Mono", monospace</div>
             <div><span className="text-primary">fontSize</span>:      14</div>

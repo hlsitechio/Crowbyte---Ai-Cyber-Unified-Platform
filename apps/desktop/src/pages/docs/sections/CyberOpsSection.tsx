@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sword } from "@phosphor-icons/react";
+import { UilBoltAlt } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function CyberOpsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Sword} title="Cyber Ops" description="95-tool tactical security toolkit with AI-assisted analysis, caching, and analytics" status="ready" />
+      <DocHeader icon={UilBoltAlt} title="Cyber Ops" description="95-tool tactical security toolkit with AI-assisted analysis, caching, and analytics" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

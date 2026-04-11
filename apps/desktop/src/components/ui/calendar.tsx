@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { UilAngleLeft, UilAngleRight } from "@iconscout/react-unicons";
 import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
@@ -42,8 +42,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ..._props }) => <CaretLeft size={16} weight="bold" />,
-        IconRight: ({ ..._props }) => <CaretRight size={16} weight="bold" />,
+        IconLeft: ({ ..._props }) => <UilAngleLeft size={16} />,
+        IconRight: ({ ..._props }) => <UilAngleRight size={16} />,
       }}
       {...props}
     />

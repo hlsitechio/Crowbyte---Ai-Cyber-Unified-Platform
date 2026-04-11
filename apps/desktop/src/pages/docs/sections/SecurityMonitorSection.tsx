@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield } from "@phosphor-icons/react";
+import { UilShield } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function SecurityMonitorSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Shield} title="Security Monitor" description="AI-powered real-time security monitoring with GHOST agent analysis" status="beta" />
+      <DocHeader icon={UilShield} title="Security Monitor" description="AI-powered real-time security monitoring with GHOST agent analysis" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

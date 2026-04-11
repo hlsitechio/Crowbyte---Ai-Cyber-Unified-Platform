@@ -17,8 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Bug, X, Globe, MapTrifold, Pulse, SpeakerHigh, SpeakerX, Copy, Trash, CaretUp, Warning, Terminal, Clock, Lightning, CheckCircle, CursorClick, Scan, ArrowsClockwise, ShieldWarning, PaintBrush, Wheelchair, Lightbulb, EyeSlash, Eye, DotsSix } from "@phosphor-icons/react";
-
+import { UilBug, UilTimes, UilGlobe, UilMap, UilHeartRate, UilVolumeUp, UilVolumeMute, UilCopy, UilTrashAlt, UilAngleUp, UilExclamationTriangle, UilWindow, UilClock, UilBolt, UilCheckCircle, UilMouse, UilQrcodeScan, UilSync, UilShieldExclamation, UilPaintTool, UilWheelchair, UilLightbulb, UilEyeSlash, UilEye, UilDraggabledots } from "@iconscout/react-unicons";
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -230,14 +229,14 @@ function memoryColorClass(pct: number): string {
 function typeIcon(type: ErrorEntry["type"]) {
  switch (type) {
  case "network":
- return <Globe size={12} weight="bold" />;
+ return <UilGlobe size={12} />;
  case "console":
- return <Terminal size={12} weight="bold" />;
+ return <UilWindow size={12} />;
  case "uncaught":
  case "promise":
- return <Warning size={12} weight="bold" />;
+ return <UilExclamationTriangle size={12} />;
  default:
- return <Bug size={12} weight="bold" />;
+ return <UilBug size={12} />;
  }
 }
 
@@ -331,7 +330,7 @@ function buildFullReport(
  }
  }
  if (warnings.length > 0) {
- lines.push(`### Warning (${warnings.length})`);
+ lines.push(`### UilExclamationTriangle (${warnings.length})`);
  for (const w of warnings) {
  lines.push(`- [${cleanPageName(w.page)}] ${w.message} (${formatTime(w.timestamp)})`);
  }
@@ -533,7 +532,7 @@ const ErrorRow = ({
  className="flex-shrink-0 p-1 rounded hover:bg-white/10 transition-colors text-zinc-600 hover:text-zinc-300"
  title={isIgnored ? "Unignore this error" : "Ignore this error"}
  >
- {isIgnored ? <Eye size={12} weight="bold" /> : <EyeSlash size={12} weight="bold" />}
+ {isIgnored ? <UilEye size={12} /> : <UilEyeSlash size={12} />}
  </span>
  </div>
 
@@ -669,14 +668,14 @@ const ErrorsTab = ({
  const filters: { key: ErrorFilter; label: string; count?: number }[] = [
  { key: "all", label: "All" },
  { key: "critical", label: "Critical", count: counts.critical },
- { key: "warning", label: "Warning", count: counts.warning },
+ { key: "warning", label: "UilExclamationTriangle", count: counts.warning },
  { key: "network", label: "Network", count: counts.network },
  ];
 
  if (errors.length === 0) {
  return (
  <div className="flex flex-col items-center justify-center py-12 text-zinc-600 gap-2">
- <CheckCircle size={32} weight="duotone" className="text-emerald-500/40" />
+ <UilCheckCircle size={32} className="text-emerald-500/40" />
  <span className="text-xs">No errors detected</span>
  <span className="text-[10px] text-zinc-700">
  Monitoring console, network, and uncaught exceptions
@@ -737,7 +736,7 @@ const NetworkTab = ({ network, stats }: { network: NetworkEntry[]; stats: Networ
  if (network.length === 0) {
  return (
  <div className="flex flex-col items-center justify-center py-12 text-zinc-600 gap-2">
- <Globe size={32} weight="duotone" className="text-zinc-700" />
+ <UilGlobe size={32} className="text-zinc-700" />
  <span className="text-xs">No network requests captured</span>
  </div>
  );
@@ -810,7 +809,7 @@ const PagesTab = ({
  if (navigation.length === 0) {
  return (
  <div className="flex flex-col items-center justify-center py-12 text-zinc-600 gap-2">
- <MapTrifold size={32} weight="duotone" className="text-zinc-700" />
+ <UilMap size={32} className="text-zinc-700" />
  <span className="text-xs">No navigation recorded</span>
  </div>
  );
@@ -864,7 +863,7 @@ const PagesTab = ({
  {cleanPageName(nav.page)}
  </span>
  {hasErrors && (
- <Warning size={12} weight="bold" className="text-red-500 flex-shrink-0" />
+ <UilExclamationTriangle size={12} className="text-red-500 flex-shrink-0" />
  )}
  </div>
  <div className="flex items-center gap-2 mt-0.5">
@@ -915,7 +914,7 @@ const PerfTab = ({
  {/* Page Load */}
  <div className="rounded-lg border border-white/5 bg-transparent p-3">
  <div className="flex items-center gap-1.5 mb-1">
- <Lightning size={14} weight="bold" className="text-zinc-500" />
+ <UilBolt size={14} className="text-zinc-500" />
  <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Page Load</span>
  </div>
  <div
@@ -932,7 +931,7 @@ const PerfTab = ({
  {/* Memory */}
  <div className="rounded-lg border border-white/5 bg-transparent p-3">
  <div className="flex items-center gap-1.5 mb-1">
- <Pulse size={14} weight="bold" className="text-zinc-500" />
+ <UilHeartRate size={14} className="text-zinc-500" />
  <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Memory</span>
  </div>
  {perf.memoryUsed !== undefined ? (
@@ -956,7 +955,7 @@ const PerfTab = ({
  {/* Avg Latency */}
  <div className="rounded-lg border border-white/5 bg-transparent p-3">
  <div className="flex items-center gap-1.5 mb-1">
- <Clock size={14} weight="bold" className="text-zinc-500" />
+ <UilClock size={14} className="text-zinc-500" />
  <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Avg Latency</span>
  </div>
  <div className={`text-lg font-bold ${latencyColorClass(perf.avgLatency)}`}>
@@ -967,7 +966,7 @@ const PerfTab = ({
  {/* Slow Requests */}
  <div className="rounded-lg border border-white/5 bg-transparent p-3">
  <div className="flex items-center gap-1.5 mb-1">
- <Warning size={14} weight="bold" className="text-zinc-500" />
+ <UilExclamationTriangle size={14} className="text-zinc-500" />
  <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Slow Reqs</span>
  </div>
  <div
@@ -1062,7 +1061,7 @@ const ClicksTab = ({
  if (misclicks.length === 0) {
  return (
  <div className="flex flex-col items-center justify-center py-12 text-zinc-600 gap-2">
- <CursorClick size={32} weight="duotone" className="text-emerald-500/40" />
+ <UilMouse size={32} className="text-emerald-500/40" />
  <span className="text-xs">No misclicks detected</span>
  <span className="text-[10px] text-zinc-700">
  Monitoring dead clicks & rage clicks
@@ -1138,7 +1137,7 @@ const ClicksTab = ({
  className="flex-shrink-0 p-1 rounded hover:bg-white/10 transition-colors text-zinc-600 hover:text-zinc-300"
  title={isIgnored ? "Unignore" : "Ignore this misclick"}
  >
- {isIgnored ? <Eye size={12} weight="bold" /> : <EyeSlash size={12} weight="bold" />}
+ {isIgnored ? <UilEye size={12} /> : <UilEyeSlash size={12} />}
  </button>
  </div>
  <div className="mt-1 flex items-center gap-3 text-[10px]">
@@ -1203,11 +1202,11 @@ function auditSeverityBadge(severity: UIAuditEntry['severity']): string {
 
 function auditCategoryIcon(category: UIAuditEntry['category']) {
  switch (category) {
- case 'format': return <PaintBrush size={12} weight="bold" />;
- case 'accessibility': return <Wheelchair size={12} weight="bold" />;
- case 'ux': return <Lightbulb size={12} weight="bold" />;
- case 'performance': return <Lightning size={12} weight="bold" />;
- default: return <Scan size={12} weight="bold" />;
+ case 'format': return <UilPaintTool size={12} />;
+ case 'accessibility': return <UilWheelchair size={12} />;
+ case 'ux': return <UilLightbulb size={12} />;
+ case 'performance': return <UilBolt size={12} />;
+ default: return <UilQrcodeScan size={12} />;
  }
 }
 
@@ -1270,7 +1269,7 @@ const AuditTab = ({
  if (audit.length === 0) {
  return (
  <div className="flex flex-col items-center justify-center py-12 text-zinc-600 gap-2">
- <Scan size={32} weight="duotone" className="text-emerald-500/40" />
+ <UilQrcodeScan size={32} className="text-emerald-500/40" />
  <span className="text-xs">No audit findings</span>
  <span className="text-[10px] text-zinc-700">
  UI/UX audit runs automatically on each page visit
@@ -1281,7 +1280,7 @@ const AuditTab = ({
  className="mt-2 text-[10px] text-zinc-500 hover:text-zinc-300"
  onClick={onReaudit}
  >
- <ArrowsClockwise size={12} weight="bold" className="mr-1" /> Re-audit current page
+ <UilSync size={12} className="mr-1" /> Re-audit current page
  </Button>
  </div>
  );
@@ -1313,7 +1312,7 @@ const AuditTab = ({
  onClick={onReaudit}
  title="Re-audit current page"
  >
- <ArrowsClockwise size={12} weight="bold" />
+ <UilSync size={12} />
  </Button>
  </div>
 
@@ -1373,7 +1372,7 @@ const AuditTab = ({
  className="flex-shrink-0 p-1 rounded hover:bg-white/10 transition-colors text-zinc-600 hover:text-zinc-300"
  title={isIgnored ? "Unignore" : "Ignore this finding"}
  >
- {isIgnored ? <Eye size={12} weight="bold" /> : <EyeSlash size={12} weight="bold" />}
+ {isIgnored ? <UilEye size={12} /> : <UilEyeSlash size={12} />}
  </button>
  </div>
  <div className="mt-1 text-[11px] text-zinc-300">{first.message}</div>
@@ -1450,8 +1449,6 @@ export function QAAgent() {
  };
  }, []);
 
- // If disabled, render nothing
- if (!enabled) return null;
  const [errors, setErrors] = useState<ErrorEntry[]>([]);
  const [network, setNetwork] = useState<NetworkEntry[]>([]);
  const [navigation, setNavigation] = useState<NavigationEntry[]>([]);
@@ -1647,7 +1644,8 @@ export function QAAgent() {
  setExpandedId((prev) => (prev === id ? null : id));
  }, []);
 
- if (isAuthPage) return null;
+ // If disabled or on auth page, render nothing (AFTER all hooks to satisfy Rules of Hooks)
+ if (!enabled || isAuthPage) return null;
 
  const errorCount = visibleErrors.length;
  const isMonitoring = errorMonitor.isActive();
@@ -1665,7 +1663,7 @@ export function QAAgent() {
  transition={{ duration: 0.2, ease: "easeOut" }}
  >
  <Card
- className="bg-zinc-950/95 backdrop-blur-xl border-primary/30 shadow-2xl shadow-black/50 flex flex-col overflow-hidden relative"
+ className="bg-card/95 backdrop-blur-xl border-primary/30 shadow-2xl shadow-black/50 flex flex-col overflow-hidden relative"
  style={{ width: panelSize.w, height: panelSize.h }}
  >
  {/* Resize handles */}
@@ -1684,13 +1682,13 @@ export function QAAgent() {
  onMouseDown={onResizeMouseDown('both')}
  className="absolute top-0 left-0 w-4 h-4 cursor-nwse-resize z-20 flex items-center justify-center group"
  >
- <DotsSix size={10} weight="bold" className="text-zinc-700 group-hover:text-primary/60 rotate-45" />
+ <UilDraggabledots size={10} className="text-zinc-700 group-hover:text-primary/60 rotate-45" />
  </div>
 
  {/* Header */}
  <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
  <div className="flex items-center gap-2">
- <Bug size={16} weight="bold" className="text-primary" />
+ <UilBug size={16} className="text-primary" />
  <span className="text-sm font-semibold text-zinc-200">
  QA Agent v2
  </span>
@@ -1706,39 +1704,39 @@ export function QAAgent() {
  title={soundEnabled ? "Mute alerts" : "Enable sound alerts"}
  >
  {soundEnabled ? (
- <SpeakerHigh size={12} weight="bold" />
+ <UilVolumeUp size={12} />
  ) : (
- <SpeakerX size={12} weight="bold" />
+ <UilVolumeMute size={12} />
  )}
  </Button>
 
- {/* Copy Report */}
+ {/* UilCopy Report */}
  <Button
  variant="ghost"
  size="icon"
  className="h-6 w-6 text-zinc-500 hover:text-zinc-300"
  onClick={handleCopyReport}
- title="Copy full report"
+ title="UilCopy full report"
  >
  {copiedReport ? (
- <CheckCircle size={12} weight="bold" className="text-emerald-500" />
+ <UilCheckCircle size={12} className="text-emerald-500" />
  ) : (
- <Copy size={12} weight="bold" />
+ <UilCopy size={12} />
  )}
  </Button>
 
- {/* Copy GitHub Issue */}
+ {/* UilCopy GitHub Issue */}
  <Button
  variant="ghost"
  size="icon"
  className="h-6 w-6 text-zinc-500 hover:text-zinc-300"
  onClick={handleCopyGitHubIssue}
- title="Copy as GitHub issue"
+ title="UilCopy as GitHub issue"
  >
  {copiedIssue ? (
- <CheckCircle size={12} weight="bold" className="text-emerald-500" />
+ <UilCheckCircle size={12} className="text-emerald-500" />
  ) : (
- <Terminal size={12} weight="bold" />
+ <UilWindow size={12} />
  )}
  </Button>
 
@@ -1751,7 +1749,7 @@ export function QAAgent() {
  onClick={() => setShowIgnored((p) => !p)}
  title={showIgnored ? `Hide ${ignoredCount} ignored` : `Show ${ignoredCount} ignored`}
  >
- {showIgnored ? <Eye size={12} weight="bold" /> : <EyeSlash size={12} weight="bold" />}
+ {showIgnored ? <UilEye size={12} /> : <UilEyeSlash size={12} />}
  </Button>
  )}
 
@@ -1764,7 +1762,7 @@ export function QAAgent() {
  onClick={handleClearIgnored}
  title="Clear all ignored items"
  >
- <ArrowsClockwise size={12} weight="bold" />
+ <UilSync size={12} />
  </Button>
  )}
 
@@ -1776,7 +1774,7 @@ export function QAAgent() {
  onClick={handleClearAll}
  title="Clear all data"
  >
- <Trash size={12} weight="bold" />
+ <UilTrashAlt size={12} />
  </Button>
 
  {/* Close */}
@@ -1786,7 +1784,7 @@ export function QAAgent() {
  className="text-zinc-500 hover:text-zinc-300"
  onClick={() => setOpen(false)}
  >
- <X size={14} weight="bold" />
+ <UilTimes size={14} />
  </Button>
  </div>
  </div>
@@ -1798,7 +1796,7 @@ export function QAAgent() {
  value="errors"
  className="flex-1 text-[11px] gap-1.5 data-[state=active]:bg-white/[0.08]"
  >
- <Bug size={12} weight="bold" />
+ <UilBug size={12} />
  Errors
  {errorCount > 0 && (
  <Badge
@@ -1813,21 +1811,21 @@ export function QAAgent() {
  value="network"
  className="flex-1 text-[11px] gap-1.5 data-[state=active]:bg-white/[0.08]"
  >
- <Globe size={12} weight="bold" />
+ <UilGlobe size={12} />
  Network
  </TabsTrigger>
  <TabsTrigger
  value="pages"
  className="flex-1 text-[11px] gap-1.5 data-[state=active]:bg-white/[0.08]"
  >
- <MapTrifold size={12} weight="bold" />
+ <UilMap size={12} />
  Pages
  </TabsTrigger>
  <TabsTrigger
  value="clicks"
  className="flex-1 text-[11px] gap-1.5 data-[state=active]:bg-white/[0.08]"
  >
- <CursorClick size={12} weight="bold" />
+ <UilMouse size={12} />
  Clicks
  {visibleMisclicks.length > 0 && (
  <Badge className="text-[9px] px-1 py-0 h-3.5 ml-0.5 bg-orange-600 text-white">
@@ -1839,7 +1837,7 @@ export function QAAgent() {
  value="audit"
  className="flex-1 text-[11px] gap-1.5 data-[state=active]:bg-white/[0.08]"
  >
- <Scan size={12} weight="bold" />
+ <UilQrcodeScan size={12} />
  Audit
  {visibleAudit.length > 0 && (
  <Badge className="text-[9px] px-1 py-0 h-3.5 ml-0.5 bg-purple-600 text-white">
@@ -1851,7 +1849,7 @@ export function QAAgent() {
  value="perf"
  className="flex-1 text-[11px] gap-1.5 data-[state=active]:bg-white/[0.08]"
  >
- <Pulse size={12} weight="bold" />
+ <UilHeartRate size={12} />
  Perf
  </TabsTrigger>
  </TabsList>
@@ -1910,6 +1908,7 @@ export function QAAgent() {
  </AnimatePresence>
 
  {/* Floating badge button */}
+ <div className="relative group/qa">
  <button
  type="button"
  onClick={() => setOpen((prev) => !prev)}
@@ -1917,9 +1916,9 @@ export function QAAgent() {
  title={tooltipText}
  >
  {open ? (
- <CaretUp size={20} weight="duotone" className="text-zinc-400 group-hover:text-primary transition-colors" />
+ <UilAngleUp size={20} className="text-zinc-400 group-hover:text-primary transition-colors" />
  ) : (
- <Bug size={20} weight="duotone" className="text-zinc-400 group-hover:text-primary transition-colors" />
+ <UilBug size={20} className="text-zinc-400 group-hover:text-primary transition-colors" />
  )}
 
  {/* Status dot */}
@@ -1973,6 +1972,23 @@ export function QAAgent() {
  )}
  </AnimatePresence>
  </button>
+
+ {/* Hide button — sits on the border, top-left of the bubble */}
+ <button
+ type="button"
+ onClick={(e) => {
+ e.stopPropagation();
+ setEnabled(false);
+ setOpen(false);
+ localStorage.setItem('ai_debugger_enabled', 'false');
+ window.dispatchEvent(new CustomEvent('crowbyte:debugger-toggle', { detail: { aiDebugger: false } }));
+ }}
+ className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-full bg-zinc-800 border border-white/10 hover:border-red-500/60 hover:bg-red-500/20 flex items-center justify-center transition-all opacity-0 group-hover/qa:opacity-100 z-10"
+ title="Hide QA Agent"
+ >
+ <UilEyeSlash size={10} className="text-zinc-500 group-hover/qa:text-zinc-400" />
+ </button>
+ </div>
  </div>
  );
 }

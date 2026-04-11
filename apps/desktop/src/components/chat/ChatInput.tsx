@@ -1,7 +1,6 @@
 import { useRef, useEffect, useCallback, memo } from 'react';
-import { PaperPlaneTilt, Square, Command } from '@phosphor-icons/react';
-
-type Provider = 'claude' | 'openclaw' | 'crowbyte';
+import { UilPlaneFly, UilSquare, UilKeyboard } from "@iconscout/react-unicons";
+type Provider = 'openrouter' | 'claude' | 'openclaw' | 'crowbyte';
 
 interface ChatInputProps {
   value: string;
@@ -46,6 +45,11 @@ export const ChatInput = memo(({
   const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
 
   const providerColors: Record<Provider, { glow: string; btn: string; btnHover: string }> = {
+    openrouter: {
+      glow: 'from-cyan-500/40 via-cyan-500/30 to-teal-500/40',
+      btn: 'bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-600/20',
+      btnHover: 'shadow-cyan-500/20',
+    },
     claude: {
       glow: 'from-violet-500/40 via-purple-500/30 to-fuchsia-500/40',
       btn: 'bg-violet-600 hover:bg-violet-500 disabled:bg-violet-600/20',
@@ -92,7 +96,7 @@ export const ChatInput = memo(({
                 onClick={onStop}
                 className="flex-shrink-0 w-10 h-10 rounded-xl bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-all hover:shadow-lg hover:shadow-red-500/20"
               >
-                <Square size={16} weight="bold" />
+                <UilSquare size={16} />
               </button>
             ) : (
               <button
@@ -100,7 +104,7 @@ export const ChatInput = memo(({
                 disabled={!value.trim() || disabled}
                 className={`flex-shrink-0 w-10 h-10 rounded-xl ${colors.btn} text-white flex items-center justify-center transition-all hover:shadow-lg ${colors.btnHover} disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none`}
               >
-                <PaperPlaneTilt size={16} weight="bold" />
+                <UilPlaneFly size={16} />
               </button>
             )}
           </div>
@@ -119,7 +123,7 @@ export const ChatInput = memo(({
             )}
           </div>
           <div className="flex items-center gap-1 text-[10px] text-zinc-700">
-            <Command size={10} weight="bold" />
+            <UilKeyboard size={10} />
             <span>Enter to send</span>
             <span className="text-zinc-800 mx-1">|</span>
             <span>Shift+Enter for newline</span>

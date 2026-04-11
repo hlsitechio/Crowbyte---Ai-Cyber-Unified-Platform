@@ -43,6 +43,7 @@ process.on('uncaughtException', (err) => {
 console.log('[+] GlitchTip main process monitoring active (no SDK)');
 const os = require('os');
 const plat = require('./platform.cjs');
+const { registerProxyIPC } = require('./proxy-server.cjs');
 let pty;
 try {
   pty = require('node-pty');
@@ -623,6 +624,17 @@ function isFirstRun() {
     const config = JSON.parse(fs.readFileSync(getConfigPath(), 'utf-8'));
     return !config.onboardingComplete;
   } catch {
+    // Dev mode: userData path differs from packaged app — check real CrowByte config
+    try {
+      const fallback = path.join(app.getPath('home'), '.config', 'CrowByte', 'crowbyte-config.json');
+      const config = JSON.parse(fs.readFileSync(fallback, 'utf-8'));
+      if (config.onboardingComplete) {
+        const dir = path.dirname(getConfigPath());
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.copyFileSync(fallback, getConfigPath());
+        return false;
+      }
+    } catch {}
     return true;
   }
 }
@@ -658,7 +670,6 @@ function createOnboardingWindow() {
   const isDev = !isForceProduction && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged);
   if (isDev) {
     mainWindow.loadURL('http://localhost:8081/#/onboarding');
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: '/onboarding' });
   }
@@ -681,6 +692,104 @@ ipcMain.handle('onboarding:skip', () => {
   createWindow();
   browserMgr.init();
   return { success: true };
+});
+
+// Open URL in system browser
+ipcMain.handle('open-external', async (event, url) => {
+  const { shell } = require('electron');
+  if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
+    await shell.openExternal(url);
+    return true;
+  }
+  return false;
+});
+
+// Open OAuth popup — clean BrowserWindow, no CSP, captures redirect tokens
+ipcMain.handle('open-oauth-popup', (event, url, redirectOrigin) => {
+  return new Promise((resolve) => {
+    let resolved = false;
+    const done = (result) => {
+      if (resolved) return;
+      resolved = true;
+      resolve(result);
+      if (!popup.isDestroyed()) popup.close();
+    };
+
+    const extractTokens = (fullUrl) => {
+      const hashIdx = fullUrl.indexOf('#');
+      if (hashIdx === -1) return null;
+      const params = new URLSearchParams(fullUrl.substring(hashIdx + 1));
+      const access = params.get('access_token');
+      if (!access) return null;
+      return {
+        access_token: access,
+        refresh_token: params.get('refresh_token'),
+        token_type: params.get('token_type'),
+      };
+    };
+
+    const popup = new BrowserWindow({
+      width: 600,
+      height: 700,
+      parent: mainWindow,
+      modal: true,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
+      autoHideMenuBar: true,
+      title: 'Sign in — CrowByte',
+    });
+
+    // No CSP on the popup — let GitHub/Google render properly
+    popup.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      const headers = { ...details.responseHeaders };
+      delete headers['content-security-policy'];
+      delete headers['Content-Security-Policy'];
+      callback({ responseHeaders: headers });
+    });
+
+    // Intercept ALL navigations — check if we hit the redirect target
+    popup.webContents.on('will-navigate', (ev, navUrl) => {
+      if (navUrl.startsWith(redirectOrigin)) {
+        const tokens = extractTokens(navUrl);
+        if (tokens) { ev.preventDefault(); done(tokens); return; }
+      }
+    });
+
+    popup.webContents.on('did-navigate', (ev, navUrl) => {
+      if (navUrl.startsWith(redirectOrigin)) {
+        // Hash might not be in did-navigate URL — poll for it
+        const check = () => {
+          if (popup.isDestroyed()) return;
+          popup.webContents.executeJavaScript('window.location.href')
+            .then(href => {
+              const tokens = extractTokens(href);
+              if (tokens) { done(tokens); }
+              else { setTimeout(check, 500); }
+            })
+            .catch(() => {});
+        };
+        check();
+      }
+    });
+
+    // Also intercept redirects (Electron 39 uses different event shape)
+    popup.webContents.on('will-redirect', (ev, navUrl) => {
+      // In newer Electron, navUrl might be the event details object
+      const checkUrl = typeof navUrl === 'string' ? navUrl : ev?.url || '';
+      if (checkUrl.startsWith(redirectOrigin)) {
+        const tokens = extractTokens(checkUrl);
+        if (tokens) {
+          if (typeof ev?.preventDefault === 'function') ev.preventDefault();
+          done(tokens);
+        }
+      }
+    });
+
+    popup.on('closed', () => done(null));
+    popup.loadURL(url);
+  });
 });
 
 // Create main window
@@ -726,6 +835,7 @@ function createWindow() {
               "https://api.venice.ai https://ollama.ai https://*.supabase.co wss://*.supabase.co " +
               "https://*.hstgr.cloud " +
               "wss://*.hstgr.cloud:* " +
+              "https://openrouter.ai https://*.openrouter.ai " +
               "https://integrate.api.nvidia.com http://" + (process.env.VITE_VPS_IP || '127.0.0.1') + ":*; " +
               "font-src 'self' data: https://fonts.gstatic.com;"
             : // Production: Same access
@@ -740,6 +850,7 @@ function createWindow() {
               "https://ipapi.co " +
               "https://api.venice.ai https://ollama.ai https://*.supabase.co " +
               "https://*.hstgr.cloud " +
+              "https://openrouter.ai https://*.openrouter.ai " +
               "https://integrate.api.nvidia.com http://" + (process.env.VITE_VPS_IP || '127.0.0.1') + ":*; " +
               "font-src 'self' data: https://fonts.gstatic.com;"
         ]
@@ -843,6 +954,33 @@ function createWindow() {
     return { action: 'deny' };
   });
 }
+
+// ─── Intercept Proxy IPC Registration ────────────────────────────────
+// Registers proxy:start, proxy:stop, proxy:history, proxy:replay, etc.
+// mainWindow is set by createWindow() — proxy events stream to renderer via IPC.
+registerProxyIPC(ipcMain, null); // Register handlers immediately (mainWindow set later)
+// Re-bind mainWindow after createWindow() so proxy events reach the renderer
+const _origCreateWindow = createWindow;
+createWindow = function() {
+  _origCreateWindow();
+  // Patch proxy event emitter to use the new mainWindow
+  const { proxy: proxyInstance } = require('./proxy-server.cjs');
+  proxyInstance.removeAllListeners('capture');
+  proxyInstance.removeAllListeners('error');
+  proxyInstance.on('capture', (capture) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('proxy:capture', {
+        id: capture.id, timestamp: capture.timestamp, method: capture.method,
+        url: capture.url, hostname: capture.hostname, path: capture.path,
+        protocol: capture.protocol, status: capture.response?.status,
+        duration: capture.duration, requestSize: capture.request?.size || 0,
+        responseSize: capture.response?.size || 0,
+        contentType: capture.response?.headers?.['content-type'],
+        flags: capture.flags, tags: capture.tags,
+      });
+    }
+  });
+};
 
 // ─── Deep Link Protocol Handler ──────────────────────────────────────
 const PROTOCOL = 'crowbyte';
@@ -1135,6 +1273,9 @@ ipcMain.handle('get-available-shells', async () => {
 
     // Quick-launch presets
     try { execSync('which claude', { stdio: 'pipe' }); shells.push({ id: 'claude', name: 'Claude Code', path: 'claude', icon: 'brain', preset: true }); } catch {}
+    // QwenHacker — unfiltered AI CLI via OpenRouter (safe: hardcoded path, no user input)
+    const qwenScript = path.join(os.homedir(), 'Desktop', 'unfiltered_qwenhacker.sh');
+    try { require('fs').accessSync(qwenScript, require('fs').constants.X_OK); shells.push({ id: 'qwenhacker', name: 'QwenHacker', path: qwenScript, icon: 'swords', preset: true }); } catch {}
     try { execSync('which python3', { stdio: 'pipe' }); shells.push({ id: 'python', name: 'Python 3', path: 'python3', icon: 'code', preset: true }); } catch {}
     try { execSync('which node', { stdio: 'pipe' }); shells.push({ id: 'node', name: 'Node.js', path: 'node', icon: 'code', preset: true }); } catch {}
     try { execSync('which msfconsole', { stdio: 'pipe' }); shells.push({ id: 'msf', name: 'Metasploit', path: 'msfconsole', icon: 'swords', preset: true }); } catch {}
@@ -1169,6 +1310,7 @@ ipcMain.handle('create-terminal', async (event, { terminalId, shellType, cwd, co
         case 'bash': shell = '/bin/bash'; args = ['-i', '-l']; break;
         case 'sh': shell = '/bin/sh'; args = ['-i']; break;
         case 'claude': shell = execSync('which claude', { encoding: 'utf8' }).trim(); args = []; break;
+        case 'qwenhacker': shell = path.join(os.homedir(), 'Desktop', 'unfiltered_qwenhacker.sh'); args = []; break;
         case 'python': shell = '/usr/bin/python3'; args = []; break;
         case 'node': shell = execSync('which node', { encoding: 'utf8' }).trim(); args = []; break;
         case 'msf': shell = execSync('which msfconsole', { encoding: 'utf8' }).trim(); args = ['-q']; break;
@@ -1573,6 +1715,34 @@ ipcMain.handle('claude-stop', async () => {
     return { ok: true };
   }
   return { ok: false, error: 'No active Claude process' };
+});
+
+// ─── OpenRouter API Key Storage ──────────────────────────────────────────────
+// Stored in the same config file as other CrowByte settings
+
+ipcMain.handle('openrouter:get-key', async () => {
+  try {
+    const configPath = path.join(app.getPath('userData'), 'crowbyte-config.json');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    return config.openRouterApiKey || null;
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('openrouter:set-key', async (event, key) => {
+  try {
+    const configPath = path.join(app.getPath('userData'), 'crowbyte-config.json');
+    let config = {};
+    try { config = JSON.parse(fs.readFileSync(configPath, 'utf-8')); } catch {}
+    config.openRouterApiKey = key;
+    const dir = path.dirname(configPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
 });
 
 // Run system command (for DNS detection, network diagnostics)

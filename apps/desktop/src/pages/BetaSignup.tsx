@@ -5,17 +5,16 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Rocket, Shield, Terminal, Brain, Users, Lightning, Timer, ArrowRight } from '@phosphor-icons/react';
-
+import { UilCheck, UilRocket, UilShield, UilWindow, UilBrain, UilUsersAlt, UilBolt, UilArrowRight, UilLock } from "@iconscout/react-unicons";
 const API_BASE = import.meta.env.VITE_APP_URL || '';
 
 const BETA_PERKS = [
-  { icon: Lightning, text: 'All 7 AI models — unlimited messages' },
-  { icon: Terminal, text: 'Desktop app — Linux, Windows, macOS' },
-  { icon: Brain, text: '3 custom AI agents' },
-  { icon: Shield, text: 'Fleet management & network scanner' },
-  { icon: Users, text: 'Priority support' },
-  { icon: Timer, text: 'Locked-in $15/mo — forever (regular $19)' },
+  { icon: UilBolt, text: 'All 7 AI models — unlimited messages' },
+  { icon: UilWindow, text: 'Desktop app — Linux, Windows, macOS' },
+  { icon: UilBrain, text: '3 custom AI agents' },
+  { icon: UilShield, text: 'Fleet management & network scanner' },
+  { icon: UilUsersAlt, text: 'Priority support' },
+  { icon: UilLock, text: 'Locked-in $15/mo — forever (regular $19)' },
 ];
 
 const fadeUp = {
@@ -69,9 +68,9 @@ export default function BetaSignup() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-['JetBrains_Mono'] overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white font-['JetBrains_Mono'] overflow-x-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl">
+      <nav className="fixed top-0 w-full z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
           <a href="/" className="text-lg font-bold text-white">
             Crow<span className="text-orange-500">Byte</span>
@@ -95,8 +94,8 @@ export default function BetaSignup() {
             className="space-y-8"
           >
             <motion.div variants={fadeUp} custom={0}>
-              <span className="inline-flex items-center gap-2 text-[11px] text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1 mb-6">
-                <Rocket size={12} weight="fill" />
+              <span className="inline-flex items-center gap-2 text-[11px] text-orange-400 bg-orange-500/10 rounded-full px-3 py-1 mb-6">
+                <UilRocket size={12} />
                 EARLY ACCESS — LIMITED SPOTS
               </span>
 
@@ -118,7 +117,7 @@ export default function BetaSignup() {
               <span className="text-4xl font-bold text-white">$15</span>
               <span className="text-sm text-zinc-500">/mo</span>
               <span className="text-sm text-zinc-600 line-through ml-2">$19/mo</span>
-              <span className="text-[10px] text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded px-2 py-0.5 ml-1">
+              <span className="text-[10px] text-orange-400 bg-orange-500/10 rounded px-2 py-0.5 ml-1">
                 EARLY BIRD
               </span>
             </motion.div>
@@ -128,7 +127,7 @@ export default function BetaSignup() {
               {BETA_PERKS.map((perk) => (
                 <li key={perk.text} className="flex items-center gap-3">
                   <div className="p-1.5 rounded-md bg-blue-500/10 border border-blue-500/10">
-                    <perk.icon size={14} weight="bold" className="text-blue-400" />
+                    <perk.icon size={14} className="text-blue-400" />
                   </div>
                   <span className="text-xs text-zinc-300">{perk.text}</span>
                 </li>
@@ -157,9 +156,9 @@ export default function BetaSignup() {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             {done ? (
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-8 text-center">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-5">
-                  <Check size={28} weight="bold" className="text-emerald-400" />
+              <div className="rounded-xl bg-emerald-500/5 p-8 text-center">
+                <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-5">
+                  <UilCheck size={28} className="text-emerald-400" />
                 </div>
                 <h2 className="text-xl font-bold text-white mb-2">You're on the list!</h2>
                 <p className="text-sm text-zinc-400 mb-4">
@@ -169,8 +168,8 @@ export default function BetaSignup() {
                   Your early bird price of <span className="text-orange-400 font-bold">$15/mo</span> is locked in.
                 </p>
                 {count && (
-                  <div className="inline-flex items-center gap-2 text-[11px] text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5">
-                    <Users size={12} weight="bold" />
+                  <div className="inline-flex items-center gap-2 text-[11px] text-blue-400 bg-blue-500/10 rounded-full px-4 py-1.5">
+                    <UilUsersAlt size={12} />
                     #{count} on the waitlist
                   </div>
                 )}
@@ -228,7 +227,7 @@ export default function BetaSignup() {
                     <textarea
                       value={useCase}
                       onChange={(e) => setUseCase(e.target.value)}
-                      placeholder="Bug bounty, pentesting, red team, CTFs..."
+                      placeholder="UilBug bounty, pentesting, red team, CTFs..."
                       rows={3}
                       className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-500/40 transition-colors resize-none"
                     />
@@ -251,7 +250,7 @@ export default function BetaSignup() {
                   ) : (
                     <>
                       Join the Beta Waitlist
-                      <ArrowRight size={16} weight="bold" />
+                      <UilArrowRight size={16} />
                     </>
                   )}
                 </button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User as UserIcon, ArrowsClockwise, SignOut, X, Envelope, Calendar, Key, PaperPlaneTilt, Copy, ShieldCheck, Eye, EyeSlash } from "@phosphor-icons/react";
+import { UilUser, UilSync, UilSignout, UilTimes, UilEnvelope, UilCalendarAlt, UilKeySkeleton, UilPlaneFly, UilCopy, UilShieldCheck, UilEye, UilEyeSlash } from "@iconscout/react-unicons";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
@@ -134,7 +134,7 @@ export default function ProfileSettings() {
         const cred = new (window as any).PasswordCredential({
           id: user.email || 'crowbyte-license',
           password: licenseKey,
-          name: `CrowByte License Key (${tier})`,
+          name: `CrowByte License UilKeySkeleton (${tier})`,
         });
         await (navigator as any).credentials.store(cred);
         toast({
@@ -284,7 +284,7 @@ export default function ProfileSettings() {
     <Card className="bg-card/50 backdrop-blur">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <UserIcon size={20} weight="duotone" className="text-primary" />
+          <UilUser size={20} className="text-primary" />
           User Profile
         </CardTitle>
         <CardDescription>Your account information and preferences</CardDescription>
@@ -301,7 +301,7 @@ export default function ProfileSettings() {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <UserIcon size={32} weight="duotone" className="text-primary" />
+                <UilUser size={32} className="text-primary" />
               )}
             </div>
             <label
@@ -309,7 +309,7 @@ export default function ProfileSettings() {
               className="absolute inset-0 flex items-center justify-center bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             >
               {uploadingPicture ? (
-                <ArrowsClockwise size={20} weight="duotone" className="text-white animate-spin" />
+                <UilSync size={20} className="text-white animate-spin" />
               ) : (
                 <span className="text-xs text-white font-semibold">Upload</span>
               )}
@@ -328,11 +328,11 @@ export default function ProfileSettings() {
               {user?.user_metadata?.full_name || 'CrowByte Operator'}
             </h3>
             <div className="flex items-center gap-2 mt-1">
-              <Envelope size={16} weight="bold" className="text-muted-foreground" />
+              <UilEnvelope size={16} className="text-muted-foreground" />
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <Calendar size={16} weight="bold" className="text-muted-foreground" />
+              <UilCalendarAlt size={16} className="text-muted-foreground" />
               <p className="text-xs text-muted-foreground">
                 Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
               </p>
@@ -368,26 +368,26 @@ export default function ProfileSettings() {
             onClick={handleLogout}
             className="text-xs text-zinc-400 hover:text-amber-500 transition-colors flex items-center gap-1.5"
           >
-            <SignOut size={14} weight="bold" />
+            <UilSignout size={14} />
             Logout
           </button>
           <button
             onClick={handleExitApp}
             className="text-xs text-zinc-400 hover:text-red-500 transition-colors flex items-center gap-1.5"
           >
-            <X size={14} weight="bold" />
+            <UilTimes size={14} />
             Exit
           </button>
         </div>
       </CardContent>
 
-      {/* License Key Section — paid users only */}
+      {/* License UilKeySkeleton Section — paid users only */}
       {licenseKey && licenseKey !== 'free-user' && (
         <>
           <CardHeader className="pt-2 pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Key size={18} weight="duotone" className="text-primary" />
-              License Key
+              <UilKeySkeleton size={18} className="text-primary" />
+              License UilKeySkeleton
             </CardTitle>
             <CardDescription>One key for all your devices — desktop, server, everywhere</CardDescription>
           </CardHeader>
@@ -401,7 +401,7 @@ export default function ProfileSettings() {
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
                 title={keyRevealed ? 'Hide key' : 'Reveal key'}
               >
-                {keyRevealed ? <EyeSlash size={16} weight="bold" /> : <Eye size={16} weight="bold" />}
+                {keyRevealed ? <UilEyeSlash size={16} /> : <UilEye size={16} />}
               </button>
               <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
                 tier === 'pro' || tier === 'professional'
@@ -418,15 +418,15 @@ export default function ProfileSettings() {
                 onClick={handleSaveToKeyManager}
                 className="text-xs text-zinc-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5"
               >
-                <ShieldCheck size={14} weight="bold" />
+                <UilShieldCheck size={14} />
                 Add to Password Manager
               </button>
               <button
                 onClick={handleCopyKey}
                 className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1.5"
               >
-                <Copy size={14} weight="bold" />
-                Copy
+                <UilCopy size={14} />
+                UilCopy
               </button>
               <button
                 onClick={handleSendKey}
@@ -434,17 +434,17 @@ export default function ProfileSettings() {
                 className="text-xs text-zinc-400 hover:text-blue-400 transition-colors flex items-center gap-1.5 disabled:opacity-50"
               >
                 {sendingKey ? (
-                  <ArrowsClockwise size={14} weight="bold" className="animate-spin" />
+                  <UilSync size={14} className="animate-spin" />
                 ) : (
-                  <PaperPlaneTilt size={14} weight="bold" />
+                  <UilPlaneFly size={14} />
                 )}
-                {sendingKey ? 'Sending...' : 'Email My Key'}
+                {sendingKey ? 'Sending...' : 'Email My UilKeySkeleton'}
               </button>
               <button
                 onClick={handleRegenerateKey}
                 className="text-xs text-zinc-400 hover:text-amber-500 transition-colors flex items-center gap-1.5"
               >
-                <ArrowsClockwise size={14} weight="bold" />
+                <UilSync size={14} />
                 Regenerate
               </button>
             </div>

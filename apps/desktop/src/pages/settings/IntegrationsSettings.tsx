@@ -5,22 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import {
-  Robot,
-  Cloud,
-  Lightning,
-  FloppyDisk,
-  CheckCircle,
-  XCircle,
-  CircleNotch,
-  GithubLogo,
-  Globe,
-  Database,
-  Key,
-  Plugs,
-  ShieldCheck,
-  ArrowsClockwise,
-} from "@phosphor-icons/react";
+import { UilRobot, UilCloud, UilBolt, UilSave, UilCheckCircle, UilTimesCircle, UilSpinner, UilGithub, UilGlobe, UilDatabase, UilKeySkeleton, UilPlug, UilShieldCheck, UilSync } from "@iconscout/react-unicons";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
 
@@ -103,6 +88,26 @@ export default function IntegrationsSettings() {
   const [serviceKeys, setServiceKeys] = useState(loadServiceKeys);
   const [testingService, setTestingService] = useState<string | null>(null);
   const [serviceStatus, setServiceStatus] = useState<Record<string, ConnectionStatus>>({});
+
+  // Load Shodan key from Supabase if not in localStorage
+  useEffect(() => {
+    if (!serviceKeys.shodan && user) {
+      (async () => {
+        try {
+          const { supabase } = await import('@/integrations/supabase/client');
+          const { data } = await supabase
+            .from('user_settings')
+            .select('shodan_api_key')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (data?.shodan_api_key) {
+            setServiceKeys(prev => ({ ...prev, shodan: data.shodan_api_key }));
+            localStorage.setItem('shodan_api_key', data.shodan_api_key);
+          }
+        } catch {}
+      })();
+    }
+  }, [user]);
 
   // Supabase status
   const [supabaseStatus, setSupabaseStatus] = useState<ConnectionStatus>("testing");
@@ -205,11 +210,25 @@ export default function IntegrationsSettings() {
     }
   };
 
-  const handleSaveAll = () => {
+  const handleSaveAll = async () => {
     localStorage.setItem("crowbyte_ai_providers", JSON.stringify(providers));
     localStorage.setItem("shodan_api_key", serviceKeys.shodan); // CodeQL: local desktop storage, not a web app
     localStorage.setItem("tavily_api_key", serviceKeys.tavily); // CodeQL: local desktop storage, not a web app
     localStorage.setItem("venice_api_key", serviceKeys.venice); // CodeQL: local desktop storage, not a web app
+
+    // Sync Shodan key to Supabase for cross-device access
+    try {
+      if (user) {
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase
+          .from('user_settings')
+          .upsert({
+            user_id: user.id,
+            shodan_api_key: serviceKeys.shodan || null,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+      }
+    } catch {}
 
     window.dispatchEvent(new CustomEvent("crowbyte:integrations-updated", { detail: { providers, serviceKeys } }));
 
@@ -227,7 +246,7 @@ export default function IntegrationsSettings() {
     if (status === "testing")
       return (
         <span className="flex items-center gap-1.5 text-xs text-blue-400">
-          <CircleNotch size={12} weight="bold" className="animate-spin" />
+          <UilSpinner size={12} className="animate-spin" />
           Testing...
         </span>
       );
@@ -254,7 +273,7 @@ export default function IntegrationsSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Robot size={20} weight="duotone" className="text-blue-500" />
+            <UilRobot size={20} className="text-blue-500" />
             AI Infrastructure
           </CardTitle>
           <CardDescription>
@@ -297,7 +316,7 @@ export default function IntegrationsSettings() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-zinc-400">API Key</Label>
+                      <Label className="text-xs text-zinc-400">API UilKeySkeleton</Label>
                       <Input
                         type="password"
                         placeholder="sk-..."
@@ -324,9 +343,9 @@ export default function IntegrationsSettings() {
                         className="h-7 text-xs gap-1.5"
                       >
                         {testingProvider === key ? (
-                          <CircleNotch size={12} weight="bold" className="animate-spin" />
+                          <UilSpinner size={12} className="animate-spin" />
                         ) : (
-                          <Lightning size={12} weight="bold" />
+                          <UilBolt size={12} />
                         )}
                         Test Connection
                       </Button>
@@ -350,7 +369,7 @@ export default function IntegrationsSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Plugs size={20} weight="duotone" className="text-purple-500" />
+            <UilPlug size={20} className="text-purple-500" />
             Platform Services
           </CardTitle>
           <CardDescription>Core service connections and API keys</CardDescription>
@@ -360,7 +379,7 @@ export default function IntegrationsSettings() {
           <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-md bg-emerald-500/10 flex items-center justify-center">
-                <Database size={16} weight="duotone" className="text-emerald-500" />
+                <UilDatabase size={16} className="text-emerald-500" />
               </div>
               <div>
                 <p className="text-sm font-semibold">Supabase</p>
@@ -378,7 +397,7 @@ export default function IntegrationsSettings() {
           <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-md bg-zinc-700/50 flex items-center justify-center">
-                <GithubLogo size={16} weight="duotone" className="text-zinc-300" />
+                <UilGithub size={16} className="text-zinc-300" />
               </div>
               <div>
                 <p className="text-sm font-semibold">GitHub OAuth</p>
@@ -396,7 +415,7 @@ export default function IntegrationsSettings() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Globe size={16} weight="duotone" className="text-red-400" />
+                <UilGlobe size={16} className="text-red-400" />
                 <Label className="text-sm font-semibold">Shodan</Label>
               </div>
               <StatusBadge status={serviceStatus.shodan} />
@@ -417,9 +436,9 @@ export default function IntegrationsSettings() {
                 className="h-8 text-xs gap-1.5"
               >
                 {testingService === "shodan" ? (
-                  <CircleNotch size={12} weight="bold" className="animate-spin" />
+                  <UilSpinner size={12} className="animate-spin" />
                 ) : (
-                  <ArrowsClockwise size={12} weight="bold" />
+                  <UilSync size={12} />
                 )}
                 Test
               </Button>
@@ -433,7 +452,7 @@ export default function IntegrationsSettings() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShieldCheck size={16} weight="duotone" className="text-amber-400" />
+                <UilShieldCheck size={16} className="text-amber-400" />
                 <Label className="text-sm font-semibold">Venice.ai</Label>
               </div>
               <StatusBadge status={serviceStatus.venice} />
@@ -454,9 +473,9 @@ export default function IntegrationsSettings() {
                 className="h-8 text-xs gap-1.5"
               >
                 {testingService === "venice" ? (
-                  <CircleNotch size={12} weight="bold" className="animate-spin" />
+                  <UilSpinner size={12} className="animate-spin" />
                 ) : (
-                  <ArrowsClockwise size={12} weight="bold" />
+                  <UilSync size={12} />
                 )}
                 Test
               </Button>
@@ -469,7 +488,7 @@ export default function IntegrationsSettings() {
           {/* Tavily */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Key size={16} weight="duotone" className="text-sky-400" />
+              <UilKeySkeleton size={16} className="text-sky-400" />
               <Label className="text-sm font-semibold">Tavily Search</Label>
             </div>
             <Input
@@ -487,7 +506,7 @@ export default function IntegrationsSettings() {
       {/* ── Save ── */}
       <div className="flex justify-end">
         <Button onClick={handleSaveAll} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-          <FloppyDisk size={16} weight="bold" className="mr-2" />
+          <UilSave size={16} className="mr-2" />
           Save All Integrations
         </Button>
       </div>

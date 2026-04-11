@@ -131,7 +131,10 @@ interface ElectronAPI {
   runCommand: (command: string, args?: string[]) => Promise<string>;
   // NVD CVE API proxy
   fetchCVEs: (year: string) => Promise<unknown>;
-  // Claude Code CLI
+  // OpenRouter
+  getOpenRouterKey: () => Promise<string | null>;
+  setOpenRouterKey: (key: string) => Promise<{ ok: boolean; error?: string }>;
+  // Claude UilBracketsCurly CLI (legacy)
   claudeChat: (options: { prompt: string; model?: string; sessionId?: string | null; maxBudget?: number }) => Promise<{ ok: boolean; exitCode?: number; error?: string }>;
   claudeStop: () => Promise<{ ok: boolean; error?: string }>;
   onClaudeStreamEvent: (callback: (data: any) => void) => void;

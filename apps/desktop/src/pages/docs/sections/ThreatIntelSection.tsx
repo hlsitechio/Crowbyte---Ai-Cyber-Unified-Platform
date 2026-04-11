@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldWarning } from "@phosphor-icons/react";
+import { UilShieldExclamation } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function ThreatIntelSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={ShieldWarning} title="Threat Intelligence" description="IOC feeds, threat enrichment, and indicator correlation" status="beta" />
+      <DocHeader icon={UilShieldExclamation} title="Threat Intelligence" description="IOC feeds, threat enrichment, and indicator correlation" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -70,7 +70,7 @@ export function ThreatIntelSection() {
         { text: "Auto-refresh with configurable intervals", status: "done" },
         { text: "Search and filter IOCs by type, severity, feed", status: "done" },
         { text: "PieChart + BarChart statistical dashboards", status: "done" },
-        { text: "CVE correlation with CVE Database page", status: "done" },
+        { text: "CVE correlation with CVE UilDatabase page", status: "done" },
         { text: "Supabase-backed persistence for feeds and IOCs", status: "done" },
       ]} /></CardContent></Card>
     </div>

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Stack } from "@phosphor-icons/react";
+import { UilLayerGroup } from "@iconscout/react-unicons";
 import { DocHeader, CodeBlock } from "../components";
 
 export function TechStackSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Stack} title="Tech Stack" description="Technologies powering CrowByte Terminal" />
+      <DocHeader icon={UilLayerGroup} title="Tech Stack" description="Technologies powering CrowByte Terminal" />
       <Card><CardHeader><CardTitle>Frontend</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-2 text-sm">
@@ -32,10 +32,10 @@ export function TechStackSection() {
         <CardContent>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
-              ["Database", "Supabase (PostgreSQL)"],
+              ["UilDatabase", "Supabase (PostgreSQL)"],
               ["Auth", "Supabase Auth (email + GitHub)"],
               ["Storage", "Supabase Storage (50MB)"],
-              ["AI (Local)", "Claude Code CLI via IPC"],
+              ["AI (Local)", "Claude UilBracketsCurly CLI via IPC"],
               ["AI (Remote)", "OpenClaw + NVIDIA Cloud"],
               ["AI (Privacy)", "Venice AI + Ollama"],
               ["VPS", "Hostinger (Ubuntu, Docker)"],

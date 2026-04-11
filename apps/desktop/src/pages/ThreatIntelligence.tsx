@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Shield, MagnifyingGlass, ArrowsClockwise, Warning, TrendUp, Database, RssSimple, Pulse, Globe, Hash, Link, DesktopTower, Eye, Clock, Lightning, CheckCircle, XCircle, WifiHigh, Bug, Skull } from "@phosphor-icons/react";
+import { UilShield, UilSearch, UilSync, UilExclamationTriangle, UilChartGrowth, UilDatabase, UilRssAlt, UilHeartRate, UilGlobe, UilChannel, UilLink, UilDesktopAlt, UilEye, UilClock, UilBolt, UilCheckCircle, UilTimesCircle, UilWifi, UilBug, UilExclamation } from "@iconscout/react-unicons";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
@@ -76,17 +76,17 @@ const severityDotClass: Record<string, string> = {
   info: 'bg-zinc-500',
 };
 
-const iocTypeIcons: Record<string, typeof Globe> = {
-  ipv4: DesktopTower,
-  ipv6: DesktopTower,
-  domain: Globe,
-  url: Link,
-  md5: Hash,
-  sha1: Hash,
-  sha256: Hash,
-  cidr: WifiHigh,
-  cve: Bug,
-  email: Lightning,
+const iocTypeIcons: Record<string, typeof UilGlobe> = {
+  ipv4: UilDesktopAlt,
+  ipv6: UilDesktopAlt,
+  domain: UilGlobe,
+  url: UilLink,
+  md5: UilChannel,
+  sha1: UilChannel,
+  sha256: UilChannel,
+  cidr: UilWifi,
+  cve: UilBug,
+  email: UilBolt,
 };
 
 const CHART_COLORS = ['#dc2626', '#f97316', '#eab308', '#22c55e', '#6b7280', '#3b82f6', '#8b5cf6', '#ec4899'];
@@ -396,8 +396,8 @@ const ThreatIntelligence = () => {
   );
 
   const IOCTypeIcon = ({ type }: { type: string }) => {
-    const Icon = iocTypeIcons[type] || Database;
-    return <Icon size={16} weight="bold" className="text-muted-foreground" />;
+    const Icon = iocTypeIcons[type] || UilDatabase;
+    return <Icon size={16} className="text-muted-foreground" />;
   };
 
   const formatTimeAgo = (date: string) => {
@@ -430,7 +430,7 @@ const ThreatIntelligence = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3">
-                <Shield size={32} weight="duotone" className="text-red-500" />
+                <UilShield size={32} className="text-red-500" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Threat Intelligence</h1>
@@ -452,7 +452,7 @@ const ThreatIntelligence = () => {
               variant="outline"
               className="gap-2"
             >
-              <ArrowsClockwise size={16} weight="bold" className={syncing ? 'animate-spin' : ''} />
+              <UilSync size={16} className={syncing ? 'animate-spin' : ''} />
               {syncing && syncProgress
                 ? `Syncing ${syncProgress.current}/${syncProgress.total}`
                 : 'Sync All Feeds'}
@@ -466,7 +466,7 @@ const ThreatIntelligence = () => {
             <Card className="bg-card/50">
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <Database size={16} weight="bold" className="text-blue-500" />
+                  <UilDatabase size={16} className="text-blue-500" />
                   <span className="text-xs text-muted-foreground">Total IOCs</span>
                 </div>
                 <div className="text-2xl font-bold text-white">{stats.total.toLocaleString()}</div>
@@ -475,7 +475,7 @@ const ThreatIntelligence = () => {
             <Card className="bg-transparent border-transparent">
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <Skull size={16} weight="bold" className="text-red-500" />
+                  <UilExclamation size={16} className="text-red-500" />
                   <span className="text-xs text-muted-foreground">Critical</span>
                 </div>
                 <div className="text-2xl font-bold text-red-500">{(stats.by_severity.critical || 0).toLocaleString()}</div>
@@ -484,7 +484,7 @@ const ThreatIntelligence = () => {
             <Card className="bg-transparent border-transparent">
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <Warning size={16} weight="bold" className="text-orange-500" />
+                  <UilExclamationTriangle size={16} className="text-orange-500" />
                   <span className="text-xs text-muted-foreground">High</span>
                 </div>
                 <div className="text-2xl font-bold text-orange-500">{(stats.by_severity.high || 0).toLocaleString()}</div>
@@ -493,7 +493,7 @@ const ThreatIntelligence = () => {
             <Card className="bg-transparent border-transparent">
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <Pulse size={16} weight="bold" className="text-amber-500" />
+                  <UilHeartRate size={16} className="text-amber-500" />
                   <span className="text-xs text-muted-foreground">Medium</span>
                 </div>
                 <div className="text-2xl font-bold text-amber-500">{(stats.by_severity.medium || 0).toLocaleString()}</div>
@@ -502,7 +502,7 @@ const ThreatIntelligence = () => {
             <Card className="bg-card/50">
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <RssSimple size={16} weight="bold" className="text-violet-500" />
+                  <UilRssAlt size={16} className="text-violet-500" />
                   <span className="text-xs text-muted-foreground">Active Feeds</span>
                 </div>
                 <div className="text-2xl font-bold text-violet-500">{feeds.filter(f => f.enabled).length}</div>
@@ -511,7 +511,7 @@ const ThreatIntelligence = () => {
             <Card className="bg-transparent">
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <TrendUp size={16} weight="bold" className="text-emerald-500" />
+                  <UilChartGrowth size={16} className="text-emerald-500" />
                   <span className="text-xs text-muted-foreground">New Today</span>
                 </div>
                 <div className="text-2xl font-bold text-emerald-500">{stats.new_today.toLocaleString()}</div>
@@ -531,7 +531,7 @@ const ThreatIntelligence = () => {
               <Card className="border-blue-500/30">
                 <CardContent className="py-3 px-4">
                   <div className="flex items-center gap-3">
-                    <ArrowsClockwise size={16} weight="bold" className="text-blue-500 animate-spin" />
+                    <UilSync size={16} className="text-blue-500 animate-spin" />
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm text-white">
@@ -574,19 +574,19 @@ const ThreatIntelligence = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-transparent">
             <TabsTrigger value="dashboard" className="gap-2">
-              <Pulse size={16} weight="bold" />
+              <UilHeartRate size={16} />
               Dashboard
             </TabsTrigger>
             <TabsTrigger value="search" className="gap-2">
-              <MagnifyingGlass size={16} weight="bold" />
+              <UilSearch size={16} />
               IOC Search
             </TabsTrigger>
             <TabsTrigger value="check" className="gap-2">
-              <Eye size={16} weight="bold" />
+              <UilEye size={16} />
               IOC Check
             </TabsTrigger>
             <TabsTrigger value="feeds" className="gap-2">
-              <RssSimple size={16} weight="bold" />
+              <UilRssAlt size={16} />
               Feed Manager
             </TabsTrigger>
           </TabsList>
@@ -597,7 +597,7 @@ const ThreatIntelligence = () => {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
                   <div className="p-4">
-                    <Database size={48} weight="duotone" className="text-zinc-500" />
+                    <UilDatabase size={48} className="text-zinc-500" />
                   </div>
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-white mb-2">No IOCs Yet</h3>
@@ -614,7 +614,7 @@ const ThreatIntelligence = () => {
                   </div>
                   {!syncing && (
                     <Button onClick={handleSyncAll} variant="outline" className="mt-2 gap-2">
-                      <ArrowsClockwise size={16} weight="bold" />
+                      <UilSync size={16} />
                       Sync Now
                     </Button>
                   )}
@@ -644,7 +644,7 @@ const ThreatIntelligence = () => {
                             <Cell key={i} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: 8 }} />
+                        <Tooltip contentStyle={{ backgroundColor: 'hsl(210, 5%, 18%)', border: '1px solid #333', borderRadius: 8 }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -661,7 +661,7 @@ const ThreatIntelligence = () => {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis type="number" stroke="#666" />
                         <YAxis type="category" dataKey="type" stroke="#888" width={60} tick={{ fontSize: 12 }} />
-                        <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: 8 }} />
+                        <Tooltip contentStyle={{ backgroundColor: 'hsl(210, 5%, 18%)', border: '1px solid #333', borderRadius: 8 }} />
                         <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -679,7 +679,7 @@ const ThreatIntelligence = () => {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis dataKey="feed" stroke="#888" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={80} />
                         <YAxis stroke="#666" />
-                        <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: 8 }} />
+                        <Tooltip contentStyle={{ backgroundColor: 'hsl(210, 5%, 18%)', border: '1px solid #333', borderRadius: 8 }} />
                         <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                           {feedChartData.map((_, i) => (
                             <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -732,7 +732,7 @@ const ThreatIntelligence = () => {
                         )}
                         {recentIOCs.length === 0 && syncing && (
                           <div className="py-12 text-center text-muted-foreground">
-                            <ArrowsClockwise size={20} weight="bold" className="animate-spin inline mr-2" />
+                            <UilSync size={20} className="animate-spin inline mr-2" />
                             Fetching IOCs from threat feeds...
                           </div>
                         )}
@@ -790,7 +790,7 @@ const ThreatIntelligence = () => {
                     </SelectContent>
                   </Select>
                   <Button onClick={handleSearch} disabled={searching || !searchQuery.trim()}>
-                    {searching ? <ArrowsClockwise size={16} weight="bold" className="animate-spin" /> : <MagnifyingGlass size={16} weight="bold" />}
+                    {searching ? <UilSync size={16} className="animate-spin" /> : <UilSearch size={16} />}
                     <span className="ml-2">Search</span>
                   </Button>
                 </div>
@@ -861,7 +861,7 @@ const ThreatIntelligence = () => {
                     className="font-mono flex-1"
                   />
                   <Button onClick={handleCheck} disabled={!checkValue.trim()}>
-                    <Eye size={16} weight="bold" className="mr-2" />
+                    <UilEye size={16} className="mr-2" />
                     Check
                   </Button>
                 </div>
@@ -875,7 +875,7 @@ const ThreatIntelligence = () => {
                   {checkResult.length === 0 ? (
                     <Card>
                       <CardContent className="flex items-center gap-4 py-8 justify-center">
-                        <CheckCircle size={40} weight="duotone" className="text-emerald-500" />
+                        <UilCheckCircle size={40} className="text-emerald-500" />
                         <div>
                           <h3 className="text-xl font-bold text-emerald-500">CLEAN</h3>
                           <p className="text-muted-foreground">
@@ -888,7 +888,7 @@ const ThreatIntelligence = () => {
                     <Card>
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-3">
-                          <XCircle size={24} weight="duotone" className="text-red-500" />
+                          <UilTimesCircle size={24} className="text-red-500" />
                           <div>
                             <CardTitle className="text-red-500">MALICIOUS — Found in {checkResult.length} feed(s)</CardTitle>
                             <CardDescription className="font-mono">{checkValue}</CardDescription>
@@ -929,7 +929,7 @@ const ThreatIntelligence = () => {
             {feeds.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
-                  <RssSimple size={48} weight="duotone" className="text-zinc-500" />
+                  <UilRssAlt size={48} className="text-zinc-500" />
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-white mb-2">No Feeds Registered</h3>
                     <p className="text-muted-foreground max-w-md">
@@ -940,7 +940,7 @@ const ThreatIntelligence = () => {
                   </div>
                   {!syncing && (
                     <Button onClick={handleSyncAll} variant="outline" className="mt-2 gap-2">
-                      <ArrowsClockwise size={16} weight="bold" />
+                      <UilSync size={16} />
                       Sync Now
                     </Button>
                   )}
@@ -974,7 +974,7 @@ const ThreatIntelligence = () => {
                               {feed.last_fetched ? (
                                 <>
                                   <div className="flex items-center gap-1">
-                                    <Clock size={12} weight="bold" />
+                                    <UilClock size={12} />
                                     {formatTimeAgo(feed.last_fetched)}
                                   </div>
                                   <div>Last sync</div>
@@ -984,9 +984,9 @@ const ThreatIntelligence = () => {
                               )}
                             </div>
                             {feed.last_error ? (
-                              <XCircle size={16} weight="bold" className="text-red-500" title={feed.last_error} />
+                              <UilTimesCircle size={16} className="text-red-500" title={feed.last_error} />
                             ) : feed.last_fetched ? (
-                              <CheckCircle size={16} weight="bold" className="text-emerald-500" />
+                              <UilCheckCircle size={16} className="text-emerald-500" />
                             ) : null}
                             <Button
                               variant="ghost"
@@ -995,9 +995,8 @@ const ThreatIntelligence = () => {
                               disabled={syncingFeed === feed.name || syncing}
                               onClick={() => handleSyncSingleFeed(feed.name)}
                             >
-                              <ArrowsClockwise
+                              <UilSync
                                 size={14}
-                                weight="bold"
                                 className={syncingFeed === feed.name ? 'animate-spin' : ''}
                               />
                             </Button>

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scroll } from "@phosphor-icons/react";
+import { UilScroll } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function LogsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Scroll} title="Logs" description="Application event logging with level filtering, search, and error tracking" status="ready" />
+      <DocHeader icon={UilScroll} title="Logs" description="Application event logging with level filtering, search, and error tracking" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -39,7 +39,7 @@ export function LogsSection() {
             <div><span className="text-primary">security</span>  <span className="text-zinc-500">Auth, encryption, monitoring</span></div>
             <div><span className="text-primary">ai</span>        <span className="text-zinc-500">Claude, OpenClaw, agents</span></div>
             <div><span className="text-primary">network</span>   <span className="text-zinc-500">API calls, scans, connections</span></div>
-            <div><span className="text-primary">supabase</span>  <span className="text-zinc-500">Database operations</span></div>
+            <div><span className="text-primary">supabase</span>  <span className="text-zinc-500">UilDatabase operations</span></div>
           </CodeBlock>
         </CardContent></Card>
 

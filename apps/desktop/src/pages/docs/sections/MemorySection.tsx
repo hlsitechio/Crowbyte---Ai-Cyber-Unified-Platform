@@ -1,17 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HardDrives } from "@phosphor-icons/react";
+import { UilServer } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function MemorySection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={HardDrives} title="Memory" description="Key-value fact storage for persistent AI memory across sessions" status="beta" />
+      <DocHeader icon={UilServer} title="Memory" description="UilKeySkeleton-value fact storage for persistent AI memory across sessions" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>The Memory page provides a simple key-value fact store backed by Supabase (<code className="text-primary">memory_facts</code> table).
             Each fact has a key (label) and value (content), associated with the authenticated user.</p>
-          <p>This is separate from Claude Code's memory system (.mci files, state.md). It's designed for
+          <p>This is separate from Claude UilBracketsCurly's memory system (.mci files, state.md). It's designed for
             <strong className="text-foreground">user-facing persistent facts</strong> that the AI agents can reference.</p>
         </CardContent></Card>
 
@@ -29,7 +29,7 @@ export function MemorySection() {
 
       <Card><CardContent className="pt-6"><FeatureList items={[
         { text: "CRUD operations: create, read, update, delete memory facts", status: "done" },
-        { text: "Key-value pairs with timestamps", status: "done" },
+        { text: "UilKeySkeleton-value pairs with timestamps", status: "done" },
         { text: "Inline editing for both key and value", status: "done" },
         { text: "Confirmation dialog for deletions", status: "done" },
         { text: "Sorted by updated_at (most recent first)", status: "done" },

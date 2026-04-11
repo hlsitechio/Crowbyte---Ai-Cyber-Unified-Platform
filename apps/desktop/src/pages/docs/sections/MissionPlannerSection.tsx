@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target } from "@phosphor-icons/react";
+import { UilFocusTarget } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function MissionPlannerSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Target} title="Mission Planner" description="Phase-based strategic planning for offensive and defensive operations" status="beta" />
+      <DocHeader icon={UilFocusTarget} title="Mission Planner" description="Phase-based strategic planning for offensive and defensive operations" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -44,7 +44,7 @@ export function MissionPlannerSection() {
             <div><span className="text-primary">type</span>:       offensive | defensive | pentest | incident_response</div>
             <div><span className="text-primary">status</span>:     draft | planning | approved | active | completed | failed</div>
             <div><span className="text-primary">objective</span>:  What we're trying to achieve</div>
-            <div><span className="text-primary">targetScope</span>: Target systems/networks in scope</div>
+            <div><span className="text-primary">targetScope</span>: UilFocusTarget systems/networks in scope</div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Phase (nested)</div>
             <div><span className="text-primary">name</span>, <span className="text-primary">description</span>, <span className="text-primary">duration</span> (hours), <span className="text-primary">dependencies</span>, <span className="text-primary">status</span></div>

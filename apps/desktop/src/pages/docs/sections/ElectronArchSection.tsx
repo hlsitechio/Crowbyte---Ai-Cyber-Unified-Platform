@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Circuitry } from "@phosphor-icons/react";
+import { UilCircuit } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function ElectronArchSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Circuitry} title="Electron Architecture" description="Main process, IPC handlers, node-pty, window management, and cache" status="ready" />
+      <DocHeader icon={UilCircuit} title="Electron Architecture" description="Main process, IPC handlers, node-pty, window management, and cache" status="ready" />
 
       <Card><CardHeader><CardTitle>Main Process (electron/main.ts)</CardTitle></CardHeader>
         <CardContent>
@@ -72,7 +72,7 @@ export function ElectronArchSection() {
       <Card><CardContent className="pt-6"><FeatureList items={[
         { text: "Frameless window with custom titlebar (TitleBar.tsx)", status: "done" },
         { text: "node-pty terminal spawning with tmux default", status: "done" },
-        { text: "Claude Code CLI integration via IPC", status: "done" },
+        { text: "Claude UilBracketsCurly CLI integration via IPC", status: "done" },
         { text: "Venice AI CORS proxy via IPC", status: "done" },
         { text: "System metrics collection (CPU/RAM/disk/net)", status: "done" },
         { text: "SQLite cache manager with TTL and content hashing", status: "done" },

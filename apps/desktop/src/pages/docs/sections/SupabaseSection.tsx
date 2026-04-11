@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Database } from "@phosphor-icons/react";
+import { UilDatabase } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function SupabaseSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Database} title="Supabase Backend" description="Cloud PostgreSQL database, auth, real-time subscriptions, and storage" status="ready" />
+      <DocHeader icon={UilDatabase} title="Supabase Backend" description="Cloud PostgreSQL database, auth, real-time subscriptions, and storage" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

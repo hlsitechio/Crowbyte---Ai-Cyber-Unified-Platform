@@ -9,12 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import {
-  X, FloppyDisk, Trash, Plus, DesktopTower, Monitor, ShareNetwork, ShieldWarning,
-  Stack, Cloud, Database, Scales, Printer, Cpu, Package,
-  ShieldCheck, WifiHigh, Question, Globe, Skull, Lock, LockOpen,
-  Copy, ArrowSquareOut, Tag,
-} from '@phosphor-icons/react';
+import { UilTimes, UilSave, UilTrashAlt, UilPlus, UilDesktopAlt, UilMonitor, UilShieldExclamation, UilLayerGroup, UilCloud, UilDatabase, UilProcessor, UilBox, UilShieldCheck, UilWifi, UilQuestionCircle, UilGlobe, UilExclamation, UilLock, UilLockOpenAlt, UilCopy, UilExternalLinkAlt, UilTag, UilSitemap, UilServer, UilPrint } from "@iconscout/react-unicons";
 import { type NetworkDevice, type DeviceType, type DevicePort, DEVICE_TYPES } from './types';
 
 interface NodeEditorProps {
@@ -26,10 +21,10 @@ interface NodeEditorProps {
 }
 
 const DEVICE_ICONS: Record<string, React.ElementType> = {
-  server: DesktopTower, workstation: Monitor, router: ShareNetwork, firewall: ShieldWarning,
-  switch: Stack, cloud: Cloud, database: Database, loadbalancer: Scales,
-  printer: Printer, iot: Cpu, container: Package, vpn: ShieldCheck,
-  wap: WifiHigh, unknown: Question, internet: Globe, attacker: Skull,
+  server: UilDesktopAlt, workstation: UilMonitor, router: UilSitemap, firewall: UilShieldExclamation,
+  switch: UilLayerGroup, cloud: UilCloud, database: UilDatabase, loadbalancer: UilServer,
+  printer: UilPrint, iot: UilProcessor, container: UilBox, vpn: UilShieldCheck,
+  wap: UilWifi, unknown: UilQuestionCircle, internet: UilGlobe, attacker: UilExclamation,
 };
 
 export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEditorProps) {
@@ -112,7 +107,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
     onSave(form);
   };
 
-  const Icon = DEVICE_ICONS[form.type] || Question;
+  const Icon = DEVICE_ICONS[form.type] || UilQuestionCircle;
   const meta = DEVICE_TYPES[form.type];
   const openPorts = form.ports.filter(p => p.state === 'open').length;
 
@@ -122,14 +117,14 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <div className={`p-1 rounded ${meta.bgColor} ${meta.color}`}>
-            <Icon size={16} weight="bold" />
+            <Icon size={16} />
           </div>
           <span className="text-sm font-medium text-white">
             {isNew ? 'Add Device' : 'Edit Device'}
           </span>
         </div>
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
-          <X size={14} weight="bold" />
+          <UilTimes size={14} />
         </Button>
       </div>
 
@@ -149,7 +144,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                   return (
                     <SelectItem key={key} value={key} className="text-xs">
                       <div className="flex items-center gap-2">
-                        <TypeIcon size={12} weight="bold" className={val.color} />
+                        <TypeIcon size={12} className={val.color} />
                         {val.label}
                       </div>
                     </SelectItem>
@@ -267,9 +262,9 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                   <div key={i} className="flex items-center justify-between px-2 py-1 rounded group">
                     <div className="flex items-center gap-2">
                       {p.state === 'open' ? (
-                        <LockOpen size={10} weight="bold" className="text-emerald-500" />
+                        <UilLockOpenAlt size={10} className="text-emerald-500" />
                       ) : (
-                        <Lock size={10} weight="bold" className="text-amber-500" />
+                        <UilLock size={10} className="text-amber-500" />
                       )}
                       <span className="text-[11px] font-mono text-white">{p.port}/{p.protocol}</span>
                       <span className="text-[10px] text-cyan-500">{p.service}</span>
@@ -279,7 +274,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                       className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100"
                       onClick={() => removePort(i)}
                     >
-                      <X size={10} weight="bold" className="text-red-500" />
+                      <UilTimes size={10} className="text-red-500" />
                     </Button>
                   </div>
                 ))}
@@ -304,7 +299,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 onKeyDown={e => e.key === 'Enter' && addPort()}
               />
               <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={addPort}>
-                <Plus size={12} weight="bold" />
+                <UilPlus size={12} />
               </Button>
             </div>
           </div>
@@ -322,7 +317,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                     className="flex items-center gap-1 text-[9px] text-zinc-400 cursor-pointer hover:text-red-500"
                     onClick={() => removeTag(i)}
                   >
-                    <Tag size={8} weight="bold" />{tag}<X size={8} weight="bold" />
+                    <Tag size={8} />{tag}<UilTimes size={8} />
                   </span>
                 ))}
               </div>
@@ -336,7 +331,7 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
                 onKeyDown={e => e.key === 'Enter' && addTag()}
               />
               <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={addTag}>
-                <Plus size={12} weight="bold" />
+                <UilPlus size={12} />
               </Button>
             </div>
           </div>
@@ -359,11 +354,11 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
             <div className="flex flex-wrap gap-1">
               <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1"
                 onClick={() => navigator.clipboard.writeText(device.ip || '')}>
-                <Copy size={10} weight="bold" /> Copy IP
+                <UilCopy size={10} /> UilCopy IP
               </Button>
               <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1"
                 onClick={() => window.open(`https://www.shodan.io/host/${device.ip}`, '_blank')}>
-                <ArrowSquareOut size={10} weight="bold" /> Shodan
+                <UilExternalLinkAlt size={10} /> Shodan
               </Button>
             </div>
           )}
@@ -375,13 +370,13 @@ export function NodeEditor({ device, isNew, onSave, onDelete, onClose }: NodeEdi
         {!isNew && onDelete && (
           <Button variant="destructive" size="sm" className="h-8 text-xs gap-1"
             onClick={() => onDelete(form.id)}>
-            <Trash size={12} weight="bold" /> Delete
+            <UilTrashAlt size={12} /> Delete
           </Button>
         )}
         <div className="flex-1" />
         <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={onClose}>Cancel</Button>
         <Button size="sm" className="h-8 text-xs gap-1" onClick={handleSave} disabled={!form.label.trim()}>
-          <FloppyDisk size={12} weight="bold" /> {isNew ? 'Add' : 'Save'}
+          <UilSave size={12} /> {isNew ? 'Add' : 'Save'}
         </Button>
       </div>
     </div>

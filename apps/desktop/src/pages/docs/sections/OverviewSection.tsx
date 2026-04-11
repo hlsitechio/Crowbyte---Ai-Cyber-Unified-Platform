@@ -1,21 +1,21 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Pulse, ChatDots, Crosshair, Terminal, BookOpen, Monitor, MagnifyingGlass, Target, Brain, Lightning, TreeStructure } from "@phosphor-icons/react";
+import { UilShield, UilHeartRate, UilCommentDots, UilCrosshair, UilWindow, UilBookOpen, UilMonitor, UilSearch, UilFocusTarget, UilBrain, UilBolt, UilSitemap } from "@iconscout/react-unicons";
 import { DocHeader, StatusBadge, CodeBlock } from "../components";
 
 export function OverviewSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Shield} title="CrowByte Terminal" description="AI-powered offensive security command center built on Electron" />
+      <DocHeader icon={UilShield} title="CrowByte UilWindow" description="AI-powered offensive security command center built on Electron" />
 
       <Card className="border-primary/30 bg-card/50 backdrop-blur">
         <CardHeader><CardTitle>What is CrowByte?</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
-            CrowByte Terminal is a desktop Electron application designed for professional bug bounty hunters and security operators.
+            CrowByte UilWindow is a desktop Electron application designed for professional bug bounty hunters and security operators.
             It runs on Kali Linux 2025 and provides a unified command center for offensive and defensive security operations.
           </p>
           <p>
-            The app integrates two AI backends: <strong className="text-foreground">Claude Code CLI</strong> (Anthropic's Opus/Sonnet/Haiku models
+            The app integrates two AI backends: <strong className="text-foreground">Claude UilBracketsCurly CLI</strong> (Anthropic's Opus/Sonnet/Haiku models
             running locally via Electron IPC) and <strong className="text-foreground">OpenClaw</strong> (a remote VPS agent swarm
             running NVIDIA Cloud models like DeepSeek V3.2, Qwen3 Coder 480B, Mistral Large 675B, and more).
           </p>
@@ -28,7 +28,7 @@ export function OverviewSection() {
 
       <Card className="border-primary/30 bg-card/50 backdrop-blur">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Pulse size={20} weight="duotone" /> Status Legend</CardTitle>
+          <CardTitle className="flex items-center gap-2"><UilHeartRate size={20} /> Status Legend</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3">
           <div className="flex items-center gap-3"><StatusBadge status="ready" /><span className="text-sm">Fully implemented and tested</span></div>
@@ -48,7 +48,7 @@ export function OverviewSection() {
             <div>&nbsp;</div>
             <div><span className="text-primary">Electron App</span> (React + TypeScript + Vite)</div>
             <div>  |</div>
-            <div>  +-- <span className="text-blue-500">Claude Code CLI</span> <span className="text-zinc-500">--- Electron IPC --- claude -p --output-format stream-json</span></div>
+            <div>  +-- <span className="text-blue-500">Claude UilBracketsCurly CLI</span> <span className="text-zinc-500">--- Electron IPC --- claude -p --output-format stream-json</span></div>
             <div>  |     Opus 4.6 / Sonnet 4.6 / Haiku 4.5</div>
             <div>  |     Full MCP servers, tools, plugins from .env-unfiltered</div>
             <div>  |</div>
@@ -72,21 +72,21 @@ export function OverviewSection() {
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: "AI Chat", desc: "Claude CLI + OpenClaw dual-provider streaming", icon: ChatDots, status: "ready" as const },
-              { label: "Red Team", desc: "Operation tracking, findings, Supabase-backed", icon: Crosshair, status: "ready" as const },
-              { label: "Blue Team", desc: "Security monitor, CVE database, threat intel", icon: Shield, status: "ready" as const },
-              { label: "Terminal", desc: "xterm.js + tmux, multi-tab, shell presets", icon: Terminal, status: "ready" as const },
-              { label: "Knowledge Base", desc: "Cloud-synced entries with file uploads", icon: BookOpen, status: "ready" as const },
-              { label: "Fleet", desc: "VPS agent swarm + endpoint monitoring", icon: Monitor, status: "beta" as const },
-              { label: "NVD + Shodan", desc: "Parallel CVE lookup, auto-save to Supabase", icon: MagnifyingGlass, status: "ready" as const },
-              { label: "Mission Planner", desc: "Phase-based operation planning", icon: Target, status: "beta" as const },
-              { label: "Threat Intel", desc: "IOC feeds, enrichment, STIX correlation", icon: Shield, status: "beta" as const },
-              { label: "Analytics", desc: "Usage metrics, CVE stats, Supabase health", icon: Pulse, status: "ready" as const },
-              { label: "AI Agents", desc: "Custom agent builder + testing lab", icon: Brain, status: "beta" as const },
-              { label: "Network Scanner", desc: "10 nmap profiles, parsed results", icon: TreeStructure, status: "ready" as const },
+              { label: "AI Chat", desc: "Claude CLI + OpenClaw dual-provider streaming", icon: UilCommentDots, status: "ready" as const },
+              { label: "Red Team", desc: "Operation tracking, findings, Supabase-backed", icon: UilCrosshair, status: "ready" as const },
+              { label: "Blue Team", desc: "Security monitor, CVE database, threat intel", icon: UilShield, status: "ready" as const },
+              { label: "UilWindow", desc: "xterm.js + tmux, multi-tab, shell presets", icon: UilWindow, status: "ready" as const },
+              { label: "Knowledge Base", desc: "Cloud-synced entries with file uploads", icon: UilBookOpen, status: "ready" as const },
+              { label: "Fleet", desc: "VPS agent swarm + endpoint monitoring", icon: UilMonitor, status: "beta" as const },
+              { label: "NVD + Shodan", desc: "Parallel CVE lookup, auto-save to Supabase", icon: UilSearch, status: "ready" as const },
+              { label: "Mission Planner", desc: "Phase-based operation planning", icon: UilFocusTarget, status: "beta" as const },
+              { label: "Threat Intel", desc: "IOC feeds, enrichment, STIX correlation", icon: UilShield, status: "beta" as const },
+              { label: "Analytics", desc: "Usage metrics, CVE stats, Supabase health", icon: UilHeartRate, status: "ready" as const },
+              { label: "AI Agents", desc: "Custom agent builder + testing lab", icon: UilBrain, status: "beta" as const },
+              { label: "Network Scanner", desc: "10 nmap profiles, parsed results", icon: UilSitemap, status: "ready" as const },
             ].map((f) => (
               <div key={f.label} className="flex items-start gap-3 p-3 rounded-lg border border-border/50 bg-card/30">
-                <f.icon size={20} weight="duotone" className="text-primary mt-0.5 shrink-0" />
+                <f.icon size={20} className="text-primary mt-0.5 shrink-0" />
                 <div>
                   <div className="text-sm font-medium flex items-center gap-2">{f.label} <StatusBadge status={f.status} /></div>
                   <div className="text-xs text-muted-foreground">{f.desc}</div>

@@ -16,18 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { agentTester } from '@/services/agent-tester';
-import {
- PlayCircle,
- CheckCircle,
- XCircle,
- Warning,
- TrendUp,
- Clock,
- DownloadSimple,
- ArrowsClockwise,
- GearSix,
-} from '@phosphor-icons/react';
-
+import { UilCheckCircle, UilTimesCircle, UilExclamationTriangle, UilChartGrowth, UilClock, UilDownloadAlt, UilSync, UilCog, UilPlay } from "@iconscout/react-unicons";
 interface TestProgress {
  current: number;
  total: number;
@@ -236,19 +225,19 @@ export default function AgentTesting() {
  <div className="flex gap-2">
  {testResults && (
  <Button variant="outline" onClick={exportResults}>
- <DownloadSimple size={16} weight="bold" className="mr-2" />
+ <UilDownloadAlt size={16} className="mr-2" />
  Export Results
  </Button>
  )}
  <Button onClick={runAllTests} disabled={progress.status === 'running'}>
  {progress.status === 'running' ? (
  <>
- <ArrowsClockwise size={16} weight="bold" className="mr-2 animate-spin" />
+ <UilSync size={16} className="mr-2 animate-spin" />
  Testing...
  </>
  ) : (
  <>
- <PlayCircle size={16} weight="bold" className="mr-2" />
+ <UilPlay size={16} className="mr-2" />
  Run All Tests
  </>
  )}
@@ -276,7 +265,7 @@ export default function AgentTesting() {
  <Card>
  <CardHeader>
  <CardTitle className="text-xl flex items-center gap-2">
- <GearSix size={20} weight="duotone" />
+ <UilCog size={20} />
  Agent Configuration
  </CardTitle>
  <CardDescription className="text-base">
@@ -427,7 +416,7 @@ export default function AgentTesting() {
  <TabsContent value="search" className="space-y-4 mt-4">
  <div className="grid gap-4 md:grid-cols-2">
  <div className="space-y-2">
- <Label>Tavily API Key</Label>
+ <Label>Tavily API UilKeySkeleton</Label>
  <Input
  type="password"
  value={agentConfig.search.tavilyApiKey}
@@ -641,7 +630,7 @@ export default function AgentTesting() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Total Agents</CardTitle>
- <TrendUp size={16} weight="bold" className="text-muted-foreground" />
+ <UilChartGrowth size={16} className="text-muted-foreground" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">{testResults.summary.totalAgents}</div>
@@ -651,7 +640,7 @@ export default function AgentTesting() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Healthy</CardTitle>
- <CheckCircle size={16} weight="bold" className="text-emerald-500" />
+ <UilCheckCircle size={16} className="text-emerald-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-emerald-500">
@@ -664,7 +653,7 @@ export default function AgentTesting() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Failing</CardTitle>
- <XCircle size={16} weight="bold" className="text-red-500" />
+ <UilTimesCircle size={16} className="text-red-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-red-500">
@@ -677,7 +666,7 @@ export default function AgentTesting() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Average Score</CardTitle>
- <Clock size={16} weight="bold" className="text-muted-foreground" />
+ <UilClock size={16} className="text-muted-foreground" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">
@@ -742,19 +731,19 @@ export default function AgentTesting() {
  <TabsContent value="summary" className="space-y-3">
  <div className="grid grid-cols-3 gap-3">
  <div className="flex items-center gap-2">
- <CheckCircle size={16} weight="bold" className="text-emerald-500" />
+ <UilCheckCircle size={16} className="text-emerald-500" />
  <span className="text-sm">
  Passed: {report.testResults.filter((t: any) => t.passed).length}
  </span>
  </div>
  <div className="flex items-center gap-2">
- <XCircle size={16} weight="bold" className="text-red-500" />
+ <UilTimesCircle size={16} className="text-red-500" />
  <span className="text-sm">
  Failed: {report.testResults.filter((t: any) => !t.passed).length}
  </span>
  </div>
  <div className="flex items-center gap-2">
- <Clock size={16} weight="bold" className="text-muted-foreground" />
+ <UilClock size={16} className="text-muted-foreground" />
  <span className="text-sm">
  Avg: {report.averageTestDuration.toFixed(0)}ms
  </span>
@@ -771,9 +760,9 @@ export default function AgentTesting() {
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
  {test.passed ? (
- <CheckCircle size={16} weight="bold" className="text-emerald-500" />
+ <UilCheckCircle size={16} className="text-emerald-500" />
  ) : (
- <XCircle size={16} weight="bold" className="text-red-500" />
+ <UilTimesCircle size={16} className="text-red-500" />
  )}
  <span className="font-medium text-sm">{test.testName}</span>
  </div>
@@ -788,9 +777,9 @@ export default function AgentTesting() {
  className="flex items-start gap-2 text-muted-foreground"
  >
  {validation.passed ? (
- <CheckCircle size={12} weight="bold" className="text-emerald-500 mt-0.5" />
+ <UilCheckCircle size={12} className="text-emerald-500 mt-0.5" />
  ) : (
- <XCircle size={12} weight="bold" className="text-red-500 mt-0.5" />
+ <UilTimesCircle size={12} className="text-red-500 mt-0.5" />
  )}
  <span>{validation.criterion}</span>
  </div>
@@ -813,7 +802,7 @@ export default function AgentTesting() {
 
  {/* Duration */}
  <div className="flex items-center gap-1 text-xs text-muted-foreground">
- <Clock size={12} weight="bold" />
+ <UilClock size={12} />
  <span>{test.duration}ms</span>
  </div>
  </div>
@@ -831,7 +820,7 @@ export default function AgentTesting() {
  key={recIdx}
  className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded"
  >
- <TrendUp size={16} weight="bold" className="text-blue-500 mt-0.5" />
+ <UilChartGrowth size={16} className="text-blue-500 mt-0.5" />
  <p className="text-sm text-blue-900 dark:text-blue-100">
  {rec}
  </p>
@@ -851,7 +840,7 @@ export default function AgentTesting() {
  key={issueIdx}
  className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded"
  >
- <Warning size={16} weight="bold" className="text-red-500 mt-0.5" />
+ <UilExclamationTriangle size={16} className="text-red-500 mt-0.5" />
  <p className="text-sm text-red-900 dark:text-red-100">
  {issue}
  </p>
@@ -875,7 +864,7 @@ export default function AgentTesting() {
  {!testResults && progress.status === 'idle' && (
  <Card className="border-dashed">
  <CardContent className="flex flex-col items-center justify-center py-12">
- <PlayCircle size={48} weight="duotone" className="text-muted-foreground mb-4" />
+ <UilChartGrowth size={48} className="text-muted-foreground mb-4" />
  <h3 className="text-lg font-semibold mb-2">No Tests Run Yet</h3>
  <p className="text-sm text-muted-foreground mb-4">
  Click"Run All Tests" to start comprehensive agent testing

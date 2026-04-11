@@ -2,7 +2,7 @@ import { useState, useEffect } from"react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from"@/components/ui/card";
 import { Badge } from"@/components/ui/badge";
 import { Button } from"@/components/ui/button";
-import { Brain, TrendUp, Lightning, ArrowsClockwise, Sparkle, Robot, CheckCircle, XCircle } from"@phosphor-icons/react";
+import { UilBrain, UilChartGrowth, UilBolt, UilSync, UilStar, UilRobot, UilCheckCircle, UilTimesCircle } from "@iconscout/react-unicons";
 import { useToast } from"@/hooks/use-toast";
 import openClaw from"@/services/openclaw";
 import claudeProvider from"@/services/claude-provider";
@@ -44,7 +44,7 @@ const LLM = () => {
  className="border-border text-white hover:bg-primary/10"
  disabled={loading}
  >
- <ArrowsClockwise size={16} weight="bold" className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+ <UilSync size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
  Refresh
  </Button>
  </div>
@@ -53,7 +53,7 @@ const LLM = () => {
  <Card className="">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Total Models</CardTitle>
- <Brain size={16} weight="bold" className="text-primary" />
+ <UilBrain size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">{totalModels}</div>
@@ -64,7 +64,7 @@ const LLM = () => {
  <Card className="">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">NVIDIA Free</CardTitle>
- <Lightning size={16} weight="bold" className="text-emerald-500" />
+ <UilBolt size={16} className="text-emerald-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">{openClawModels.length}</div>
@@ -77,11 +77,11 @@ const LLM = () => {
  <Card className="">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Anthropic</CardTitle>
- <Sparkle size={16} weight="bold" className="text-violet-500" />
+ <UilStar size={16} className="text-violet-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">{claudeModels.length}</div>
- <p className="text-xs text-muted-foreground">Claude Code CLI</p>
+ <p className="text-xs text-muted-foreground">Claude UilBracketsCurly CLI</p>
  </CardContent>
  </Card>
  </div>
@@ -89,8 +89,8 @@ const LLM = () => {
  {/* Claude Models */}
  <div>
  <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
- <Sparkle size={20} weight="duotone" className="text-violet-500" />
- Anthropic (Claude Code CLI)
+ <UilStar size={20} className="text-violet-500" />
+ Anthropic (Claude UilBracketsCurly CLI)
  </h2>
  <div className="grid gap-3">
  {claudeModels.map((model) => (
@@ -98,7 +98,7 @@ const LLM = () => {
  <CardContent className="flex items-center justify-between py-4">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-lg bg-transparent flex items-center justify-center">
- <Sparkle size={20} weight="duotone" className="text-violet-500" />
+ <UilStar size={20} className="text-violet-500" />
  </div>
  <div>
  <p className="text-sm font-medium text-white">{model.name}</p>
@@ -120,12 +120,12 @@ const LLM = () => {
  {/* OpenClaw Models */}
  <div>
  <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
- <Robot size={20} weight="duotone" className="text-emerald-500" />
+ <UilRobot size={20} className="text-emerald-500" />
  OpenClaw (NVIDIA Free)
  {openClawConnected ? (
- <CheckCircle size={16} weight="bold" className="text-emerald-500" />
+ <UilCheckCircle size={16} className="text-emerald-500" />
  ) : (
- <XCircle size={16} weight="bold" className="text-red-500" />
+ <UilTimesCircle size={16} className="text-red-500" />
  )}
  </h2>
  <div className="grid gap-3">
@@ -134,7 +134,7 @@ const LLM = () => {
  <CardContent className="flex items-center justify-between py-4">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-lg bg-transparent flex items-center justify-center">
- <Robot size={20} weight="duotone" className="text-emerald-500" />
+ <UilRobot size={20} className="text-emerald-500" />
  </div>
  <div>
  <p className="text-sm font-medium text-white">{model.name}</p>

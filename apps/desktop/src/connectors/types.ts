@@ -127,7 +127,7 @@ export interface ConnectorAuth {
   refreshToken?: string;
   tokenExpiresAt?: string;
   scopes?: string[];
-  // API Key
+  // API UilKeySkeleton
   apiKey?: string;
   apiSecret?: string;
   // Endpoint

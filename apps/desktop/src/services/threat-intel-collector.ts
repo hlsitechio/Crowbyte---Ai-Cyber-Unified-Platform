@@ -298,11 +298,17 @@ async function fetchFeed(feed: FeedConfig): Promise<NormalizedIOC[]> {
   // On web, use server-side proxy to avoid CORS
   if (isWeb && FEED_PROXY_MAP[feed.name]) {
     const proxyId = FEED_PROXY_MAP[feed.name];
+    // Get auth token for proxy
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
     const proxyOpts: RequestInit = {
       method: feed.method === 'POST' ? 'POST' : 'GET',
+      headers: {
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
     };
     if (feed.method === 'POST' && feed.body) {
-      proxyOpts.headers = { 'Content-Type': 'application/json' };
+      (proxyOpts.headers as Record<string, string>)['Content-Type'] = 'application/json';
       proxyOpts.body = JSON.stringify(feed.body);
     }
     try {
@@ -344,6 +350,12 @@ async function fetchFeed(feed: FeedConfig): Promise<NormalizedIOC[]> {
 
     const data = await response.json();
 
+    // Handle proxy wrapping upstream errors
+    if (data?._feed_error) {
+      console.debug(`[threat-intel] Feed ${feed.name} upstream error (${data.upstream_status}) — skipping`);
+      return [];
+    }
+
     switch (feed.parser) {
       case 'urlhaus':
         return parseUrlhaus(data);
@@ -373,18 +385,18 @@ async function upsertIOCs(iocs: NormalizedIOC[]): Promise<number> {
 
     const { error } = await supabase
       .from('threat_iocs')
-      .upsert(batch, { onConflict: 'value,feed_name' });
+      .upsert(batch, { onConflict: 'value,feed_name', ignoreDuplicates: true });
 
     if (error) {
-      // If upsert fails (e.g., no unique constraint), fall back to insert + ignore dupes
-      console.warn('Upsert failed, falling back to insert:', error.message);
+      // If upsert fails (no unique constraint yet), fall back to insert + ignore dupes
+      console.debug('[threat-intel] Upsert unavailable, using insert w/ ignoreDuplicates');
       const { error: insertError } = await supabase
         .from('threat_iocs')
-        .insert(batch);
+        .insert(batch, { ignoreDuplicates: true } as any);
 
-      if (insertError) {
-        // Likely duplicate key errors — count what we can
-        console.warn('Batch insert error (possible duplicates):', insertError.message);
+      if (insertError && insertError.code !== '23505') {
+        // Only warn on non-duplicate errors
+        console.debug('[threat-intel] Batch insert skipped:', insertError.message);
         continue;
       }
     }

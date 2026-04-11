@@ -9,6 +9,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { pgOr } from '@/lib/utils';
 import { findingsEngine, type CreateFindingData } from './findings-engine';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -420,7 +421,7 @@ class AlertIngestion {
     if (filters?.status) query = query.eq('status', filters.status);
     if (filters?.severity) query = query.eq('severity', filters.severity);
     if (filters?.source_type) query = query.eq('source_type', filters.source_type);
-    if (filters?.search) query = query.or(`title.ilike.%${filters.search}%,affected_host.ilike.%${filters.search}%`);
+    if (filters?.search) query = query.or(`title.ilike.%${pgOr(filters.search)}%,affected_host.ilike.%${pgOr(filters.search)}%`);
     if (filters?.limit) query = query.limit(filters.limit);
     else query = query.limit(200);
 

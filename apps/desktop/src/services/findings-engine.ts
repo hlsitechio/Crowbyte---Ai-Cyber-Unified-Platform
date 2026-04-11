@@ -9,6 +9,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { pgOr } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -524,7 +525,7 @@ class FindingsEngine {
     if (filter?.chain_id) query = query.eq('chain_id', filter.chain_id);
     if (filter?.included_in_report !== undefined) query = query.eq('included_in_report', filter.included_in_report);
     if (filter?.has_cve) query = query.not('cve_ids', 'eq', '{}');
-    if (filter?.search) query = query.or(`title.ilike.%${filter.search}%,description.ilike.%${filter.search}%,target_host.ilike.%${filter.search}%`);
+    if (filter?.search) query = query.or(`title.ilike.%${pgOr(filter.search)}%,description.ilike.%${pgOr(filter.search)}%,target_host.ilike.%${pgOr(filter.search)}%`);
 
     const { data, error } = await query;
     if (error) throw new Error(`Failed to fetch findings: ${error.message}`);

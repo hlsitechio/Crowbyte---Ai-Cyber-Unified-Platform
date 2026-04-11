@@ -1,5 +1,5 @@
 /**
- * Key Management Service for CrowByte
+ * UilKeySkeleton Management Service for CrowByte
  * Handles encryption key lifecycle, storage, and recovery
  *
  * Features:
@@ -34,7 +34,7 @@ export interface RecoveryKey {
 }
 
 /**
- * Key Management Service
+ * UilKeySkeleton Management Service
  * Manages encryption keys, passwords, and recovery options
  */
 class KeyManagementService {

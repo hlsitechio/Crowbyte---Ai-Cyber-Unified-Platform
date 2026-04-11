@@ -4,7 +4,7 @@ import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { motion } from"framer-motion";
-import { Monitor, Warning, CheckCircle, XCircle, Cpu, HardDrives, Pulse, ArrowsClockwise, MagnifyingGlass, Funnel, Shield, Clock, MapPin, Plus, DesktopTower, Trash, DotsThreeVertical, Lightning, Eye, Cursor, Lock, ClockCounterClockwise } from "@phosphor-icons/react";
+import { UilMonitor, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilProcessor, UilServer, UilHeartRate, UilSync, UilSearch, UilFilter, UilShield, UilClock, UilMapPin, UilPlus, UilDesktopAlt, UilTrashAlt, UilEllipsisV, UilBolt, UilEye, UilMouseAlt, UilLock, UilHistory } from "@iconscout/react-unicons";
 import {
  DropdownMenu,
  DropdownMenuContent,
@@ -299,11 +299,11 @@ const Fleet = () => {
 
  const getStatusIcon = (status: string) => {
  switch (status) {
- case"online": return <CheckCircle size={20} weight="duotone" className="text-emerald-500" />;
- case"offline": return <XCircle size={20} weight="duotone" className="text-zinc-500" />;
- case"warning": return <Warning size={20} weight="duotone" className="text-amber-500" />;
- case"critical": return <Warning size={20} weight="duotone" className="text-red-500" />;
- default: return <Monitor size={20} weight="duotone" />;
+ case"online": return <UilCheckCircle size={20} className="text-emerald-500" />;
+ case"offline": return <UilTimesCircle size={20} className="text-zinc-500" />;
+ case"warning": return <UilExclamationTriangle size={20} className="text-amber-500" />;
+ case"critical": return <UilExclamationTriangle size={20} className="text-red-500" />;
+ default: return <UilMonitor size={20} />;
  }
  };
 
@@ -349,20 +349,20 @@ const Fleet = () => {
  >
  <div>
  <h1 className="text-4xl font-bold text-gradient-silver flex items-center gap-3">
- <Monitor size={40} weight="duotone" className="text-primary" />
+ <UilMonitor size={40} className="text-primary" />
  Fleet Management
  </h1>
  <p className="text-sm text-muted-foreground mt-2">
- Monitor and manage all endpoints across your organization
+ UilMonitor and manage all endpoints across your organization
  </p>
  </div>
  <div className="flex gap-2">
  <Button variant="outline" onClick={loadEndpoints} disabled={loading}>
- <ArrowsClockwise size={16} weight="bold" className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+ <UilSync size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
  Refresh
  </Button>
  <Button onClick={() => setAddDialogOpen(true)}>
- <Plus size={16} weight="bold" className="mr-2" />
+ <UilPlus size={16} className="mr-2" />
  Add Endpoint
  </Button>
  </div>
@@ -378,7 +378,7 @@ const Fleet = () => {
  <p className="text-xs text-muted-foreground">Total Endpoints</p>
  <p className="text-2xl font-bold">{stats.total}</p>
  </div>
- <Monitor size={32} weight="duotone" className="text-primary" />
+ <UilMonitor size={32} className="text-primary" />
  </div>
  </CardContent>
  </Card>
@@ -392,7 +392,7 @@ const Fleet = () => {
  <p className="text-xs text-muted-foreground">Online</p>
  <p className="text-2xl font-bold text-emerald-500">{stats.online}</p>
  </div>
- <CheckCircle size={32} weight="duotone" className="text-emerald-500" />
+ <UilCheckCircle size={32} className="text-emerald-500" />
  </div>
  </CardContent>
  </Card>
@@ -406,7 +406,7 @@ const Fleet = () => {
  <p className="text-xs text-muted-foreground">Offline</p>
  <p className="text-2xl font-bold text-zinc-500">{stats.offline}</p>
  </div>
- <XCircle size={32} weight="duotone" className="text-zinc-500" />
+ <UilTimesCircle size={32} className="text-zinc-500" />
  </div>
  </CardContent>
  </Card>
@@ -417,10 +417,10 @@ const Fleet = () => {
  <CardContent className="p-4">
  <div className="flex items-center justify-between">
  <div>
- <p className="text-xs text-muted-foreground">Warning</p>
+ <p className="text-xs text-muted-foreground">UilExclamationTriangle</p>
  <p className="text-2xl font-bold text-amber-500">{stats.warning}</p>
  </div>
- <Warning size={32} weight="duotone" className="text-amber-500" />
+ <UilExclamationTriangle size={32} className="text-amber-500" />
  </div>
  </CardContent>
  </Card>
@@ -434,7 +434,7 @@ const Fleet = () => {
  <p className="text-xs text-muted-foreground">Critical</p>
  <p className="text-2xl font-bold text-red-500">{stats.critical}</p>
  </div>
- <Warning size={32} weight="duotone" className="text-red-500" />
+ <UilExclamationTriangle size={32} className="text-red-500" />
  </div>
  </CardContent>
  </Card>
@@ -448,7 +448,7 @@ const Fleet = () => {
  <p className="text-xs text-muted-foreground">Active Threats</p>
  <p className="text-2xl font-bold text-red-500">{stats.totalThreats}</p>
  </div>
- <Shield size={32} weight="duotone" className="text-red-500" />
+ <UilShield size={32} className="text-red-500" />
  </div>
  </CardContent>
  </Card>
@@ -461,7 +461,7 @@ const Fleet = () => {
  <div className="flex gap-4 items-center flex-wrap">
  <div className="flex-1 min-w-[200px]">
  <div className="relative">
- <MagnifyingGlass size={16} weight="bold" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+ <UilSearch size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
  <Input
  placeholder="Search by hostname or IP..."
  value={searchQuery}
@@ -476,7 +476,7 @@ const Fleet = () => {
  size="sm"
  onClick={() => setStatusFilter("all")}
  >
- <Funnel size={16} weight="bold" className="mr-2" />
+ <UilFilter size={16} className="mr-2" />
  All
  </Button>
  <Button
@@ -498,7 +498,7 @@ const Fleet = () => {
  size="sm"
  onClick={() => setStatusFilter("warning")}
  >
- Warning
+ UilExclamationTriangle
  </Button>
  <Button
  variant={statusFilter ==="critical" ?"default" :"outline"}
@@ -518,14 +518,14 @@ const Fleet = () => {
  <CardHeader className="pb-3">
  <div className="flex items-center justify-between">
  <CardTitle className="flex items-center gap-2 text-lg">
- <DesktopTower size={20} weight="duotone" className="text-emerald-500" />
+ <UilDesktopAlt size={20} className="text-emerald-500" />
  Host Server — {hostMetrics?.hostname || 'CrowByte OS'}
  <span className="text-xs text-emerald-500 ml-2">This Machine</span>
  </CardTitle>
  <div className="flex items-center gap-2">
  {hostLoading && !hostMetrics ? (
  <span className="flex items-center gap-1.5 text-xs">
- <ArrowsClockwise size={12} weight="bold" className="text-amber-500 animate-spin" />
+ <UilSync size={12} className="text-amber-500 animate-spin" />
  <span className="text-amber-500">Loading...</span>
  </span>
  ) : (
@@ -546,7 +546,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-1.5">
- <Cpu size={16} weight="bold" className="text-blue-500" />
+ <UilProcessor size={16} className="text-blue-500" />
  <span className="text-xs font-semibold text-muted-foreground uppercase">CPU</span>
  </div>
  <span className={`text-sm font-bold ${getHealthColor(hostMetrics?.cpu?.usage || 0)}`}>
@@ -570,7 +570,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-1.5">
- <Pulse size={16} weight="bold" className="text-violet-500" />
+ <UilHeartRate size={16} className="text-violet-500" />
  <span className="text-xs font-semibold text-muted-foreground uppercase">Memory</span>
  </div>
  <span className={`text-sm font-bold ${getHealthColor(hostMetrics?.memory?.percent || 0)}`}>
@@ -592,7 +592,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-1.5">
- <HardDrives size={16} weight="bold" className="text-amber-500" />
+ <UilServer size={16} className="text-amber-500" />
  <span className="text-xs font-semibold text-muted-foreground uppercase">Disk</span>
  </div>
  <span className={`text-sm font-bold ${getHealthColor(hostMetrics?.disk?.percent || 0)}`}>
@@ -614,7 +614,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-1.5">
- <Lightning size={16} weight="bold" className="text-cyan-500" />
+ <UilBolt size={16} className="text-cyan-500" />
  <span className="text-xs font-semibold text-muted-foreground uppercase">Network</span>
  </div>
  </div>
@@ -646,13 +646,13 @@ const Fleet = () => {
  <CardHeader className="pb-3">
  <div className="flex items-center justify-between">
  <CardTitle className="flex items-center gap-2 text-lg">
- <DesktopTower size={20} weight="duotone" className="text-primary" />
+ <UilDesktopAlt size={20} className="text-primary" />
  Infrastructure — OpenClaw VPS
  </CardTitle>
  <div className="flex items-center gap-2">
  {vpsLoading ? (
  <span className="flex items-center gap-1.5 text-xs">
- <ArrowsClockwise size={12} weight="bold" className="text-amber-500 animate-spin" />
+ <UilSync size={12} className="text-amber-500 animate-spin" />
  <span className="text-amber-500">Checking...</span>
  </span>
  ) : vpsStatus?.ok ? (
@@ -679,7 +679,7 @@ const Fleet = () => {
  setVncDialogOpen(true);
  }}
  >
- <Monitor size={12} weight="bold" className="mr-1" />
+ <UilMonitor size={12} className="mr-1" />
  Remote Desktop
  </Button>
  </CardDescription>
@@ -754,7 +754,7 @@ const Fleet = () => {
  <ScrollArea className="h-[calc(100vh-500px)]">
  {loading && endpoints.length === 0 ? (
  <div className="flex items-center justify-center py-20">
- <ArrowsClockwise size={32} weight="duotone" className="animate-spin text-primary" />
+ <UilSync size={32} className="animate-spin text-primary" />
  </div>
  ) : filteredEndpoints.length === 0 ? (
  <motion.div
@@ -763,7 +763,7 @@ const Fleet = () => {
  className="flex flex-col items-center justify-center py-20"
  >
  <div className="p-6 rounded-full bg-muted/20 mb-6">
- <DesktopTower size={64} weight="duotone" className="text-muted-foreground" />
+ <UilDesktopAlt size={64} className="text-muted-foreground" />
  </div>
  <h3 className="text-xl font-semibold mb-2">No Endpoints Registered</h3>
  <p className="text-muted-foreground text-center max-w-md mb-6">
@@ -771,7 +771,7 @@ const Fleet = () => {
  Register this device to begin real-time monitoring.
  </p>
  <Button onClick={() => setAddDialogOpen(true)}>
- <Plus size={16} weight="bold" className="mr-2" />
+ <UilPlus size={16} className="mr-2" />
  Add Your First Endpoint
  </Button>
  </motion.div>
@@ -807,7 +807,7 @@ const Fleet = () => {
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
- <DotsThreeVertical size={16} weight="bold" />
+ <UilEllipsisV size={16} />
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
@@ -815,21 +815,21 @@ const Fleet = () => {
  onClick={() => handleRemoteControl(endpoint)}
  disabled={endpoint.status === 'offline'}
  >
- <Monitor size={16} weight="bold" className="mr-2 text-emerald-500" />
+ <UilMonitor size={16} className="mr-2 text-emerald-500" />
  Remote Control
  </DropdownMenuItem>
  <DropdownMenuItem
  onClick={() => handleRemoteControl({ ...endpoint } as Endpoint)}
  disabled={endpoint.status === 'offline'}
  >
- <Eye size={16} weight="bold" className="mr-2 text-blue-500" />
+ <UilEye size={16} className="mr-2 text-blue-500" />
  View Only
  </DropdownMenuItem>
  <DropdownMenuItem
  className="text-destructive"
  onClick={() => handleDeleteEndpoint(endpoint.id, endpoint.hostname)}
  >
- <Trash size={16} weight="bold" className="mr-2" />
+ <UilTrashAlt size={16} className="mr-2" />
  Remove
  </DropdownMenuItem>
  </DropdownMenuContent>
@@ -843,7 +843,7 @@ const Fleet = () => {
  <span>{endpoint.os_name} {endpoint.os_version}</span>
  {endpoint.location && (
  <div className="flex items-center gap-1">
- <MapPin size={12} weight="bold" />
+ <UilMapPin size={12} />
  {endpoint.location}
  </div>
  )}
@@ -853,7 +853,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between text-xs">
  <div className="flex items-center gap-2">
- <Cpu size={12} weight="bold" />
+ <UilProcessor size={12} />
  <span>CPU</span>
  </div>
  <span className={`font-mono ${getHealthColor(endpoint.cpu_usage)}`}>{Math.round(endpoint.cpu_usage)}%</span>
@@ -869,7 +869,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between text-xs">
  <div className="flex items-center gap-2">
- <Pulse size={12} weight="bold" />
+ <UilHeartRate size={12} />
  <span>Memory</span>
  </div>
  <span className={`font-mono ${getHealthColor(endpoint.memory_usage)}`}>{Math.round(endpoint.memory_usage)}%</span>
@@ -885,7 +885,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between text-xs">
  <div className="flex items-center gap-2">
- <HardDrives size={12} weight="bold" />
+ <UilServer size={12} />
  <span>Disk</span>
  </div>
  <span className={`font-mono ${getHealthColor(endpoint.disk_usage)}`}>{Math.round(endpoint.disk_usage)}%</span>
@@ -903,7 +903,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <div className="flex items-center justify-between text-xs">
  <div className="flex items-center gap-2">
- <Lightning size={12} weight="bold" className="text-violet-500" />
+ <UilBolt size={12} className="text-violet-500" />
  <span>GPU</span>
  </div>
  <span className="font-mono text-violet-500">{endpoint.gpu.utilization}%</span>
@@ -924,7 +924,7 @@ const Fleet = () => {
  {/* Threats & Last Seen */}
  <div className="flex items-center justify-between pt-2 border-t border-white/[0.04]">
  <div className="flex items-center gap-2 text-xs">
- <Clock size={12} weight="bold" className="text-muted-foreground" />
+ <UilClock size={12} className="text-muted-foreground" />
  <span className="text-muted-foreground">
  {formatLastSeen(endpoint.last_seen_at)}
  </span>
@@ -944,9 +944,9 @@ const Fleet = () => {
  onClick={() => handleRemoteControl(endpoint)}
  disabled={endpoint.status === 'offline'}
  >
- <Monitor size={14} weight="bold" className="mr-2" />
+ <UilMonitor size={14} className="mr-2" />
  Remote Control
- <Lock size={12} weight="bold" className="ml-auto text-emerald-500/50" />
+ <UilLock size={12} className="ml-auto text-emerald-500/50" />
  </Button>
  </CardContent>
  </Card>

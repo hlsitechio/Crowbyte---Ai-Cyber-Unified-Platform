@@ -35,7 +35,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
  <AnimatePresence>
  {!videoEnded && (
  <motion.div
- className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0a0a]"
+ className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
  exit={{ opacity: 0 }}

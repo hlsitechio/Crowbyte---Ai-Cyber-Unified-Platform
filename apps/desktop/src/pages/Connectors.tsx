@@ -11,7 +11,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ShieldCheck, ShieldWarning, UserCheck, Laptop, Bird, Fire, MagnifyingGlass, Stack, Eye, Bug, Plug, PlugsConnected, CaretRight, GearSix, Pulse, Robot, Lock, LockOpen, Warning, CheckCircle, XCircle, Clock, Lightning, ArrowRight, ArrowSquareOut, Key, Globe, DesktopTower, Database, ChartBar, Users, FileX, Funnel, GridFour, ListBullets, Monitor, Terminal, ShippingContainer, TreeStructure, HardHat } from "@phosphor-icons/react";
+import { UilShield, UilShieldCheck, UilShieldExclamation, UilUserCheck, UilLaptop, UilRobot, UilFire, UilSearch, UilLayerGroup, UilEye, UilBug, UilPlug, UilAngleRight, UilCog, UilHeartRate, UilLock, UilLockOpenAlt, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilClock, UilBolt, UilArrowRight, UilExternalLinkAlt, UilKeySkeleton, UilGlobe, UilDesktopAlt, UilDatabase, UilChartBar, UilUsersAlt, UilFileTimes, UilFilter, UilGrid, UilListUl, UilMonitor, UilWindow, UilServer, UilSitemap, UilHardHat } from "@iconscout/react-unicons";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,24 +30,24 @@ import type { ConnectorManifest, ConnectorCategory, ConnectorStatus, AgentPermis
 // ─── Icon Mapping ────────────────────────────────────────────────────────────
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
- Shield, ShieldCheck, ShieldWarning, UserCheck, Laptop, Bird, Fire,
- MagnifyingGlass, Stack, Eye, Bug, Monitor, Terminal, ShippingContainer, TreeStructure,
- DesktopTower, Globe,
+ UilShield, UilShieldCheck, UilShieldExclamation, UilUserCheck, UilLaptop, UilRobot, UilFire,
+ UilSearch, UilLayerGroup, UilEye, UilBug, UilMonitor, UilWindow, UilServer, UilSitemap,
+ UilDesktopAlt, UilGlobe,
 };
 
 const CATEGORY_META: Record<ConnectorCategory, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
- siem: { label: 'SIEM', icon: MagnifyingGlass, color: 'text-blue-500' },
- edr: { label: 'EDR', icon: ShieldCheck, color: 'text-red-500' },
- identity: { label: 'Identity', icon: UserCheck, color: 'text-violet-500' },
- cloud: { label: 'Cloud Security', icon: Globe, color: 'text-cyan-500' },
- vuln: { label: 'Vulnerability Mgmt', icon: Bug, color: 'text-orange-500' },
- network: { label: 'Network Security', icon: DesktopTower, color: 'text-emerald-500' },
- mdm: { label: 'Device Management', icon: Laptop, color: 'text-amber-500' },
- ticketing: { label: 'Ticketing', icon: FileX, color: 'text-pink-500' },
- 'threat-intel': { label: 'Threat Intel', icon: Database, color: 'text-emerald-500' },
- infrastructure: { label: 'Infrastructure', icon: DesktopTower, color: 'text-sky-500' },
- container: { label: 'Containers', icon: Stack, color: 'text-indigo-500' },
- 'cloud-infra': { label: 'Cloud Infra', icon: Globe, color: 'text-teal-500' },
+ siem: { label: 'SIEM', icon: UilSearch, color: 'text-blue-500' },
+ edr: { label: 'EDR', icon: UilShieldCheck, color: 'text-red-500' },
+ identity: { label: 'Identity', icon: UilUserCheck, color: 'text-violet-500' },
+ cloud: { label: 'Cloud Security', icon: UilGlobe, color: 'text-cyan-500' },
+ vuln: { label: 'Vulnerability Mgmt', icon: UilBug, color: 'text-orange-500' },
+ network: { label: 'Network Security', icon: UilDesktopAlt, color: 'text-emerald-500' },
+ mdm: { label: 'Device Management', icon: UilLaptop, color: 'text-amber-500' },
+ ticketing: { label: 'Ticketing', icon: UilFileTimes, color: 'text-pink-500' },
+ 'threat-intel': { label: 'Threat Intel', icon: UilDatabase, color: 'text-emerald-500' },
+ infrastructure: { label: 'Infrastructure', icon: UilDesktopAlt, color: 'text-sky-500' },
+ container: { label: 'Containers', icon: UilLayerGroup, color: 'text-indigo-500' },
+ 'cloud-infra': { label: 'Cloud Infra', icon: UilGlobe, color: 'text-teal-500' },
 };
 
 const PERMISSION_COLORS: Record<AgentPermissionLevel, string> = {
@@ -59,11 +59,11 @@ const PERMISSION_COLORS: Record<AgentPermissionLevel, string> = {
 };
 
 const STATUS_META: Record<ConnectorStatus, { icon: React.ComponentType<{ className?: string }>; color: string; label: string }> = {
- disconnected: { icon: XCircle, color: 'text-zinc-500', label: 'Disconnected' },
- connecting: { icon: Clock, color: 'text-amber-500', label: 'Connecting...' },
- connected: { icon: CheckCircle, color: 'text-emerald-500', label: 'Connected' },
- error: { icon: Warning, color: 'text-red-500', label: 'Error' },
- degraded: { icon: Warning, color: 'text-amber-500', label: 'Degraded' },
+ disconnected: { icon: UilTimesCircle, color: 'text-zinc-500', label: 'Disconnected' },
+ connecting: { icon: UilClock, color: 'text-amber-500', label: 'Connecting...' },
+ connected: { icon: UilCheckCircle, color: 'text-emerald-500', label: 'Connected' },
+ error: { icon: UilExclamationTriangle, color: 'text-red-500', label: 'Error' },
+ degraded: { icon: UilExclamationTriangle, color: 'text-amber-500', label: 'Degraded' },
 };
 
 // ─── Mock State (will be replaced with Supabase) ─────────────────────────────
@@ -165,14 +165,14 @@ export default function Connectors() {
  // ─── Render ──────────────────────────────────────────────────────────────
 
  return (
- <div className="flex-1 flex flex-col min-h-0 bg-zinc-950">
+ <div className="flex-1 flex flex-col min-h-0 bg-background">
  {/* Header */}
- <div className="shrink-0 border-b border-white/[0.06] bg-zinc-950/80 backdrop-blur-sm">
+ <div className="shrink-0 border-b border-white/[0.06] bg-background/80 backdrop-blur-sm">
  <div className="px-6 py-4">
  <div className="flex items-center justify-between mb-4">
  <div>
  <h1 className="text-2xl font-bold text-white flex items-center gap-2">
- <PlugsConnected size={24} weight="duotone" className="text-emerald-500" />
+ <UilPlug size={24} className="text-emerald-500" />
  Connectors
  </h1>
  <p className="text-sm text-zinc-400 mt-1">
@@ -202,7 +202,7 @@ export default function Connectors() {
  {/* Search + Filters */}
  <div className="flex items-center gap-3">
  <div className="relative flex-1 max-w-md">
- <MagnifyingGlass size={16} weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+ <UilSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
  <Input
  value={search}
  onChange={e => setSearch(e.target.value)}
@@ -213,7 +213,7 @@ export default function Connectors() {
 
  <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as ConnectorCategory | 'all')}>
  <SelectTrigger className="w-48 bg-zinc-900 border-zinc-700 text-white">
- <Funnel size={16} weight="bold" className="mr-2 text-zinc-400" />
+ <UilFilter size={16} className="mr-2 text-zinc-400" />
  <SelectValue placeholder="All Categories" />
  </SelectTrigger>
  <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -233,7 +233,7 @@ export default function Connectors() {
  className="h-9 w-9"
  onClick={() => setViewMode('grid')}
  >
- <GridFour size={16} weight="bold" />
+ <UilGrid size={16} />
  </Button>
  <Button
  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
@@ -241,7 +241,7 @@ export default function Connectors() {
  className="h-9 w-9"
  onClick={() => setViewMode('list')}
  >
- <ListBullets size={16} weight="bold" />
+ <UilListUl size={16} />
  </Button>
  </div>
  </div>
@@ -253,7 +253,7 @@ export default function Connectors() {
  <div className="p-6">
  {/* Preview Banner */}
  <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
- <HardHat size={16} weight="duotone" />
+ <UilHardHat size={16} />
  <span>Connectors are in preview — integrations are not yet active. Configure credentials to prepare for launch.</span>
  </div>
 
@@ -265,7 +265,7 @@ export default function Connectors() {
  className="mb-6 p-4 rounded-lg bg-transparent"
  >
  <div className="flex items-center gap-2 mb-3">
- <Robot size={20} weight="duotone" className="text-emerald-500" />
+ <UilRobot size={20} className="text-emerald-500" />
  <span className="font-semibold text-emerald-500">Active AI Agents</span>
  <span className="flex items-center gap-1.5 text-xs ml-2">
  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -281,7 +281,7 @@ export default function Connectors() {
  className="h-8 text-xs bg-transparent hover:bg-white/[0.03]"
  onClick={() => { setSelectedAgent(agent); setAgentConfigOpen(true); }}
  >
- <Robot size={12} weight="bold" className="mr-1.5 text-emerald-500" />
+ <UilRobot size={12} className="mr-1.5 text-emerald-500" />
  {agent.name}
  <span className={`ml-2 text-[10px] ${PERMISSION_COLORS[agent.permissionLevel]}`}>
  {agent.permissionLevel}
@@ -301,7 +301,7 @@ export default function Connectors() {
  {filteredConnectors.map((connector, i) => {
  const state = getState(connector.id);
  const agents = getAgentsForConnector(connector.id);
- const IconComponent = ICON_MAP[connector.icon] ?? Shield;
+ const IconComponent = ICON_MAP[connector.icon] ?? UilShield;
  const catMeta = CATEGORY_META[connector.category];
  const statusMeta = STATUS_META[state.status];
  const StatusIcon = statusMeta.icon;
@@ -321,7 +321,7 @@ export default function Connectors() {
  <div className="flex items-start justify-between">
  <div className="flex items-center gap-3">
  <div className="p-2.5 rounded-lg bg-white/[0.05]">
- <IconComponent size={24} weight="duotone" className={`${catMeta.color}`} />
+ <IconComponent size={24} className={`${catMeta.color}`} />
  </div>
  <div>
  <CardTitle className="text-white text-base">{connector.name}</CardTitle>
@@ -334,7 +334,7 @@ export default function Connectors() {
  </div>
  </div>
  <div className="flex items-center gap-1.5">
- <StatusIcon size={16} weight="bold" className={`${statusMeta.color}`} />
+ <StatusIcon size={16} className={`${statusMeta.color}`} />
  <span className={`text-xs ${statusMeta.color}`}>{statusMeta.label}</span>
  </div>
  </div>
@@ -361,7 +361,7 @@ export default function Connectors() {
 
  {/* Agents that activate */}
  <div className="flex items-center gap-2 mb-4">
- <Robot size={14} weight="bold" className="text-zinc-500" />
+ <UilRobot size={14} className="text-zinc-500" />
  <span className="text-xs text-zinc-500">Activates:</span>
  <div className="flex flex-wrap gap-1">
  {agents.map(agent => (
@@ -376,10 +376,10 @@ export default function Connectors() {
  <div className="flex items-center justify-between mb-4">
  <div className="flex items-center gap-4 text-xs text-zinc-500">
  <span className="flex items-center gap-1">
- <Lightning size={12} weight="bold" /> {connector.mcpTools.length} MCP tools
+ <UilBolt size={12} /> {connector.mcpTools.length} MCP tools
  </span>
  <span className="flex items-center gap-1">
- <Pulse size={12} weight="bold" /> {connector.dataStreams.length} data streams
+ <UilHeartRate size={12} /> {connector.dataStreams.length} data streams
  </span>
  </div>
  {state.status === 'connected' && (
@@ -399,7 +399,7 @@ export default function Connectors() {
  className="flex-1 text-xs border-white/[0.06] hover:border-white/[0.1]"
  onClick={(e) => { e.stopPropagation(); setSelectedConnector(connector); setAgentConfigOpen(true); }}
  >
- <GearSix size={12} weight="bold" className="mr-1.5" /> Configure
+ <UilCog size={12} className="mr-1.5" /> Configure
  </Button>
  <Button
  size="sm"
@@ -407,12 +407,12 @@ export default function Connectors() {
  className="text-xs text-red-500 hover:text-red-300 hover:bg-transparent"
  onClick={(e) => { e.stopPropagation(); handleDisconnect(connector.id); }}
  >
- <XCircle size={12} weight="bold" className="mr-1.5" /> Disconnect
+ <UilTimesCircle size={12} className="mr-1.5" /> Disconnect
  </Button>
  </>
  ) : state.status === 'connecting' ? (
  <Button size="sm" disabled className="flex-1 text-xs">
- <Clock size={12} weight="bold" className="mr-1.5 animate-spin" /> Connecting...
+ <UilClock size={12} className="mr-1.5 animate-spin" /> Connecting...
  </Button>
  ) : (
  <Button
@@ -420,7 +420,7 @@ export default function Connectors() {
  className="flex-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white"
  onClick={(e) => { e.stopPropagation(); handleConnect(connector); }}
  >
- <Plug size={12} weight="bold" className="mr-1.5" /> Connect
+ <UilPlug size={12} className="mr-1.5" /> Connect
  </Button>
  )}
  </div>
@@ -434,7 +434,7 @@ export default function Connectors() {
 
  {filteredConnectors.length === 0 && (
  <div className="text-center py-20">
- <MagnifyingGlass size={48} weight="duotone" className="text-zinc-700 mx-auto mb-4" />
+ <UilSearch size={48} className="text-zinc-700 mx-auto mb-4" />
  <p className="text-zinc-500">No connectors match your search</p>
  </div>
  )}
@@ -448,7 +448,7 @@ export default function Connectors() {
  <>
  <DialogHeader>
  <DialogTitle className="flex items-center gap-2">
- <Plug size={20} weight="duotone" className="text-emerald-500" />
+ <UilPlug size={20} className="text-emerald-500" />
  Connect {selectedConnector.name}
  </DialogTitle>
  <DialogDescription className="text-zinc-400">
@@ -473,7 +473,7 @@ export default function Connectors() {
  <>
  <DialogHeader>
  <DialogTitle className="flex items-center gap-2">
- <Robot size={20} weight="duotone" className="text-emerald-500" />
+ <UilRobot size={20} className="text-emerald-500" />
  {selectedAgent ? `${selectedAgent.name} — Configuration` : `Agents for ${selectedConnector?.name}`}
  </DialogTitle>
  <DialogDescription className="text-zinc-400">
@@ -550,7 +550,7 @@ function ConnectForm({
  <Input className="bg-zinc-800 border-zinc-700" placeholder="https://api.example.com" value={fields.baseUrl ?? ''} onChange={e => updateField('baseUrl', e.target.value)} />
  </div>
  <div className="space-y-2">
- <Label className="text-zinc-300">API Key</Label>
+ <Label className="text-zinc-300">API UilKeySkeleton</Label>
  <Input type="password" className="bg-zinc-800 border-zinc-700" placeholder="Your API key" value={fields.apiKey ?? ''} onChange={e => updateField('apiKey', e.target.value)} />
  </div>
  </>
@@ -582,10 +582,10 @@ function ConnectForm({
  case 'oauth2':
  return (
  <div className="p-4 rounded-lg bg-transparent text-center">
- <Globe size={32} weight="duotone" className="text-blue-500 mx-auto mb-2" />
+ <UilGlobe size={32} className="text-blue-500 mx-auto mb-2" />
  <p className="text-sm text-zinc-300 mb-3">Click below to authenticate via OAuth2</p>
  <Button className="bg-blue-600 hover:bg-blue-500">
- <ArrowSquareOut size={16} weight="bold" className="mr-2" /> Authorize with {connector.vendor}
+ <UilExternalLinkAlt size={16} className="mr-2" /> Authorize with {connector.vendor}
  </Button>
  </div>
  );
@@ -622,7 +622,7 @@ function ConnectForm({
  <div className="p-3 rounded-lg bg-transparent">
  <div className="flex items-center justify-between mb-2">
  <div className="flex items-center gap-2">
- <Key size={16} weight="bold" className="text-blue-500" />
+ <UilKeySkeleton size={16} className="text-blue-500" />
  <span className="text-xs font-medium text-blue-500">Get Your Credentials</span>
  </div>
  {connector.authGuide.credentialUrl && (
@@ -632,7 +632,7 @@ function ConnectForm({
  rel="noopener noreferrer"
  className="flex items-center gap-1 text-[11px] text-blue-500 hover:text-blue-500 transition-colors"
  >
- {connector.authGuide.credentialLabel} <ArrowSquareOut size={12} weight="bold" />
+ {connector.authGuide.credentialLabel} <UilExternalLinkAlt size={12} />
  </a>
  )}
  </div>
@@ -652,7 +652,7 @@ function ConnectForm({
  <div className="mt-2 pt-2 border-t border-white/[0.04]">
  {connector.authGuide.notes.map((note, i) => (
  <div key={i} className="flex items-start gap-1.5 text-[10px] text-amber-500/70 mb-1">
- <Warning size={12} weight="bold" className="mt-0.5 shrink-0" />
+ <UilExclamationTriangle size={12} className="mt-0.5 shrink-0" />
  <span>{note}</span>
  </div>
  ))}
@@ -681,7 +681,7 @@ function ConnectForm({
  rel="noopener noreferrer"
  className="flex items-center gap-1 mt-2 text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors"
  >
- Full setup documentation <ArrowSquareOut size={10} weight="bold" />
+ Full setup documentation <UilExternalLinkAlt size={10} />
  </a>
  )}
  </div>
@@ -691,7 +691,7 @@ function ConnectForm({
  {connector.requiredPermissions && (
  <div className="p-3 rounded-lg bg-transparent">
  <div className="flex items-center gap-2 mb-2">
- <Key size={16} weight="bold" className="text-amber-500" />
+ <UilKeySkeleton size={16} className="text-amber-500" />
  <span className="text-xs font-medium text-zinc-300">Required Permissions</span>
  </div>
  <div className="flex flex-wrap gap-1">
@@ -705,7 +705,7 @@ function ConnectForm({
  {/* Agents that will activate */}
  <div className="p-3 rounded-lg bg-transparent">
  <div className="flex items-center gap-2 mb-2">
- <Robot size={16} weight="bold" className="text-emerald-500" />
+ <UilRobot size={16} className="text-emerald-500" />
  <span className="text-xs font-medium text-emerald-500">AI Agents (auto-activate on connect)</span>
  </div>
  <div className="space-y-1.5">
@@ -721,7 +721,7 @@ function ConnectForm({
  <DialogFooter>
  <Button variant="ghost" onClick={onCancel} className="text-zinc-400">Cancel</Button>
  <Button className="bg-emerald-600 hover:bg-emerald-500" onClick={() => onSubmit(fields)}>
- <PlugsConnected size={16} weight="bold" className="mr-2" /> Connect & Activate Agents
+ <UilPlug size={16} className="mr-2" /> Connect & Activate Agents
  </Button>
  </DialogFooter>
  </div>
@@ -756,7 +756,7 @@ function AgentConfigPanel({
  <CardHeader className="pb-2">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Robot size={16} weight="bold" className="text-emerald-500" />
+ <UilRobot size={16} className="text-emerald-500" />
  <CardTitle className="text-sm text-white">{agent.name}</CardTitle>
  </div>
  <Switch defaultChecked={agent.enabled} />
@@ -778,11 +778,11 @@ function AgentConfigPanel({
  {permissionLevels.map(level => (
  <SelectItem key={level} value={level}>
  <div className="flex items-center gap-2">
- {level === 'observe' && <Eye size={12} weight="bold" className="text-blue-500" />}
- {level === 'triage' && <Funnel size={12} weight="bold" className="text-amber-500" />}
- {level === 'respond' && <Lightning size={12} weight="bold" className="text-orange-500" />}
- {level === 'contain' && <Lock size={12} weight="bold" className="text-red-500" />}
- {level === 'admin' && <Key size={12} weight="bold" className="text-violet-500" />}
+ {level === 'observe' && <UilEye size={12} className="text-blue-500" />}
+ {level === 'triage' && <UilFilter size={12} className="text-amber-500" />}
+ {level === 'respond' && <UilBolt size={12} className="text-orange-500" />}
+ {level === 'contain' && <UilLock size={12} className="text-red-500" />}
+ {level === 'admin' && <UilKeySkeleton size={12} className="text-violet-500" />}
  <span className="capitalize">{level}</span>
  </div>
  </SelectItem>
@@ -805,7 +805,7 @@ function AgentConfigPanel({
  {agent.requiresApprovalFor.length > 0 && (
  <div className="space-y-1.5">
  <Label className="text-xs text-amber-500 flex items-center gap-1">
- <Warning size={12} weight="bold" /> Requires Human Approval
+ <UilExclamationTriangle size={12} /> Requires Human Approval
  </Label>
  <div className="flex flex-wrap gap-1">
  {agent.requiresApprovalFor.map(tool => (
@@ -818,7 +818,7 @@ function AgentConfigPanel({
  {/* Escalation */}
  {agent.escalatesTo && (
  <div className="flex items-center gap-2 text-xs text-zinc-500">
- <ArrowRight size={12} weight="bold" />
+ <UilArrowRight size={12} />
  Escalates to: <span className="text-zinc-300">{AGENT_REGISTRY.find(a => a.id === agent.escalatesTo)?.name}</span>
  </div>
  )}

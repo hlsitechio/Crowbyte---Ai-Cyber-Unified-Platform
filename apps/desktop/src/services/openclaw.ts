@@ -72,8 +72,24 @@ You are running INSIDE the CrowByte app. The user is interacting with you throug
 ## VPS Agent Swarm (OpenClaw)
 - Host: Configured via VITE_OPENCLAW_HOST env var
 - 9 agents: commander, recon, hunter, intel, analyst, sentinel, gpt, obsidian, main
-- D3bugr MCP: 142 security tools (nmap, nuclei, sqlmap, browser automation, DNS, SSL)
 - Use dispatch_agent for long-running tasks or parallel operations
+
+## D3BUGR — YOUR PRIMARY SECURITY TOOLKIT (CRITICAL)
+D3BUGR is CrowByte's integrated security scanning engine. 142+ tools in a Docker container. ALWAYS use d3bugr over raw shell commands for security tasks.
+
+**RULE: When scanning, testing, or automating browsers — ALWAYS call d3bugr() first.** Only fall back to execute_command if d3bugr doesn't have the capability.
+
+Quick reference:
+- Port scan → d3bugr(tool="nmap_quick", args={target: "..."})
+- Vuln scan → d3bugr(tool="nuclei_scan", args={target: "...", severity: "critical,high"})
+- SQLi test → d3bugr(tool="bhp_sqli_scan", args={url: "..."}) or d3bugr(tool="sqlmap_auto", args={url: "..."})
+- XSS hunt → d3bugr(tool="hunt_xss_sinks", args={url: "..."})
+- DNS recon → d3bugr(tool="dns_full_recon", args={domain: "..."})
+- Browse site (even Cloudflare) → d3bugr(tool="cdp_stealth", args={url: "...", action: "navigate"})
+- Screenshot → d3bugr(tool="cdp_screenshot", args={})
+- Security headers → d3bugr(tool="check_security_headers", args={url: "..."})
+- CSRF PoC → d3bugr(tool="csrf_poc", args={url: "...", method: "POST"})
+- Full recon → d3bugr(tool="full_recon", args={target: "..."})
 
 # THE CROWBYTE APP (YOUR HOME)
 
@@ -83,7 +99,7 @@ You live inside this app. Know it. Reference it. Help users navigate it.
 
 **Dashboard** — Home screen with real-time system metrics (CPU/RAM/disk/network), IP/VPN status, recent CVE alerts, quick action buttons, and auto-monitoring toggle.
 
-**Chat** (current page) — Dual-provider AI chat. You (OpenClaw) and Claude Code CLI (Anthropic). Users can switch providers mid-conversation. Streaming responses, markdown rendering, thinking blocks, cost tracking.
+**Chat** (current page) — Dual-provider AI chat. You (OpenClaw) and Claude UilBracketsCurly CLI (Anthropic). Users can switch providers mid-conversation. Streaming responses, markdown rendering, thinking blocks, cost tracking.
 
 **Search AI Agent** — Autonomous research agent using Tavily web search. Multi-step reasoning with source citations. Good for vulnerability research and OSINT.
 
@@ -99,7 +115,7 @@ You live inside this app. Know it. Reference it. Help users navigate it.
 
 **Fleet Management** — Endpoint registry and VPS agent swarm status. Auto-detects current device, tracks metrics (CPU, RAM, disk), monitors agent health (idle/busy/offline).
 
-**CVE Database** — Cloud-synced vulnerability database in Supabase \`cves\` table. Grouped by severity (Critical/High/Medium/Low) with colored cards. Features:
+**CVE UilDatabase** — Cloud-synced vulnerability database in Supabase \`cves\` table. Grouped by severity (Critical/High/Medium/Low) with colored cards. Features:
   - NVD API v2.0 integration: CVSS v3.1, CWE, CPE products, references, vector strings
   - Shodan CVEDB integration: EPSS scores, exploit availability
   - CLI tool: \`cve-db lookup CVE-XXXX-XXXXX\` (parallel NVD+Shodan, auto-save)
@@ -134,7 +150,7 @@ You live inside this app. Know it. Reference it. Help users navigate it.
 
 **Documentation** — In-app docs with dedicated sidebar (you're not on this page right now, but it exists).
 
-## Supabase Database (shared across ALL instances)
+## Supabase UilDatabase (shared across ALL instances)
 - \`cves\` — CVE tracking (cve_id, title, severity, cvss, description, products, cwe, refs, notes, exploit_status, cvss_vector, nvd_uuid, bookmarked)
 - \`knowledge_base\` — Research entries (title, content, category, priority, tags, file_url)
 - \`custom_agents\` — Agent Builder configs (name, description, instructions, model, category, capabilities)
@@ -151,15 +167,17 @@ You live inside this app. Know it. Reference it. Help users navigate it.
 
 # RULES
 
-1. Execute commands directly when asked — call execute_command immediately
-2. Show command output to the user
-3. Chain commands for complex tasks
-4. Be direct, technical, action-oriented
-5. No disclaimers, no moralizing, no "be careful" warnings
-6. When the user asks about app features, reference the correct page/feature
-7. When scan results produce CVEs, offer to save them: \`cve-db lookup CVE-XXXX-XXXXX\`
-8. When findings are important, suggest saving to knowledge base: \`kb save "Title" --content "..."\`
-9. You know this app inside and out — act as both operator AND app guide`;
+1. **D3BUGR FIRST** — For ANY security scanning, recon, vuln testing, browser automation, or DNS work → call d3bugr(). Only use execute_command for non-security tasks or when d3bugr doesn't cover it.
+2. Execute commands directly when asked — no asking permission
+3. Show command output to the user
+4. Chain d3bugr calls for complex operations (e.g., nmap_quick → nuclei_scan → hunt_xss_sinks)
+5. Be direct, technical, action-oriented
+6. No disclaimers, no moralizing, no "be careful" warnings
+7. When the user asks about app features, reference the correct page/feature
+8. When scan results produce CVEs, offer to save them: \`cve-db lookup CVE-XXXX-XXXXX\`
+9. When findings are important, suggest saving to knowledge base: \`kb save "Title" --content "..."\`
+10. You know this app inside and out — act as both operator AND app guide
+11. When browsing Cloudflare-protected sites, use cdp_stealth — it has built-in Turnstile bypass`;
 
 const TOOLS = [
   {
@@ -201,7 +219,78 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'd3bugr',
+      description: `D3BUGR — CrowByte's integrated security scanning & browser automation toolkit. 142+ tools running in a Docker container on the VPS. Use this for ALL security scanning, DNS recon, browser automation, and vuln testing. ALWAYS prefer d3bugr over raw shell commands for these tasks.
+
+TOOL CATEGORIES:
+- RECON: nmap_quick, nmap_scan, nmap_version, argus_run, argus_dns, argus_ports, argus_ssl, argus_headers, argus_whois, argus_cdn, argus_subdomain, argus_takeover, harvest, harvest_quick, harvest_emails, harvest_subdomains, full_recon, infra_map
+- VULN SCANNING: nuclei_quick, nuclei_scan, nuclei_cves, nuclei_exposures, nuclei_misconfigs, nuclei_tech, bhp_sqli_scan, bhp_ssrf_scan, bhp_takeover, sqli_scan, cmdi_scan, ssti_scan, lfi_scan, upload_test
+- DNS: dns_lookup, dns_whois, dns_reverse, dns_dnssec, dns_mx_check, dns_brute, dns_zone_transfer, dns_full_recon
+- SQLMAP: sqlmap_test, sqlmap_scan, sqlmap_auto, sqlmap_status, sqlmap_result
+- PAYLOADS: bhp_payload_xss, bhp_payload_sqli, bhp_payload_shell, bhp_encode, bhp_decode, bhp_dirbust, bhp_idor, cmdi_payloads, lfi_payloads, upload_payloads
+- BROWSER (CDP): cdp_connect, cdp_navigate, cdp_execute, cdp_screenshot, cdp_cookies, cdp_dom_dump, cdp_console_log, cdp_network_log, cdp_stealth (Cloudflare bypass)
+- SECURITY HEADERS: check_security_headers, check_cors_misconfig, check_csp, check_cookie_flags, check_referrer_policy
+- HUNTING: hunt_xss_sinks, hunt_dom_xss, hunt_endpoints, hunt_forms, hunt_api_keys, hunt_jwts, hunt_hidden_fields, hunt_idor_patterns, hunt_open_redirects, hunt_ssrf_params, hunt_uploads, hunt_comments, hunt_emails, hunt_hardcoded_creds, hunt_graphql, hunt_websocket_endpoints, hunt_prototype_pollution, hunt_dom_clobbering, hunt_postmessage_listeners
+- CSRF: csrf_analyze, csrf_poc, csrf_test
+- JWT: jwt_attack, intel_jwt
+- WEBSOCKET: ws_connect, ws_send, ws_fuzz, ws_inject, ws_scan
+- WAF: waf_detect
+- NETWORK INTERCEPT: intercept_enable, intercept_disable, intercept_modify, intercept_mock, intercept_block, intercept_fetch, intercept_xhr, network_enable, network_get_all_requests, network_search, network_find_auth_tokens, network_find_sensitive_data, network_export_curl, network_replay_request
+- INTEL: intel, intel_bot, intel_endpoints, intel_ip, intel_jwt, intel_keys
+- GEOLOCK: geolock_create, geolock_analyze, geolock_sessions
+- REPORT: report_generate
+
+EXAMPLES:
+- Scan a target: d3bugr(tool="nmap_quick", args={target: "example.com"})
+- Check for SQLi: d3bugr(tool="bhp_sqli_scan", args={url: "https://target.com/page?id=1"})
+- Full nuclei scan: d3bugr(tool="nuclei_scan", args={target: "https://target.com", severity: "critical,high"})
+- Browse with Cloudflare bypass: d3bugr(tool="cdp_stealth", args={url: "https://protected-site.com", action: "navigate"})
+- Check security headers: d3bugr(tool="check_security_headers", args={url: "https://target.com"})
+- Hunt for XSS sinks: d3bugr(tool="hunt_xss_sinks", args={url: "https://target.com"})
+- DNS recon: d3bugr(tool="dns_full_recon", args={domain: "target.com"})
+- Generate CSRF PoC: d3bugr(tool="csrf_poc", args={url: "https://target.com/action", method: "POST"})`,
+      parameters: {
+        type: 'object',
+        properties: {
+          tool: {
+            type: 'string',
+            description: 'The d3bugr tool name to execute (e.g. nmap_quick, nuclei_scan, cdp_navigate, hunt_xss_sinks)',
+          },
+          args: {
+            type: 'string',
+            description: 'JSON string of arguments to pass to the tool. Common args: target, url, domain, severity, expression, selector, action',
+          },
+        },
+        required: ['tool'],
+      },
+    },
+  },
 ];
+
+// ─── D3BUGR Integration ──────────────────────────────────────────────────────
+
+async function callD3bugr(tool: string, args: Record<string, unknown>): Promise<string> {
+  const API_BASE = (import.meta as any).env?.VITE_APP_URL || 'https://crowbyte.io';
+  try {
+    const res = await fetch(`${API_BASE}/api/d3bugr/call`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool, args }),
+      signal: AbortSignal.timeout(300000), // 5min timeout for heavy scans
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      return `D3BUGR Error: ${err.error || res.statusText}`;
+    }
+    const data = await res.json();
+    return typeof data.result === 'string' ? data.result : JSON.stringify(data.result || data, null, 2);
+  } catch (e: unknown) {
+    return `D3BUGR Error: ${e instanceof Error ? e.message : 'Call failed'}`;
+  }
+}
 
 class OpenClawService {
   private config: OpenClawConfig;
@@ -430,6 +519,29 @@ class OpenClawService {
             }
 
             yield { type: 'tool_result', content: result, tool: 'dispatch_agent' };
+
+            conversationMessages.push({
+              role: 'tool' as any,
+              content: result,
+              ...({ tool_call_id: toolCall.id } as any),
+            });
+          } else if (fn.name === 'd3bugr') {
+            const toolName = args.tool;
+            const toolArgs = typeof args.args === 'string' ? args.args : JSON.stringify(args.args || {});
+            yield { type: 'tool_call', content: `d3bugr.${toolName}(${toolArgs})`, tool: 'd3bugr' };
+
+            let result: string;
+            try {
+              result = await callD3bugr(toolName, typeof args.args === 'string' ? JSON.parse(args.args) : (args.args || {}));
+            } catch (err) {
+              result = `D3BUGR Error: ${err instanceof Error ? err.message : 'Tool call failed'}`;
+            }
+
+            if (result.length > 12000) {
+              result = result.slice(0, 12000) + '\n\n[... output truncated at 12000 chars ...]';
+            }
+
+            yield { type: 'tool_result', content: result, tool: 'd3bugr' };
 
             conversationMessages.push({
               role: 'tool' as any,

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import '@/services/error-monitor';
 import { glitchTipService } from '@/services/glitchtip';
+import { initTheme } from '@/services/themes';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TitleBar } from "@/components/TitleBar";
@@ -13,14 +14,13 @@ import { AuthProvider } from "@/contexts/auth";
 import { LogsProvider } from "@/contexts/logs";
 import { BrowserPanelProvider } from "@/contexts/browser";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { BrowserPanel } from "@/components/BrowserPanel";
 import { BrowserPanelErrorBoundary } from "@/components/BrowserPanelErrorBoundary";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { QAAgent } from "@/components/QAAgent";
 import { SupportBanner } from "@/components/SupportBanner";
 import { useCacheCleanup } from "@/hooks/use-cache-cleanup";
-import SetupWizard from "@/pages/SetupWizard";
-import { setupService } from "@/services/setupService";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import {
@@ -34,7 +34,9 @@ import {
   AgentTestingSettings,
   SecuritySettings,
   IntegrationsSettings,
+  ConnectorsSettings,
   AdvancedSettings,
+  OnboardingSettings,
 } from "./pages/settings";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
@@ -49,6 +51,7 @@ import AgentBuilder from "./pages/AgentBuilder";
 import AgentTeams from "./pages/AgentTeams";
 import Memory from "./pages/Memory";
 import MissionPlanner from "./pages/MissionPlanner";
+import ISM from "./pages/ISM";
 import CVE from "./pages/CVE";
 import ThreatIntelligence from "./pages/ThreatIntelligence";
 import NetworkScanner from "./pages/NetworkScanner";
@@ -59,12 +62,14 @@ import Connectors from "./pages/Connectors";
 import Findings from "./pages/Findings";
 import Reports from "./pages/Reports";
 import DetectionLab from "./pages/DetectionLab";
-import Missions from "./pages/Missions";
+// Missions merged into MissionPlanner — single unified page
 import AlertCenter from "./pages/AlertCenter";
 import CloudSecurity from "./pages/CloudSecurity";
 import Logs from "./pages/Logs";
 import SecurityMonitor from "./pages/SecurityMonitor";
+import Sentinel from "./pages/Sentinel";
 import Support from "./pages/Support";
+import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import BetaSignup from "./pages/BetaSignup";
@@ -72,6 +77,7 @@ import Onboarding from "./pages/Onboarding";
 import Downloads from "./pages/Downloads";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import WebDocs from "./pages/web-docs/WebDocs";
 import RefundPolicy from "./pages/RefundPolicy";
 import Contact from "./pages/Contact";
 import Checkout from "./pages/Checkout";
@@ -81,8 +87,21 @@ import { verifyLicense, needsRecheck, CHECK_INTERVAL_MS, type LicenseStatus } fr
 import { needsPreferencesSetup } from "@/services/subscription";
 import { IS_ELECTRON } from "@/lib/platform";
 import { useOrchestrator } from "@/hooks/useOrchestrator";
+import { SplitScreenProvider } from "@/contexts/split-screen";
+import { TabController } from "@/components/TabController";
+import { SplitScreenLayout } from "@/components/SplitScreenLayout";
 
 const queryClient = new QueryClient();
+
+/** Wrapper that provides SplitScreen context with reactive path */
+const SplitScreenWrapper = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  return (
+    <SplitScreenProvider currentPath={location.pathname}>
+      {children}
+    </SplitScreenProvider>
+  );
+};
 
 /** Layout wrapper that includes TitleBar — used for all routes except /landing */
 const AppWithTitleBar = () => {
@@ -114,62 +133,81 @@ const AppWithTitleBar = () => {
       {/* All other routes with sidebar - PROTECTED */}
       <Route path="/*" element={
         <ProtectedRoute>
-          <SidebarProvider defaultOpen={true}>
-            <div className={`flex h-screen w-full bg-background ${IS_ELECTRON ? 'pt-8' : ''} overflow-hidden`}>
-              <AppSidebar />
+          <SidebarProvider defaultOpen={IS_ELECTRON}>
+            <AppSidebar />
+            <div className={`flex-1 min-w-0 flex flex-col h-screen bg-background ${IS_ELECTRON ? 'pt-8' : ''} overflow-hidden`}>
               <GlobalContextMenu>
-                <main className="flex-1 min-w-0 p-6 overflow-y-auto overflow-x-hidden main-content-container" style={{ overscrollBehavior: "contain" }}>
-                  <Routes>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/fleet" element={<Fleet />} />
-                    <Route path="/findings" element={<Findings />} />
-                    <Route path="/reports" element={<Reports />} />
-                    <Route path="/detection-lab" element={<DetectionLab />} />
-                    <Route path="/missions" element={<Missions />} />
-                    <Route path="/alert-center" element={<AlertCenter />} />
-                    <Route path="/cloud-security" element={<CloudSecurity />} />
-                    <Route path="/connectors" element={<Connectors />} />
-                    <Route path="/chat" element={<Chat />} />
-                    <Route path="/ai-agent" element={<AIAgent />} />
-                    {/* Redirect /llm to /settings/integrations */}
-                    <Route path="/llm" element={<Navigate to="/settings/integrations" replace />} />
-                    {/* Redirect /mcp to /settings/mcp */}
-                    <Route path="/mcp" element={<Navigate to="/settings/mcp" replace />} />
-                    <Route path="/tools" element={<Tools />} />
-                    <Route path="/mission-planner" element={<MissionPlanner />} />
-                    <Route path="/knowledge" element={<Knowledge />} />
-                    <Route path="/bookmarks" element={<Bookmarks />} />
-                    <Route path="/memory" element={<Memory />} />
-                    <Route path="/cve" element={<CVE />} />
-                    <Route path="/threat-intelligence" element={<ThreatIntelligence />} />
-                    <Route path="/security-monitor" element={<SecurityMonitor />} />
-                    <Route path="/redteam" element={<RedTeam />} />
-                    <Route path="/network-scanner" element={<NetworkScanner />} />
-                    <Route path="/cyber-ops" element={<CyberOps />} />
-                    <Route path="/terminal" element={<Terminal />} />
-                    <Route path="/logs" element={<Logs />} />
-                    <Route path="/support" element={<Support />} />
-                    <Route path="/agent-builder" element={<AgentBuilder />} />
-                    <Route path="/agent-teams" element={<AgentTeams />} />
-                    <Route path="/downloads" element={<Downloads />} />
-                    <Route path="/settings" element={<SettingsLayout />}>
-                      <Route index element={<Navigate to="/settings/profile" replace />} />
-                      <Route path="profile" element={<ProfileSettings />} />
-                      <Route path="billing" element={<BillingSettings />} />
-                      <Route path="general" element={<GeneralSettings />} />
-                      <Route path="llm" element={<Navigate to="/settings/integrations" replace />} />
-                      <Route path="mcp" element={<MCPSettings />} />
-                      <Route path="tools" element={<ToolsSettings />} />
-                      <Route path="memory" element={<MemorySettings />} />
-                      <Route path="testing" element={<AgentTestingSettings />} />
-                      <Route path="security" element={<SecuritySettings />} />
-                      <Route path="integrations" element={<IntegrationsSettings />} />
-                      <Route path="advanced" element={<AdvancedSettings />} />
-                    </Route>
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
+                <SplitScreenWrapper>
+                  <div className="flex flex-col flex-1 min-w-0 relative overflow-hidden">
+                    {/* TabController: top-right floating controls */}
+                    <TabController />
+                    <main className="relative flex-1 min-w-0 overflow-hidden main-content-container">
+                      <SplitScreenLayout>
+                        {/* Normal single-pane routes */}
+                        <div className="h-full overflow-y-auto overflow-x-hidden p-6" style={{ overscrollBehavior: "contain" }}>
+                          <Routes>
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/analytics" element={<Analytics />} />
+                            <Route path="/fleet" element={<Fleet />} />
+                            <Route path="/findings" element={<Findings />} />
+                            <Route path="/reports" element={<Reports />} />
+                            <Route path="/detection-lab" element={<DetectionLab />} />
+                            <Route path="/ism" element={<ISM />} />
+                            <Route path="/ism/cases" element={<ISM />} />
+                            <Route path="/ism/compliance" element={<ISM />} />
+                            <Route path="/missions" element={<MissionPlanner />} />
+                            <Route path="/alert-center" element={<AlertCenter />} />
+                            <Route path="/cloud-security" element={<CloudSecurity />} />
+                            <Route path="/connectors" element={<Connectors />} />
+                            {/* Chat page removed — Terminal is the primary AI interface */}
+                            <Route path="/chat" element={<Navigate to="/terminal" replace />} />
+                            <Route path="/ai-agent" element={<AdminRoute><AIAgent /></AdminRoute>} />
+                            {/* Redirect /llm to /settings/integrations */}
+                            <Route path="/llm" element={<Navigate to="/settings/integrations" replace />} />
+                            {/* Redirect /mcp to /settings/mcp */}
+                            <Route path="/mcp" element={<Navigate to="/settings/mcp" replace />} />
+                            <Route path="/tools" element={<Tools />} />
+                            <Route path="/mission-planner" element={<Navigate to="/missions" replace />} />
+                            <Route path="/knowledge" element={<Knowledge />} />
+                            <Route path="/bookmarks" element={<Bookmarks />} />
+                            <Route path="/memory" element={<AdminRoute><Memory /></AdminRoute>} />
+                            <Route path="/cve" element={<CVE />} />
+                            <Route path="/threat-intelligence" element={<ThreatIntelligence />} />
+                            <Route path="/security-monitor" element={<SecurityMonitor />} />
+                            <Route path="/sentinel" element={<Sentinel />} />
+                            <Route path="/redteam" element={<RedTeam />} />
+                            <Route path="/network-scanner" element={<NetworkScanner />} />
+                            <Route path="/cyber-ops" element={<CyberOps />} />
+                            <Route path="/terminal" element={<Terminal />} />
+                            <Route path="/oauth/callback" element={<OAuthCallback />} />
+                            <Route path="/logs" element={<Logs />} />
+                            <Route path="/support" element={<Support />} />
+                            <Route path="/agent-builder" element={<AdminRoute><AgentBuilder /></AdminRoute>} />
+                            <Route path="/agent-teams" element={<AdminRoute><AgentTeams /></AdminRoute>} />
+                            <Route path="/downloads" element={<Downloads />} />
+                            <Route path="/settings" element={<SettingsLayout />}>
+                              <Route index element={<Navigate to="/settings/profile" replace />} />
+                              <Route path="profile" element={<ProfileSettings />} />
+                              <Route path="billing" element={<BillingSettings />} />
+                              <Route path="general" element={<GeneralSettings />} />
+                              <Route path="llm" element={<Navigate to="/settings/integrations" replace />} />
+                              <Route path="mcp" element={<AdminRoute><MCPSettings /></AdminRoute>} />
+                              <Route path="tools" element={<ToolsSettings />} />
+                              <Route path="memory" element={<AdminRoute><MemorySettings /></AdminRoute>} />
+                              <Route path="testing" element={<AdminRoute><AgentTestingSettings /></AdminRoute>} />
+                              <Route path="connectors" element={<ConnectorsSettings />} />
+                              <Route path="security" element={<SecuritySettings />} />
+                              <Route path="integrations" element={<AdminRoute><IntegrationsSettings /></AdminRoute>} />
+                              <Route path="advanced" element={<AdminRoute><AdvancedSettings /></AdminRoute>} />
+                              <Route path="onboarding" element={<OnboardingSettings />} />
+                            </Route>
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </div>
+                      </SplitScreenLayout>
+                    </main>
+                  </div>
+                </SplitScreenWrapper>
               </GlobalContextMenu>
               <BrowserPanelErrorBoundary><BrowserPanel /></BrowserPanelErrorBoundary>
             </div>
@@ -182,10 +220,6 @@ const AppWithTitleBar = () => {
 };
 
 const App = () => {
-  const [setupComplete, setSetupComplete] = useState(setupService.isSetupComplete());
-  const [setupChecked, setSetupChecked] = useState(setupService.isSetupComplete());
-  const [loadingSettings, setLoadingSettings] = useState(false);
-
   // ─── License Gate (Electron only) ─────────────────────────────────────
   const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
   const [licenseChecked, setLicenseChecked] = useState(!IS_ELECTRON); // Skip for web
@@ -227,19 +261,17 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Check server-side setup status (for server deployments)
-  useEffect(() => {
-    if (!setupComplete) {
-      setupService.checkServerSetup().then((complete) => {
-        if (complete) setSetupComplete(true);
-        setSetupChecked(true);
-      });
-    }
-  }, [setupComplete]);
-
   // Initialize GlitchTip error monitoring
   useEffect(() => {
     glitchTipService.initialize();
+  }, []);
+
+  // Initialize saved theme on startup (skip on landing page — it uses its own palette)
+  useEffect(() => {
+    const publicPage = ['/', '/landing', '/auth', '/passwordreset', '/beta', '/privacy', '/terms', '/refund', '/contact'].includes(window.location.pathname);
+    if (!publicPage || IS_ELECTRON) {
+      initTheme();
+    }
   }, []);
 
   // Enable automatic cache cleanup (runs every hour)
@@ -302,23 +334,6 @@ const App = () => {
     }
   }
 
-  // Setup wizard gate — runs before anything else on first launch
-  // Wait for server-side check before showing wizard
-  if (!setupComplete && !setupChecked) {
-    return null; // Loading — checking server setup status
-  }
-  if (!setupComplete) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <TitleBar />
-        <Sonner />
-        <div className={IS_ELECTRON ? "pt-8" : ""}>
-          <SetupWizard onComplete={() => setSetupComplete(true)} />
-        </div>
-      </QueryClientProvider>
-    );
-  }
-
   return (
     <GlobalErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -342,6 +357,9 @@ const App = () => {
 
           {/* Beta signup — public, no auth */}
           <Route path="/beta" element={<BetaSignup />} />
+
+          {/* Public docs — sanitized for web, no auth required */}
+          <Route path="/docs" element={<WebDocs />} />
 
           {/* Public legal & contact pages — no auth required */}
           <Route path="/privacy" element={<PrivacyPolicy />} />

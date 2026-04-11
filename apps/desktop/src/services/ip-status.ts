@@ -1225,7 +1225,7 @@ if (typeof window !== 'undefined') {
     } catch (error: any) {
       console.error('❌ Debug Error:', error);
       console.error('Error details:', error.message);
-      console.error('Stack:', error.stack);
+      console.error('UilLayerGroup:', error.stack);
       throw error;
     }
   };

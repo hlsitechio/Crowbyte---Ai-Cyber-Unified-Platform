@@ -1,18 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DownloadSimple } from "@phosphor-icons/react";
+import { UilDownloadAlt } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function InstallationSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={DownloadSimple} title="Installation & Setup" description="Prerequisites, build from source, environment variables, and first run" />
+      <DocHeader icon={UilDownloadAlt} title="Installation & Setup" description="Prerequisites, build from source, environment variables, and first run" />
 
       <Card><CardHeader><CardTitle>Prerequisites</CardTitle></CardHeader>
         <CardContent><FeatureList items={[
           { text: "Kali Linux 2025 (or any Linux with Node.js 20+)", status: "info" },
           { text: "Node.js 20+ and npm 10+", status: "info" },
           { text: "Electron 39 (installed via npm)", status: "info" },
-          { text: "Claude Code CLI (for Claude provider)", status: "info" },
+          { text: "Claude UilBracketsCurly CLI (for Claude provider)", status: "info" },
           { text: "Supabase project (free tier works)", status: "info" },
           { text: "Tavily API key (optional, for Search Agent)", status: "info" },
         ]} /></CardContent></Card>

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Key } from "@phosphor-icons/react";
+import { UilKeySkeleton } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function DataSecuritySection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Key} title="Data & Security Layer" description="Encryption at rest, credential vault, key derivation, and device fingerprinting" status="ready" />
+      <DocHeader icon={UilKeySkeleton} title="Data & Security Layer" description="Encryption at rest, credential vault, key derivation, and device fingerprinting" status="ready" />
 
       <Card><CardHeader><CardTitle>Encryption Architecture</CardTitle></CardHeader>
         <CardContent>
@@ -13,7 +13,7 @@ export function DataSecuritySection() {
             <div className="text-zinc-500"># encryption.ts — Core encryption service</div>
             <div>&nbsp;</div>
             <div><span className="text-primary">Algorithm</span>:    AES-256-GCM (authenticated encryption)</div>
-            <div><span className="text-primary">Key Derivation</span>: PBKDF2</div>
+            <div><span className="text-primary">UilKeySkeleton Derivation</span>: PBKDF2</div>
             <div><span className="text-primary">  Iterations</span>:  100,000</div>
             <div><span className="text-primary">  Hash</span>:        SHA-256</div>
             <div><span className="text-primary">  Salt</span>:        Random 16 bytes (stored with ciphertext)</div>
@@ -63,7 +63,7 @@ export function DataSecuritySection() {
           </CodeBlock>
         </CardContent></Card>
 
-      <Card><CardHeader><CardTitle>Key Management (keyManagement.ts)</CardTitle></CardHeader>
+      <Card><CardHeader><CardTitle>UilKeySkeleton Management (keyManagement.ts)</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>Centralized key management service for generating, storing, and rotating encryption keys.
             Uses Web Crypto API for all cryptographic operations.</p>

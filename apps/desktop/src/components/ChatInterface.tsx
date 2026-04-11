@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { PaperPlaneTilt, CircleNotch, Terminal } from "@phosphor-icons/react";
+import { UilPlaneFly, UilSpinner, UilWindow } from "@iconscout/react-unicons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -180,8 +180,8 @@ export function ChatInterface() {
  <Card className="flex flex-col h-[600px] border-border bg-card/50 backdrop-blur">
  <div className="border-b border-border p-4 bg-gradient-to-r from-primary/10 to-transparent">
  <div className="flex items-center gap-2">
- <Terminal size={20} weight="duotone" className="text-primary" />
- <h3 className="text-lg font-semibold text-foreground">CrowByte Terminal</h3>
+ <UilWindow size={20} className="text-primary" />
+ <h3 className="text-lg font-semibold text-foreground">CrowByte UilWindow</h3>
  </div>
  <p className="text-xs text-muted-foreground terminal-text mt-1">Elite Cybersecurity Assistant • Encrypted Channel</p>
  </div>
@@ -208,7 +208,7 @@ export function ChatInterface() {
  <div className="flex justify-start animate-stream">
  <div className="bg-muted/50 border border-border rounded-lg p-4 backdrop-blur-sm">
  <div className="flex items-center gap-2">
- <CircleNotch size={16} weight="bold" className="animate-spin text-primary" />
+ <UilSpinner size={16} className="animate-spin text-primary" />
  <span className="text-xs text-muted-foreground terminal-text">Processing...</span>
  </div>
  </div>
@@ -238,7 +238,7 @@ export function ChatInterface() {
  disabled={isStreaming || !input.trim()}
  className="bg-primary hover:bg-primary/90 text-primary-foreground h-[60px] px-6"
  >
- <PaperPlaneTilt size={20} weight="duotone" />
+ <UilPlaneFly size={20} />
  </Button>
  </div>
  </div>

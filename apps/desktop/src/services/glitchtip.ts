@@ -74,7 +74,7 @@ function parseDSN(dsn: string): ParsedDSN | null {
   }
 }
 
-// ─── Stack Trace Parser ────────────────────────────────────────────────────
+// ─── UilLayerGroup Trace Parser ────────────────────────────────────────────────────
 
 interface StackFrame {
   filename: string;

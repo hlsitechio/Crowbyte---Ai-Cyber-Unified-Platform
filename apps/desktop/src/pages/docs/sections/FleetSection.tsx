@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Monitor } from "@phosphor-icons/react";
+import { UilMonitor } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function FleetSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Monitor} title="Fleet Management" description="Endpoint monitoring, VPS agent swarm control, and device health tracking" status="beta" />
+      <DocHeader icon={UilMonitor} title="Fleet Management" description="Endpoint monitoring, VPS agent swarm control, and device health tracking" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -29,7 +29,7 @@ export function FleetSection() {
             <div className="text-zinc-500"># VPS Agent Swarm (9 agents)</div>
             <div><span className="text-emerald-500">commander</span>  <span className="text-zinc-500">Central orchestrator</span></div>
             <div><span className="text-emerald-500">recon</span>      <span className="text-zinc-500">Reconnaissance specialist</span></div>
-            <div><span className="text-emerald-500">hunter</span>     <span className="text-zinc-500">Bug bounty hunter</span></div>
+            <div><span className="text-emerald-500">hunter</span>     <span className="text-zinc-500">UilBug bounty hunter</span></div>
             <div><span className="text-emerald-500">intel</span>      <span className="text-zinc-500">Threat intelligence</span></div>
             <div><span className="text-emerald-500">analyst</span>    <span className="text-zinc-500">Security analyst</span></div>
             <div><span className="text-emerald-500">sentinel</span>   <span className="text-zinc-500">Continuous monitoring</span></div>

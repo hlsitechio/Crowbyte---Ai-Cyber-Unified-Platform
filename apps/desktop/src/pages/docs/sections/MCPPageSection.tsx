@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plug } from "@phosphor-icons/react";
+import { UilPlug } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function MCPPageSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Plug} title="MCP Management" description="MCP server connections UI, tool browser, and Tavily integration" status="beta" />
+      <DocHeader icon={UilPlug} title="MCP Management" description="MCP server connections UI, tool browser, and Tavily integration" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

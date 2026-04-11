@@ -86,9 +86,9 @@ export class CustomAgentExecutor {
       console.log('File access enabled (uses MCP filesystem tools)');
     }
 
-    // Code execution would be added here if implemented
+    // UilBracketsCurly execution would be added here if implemented
     if (agent.enable_code_execution) {
-      console.warn('Code execution is not yet implemented for custom agents');
+      console.warn('UilBracketsCurly execution is not yet implemented for custom agents');
     }
 
     return tools;
@@ -238,7 +238,7 @@ export class CustomAgentExecutor {
     }
 
     if (agent.enable_code_execution) {
-      tools.push('Code Execution (Not Implemented)');
+      tools.push('UilBracketsCurly Execution (Not Implemented)');
     }
 
     return tools;

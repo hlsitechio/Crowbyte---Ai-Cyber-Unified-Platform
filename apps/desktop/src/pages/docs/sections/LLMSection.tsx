@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkle } from "@phosphor-icons/react";
+import { UilStar } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function LLMSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Sparkle} title="LLM Models" description="All available AI models across Claude, OpenClaw, Venice, and Ollama providers" status="ready" />
+      <DocHeader icon={UilStar} title="LLM Models" description="All available AI models across Claude, OpenClaw, Venice, and Ollama providers" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -20,7 +20,7 @@ export function LLMSection() {
         <CardContent>
           <div className="space-y-4">
             <div className="p-3 rounded-lg border border-transparent bg-transparent">
-              <div className="font-medium text-sm text-violet-500 mb-1">Anthropic (Claude Code CLI)</div>
+              <div className="font-medium text-sm text-violet-500 mb-1">Anthropic (Claude UilBracketsCurly CLI)</div>
               <p className="text-xs text-muted-foreground">Opus 4.6, Sonnet 4.6, Haiku 4.5 — via Electron IPC. Full MCP access. Pay-per-token.</p>
             </div>
             <div className="p-3 rounded-lg border border-transparent bg-transparent">

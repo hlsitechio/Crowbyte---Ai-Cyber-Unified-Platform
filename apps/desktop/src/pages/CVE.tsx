@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from"react";
-import { Plus, Trash, Shield, MagnifyingGlass, ArrowSquareOut, Clock, Tag, CheckSquare, Square, MinusSquare, X, Warning, ShieldWarning, ShieldCheck, ShieldSlash, CaretDown, CaretRight, Copy, BookmarkSimple, GridFour, ListBullets, ArrowsDownUp, Fire, Bug, FileText, SortAscending, SortDescending } from "@phosphor-icons/react";
+import { UilPlus, UilTrashAlt, UilShield, UilSearch, UilExternalLinkAlt, UilClock, UilTag, UilCheckSquare, UilSquare, UilMinusSquare, UilTimes, UilExclamationTriangle, UilShieldExclamation, UilShieldCheck, UilShieldSlash, UilAngleDown, UilAngleRight, UilCopy, UilBookmark, UilGrid, UilListUl, UilArrowsV, UilFire, UilBug, UilFileAlt, UilSortAmountUp, UilSortAmountDown } from "@iconscout/react-unicons";
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
 import { Textarea } from"@/components/ui/textarea";
@@ -52,26 +52,26 @@ const SEVERITY_ORDER = ["CRITICAL","HIGH","MEDIUM","LOW"] as const;
 
 const SEVERITY_CONFIG: Record<string, {
  color: string; bg: string; border: string;
- icon: typeof Shield; label: string; cardBorder: string;
+ icon: typeof UilShield; label: string; cardBorder: string;
 }> = {
  CRITICAL: {
  color:"text-red-500", bg:"bg-transparent border-transparent text-red-500",
- border:"border-transparent", icon: ShieldSlash, label:"Critical",
+ border:"border-transparent", icon: UilShieldSlash, label:"Critical",
  cardBorder:"bg-transparent backdrop-blur",
  },
  HIGH: {
  color:"text-orange-500", bg:"bg-transparent border-transparent text-orange-500",
- border:"border-transparent", icon: ShieldWarning, label:"High",
+ border:"border-transparent", icon: UilShieldExclamation, label:"High",
  cardBorder:"bg-transparent backdrop-blur",
  },
  MEDIUM: {
  color:"text-amber-500", bg:"bg-transparent border-transparent text-amber-500",
- border:"border-transparent", icon: Warning, label:"Medium",
+ border:"border-transparent", icon: UilExclamationTriangle, label:"Medium",
  cardBorder:"bg-transparent backdrop-blur",
  },
  LOW: {
  color:"text-emerald-500", bg:"bg-transparent border-transparent text-emerald-500",
- border:"border-transparent", icon: ShieldCheck, label:"Low",
+ border:"border-transparent", icon: UilShieldCheck, label:"Low",
  cardBorder:"bg-transparent backdrop-blur",
  },
 };
@@ -313,12 +313,12 @@ const CVEPage = () => {
  return (
  <motion.div key={cve.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
  <div className={`border rounded-lg transition-all group relative ${selectedIds.has(cve.id) ?"ring-1 ring-primary border-primary/50 bg-primary/5" :"ring-1 ring-white/[0.04] hover:ring-white/[0.08] bg-card/30"}`}>
- {/* X delete on hover */}
+ {/* UilTimes delete on hover */}
  <button
  onClick={e => { e.stopPropagation(); handleDelete(cve.id); }}
  className="h-6 w-6 absolute top-2 right-2 rounded-full hover:bg-red-500/80 text-zinc-500 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-10"
  >
- <X size={14} weight="bold" />
+ <UilTimes size={14} />
  </button>
 
  <div className="px-4 py-3 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : cve.id)}>
@@ -326,8 +326,8 @@ const CVEPage = () => {
  {selectionMode && (
  <button onClick={e => { e.stopPropagation(); toggleSelect(cve.id); }} className="mt-0.5 shrink-0">
  {selectedIds.has(cve.id)
- ? <CheckSquare size={16} weight="bold" className="text-primary" />
- : <Square size={16} weight="bold" className="text-zinc-600 hover:text-zinc-400" />
+ ? <UilCheckSquare size={16} className="text-primary" />
+ : <UilSquare size={16} className="text-zinc-600 hover:text-zinc-400" />
  }
  </button>
  )}
@@ -344,7 +344,7 @@ const CVEPage = () => {
  )}
  {cve.exploitability && (
  <Badge className="text-[10px] bg-transparent text-red-500 border-transparent h-5 px-1.5">
- <Fire size={10} weight="bold" className="mr-0.5" />{cve.exploitability}
+ <UilFire size={10} className="mr-0.5" />{cve.exploitability}
  </Badge>
  )}
  {cve.patch_available && (
@@ -362,7 +362,7 @@ const CVEPage = () => {
  <div className="flex items-center gap-3 mt-1.5">
  {cve.published_date && (
  <span className="flex items-center gap-1 text-[11px] text-zinc-500">
- <Clock size={12} weight="bold" />
+ <UilClock size={12} />
  {formatDistanceToNow(new Date(cve.published_date), { addSuffix: true })}
  </span>
  )}
@@ -385,11 +385,11 @@ const CVEPage = () => {
  <div className="flex items-center gap-1 shrink-0">
  <button onClick={e => { e.stopPropagation(); toggleBookmark(cve.id, cve.is_bookmarked); }} className="p-1 rounded hover:bg-white/[0.05] transition-colors">
  {cve.is_bookmarked
- ? <BookmarkSimple size={14} weight="bold" className="fill-yellow-500 text-yellow-500" />
- : <BookmarkSimple size={14} weight="bold" className="text-zinc-600 hover:text-zinc-400" />
+ ? <UilBookmark size={14} className="fill-yellow-500 text-yellow-500" />
+ : <UilBookmark size={14} className="text-zinc-600 hover:text-zinc-400" />
  }
  </button>
- <CaretDown size={14} weight="bold" className={`text-zinc-500 transition-transform ${isExpanded ?"rotate-180" :""}`} />
+ <UilAngleDown size={14} className={`text-zinc-500 transition-transform ${isExpanded ?"rotate-180" :""}`} />
  </div>
  </div>
  </div>
@@ -430,7 +430,7 @@ const CVEPage = () => {
  <div className="space-y-0.5">
  {cve.reference_urls.map((url, i) => (
  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-blue-500 hover:text-blue-500 truncate">
- <ArrowSquareOut size={10} weight="bold" className="shrink-0" />{url}
+ <UilExternalLinkAlt size={10} className="shrink-0" />{url}
  </a>
  ))}
  </div>
@@ -452,7 +452,7 @@ const CVEPage = () => {
  className="text-[10px] text-blue-500 hover:text-blue-500 flex items-center gap-0.5"
  onClick={e => e.stopPropagation()}
  >
- <ArrowSquareOut size={10} weight="bold" /> NVD
+ <UilExternalLinkAlt size={10} /> NVD
  </a>
  </div>
  </div>
@@ -462,11 +462,11 @@ const CVEPage = () => {
  <div className="flex gap-2">
  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleEdit(cve)}>Edit</Button>
  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copyCveId(cve.cve_id)}>
- <Copy size={12} weight="bold" className="mr-1" /> Copy ID
+ <UilCopy size={12} className="mr-1" /> UilCopy ID
  </Button>
  {cve.patch_url && (
  <a href={cve.patch_url} target="_blank" rel="noopener noreferrer">
- <Button size="sm" variant="outline" className="h-7 text-xs"><ArrowSquareOut size={12} weight="bold" className="mr-1" /> Patch</Button>
+ <Button size="sm" variant="outline" className="h-7 text-xs"><UilExternalLinkAlt size={12} className="mr-1" /> Patch</Button>
  </a>
  )}
  </div>
@@ -493,8 +493,8 @@ const CVEPage = () => {
  <div className="sticky top-0 z-50 flex items-center gap-3 bg-zinc-900/95 backdrop-blur ring-1 ring-white/[0.06] rounded-lg px-4 py-2.5">
  <Button size="sm" variant={selectedIds.size === filteredCves.length ?"secondary" :"outline"} onClick={selectAll} className="gap-2">
  {selectedIds.size === filteredCves.length
- ? <CheckSquare size={16} weight="bold" className="text-primary" />
- : selectedIds.size > 0 ? <MinusSquare size={16} weight="bold" className="text-primary" /> : <Square size={16} weight="bold" />
+ ? <UilCheckSquare size={16} className="text-primary" />
+ : selectedIds.size > 0 ? <UilMinusSquare size={16} className="text-primary" /> : <UilSquare size={16} />
  }
  {selectedIds.size === filteredCves.length ?"Deselect All" :"Select All"}
  </Button>
@@ -504,7 +504,7 @@ const CVEPage = () => {
  <div className="flex-1" />
  {selectedIds.size > 0 && (
  <Button size="sm" variant="destructive" onClick={handleBulkDelete} disabled={loading}>
- <Trash size={14} weight="bold" className="mr-1" /> Delete {selectedIds.size}
+ <UilTrashAlt size={14} className="mr-1" /> Delete {selectedIds.size}
  </Button>
  )}
  <Button size="sm" variant="ghost" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}>Cancel</Button>
@@ -515,8 +515,8 @@ const CVEPage = () => {
  <div className="flex items-center justify-between">
  <div>
  <h1 className="text-4xl font-bold text-gradient-silver flex items-center gap-3">
- <Bug size={40} weight="duotone" className="text-primary animate-pulse" />
- CVE Database
+ <UilBug size={40} className="text-primary animate-pulse" />
+ CVE UilDatabase
  </h1>
  <p className="text-sm text-muted-foreground terminal-text mt-2">
  {stats.total} vulnerabilities tracked across all severity levels
@@ -527,12 +527,12 @@ const CVEPage = () => {
  onClick={() => { setSelectionMode(!selectionMode); setSelectedIds(new Set()); }}
  className="border-primary/30 hover:bg-primary/10"
  >
- <CheckSquare size={16} weight="bold" className="mr-2" /> Select
+ <UilCheckSquare size={16} className="mr-2" /> Select
  </Button>
  <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
  <DialogTrigger asChild>
  <Button className="bg-primary/20 hover:bg-primary/30 ring-1 ring-primary/20">
- <Plus size={16} weight="bold" className="mr-2" /> Add CVE
+ <UilPlus size={16} className="mr-2" /> Add CVE
  </Button>
  </DialogTrigger>
  <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -622,7 +622,7 @@ const CVEPage = () => {
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-xs font-medium text-zinc-400">Critical</CardTitle>
- <ShieldSlash size={16} weight="bold" className="text-red-500" />
+ <UilShieldSlash size={16} className="text-red-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-red-500">{stats.critical}</div>
@@ -633,7 +633,7 @@ const CVEPage = () => {
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-xs font-medium text-zinc-400">High</CardTitle>
- <ShieldWarning size={16} weight="bold" className="text-orange-500" />
+ <UilShieldExclamation size={16} className="text-orange-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-orange-500">{stats.high}</div>
@@ -644,7 +644,7 @@ const CVEPage = () => {
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-xs font-medium text-zinc-400">Medium</CardTitle>
- <Warning size={16} weight="bold" className="text-amber-500" />
+ <UilExclamationTriangle size={16} className="text-amber-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-amber-500">{stats.medium}</div>
@@ -655,7 +655,7 @@ const CVEPage = () => {
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-xs font-medium text-zinc-400">Low</CardTitle>
- <ShieldCheck size={16} weight="bold" className="text-emerald-500" />
+ <UilShieldCheck size={16} className="text-emerald-500" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-emerald-500">{stats.low}</div>
@@ -666,7 +666,7 @@ const CVEPage = () => {
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-xs font-medium text-zinc-400">Bookmarked</CardTitle>
- <BookmarkSimple size={16} weight="bold" className="text-yellow-300" />
+ <UilBookmark size={16} className="text-yellow-300" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-yellow-300">{stats.bookmarked}</div>
@@ -677,7 +677,7 @@ const CVEPage = () => {
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-xs font-medium text-zinc-400">Exploitable</CardTitle>
- <Fire size={16} weight="bold" className="text-red-300" />
+ <UilFire size={16} className="text-red-300" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-red-300">{stats.exploitable}</div>
@@ -691,7 +691,7 @@ const CVEPage = () => {
  <CardContent className="pt-4 pb-3">
  <div className="flex items-center gap-3">
  <div className="relative flex-1">
- <MagnifyingGlass size={16} weight="bold" className="absolute left-3 top-2.5 text-muted-foreground" />
+ <UilSearch size={16} className="absolute left-3 top-2.5 text-muted-foreground" />
  <Input
  placeholder="Search CVEs, products, tags, descriptions..."
  className="pl-10 bg-background/50 border-border/50 h-9"
@@ -700,7 +700,7 @@ const CVEPage = () => {
  />
  {searchQuery && (
  <button onClick={() => setSearchQuery("")} className="absolute right-3 top-2.5">
- <X size={16} weight="bold" className="text-zinc-500 hover:text-white" />
+ <UilTimes size={16} className="text-zinc-500 hover:text-white" />
  </button>
  )}
  </div>
@@ -710,16 +710,16 @@ const CVEPage = () => {
  {/* Sort buttons */}
  <div className="flex items-center gap-1">
  <Button variant={sortField ==="date" ?"secondary" :"ghost"} size="sm" className="h-8 text-xs gap-1" onClick={() => toggleSort("date")}>
- <Clock size={12} weight="bold" /> Date
- {sortField ==="date" && (sortDir ==="desc" ? <SortDescending size={12} weight="bold" /> : <SortAscending size={12} weight="bold" />)}
+ <UilClock size={12} /> Date
+ {sortField ==="date" && (sortDir ==="desc" ? <UilSortAmountDown size={12} /> : <UilSortAmountUp size={12} />)}
  </Button>
  <Button variant={sortField ==="cvss" ?"secondary" :"ghost"} size="sm" className="h-8 text-xs gap-1" onClick={() => toggleSort("cvss")}>
- <ArrowsDownUp size={12} weight="bold" /> CVSS
- {sortField ==="cvss" && (sortDir ==="desc" ? <SortDescending size={12} weight="bold" /> : <SortAscending size={12} weight="bold" />)}
+ <UilArrowsV size={12} /> CVSS
+ {sortField ==="cvss" && (sortDir ==="desc" ? <UilSortAmountDown size={12} /> : <UilSortAmountUp size={12} />)}
  </Button>
  <Button variant={sortField ==="cve_id" ?"secondary" :"ghost"} size="sm" className="h-8 text-xs gap-1" onClick={() => toggleSort("cve_id")}>
- <FileText size={12} weight="bold" /> ID
- {sortField ==="cve_id" && (sortDir ==="desc" ? <SortDescending size={12} weight="bold" /> : <SortAscending size={12} weight="bold" />)}
+ <UilFileAlt size={12} /> ID
+ {sortField ==="cve_id" && (sortDir ==="desc" ? <UilSortAmountDown size={12} /> : <UilSortAmountUp size={12} />)}
  </Button>
  </div>
 
@@ -728,10 +728,10 @@ const CVEPage = () => {
  {/* View mode */}
  <div className="flex items-center gap-1">
  <Button variant={viewMode ==="grouped" ?"secondary" :"ghost"} size="sm" className="h-8 px-2" onClick={() => setViewMode("grouped")} title="Group by severity">
- <GridFour size={14} weight="bold" />
+ <UilGrid size={14} />
  </Button>
  <Button variant={viewMode ==="list" ?"secondary" :"ghost"} size="sm" className="h-8 px-2" onClick={() => setViewMode("list")} title="Flat list">
- <ListBullets size={14} weight="bold" />
+ <UilListUl size={14} />
  </Button>
  </div>
  </div>
@@ -747,14 +747,14 @@ const CVEPage = () => {
  {filteredCves.length === 0 ? (
  <Card className="bg-card/50 backdrop-blur">
  <CardContent className="flex flex-col items-center justify-center py-16">
- <Bug size={64} weight="duotone" className="text-primary/50 mb-4" />
+ <UilBug size={64} className="text-primary/50 mb-4" />
  <h3 className="text-lg font-semibold text-white mb-2">No CVEs Found</h3>
  <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
  {searchQuery ?"No CVEs match your search query" :"Start building your CVE database by adding vulnerabilities"}
  </p>
  {!searchQuery && (
  <Button onClick={() => setIsDialogOpen(true)}>
- <Plus size={16} weight="bold" className="mr-2" /> Add First CVE
+ <UilPlus size={16} className="mr-2" /> Add First CVE
  </Button>
  )}
  </CardContent>
@@ -777,10 +777,10 @@ const CVEPage = () => {
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-3">
  {isCollapsed
- ? <CaretRight size={16} weight="bold" className={`${config.color}`} />
- : <CaretDown size={16} weight="bold" className={`${config.color}`} />
+ ? <UilAngleRight size={16} className={`${config.color}`} />
+ : <UilAngleDown size={16} className={`${config.color}`} />
  }
- <config.icon size={20} weight="duotone" className={`${config.color}`} />
+ <config.icon size={20} className={`${config.color}`} />
  <CardTitle className={`text-sm font-semibold ${config.color}`}>
  {config.label}
  </CardTitle>
@@ -814,10 +814,10 @@ const CVEPage = () => {
  <CardHeader className="cursor-pointer py-3 px-4" onClick={() => toggleGroup("UNKNOWN")}>
  <div className="flex items-center gap-3">
  {collapsedGroups.has("UNKNOWN")
- ? <CaretRight size={16} weight="bold" className="text-zinc-400" />
- : <CaretDown size={16} weight="bold" className="text-zinc-400" />
+ ? <UilAngleRight size={16} className="text-zinc-400" />
+ : <UilAngleDown size={16} className="text-zinc-400" />
  }
- <Shield size={20} weight="duotone" className="text-zinc-400" />
+ <UilShield size={20} className="text-zinc-400" />
  <CardTitle className="text-sm font-semibold text-zinc-400">Unclassified</CardTitle>
  <span className="text-[10px] text-zinc-400">{groupedBySeverity.UNKNOWN.length}</span>
  </div>
@@ -840,7 +840,7 @@ const CVEPage = () => {
  <CardHeader className="py-3 px-4">
  <div className="flex items-center justify-between">
  <CardTitle className="text-sm flex items-center gap-2">
- <FileText size={16} weight="bold" className="text-primary" />
+ <UilFileAlt size={16} className="text-primary" />
  All Vulnerabilities
  </CardTitle>
  <CardDescription className="text-[11px]">{sortedCves.length} CVEs</CardDescription>

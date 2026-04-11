@@ -7,19 +7,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import {
- Pulse,
- Database,
- Lightning,
- Warning,
- CheckCircle,
- XCircle,
- ArrowsClockwise,
- TrendUp,
- TrendDown,
- Clock,
- MagnifyingGlass,
-} from '@phosphor-icons/react';
+import { UilHeartRate, UilDatabase, UilBolt, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilSync, UilChartGrowth, UilChartDown, UilClock, UilSearch } from "@iconscout/react-unicons";
 import { motion } from 'framer-motion';
 import { healthMonitor, type SupabaseHealth, type ServiceHealthStatus } from '@/services/supabase-health';
 
@@ -68,17 +56,17 @@ export const SupabaseHealthDashboard = () => {
 
  // Get overall status icon
  const getOverallStatusIcon = () => {
- if (!health) return <Pulse size={20} weight="duotone" className="text-gray-500 animate-pulse" />;
+ if (!health) return <UilHeartRate size={20} className="text-gray-500 animate-pulse" />;
 
  switch (health.overall) {
  case 'healthy':
- return <CheckCircle size={20} weight="duotone" className="text-emerald-500" />;
+ return <UilCheckCircle size={20} className="text-emerald-500" />;
  case 'degraded':
- return <Warning size={20} weight="duotone" className="text-yellow-500 animate-pulse" />;
+ return <UilExclamationTriangle size={20} className="text-yellow-500 animate-pulse" />;
  case 'down':
- return <XCircle size={20} weight="duotone" className="text-red-500 animate-pulse" />;
+ return <UilTimesCircle size={20} className="text-red-500 animate-pulse" />;
  default:
- return <Pulse size={20} weight="duotone" className="text-gray-500" />;
+ return <UilHeartRate size={20} className="text-gray-500" />;
  }
  };
 
@@ -152,8 +140,8 @@ export const SupabaseHealthDashboard = () => {
  )}
 
  <div className="flex items-center gap-1 text-xs text-muted-foreground pt-2 border-t border-white/[0.04]">
- <Clock size={12} weight="bold" />
- {service.lastChecked.toLocaleTimeString()}
+ <UilClock size={12} />
+ {service.lastChecked ? new Date(service.lastChecked).toLocaleTimeString() : 'Checking...'}
  </div>
  </CardContent>
  </Card>
@@ -165,9 +153,9 @@ export const SupabaseHealthDashboard = () => {
 
  const usage = health.apiUsage[service];
  const title = service === 'openclaw' ? 'OpenClaw VPS' : service === 'inoreader' ? 'Inoreader API' : 'Tavily Search API';
- const icon = service === 'openclaw' ? <Lightning size={16} weight="bold" className="text-violet-500" /> :
- service === 'inoreader' ? <Pulse size={16} weight="bold" className="text-blue-500" /> :
- <Pulse size={16} weight="bold" className="text-cyan-500" />;
+ const icon = service === 'openclaw' ? <UilBolt size={16} className="text-violet-500" /> :
+ service === 'inoreader' ? <UilHeartRate size={16} className="text-blue-500" /> :
+ <UilHeartRate size={16} className="text-cyan-500" />;
 
  const percentUsed = usage.percentUsed;
  const isNearLimit = percentUsed >= 70;
@@ -215,9 +203,9 @@ export const SupabaseHealthDashboard = () => {
  <span className="text-muted-foreground">Remaining</span>
  <div className="flex items-center gap-1">
  {usage.remaining > usage.limit * 0.3 ? (
- <TrendUp size={12} weight="bold" className="text-emerald-500" />
+ <UilChartGrowth size={12} className="text-emerald-500" />
  ) : (
- <TrendDown size={12} weight="bold" className="text-red-500" />
+ <UilChartDown size={12} className="text-red-500" />
  )}
  <span className={`font-mono font-bold ${healthMonitor.getUsageColor(percentUsed)}`}>
  {usage.remaining.toLocaleString()}
@@ -234,8 +222,8 @@ export const SupabaseHealthDashboard = () => {
  </div>
 
  <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-white/[0.04]">
- <Clock size={12} weight="bold" />
- <span>Resets at {usage.resetTime.toLocaleTimeString()}</span>
+ <UilClock size={12} />
+ <span>Resets at {usage.resetTime ? new Date(usage.resetTime).toLocaleTimeString() : 'N/A'}</span>
  </div>
  </CardContent>
  </Card>
@@ -247,7 +235,7 @@ export const SupabaseHealthDashboard = () => {
  <Card className="bg-card/50 backdrop-blur">
  <CardContent className="flex items-center justify-center h-64">
  <div className="text-center">
- <ArrowsClockwise size={48} weight="duotone" className="mx-auto mb-4 text-primary animate-spin" />
+ <UilSync size={48} className="mx-auto mb-4 text-primary animate-spin" />
  <p className="text-muted-foreground">Loading Supabase health status...</p>
  </div>
  </CardContent>
@@ -283,7 +271,7 @@ export const SupabaseHealthDashboard = () => {
  disabled={isRefreshing}
  className="gap-2"
  >
- <ArrowsClockwise size={16} weight="bold" className={isRefreshing ? 'animate-spin' : ''} />
+ <UilSync size={16} className={isRefreshing ? 'animate-spin' : ''} />
  Refresh
  </Button>
  </div>
@@ -299,7 +287,7 @@ export const SupabaseHealthDashboard = () => {
  </div>
  {lastUpdate && (
  <div className="flex items-center gap-1 text-muted-foreground">
- <Clock size={12} weight="bold" />
+ <UilClock size={12} />
  Last updated: {lastUpdate.toLocaleTimeString()}
  </div>
  )}
@@ -309,18 +297,18 @@ export const SupabaseHealthDashboard = () => {
 
  {/* Service Status Grid */}
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
- {renderServiceCard(health.services.database, <Database size={16} weight="bold" className="text-blue-500" />)}
- {renderServiceCard(health.services.edgeFunctions, <Lightning size={16} weight="bold" className="text-violet-500" />)}
- {renderServiceCard(health.services.openClaw || { status: 'unknown' }, <Pulse size={16} weight="bold" className="text-emerald-500" />)}
- {renderServiceCard(health.services.inoreaderAPI, <Pulse size={16} weight="bold" className="text-orange-500" />)}
- {renderServiceCard(health.services.tavilyAPI, <MagnifyingGlass size={16} weight="bold" className="text-cyan-500" />)}
+ {renderServiceCard(health.services.database, <UilDatabase size={16} className="text-blue-500" />)}
+ {renderServiceCard(health.services.edgeFunctions, <UilBolt size={16} className="text-violet-500" />)}
+ {renderServiceCard(health.services.openClaw || { status: 'unknown' }, <UilHeartRate size={16} className="text-emerald-500" />)}
+ {renderServiceCard(health.services.inoreaderAPI, <UilHeartRate size={16} className="text-orange-500" />)}
+ {renderServiceCard(health.services.tavilyAPI, <UilSearch size={16} className="text-cyan-500" />)}
  </div>
 
  {/* API Usage Analytics */}
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <TrendUp size={20} weight="duotone" className="text-primary" />
+ <UilChartGrowth size={20} className="text-primary" />
  API Usage Analytics
  </CardTitle>
  <CardDescription>

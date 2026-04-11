@@ -31,6 +31,19 @@ function isFirstRun(): boolean {
     const config = JSON.parse(fs.readFileSync(getConfigPath(), 'utf-8'));
     return !config.onboardingComplete;
   } catch {
+    // In dev mode, app.getPath('userData') may differ from packaged app
+    // Check the real CrowByte config path as fallback
+    try {
+      const fallback = path.join(app.getPath('home'), '.config', 'CrowByte', 'crowbyte-config.json');
+      const config = JSON.parse(fs.readFileSync(fallback, 'utf-8'));
+      if (config.onboardingComplete) {
+        // Copy config to dev userData so this only happens once
+        const dir = path.dirname(getConfigPath());
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.copyFileSync(fallback, getConfigPath());
+        return false;
+      }
+    } catch { /* ignore */ }
     return true; // No config file = first run
   }
 }

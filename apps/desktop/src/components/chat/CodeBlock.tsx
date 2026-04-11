@@ -1,8 +1,7 @@
 import { useState, memo } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, Terminal } from '@phosphor-icons/react';
-
+import { UilCopy, UilCheck, UilWindow } from "@iconscout/react-unicons";
 interface CodeBlockProps {
   language?: string;
   children: string;
@@ -48,7 +47,7 @@ export const CodeBlock = memo(({ language, children, inline }: CodeBlockProps) =
       {/* Header bar */}
       <div className="flex items-center justify-between px-4 py-2 bg-white/[0.03] border-b border-white/[0.06]">
         <div className="flex items-center gap-2">
-          <Terminal size={12} weight="bold" className="text-zinc-500" />
+          <UilWindow size={12} className="text-zinc-500" />
           <span className="text-[11px] font-mono text-zinc-500" style={{ color: langColor }}>
             {lang}
           </span>
@@ -59,19 +58,19 @@ export const CodeBlock = memo(({ language, children, inline }: CodeBlockProps) =
         >
           {copied ? (
             <>
-              <Check size={12} weight="bold" className="text-emerald-400" />
+              <UilCheck size={12} className="text-emerald-400" />
               <span className="text-emerald-400">Copied</span>
             </>
           ) : (
             <>
-              <Copy size={12} weight="bold" />
-              <span className="opacity-0 group-hover/code:opacity-100 transition-opacity">Copy</span>
+              <UilCopy size={12} />
+              <span className="opacity-0 group-hover/code:opacity-100 transition-opacity">UilCopy</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Code body */}
+      {/* UilBracketsCurly body */}
       <SyntaxHighlighter
         language={lang === 'text' ? undefined : lang}
         style={oneDark}

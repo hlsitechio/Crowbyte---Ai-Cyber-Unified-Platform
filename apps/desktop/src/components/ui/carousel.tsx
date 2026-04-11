@@ -1,7 +1,6 @@
 import * as React from "react";
 import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
-import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
-
+import { UilArrowLeft, UilArrowRight } from "@iconscout/react-unicons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -69,10 +68,10 @@ const Carousel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
 
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "ArrowLeft") {
+        if (event.key === "UilArrowLeft") {
           event.preventDefault();
           scrollPrev();
-        } else if (event.key === "ArrowRight") {
+        } else if (event.key === "UilArrowRight") {
           event.preventDefault();
           scrollNext();
         }
@@ -185,7 +184,7 @@ const CarouselPrevious = React.forwardRef<HTMLButtonElement, React.ComponentProp
         onClick={scrollPrev}
         {...props}
       >
-        <ArrowLeft size={16} weight="bold" />
+        <UilArrowLeft size={16} />
         <span className="sr-only">Previous slide</span>
       </Button>
     );
@@ -213,7 +212,7 @@ const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentProps<ty
         onClick={scrollNext}
         {...props}
       >
-        <ArrowRight size={16} weight="bold" />
+        <UilArrowRight size={16} />
         <span className="sr-only">Next slide</span>
       </Button>
     );

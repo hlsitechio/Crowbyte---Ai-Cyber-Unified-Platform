@@ -24,23 +24,7 @@ import {
   type UserNotification,
   type TicketPriority,
 } from "@/services/support-agent";
-import {
-  Headset,
-  Brain,
-  Pulse,
-  Bug,
-  BookOpen,
-  Bell,
-  Wrench,
-  CaretDown,
-  CaretRight,
-  PaperPlaneTilt,
-  CircleNotch,
-  X,
-  CheckCircle,
-  Warning,
-  Info,
-} from "@phosphor-icons/react";
+import { UilHeadphones, UilBrain, UilHeartRate, UilBug, UilBookOpen, UilBell, UilWrench, UilAngleDown, UilAngleRight, UilPlaneFly, UilSpinner, UilTimes, UilCheckCircle, UilExclamationTriangle, UilInfoCircle } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ── Constants ────────────────────────────────────────────────────────────────────
@@ -49,17 +33,17 @@ const STORAGE_KEY = "crowbyte_support_history";
 const MAX_MESSAGES = 50;
 
 const QUICK_ACTIONS = [
-  { label: "System Status", icon: Pulse, action: "Run a full system diagnostic and show me the health status" },
-  { label: "How do I...", icon: BookOpen, template: "How do I " },
-  { label: "Report Bug", icon: Bug, template: "I found a bug: " },
-  { label: "Talk to Human", icon: Headset, action: "I need to talk to a human" },
+  { label: "System Status", icon: UilHeartRate, action: "Run a full system diagnostic and show me the health status" },
+  { label: "How do I...", icon: UilBookOpen, template: "How do I " },
+  { label: "Report UilBug", icon: UilBug, template: "I found a bug: " },
+  { label: "Talk to Human", icon: UilHeadphones, action: "I need to talk to a human" },
 ];
 
 const CAPABILITIES = [
-  { icon: Brain, text: "RAG-powered answers from CrowByte documentation" },
-  { icon: Wrench, text: "Live system diagnostics and health checks" },
-  { icon: Headset, text: "Escalation to human support with full context" },
-  { icon: Bell, text: "Real-time notifications from your admin team" },
+  { icon: UilBrain, text: "RAG-powered answers from CrowByte documentation" },
+  { icon: UilWrench, text: "Live system diagnostics and health checks" },
+  { icon: UilHeadphones, text: "Escalation to human support with full context" },
+  { icon: UilBell, text: "Real-time notifications from your admin team" },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────────
@@ -101,16 +85,16 @@ function statusDot(status: HealthCheck["status"]) {
 }
 
 function statusIcon(status: HealthCheck["status"]) {
-  if (status === "ok") return <CheckCircle size={14} weight="fill" className="text-emerald-500" />;
-  if (status === "warning") return <Warning size={14} weight="fill" className="text-amber-500" />;
-  return <X size={14} weight="bold" className="text-red-500" />;
+  if (status === "ok") return <UilCheckCircle size={14} className="text-emerald-500" />;
+  if (status === "warning") return <UilExclamationTriangle size={14} className="text-amber-500" />;
+  return <UilTimes size={14} className="text-red-500" />;
 }
 
 function notifIcon(type: UserNotification["type"]) {
-  if (type === "critical" || type === "alert") return <Warning size={14} weight="fill" className="text-red-400" />;
-  if (type === "warning") return <Warning size={14} weight="fill" className="text-amber-400" />;
-  if (type === "update") return <Info size={14} weight="fill" className="text-blue-400" />;
-  return <Info size={14} weight="fill" className="text-zinc-400" />;
+  if (type === "critical" || type === "alert") return <UilExclamationTriangle size={14} className="text-red-400" />;
+  if (type === "warning") return <UilExclamationTriangle size={14} className="text-amber-400" />;
+  if (type === "update") return <UilInfoCircle size={14} className="text-blue-400" />;
+  return <UilInfoCircle size={14} className="text-zinc-400" />;
 }
 
 // ── DiagnosticCard ───────────────────────────────────────────────────────────────
@@ -130,12 +114,12 @@ function DiagnosticCard({ result }: { result: DiagnosticResult }) {
         className="flex items-center justify-between w-full px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
       >
         <span className="flex items-center gap-1.5 font-medium">
-          <Pulse size={14} weight="bold" className="text-blue-400" />
+          <UilHeartRate size={14} className="text-blue-400" />
           System Diagnostics
         </span>
         <span className="flex items-center gap-2">
           <span className={`font-mono font-semibold ${scoreColor}`}>{result.score}/100</span>
-          {open ? <CaretDown size={12} /> : <CaretRight size={12} />}
+          {open ? <UilAngleDown size={12} /> : <UilAngleRight size={12} />}
         </span>
       </button>
 
@@ -200,7 +184,7 @@ function EscalationDialog({
       className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3 space-y-3"
     >
       <div className="flex items-center gap-2 text-sm text-zinc-200 font-medium">
-        <Headset size={16} weight="duotone" className="text-blue-400" />
+        <UilHeadphones size={16} className="text-blue-400" />
         Create Support Ticket
       </div>
 
@@ -238,7 +222,7 @@ function EscalationDialog({
           disabled={!subject.trim() || loading}
           className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
         >
-          {loading ? <CircleNotch size={12} weight="bold" className="animate-spin" /> : null}
+          {loading ? <UilSpinner size={12} className="animate-spin" /> : null}
           Submit Ticket
         </button>
       </div>
@@ -278,7 +262,7 @@ function NotificationBanner({
         onClick={() => onDismiss(notification.id)}
         className="text-zinc-600 hover:text-zinc-300 transition-colors flex-shrink-0 mt-0.5"
       >
-        <X size={12} weight="bold" />
+        <UilTimes size={12} />
       </button>
     </motion.div>
   );
@@ -289,7 +273,7 @@ function NotificationBanner({
 function TicketBadge({ ticketId }: { ticketId: string }) {
   return (
     <Badge variant="outline" className="border-blue-500/40 text-blue-400 text-[10px] gap-1">
-      <CheckCircle size={10} weight="fill" />
+      <UilCheckCircle size={10} />
       Ticket #{ticketId.slice(0, 8)}
     </Badge>
   );
@@ -307,7 +291,7 @@ function ChatMessage({ msg }: { msg: SupportMessage }) {
         className="flex justify-center"
       >
         <div className="flex items-center gap-1.5 text-xs text-zinc-500 bg-zinc-900/40 px-3 py-1 rounded-full">
-          {msg.notification ? notifIcon(msg.notification.type) : <Info size={12} weight="fill" />}
+          {msg.notification ? notifIcon(msg.notification.type) : <UilInfoCircle size={12} />}
           {msg.content}
         </div>
       </motion.div>
@@ -322,7 +306,7 @@ function ChatMessage({ msg }: { msg: SupportMessage }) {
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-end"
       >
-        <div className="max-w-[80%] bg-blue-600/15 border border-blue-500/20 rounded-xl px-4 py-2.5">
+        <div className="max-w-[80%] bg-blue-600/15 rounded-xl px-4 py-2.5">
           <p className="text-sm text-zinc-200 whitespace-pre-wrap">{msg.content}</p>
           <span className="text-[10px] text-zinc-600 mt-1 block text-right">
             {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -341,7 +325,7 @@ function ChatMessage({ msg }: { msg: SupportMessage }) {
     >
       <div className="max-w-[90%] space-y-0">
         <div className="flex items-start gap-2.5">
-          <Headset size={18} weight="duotone" className="text-blue-400 flex-shrink-0 mt-0.5" />
+          <UilHeadphones size={18} className="text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
               {msg.content}
@@ -373,7 +357,7 @@ function WelcomeState({ onAction }: { onAction: (text: string, isTemplate: boole
   return (
     <div className="flex flex-col items-center justify-center py-16 space-y-6">
       <div className="text-center space-y-2">
-        <Headset size={36} weight="duotone" className="text-blue-400 mx-auto" />
+        <UilHeadphones size={36} className="text-blue-400 mx-auto" />
         <h2 className="text-lg font-semibold text-zinc-200">CrowByte Support</h2>
         <p className="text-sm text-zinc-500 max-w-sm">
           Get help with CrowByte features, diagnose issues, or talk to a human.
@@ -384,7 +368,7 @@ function WelcomeState({ onAction }: { onAction: (text: string, isTemplate: boole
       <div className="space-y-2 max-w-sm w-full">
         {CAPABILITIES.map((cap, i) => (
           <div key={i} className="flex items-center gap-2.5 text-sm text-zinc-400">
-            <cap.icon size={16} weight="bold" className="text-zinc-600 flex-shrink-0" />
+            <cap.icon size={16} className="text-zinc-600 flex-shrink-0" />
             {cap.text}
           </div>
         ))}
@@ -398,7 +382,7 @@ function WelcomeState({ onAction }: { onAction: (text: string, isTemplate: boole
             onClick={() => onAction(qa.action || qa.template || "", !!qa.template)}
             className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-800/60 hover:border-zinc-700 transition-colors text-left"
           >
-            <qa.icon size={16} weight="bold" className="text-blue-400 flex-shrink-0" />
+            <qa.icon size={16} className="text-blue-400 flex-shrink-0" />
             <span className="text-xs text-zinc-300">{qa.label}</span>
           </button>
         ))}
@@ -421,7 +405,7 @@ function Header({
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
       <div className="flex items-center gap-2.5">
-        <Headset size={22} weight="duotone" className="text-blue-400" />
+        <UilHeadphones size={22} className="text-blue-400" />
         <div>
           <h1 className="text-base font-semibold text-zinc-200">CrowByte Support</h1>
           <p className="text-[11px] text-zinc-600">AI-powered help desk</p>
@@ -437,7 +421,7 @@ function Header({
 
         {/* Notification bell */}
         <button className="relative p-1 text-zinc-500 hover:text-zinc-200 transition-colors">
-          <Bell size={18} weight={notifCount > 0 ? "fill" : "regular"} />
+          <UilBell size={18} />
           {notifCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
               {notifCount > 9 ? "9+" : notifCount}
@@ -452,9 +436,9 @@ function Header({
           className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-md transition-colors disabled:opacity-40"
         >
           {diagLoading ? (
-            <CircleNotch size={12} weight="bold" className="animate-spin" />
+            <UilSpinner size={12} className="animate-spin" />
           ) : (
-            <Pulse size={12} weight="bold" />
+            <UilHeartRate size={12} />
           )}
           Run Diagnostics
         </button>
@@ -657,9 +641,9 @@ export default function AIAgent() {
               animate={{ opacity: 1 }}
               className="flex items-center gap-2.5"
             >
-              <Headset size={18} weight="duotone" className="text-blue-400" />
+              <UilHeadphones size={18} className="text-blue-400" />
               <div className="flex items-center gap-2 text-sm text-zinc-500">
-                <CircleNotch size={14} weight="bold" className="animate-spin text-blue-400" />
+                <UilSpinner size={14} className="animate-spin text-blue-400" />
                 Thinking...
               </div>
             </motion.div>
@@ -690,7 +674,7 @@ export default function AIAgent() {
                 disabled={isLoading}
                 className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-white disabled:opacity-40 transition-colors whitespace-nowrap flex-shrink-0"
               >
-                <qa.icon size={13} weight="bold" />
+                <qa.icon size={13} />
                 {qa.label}
               </button>
             ))}
@@ -718,9 +702,9 @@ export default function AIAgent() {
               className="px-3 rounded-md bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center"
             >
               {isLoading ? (
-                <CircleNotch size={16} weight="bold" className="animate-spin text-white" />
+                <UilSpinner size={16} className="animate-spin text-white" />
               ) : (
-                <PaperPlaneTilt size={16} weight="bold" className="text-white" />
+                <UilPlaneFly size={16} className="text-white" />
               )}
             </button>
           </div>

@@ -1,6 +1,6 @@
 /**
  * Preferences Wizard — Post-signup onboarding for SaaS users.
- * 5 steps: Welcome → Security Stack → Threat Intel → News & Alerts → Monitoring → Done
+ * 5 steps: Welcome → Security UilLayerGroup → Threat Intel → News & Alerts → Monitoring → Done
  * Saves to user_preferences table in Supabase.
  */
 
@@ -8,19 +8,19 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  Shield,
-  Check,
-  ArrowRight,
-  ArrowLeft,
-  Search,
-  X,
-  Globe,
-  AlertTriangle,
-  Newspaper,
-  Radar,
-  Zap,
-  ChevronDown,
-} from "lucide-react";
+  UilShield,
+  UilCheck,
+  UilArrowRight,
+  UilArrowLeft,
+  UilSearch,
+  UilTimes,
+  UilGlobe,
+  UilExclamationTriangle,
+  UilBolt,
+  UilAngleDown,
+  UilNewspaper,
+  UilFocusTarget,
+} from "@iconscout/react-unicons";
 import {
   getSubscription,
   getPreferences,
@@ -78,7 +78,7 @@ function NavButtons({
           onClick={onBack}
           className="h-11 px-5 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-zinc-400 text-sm font-medium transition-all flex items-center gap-2"
         >
-          <ArrowLeft size={14} /> Back
+          <UilArrowLeft size={14} /> Back
         </button>
       )}
       <button
@@ -93,7 +93,7 @@ function NavButtons({
             transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
           />
         ) : (
-          <>{nextLabel} <ArrowRight size={14} /></>
+          <>{nextLabel} <UilArrowRight size={14} /></>
         )}
       </button>
     </div>
@@ -115,9 +115,9 @@ function WelcomeStep({ tier, onNext }: { tier: Tier; onNext: () => void }) {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"
+        className="w-20 h-20 rounded-2xl bg-blue-500/10 flex items-center justify-center"
       >
-        <Shield size={36} className="text-blue-400" />
+        <UilShield size={36} className="text-blue-400" />
       </motion.div>
 
       <motion.div
@@ -142,10 +142,10 @@ function WelcomeStep({ tier, onNext }: { tier: Tier; onNext: () => void }) {
         className="grid grid-cols-2 gap-3 w-full max-w-sm text-left"
       >
         {[
-          { icon: AlertTriangle, label: "CVE monitoring", desc: "Track vulns in your stack" },
-          { icon: Globe, label: "Threat intel", desc: "Live malware & IOC feeds" },
-          { icon: Newspaper, label: "Security news", desc: "Curated daily digest" },
-          { icon: Radar, label: "Attack surface", desc: "Domain & port monitoring" },
+          { icon: UilExclamationTriangle, label: "CVE monitoring", desc: "Track vulns in your stack" },
+          { icon: UilGlobe, label: "Threat intel", desc: "Live malware & IOC feeds" },
+          { icon: UilNewspaper, label: "Security news", desc: "Curated daily digest" },
+          { icon: UilFocusTarget, label: "Attack surface", desc: "Domain & port monitoring" },
         ].map(({ icon: Icon, label, desc }, i) => (
           <motion.div
             key={label}
@@ -166,7 +166,7 @@ function WelcomeStep({ tier, onNext }: { tier: Tier; onNext: () => void }) {
   );
 }
 
-// ─── Step 2: Security Stack ─────────────────────────────────────────────────
+// ─── Step 2: Security UilLayerGroup ─────────────────────────────────────────────────
 
 function StackStep({
   products,
@@ -220,10 +220,10 @@ function StackStep({
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg">
       <div className="text-center space-y-2">
-        <div className="mx-auto w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-          <AlertTriangle size={22} className="text-orange-400" />
+        <div className="mx-auto w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+          <UilExclamationTriangle size={22} className="text-orange-400" />
         </div>
-        <h2 className="text-xl font-bold text-white">Your Security Stack</h2>
+        <h2 className="text-xl font-bold text-white">Your Security UilLayerGroup</h2>
         <p className="text-xs text-zinc-500">
           Select products you use. We'll track CVEs for them.
           {maxProducts !== null && (
@@ -234,7 +234,7 @@ function StackStep({
 
       {/* Search */}
       <div className="relative w-full">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+        <UilSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -250,9 +250,9 @@ function StackStep({
             <button
               key={p}
               onClick={() => toggleProduct(p)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-xs text-blue-300 hover:bg-red-500/15 hover:border-red-500/30 hover:text-red-300 transition-all"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/15 text-xs text-blue-300 hover:bg-red-500/15 hover:border-red-500/30 hover:text-red-300 transition-all"
             >
-              {p} <X size={10} />
+              {p} <UilTimes size={10} />
             </button>
           ))}
         </div>
@@ -270,13 +270,13 @@ function StackStep({
               disabled={disabled}
               className={`px-2 py-1.5 rounded-lg text-xs transition-all ${
                 selected
-                  ? "bg-blue-500/15 border border-blue-500/30 text-blue-300"
+                  ? "bg-blue-500/15 text-blue-300"
                   : disabled
                   ? "bg-white/[0.01] border border-white/[0.04] text-zinc-700 cursor-not-allowed"
                   : "bg-white/[0.02] border border-white/[0.06] text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
               }`}
             >
-              {selected && <Check size={10} className="inline mr-1" />}
+              {selected && <UilCheck size={10} className="inline mr-1" />}
               {p}
             </button>
           );
@@ -368,8 +368,8 @@ function ThreatsStep({
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg">
       <div className="text-center space-y-2">
-        <div className="mx-auto w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-          <Globe size={22} className="text-red-400" />
+        <div className="mx-auto w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+          <UilGlobe size={22} className="text-red-400" />
         </div>
         <h2 className="text-xl font-bold text-white">Threat Intelligence</h2>
         <p className="text-xs text-zinc-500">
@@ -404,7 +404,7 @@ function ThreatsStep({
                 </div>
                 {selected && (
                   <div className="w-5 h-5 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center">
-                    <Check size={12} className="text-red-300" />
+                    <UilCheck size={12} className="text-red-300" />
                   </div>
                 )}
               </div>
@@ -450,8 +450,8 @@ function NewsStep({
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg">
       <div className="text-center space-y-2">
-        <div className="mx-auto w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-          <Newspaper size={22} className="text-violet-400" />
+        <div className="mx-auto w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center">
+          <UilNewspaper size={22} className="text-violet-400" />
         </div>
         <h2 className="text-xl font-bold text-white">News & Alerts</h2>
         <p className="text-xs text-zinc-500">Stay informed with curated security news.</p>
@@ -492,11 +492,11 @@ function NewsStep({
                     onClick={() => toggleSource(src.id)}
                     className={`px-3 py-2 rounded-lg text-xs transition-all ${
                       selected
-                        ? "bg-violet-500/15 border border-violet-500/30 text-violet-300"
+                        ? "bg-violet-500/15 text-violet-300"
                         : "bg-white/[0.02] border border-white/[0.06] text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
-                    {selected && <Check size={10} className="inline mr-1" />}
+                    {selected && <UilCheck size={10} className="inline mr-1" />}
                     {src.name}
                   </button>
                 );
@@ -579,8 +579,8 @@ function MonitoringStep({
     return (
       <div className="flex flex-col items-center gap-6 w-full max-w-lg">
         <div className="text-center space-y-2">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-zinc-500/10 border border-zinc-500/20 flex items-center justify-center">
-            <Radar size={22} className="text-zinc-500" />
+          <div className="mx-auto w-12 h-12 rounded-xl bg-zinc-500/10 flex items-center justify-center">
+            <UilFocusTarget size={22} className="text-zinc-500" />
           </div>
           <h2 className="text-xl font-bold text-white">Attack Surface Monitoring</h2>
           <p className="text-xs text-zinc-500">Available on Pro, Team, and Enterprise plans.</p>
@@ -597,8 +597,8 @@ function MonitoringStep({
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg">
       <div className="text-center space-y-2">
-        <div className="mx-auto w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-          <Radar size={22} className="text-emerald-400" />
+        <div className="mx-auto w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+          <UilFocusTarget size={22} className="text-emerald-400" />
         </div>
         <h2 className="text-xl font-bold text-white">Attack Surface Monitoring</h2>
         <p className="text-xs text-zinc-500">
@@ -640,7 +640,7 @@ function MonitoringStep({
                 onClick={() => removeDomain(d)}
                 className="text-zinc-500 hover:text-red-400 transition-colors"
               >
-                <X size={14} />
+                <UilTimes size={14} />
               </button>
             </div>
           ))}
@@ -668,7 +668,7 @@ function MonitoringStep({
             <div className={`w-4 h-4 rounded border flex items-center justify-center ${
               value ? "border-emerald-500 bg-emerald-500/20" : "border-zinc-600"
             }`}>
-              {value && <Check size={10} className="text-emerald-300" />}
+              {value && <UilCheck size={10} className="text-emerald-300" />}
             </div>
           </button>
         ))}
@@ -690,9 +690,9 @@ function DoneStep() {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center"
+        className="w-20 h-20 rounded-2xl bg-emerald-500/10 flex items-center justify-center"
       >
-        <Zap size={36} className="text-emerald-400" />
+        <UilBolt size={36} className="text-emerald-400" />
       </motion.div>
 
       <motion.div
@@ -718,7 +718,7 @@ function DoneStep() {
           onClick={() => navigate("/dashboard")}
           className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2"
         >
-          Go to Dashboard <ArrowRight size={14} />
+          Go to Dashboard <UilArrowRight size={14} />
         </button>
         <button
           onClick={() => navigate("/settings/profile")}
@@ -805,7 +805,7 @@ export default function PreferencesWizard() {
         monitor_certs: certs,
         email_digest: digest,
       });
-      // Mark onboarding complete in localStorage
+      // Cache onboarding flag locally (Supabase updated_at is source of truth)
       localStorage.setItem("crowbyte_prefs_wizard_done", "true");
       setSaving(false);
     }
@@ -817,9 +817,9 @@ export default function PreferencesWizard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <motion.div
-          className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full"
+          className="w-8 h-8 border-2 border-t-blue-500 rounded-full"
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
         />
@@ -828,7 +828,7 @@ export default function PreferencesWizard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-8 relative">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 relative">
       {/* Background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(59,130,246,0.04),transparent_60%)]" />
 
@@ -837,6 +837,8 @@ export default function PreferencesWizard() {
         <button
           onClick={() => {
             localStorage.setItem("crowbyte_prefs_wizard_done", "true");
+            // Touch updated_at in Supabase so it differs from created_at (marks onboarding done)
+            updatePreferences({ email_digest: "none" }).catch(() => {});
             navigate("/dashboard");
           }}
           className="absolute top-6 right-6 text-xs text-zinc-600 hover:text-zinc-400 transition-colors z-10"

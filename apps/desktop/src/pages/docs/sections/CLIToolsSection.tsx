@@ -1,11 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TerminalWindow } from "@phosphor-icons/react";
+import { UilDesktopAlt } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function CLIToolsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={TerminalWindow} title="CLI Tools" description="cve-db and kb command-line tools shared across all Claude Code instances" status="ready" />
+      <DocHeader icon={UilDesktopAlt} title="CLI Tools" description="cve-db and kb command-line tools shared across all Claude UilBracketsCurly instances" status="ready" />
 
       <Card><CardHeader><CardTitle>cve-db</CardTitle><CardDescription>/usr/local/bin/cve-db — CVE lookup, search, and management</CardDescription></CardHeader>
         <CardContent>
@@ -17,7 +17,7 @@ export function CLIToolsSection() {
             <div><span className="text-emerald-500">cve-db nvd</span> CVE-2024-3400      <span className="text-zinc-500"># NVD API v2.0 only</span></div>
             <div><span className="text-emerald-500">cve-db shodan</span> CVE-2024-3400   <span className="text-zinc-500"># Shodan CVEDB only</span></div>
             <div>&nbsp;</div>
-            <div className="text-zinc-500"># Database search and filtering</div>
+            <div className="text-zinc-500"># UilDatabase search and filtering</div>
             <div><span className="text-emerald-500">cve-db search</span> "RCE"            <span className="text-zinc-500"># Full-text search</span></div>
             <div><span className="text-emerald-500">cve-db list</span> --severity CRITICAL <span className="text-zinc-500"># Filter by severity</span></div>
             <div><span className="text-emerald-500">cve-db list</span> -n 20              <span className="text-zinc-500"># Last 20 entries</span></div>
@@ -59,7 +59,7 @@ export function CLIToolsSection() {
         </CardContent></Card>
 
       <Card><CardContent className="pt-6"><FeatureList items={[
-        { text: "Both tools available in all Claude Code CLI sessions", status: "done" },
+        { text: "Both tools available in all Claude UilBracketsCurly CLI sessions", status: "done" },
         { text: "Both tools share the same Supabase backend as the UI", status: "done" },
         { text: "Changes appear in the app in real-time (Realtime subscriptions)", status: "done" },
         { text: "AI agents (Claude, OpenClaw) know about these tools and can use them", status: "done" },

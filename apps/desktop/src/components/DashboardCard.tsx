@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
+import type { ComponentType } from "react";
+type PhosphorIcon = ComponentType<{ size?: number | string; color?: string; className?: string }>;
 
 interface DashboardCardProps {
  title: string;
@@ -16,7 +17,7 @@ export function DashboardCard({ title, description, icon: Icon, value, trend, cl
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">{title}</CardTitle>
  <div className="rounded-md bg-primary/10 p-2">
- <Icon size={16} weight="bold" className="text-primary" />
+ <Icon size={16} className="text-primary" />
  </div>
  </CardHeader>
  <CardContent>

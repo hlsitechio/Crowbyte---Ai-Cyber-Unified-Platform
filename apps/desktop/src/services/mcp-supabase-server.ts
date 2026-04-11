@@ -205,7 +205,7 @@ class SupabaseMCPServer {
             },
             keyName: {
               type: 'string',
-              description: 'Key identifier (e.g., api_key, client_id)',
+              description: 'UilKeySkeleton identifier (e.g., api_key, client_id)',
             },
             keyValue: {
               type: 'string',

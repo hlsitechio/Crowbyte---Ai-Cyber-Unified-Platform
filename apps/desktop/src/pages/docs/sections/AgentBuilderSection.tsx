@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Robot } from "@phosphor-icons/react";
+import { UilRobot } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AgentBuilderSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Robot} title="Agent Builder" description="Create custom AI agents with specific personas, tools, and capabilities" status="beta" />
+      <DocHeader icon={UilRobot} title="Agent Builder" description="Create custom AI agents with specific personas, tools, and capabilities" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

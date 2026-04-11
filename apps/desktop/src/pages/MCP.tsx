@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from"@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
 import { Textarea } from"@/components/ui/textarea";
-import { TreeStructure, Link, DesktopTower, Pulse, ArrowsClockwise, MagnifyingGlass, Lightning, FileText, WarningCircle, Shield, BookmarkSimple, Play, Square, Copy, Check, GearSix } from"@phosphor-icons/react";
+import { UilSitemap, UilLink, UilDesktopAlt, UilHeartRate, UilSync, UilSearch, UilBolt, UilFileAlt, UilExclamationCircle, UilShield, UilBookmark, UilPlay, UilSquare, UilCopy, UilCheck, UilCog } from "@iconscout/react-unicons";
 import { toast } from"sonner";
 import tavilyService, { TavilySearchResult } from"@/services/tavily";
 import { bookmarksService, type BookmarkCategory } from"@/services/bookmarks";
@@ -373,7 +373,7 @@ const MCP = () => {
  <Card className="">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">MCP Servers</CardTitle>
- <DesktopTower size={16} weight="bold" className="text-primary" />
+ <UilDesktopAlt size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">{mcpServers.length}</div>
@@ -384,7 +384,7 @@ const MCP = () => {
  <Card className="">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Running Servers</CardTitle>
- <Pulse size={16} weight="bold" className="text-primary" />
+ <UilHeartRate size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">
@@ -397,7 +397,7 @@ const MCP = () => {
  <Card className="">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Tools Available</CardTitle>
- <Lightning size={16} weight="bold" className="text-primary" />
+ <UilBolt size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">
@@ -410,7 +410,7 @@ const MCP = () => {
  <Card className="">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">NPX Servers</CardTitle>
- <TreeStructure size={16} weight="bold" className="text-primary" />
+ <UilSitemap size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-blue-500">
@@ -429,7 +429,7 @@ const MCP = () => {
  <div className="flex items-start justify-between">
  <div className="flex items-start gap-3">
  <div className="rounded-md bg-primary/10 p-2 mt-1">
- <Shield size={24} weight="duotone" className="text-primary" />
+ <UilShield size={24} className="text-primary" />
  </div>
  <div>
  <CardTitle className="text-white">{connector.name}</CardTitle>
@@ -479,7 +479,7 @@ const MCP = () => {
  <Card className="">
  <CardHeader>
  <div className="flex items-center gap-2">
- <GearSix size={20} weight="duotone" className="text-primary" />
+ <UilCog size={20} className="text-primary" />
  <CardTitle className="text-white">MCP Server Management</CardTitle>
  </div>
  <CardDescription>
@@ -494,7 +494,7 @@ const MCP = () => {
  <div className="flex items-start justify-between">
  <div className="flex items-start gap-3 flex-1">
  <div className={`rounded-md p-2 mt-1 ${server.type === 'binary' ? 'bg-transparent' : 'bg-transparent'}`}>
- <DesktopTower size={20} weight="duotone" className={server.type === 'binary' ? 'text-orange-500' : 'text-blue-500'} />
+ <UilDesktopAlt size={20} className={server.type === 'binary' ? 'text-orange-500' : 'text-blue-500'} />
  </div>
  <div className="flex-1">
  <div className="flex items-center gap-2">
@@ -531,20 +531,20 @@ const MCP = () => {
  <div className="flex gap-2">
  {serverStatuses[server.id] === 'running' ? (
  <button className="text-xs text-zinc-400 hover:text-red-500 transition-colors flex items-center gap-1" onClick={() => handleStopServer(server.id)}>
- <Square size={12} weight="bold" />
+ <UilSquare size={12} />
  Stop
  </button>
  ) : (
  <Button variant="default" size="sm" onClick={() => handleStartServer(server.id)}>
- <Play size={12} weight="bold" className="mr-1" />
+ <UilPlay size={12} className="mr-1" />
  Start
  </Button>
  )}
  <button className="text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1" onClick={() => handleCopyConfig(server.id)}>
  {copiedConfig === server.id ? (
- <><Check size={12} weight="bold" /> Copied</>
+ <><UilCheck size={12} /> Copied</>
  ) : (
- <><Copy size={12} weight="bold" /> Config</>
+ <><UilCopy size={12} /> Config</>
  )}
  </button>
  </div>
@@ -615,7 +615,7 @@ const MCP = () => {
  )}
  {server.metadata.apiKey && (
  <div>
- <span className="text-muted-foreground">API Key:</span>
+ <span className="text-muted-foreground">API UilKeySkeleton:</span>
  <span className="text-xs text-zinc-400 font-mono mt-0.5">{server.metadata.apiKey}</span>
  </div>
  )}
@@ -679,7 +679,7 @@ const MCP = () => {
  <Card className="">
  <CardHeader>
  <div className="flex items-center gap-2">
- <Shield size={20} weight="duotone" className="text-primary" />
+ <UilShield size={20} className="text-primary" />
  <CardTitle className="text-white">CyberSecurity AI Search Agent</CardTitle>
  </div>
  <CardDescription>
@@ -690,11 +690,11 @@ const MCP = () => {
  <Tabs defaultValue="search" className="w-full">
  <TabsList className="grid w-full grid-cols-2">
  <TabsTrigger value="search">
- <MagnifyingGlass size={16} weight="bold" className="mr-2" />
+ <UilSearch size={16} className="mr-2" />
  Web Search
  </TabsTrigger>
  <TabsTrigger value="qna">
- <FileText size={16} weight="bold" className="mr-2" />
+ <UilFileAlt size={16} className="mr-2" />
  Q&A
  </TabsTrigger>
  </TabsList>
@@ -715,9 +715,9 @@ const MCP = () => {
  />
  <Button onClick={handleSearch} disabled={isSearching}>
  {isSearching ? (
- <ArrowsClockwise size={16} weight="bold" className="mr-2 animate-spin" />
+ <UilSync size={16} className="mr-2 animate-spin" />
  ) : (
- <MagnifyingGlass size={16} weight="bold" className="mr-2" />
+ <UilSearch size={16} className="mr-2" />
  )}
  Search
  </Button>
@@ -761,7 +761,7 @@ const MCP = () => {
  <Card className="bg-primary/5">
  <CardHeader>
  <CardTitle className="text-sm text-white flex items-center gap-2">
- <WarningCircle size={16} weight="bold" className="text-primary" />
+ <UilExclamationCircle size={16} className="text-primary" />
  AI Answer
  </CardTitle>
  </CardHeader>
@@ -794,7 +794,7 @@ const MCP = () => {
  onClick={() => handleBookmarkResult(result)}
  title="Add to bookmarks"
  >
- <BookmarkSimple size={12} weight="bold" className="mr-1" />
+ <UilBookmark size={12} className="mr-1" />
  Bookmark
  </Button>
  <Button
@@ -802,7 +802,7 @@ const MCP = () => {
  size="sm"
  onClick={() => window.open(result.url, '_blank')}
  >
- <Link size={12} weight="bold" className="mr-1" />
+ <UilLink size={12} className="mr-1" />
  Open
  </Button>
  </div>
@@ -831,9 +831,9 @@ const MCP = () => {
  />
  <Button onClick={handleAskQuestion} disabled={isAsking}>
  {isAsking ? (
- <ArrowsClockwise size={16} weight="bold" className="mr-2 animate-spin" />
+ <UilSync size={16} className="mr-2 animate-spin" />
  ) : (
- <FileText size={16} weight="bold" className="mr-2" />
+ <UilFileAlt size={16} className="mr-2" />
  )}
  Ask
  </Button>
@@ -880,7 +880,7 @@ const MCP = () => {
  <Card className="bg-primary/5">
  <CardHeader>
  <CardTitle className="text-sm text-white flex items-center gap-2">
- <WarningCircle size={16} weight="bold" className="text-primary" />
+ <UilExclamationCircle size={16} className="text-primary" />
  Answer
  </CardTitle>
  </CardHeader>

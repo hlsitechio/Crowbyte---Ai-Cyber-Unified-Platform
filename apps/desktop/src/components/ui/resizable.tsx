@@ -1,4 +1,4 @@
-import { DotsSixVertical } from "@phosphor-icons/react";
+import { UilDraggabledots } from "@iconscout/react-unicons";
 import * as ResizablePrimitive from "react-resizable-panels";
 
 import { cn } from "@/lib/utils";
@@ -28,7 +28,7 @@ const ResizableHandle = ({
   >
     {withHandle && (
       <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
-        <DotsSixVertical size={10} weight="bold" />
+        <UilDraggabledots size={10} />
       </div>
     )}
   </ResizablePrimitive.PanelResizeHandle>

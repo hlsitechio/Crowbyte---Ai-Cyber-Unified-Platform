@@ -11,20 +11,7 @@ import {
  ContextMenuSubContent,
  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
-import {
- ArrowsClockwise,
- Copy,
- Clipboard,
- MagnifyingGlass,
- GearSix,
- Terminal as TerminalIcon,
- FileText,
- DownloadSimple,
- UploadSimple,
- Trash,
- Bug,
- ArrowLeft,
-} from "@phosphor-icons/react";
+import { UilSync, UilCopy, UilSearch, UilCog, UilWindow, UilFileAlt, UilDownloadAlt, UilUpload, UilTrashAlt, UilBug, UilArrowLeft, UilClipboard } from "@iconscout/react-unicons";
 import { toast } from "sonner";
 
 interface GlobalContextMenuProps {
@@ -50,7 +37,7 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  await navigator.clipboard.writeText(selection);
  }
  } catch (error) {
- console.error('Copy failed:', error);
+ console.error('UilCopy failed:', error);
  }
  };
 
@@ -91,18 +78,18 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  const commonItems = (
  <>
  <ContextMenuItem onClick={handleCopy}>
- <Copy className="mr-2" size={16} weight="bold" />
- Copy
+ <UilCopy className="mr-2" size={16} />
+ UilCopy
  <ContextMenuShortcut>Ctrl+C</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuItem onClick={handlePaste}>
- <Clipboard className="mr-2" size={16} weight="bold" />
+ <UilClipboard className="mr-2" size={16} />
  Paste
  <ContextMenuShortcut>Ctrl+V</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuSeparator />
  <ContextMenuItem onClick={handleSelectAll}>
- <FileText className="mr-2" size={16} weight="bold" />
+ <UilFileAlt className="mr-2" size={16} />
  Select All
  <ContextMenuShortcut>Ctrl+A</ContextMenuShortcut>
  </ContextMenuItem>
@@ -116,7 +103,7 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  {commonItems}
  <ContextMenuSeparator />
  <ContextMenuItem onClick={() => window.location.href = '/terminal'}>
- <TerminalIcon className="mr-2" size={16} weight="bold" />
+ <UilWindow className="mr-2" size={16} />
  New Terminal
  <ContextMenuShortcut>Ctrl+Shift+`</ContextMenuShortcut>
  </ContextMenuItem>
@@ -130,11 +117,11 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  {commonItems}
  <ContextMenuSeparator />
  <ContextMenuItem>
- <DownloadSimple className="mr-2" size={16} weight="bold" />
+ <UilDownloadAlt className="mr-2" size={16} />
  Export Chat
  </ContextMenuItem>
  <ContextMenuItem>
- <Trash className="mr-2" size={16} weight="bold" />
+ <UilTrashAlt className="mr-2" size={16} />
  Clear Chat
  </ContextMenuItem>
  </>
@@ -147,16 +134,16 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  {commonItems}
  <ContextMenuSeparator />
  <ContextMenuItem>
- <MagnifyingGlass className="mr-2" size={16} weight="bold" />
+ <UilSearch className="mr-2" size={16} />
  Search
  <ContextMenuShortcut>Ctrl+F</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuItem>
- <UploadSimple className="mr-2" size={16} weight="bold" />
+ <UilUpload className="mr-2" size={16} />
  Import Data
  </ContextMenuItem>
  <ContextMenuItem>
- <DownloadSimple className="mr-2" size={16} weight="bold" />
+ <UilDownloadAlt className="mr-2" size={16} />
  Export Data
  </ContextMenuItem>
  </>
@@ -174,7 +161,7 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  </ContextMenuTrigger>
  <ContextMenuContent className="w-56">
  <ContextMenuItem onClick={handleBack}>
- <ArrowLeft className="mr-2" size={16} weight="bold" />
+ <UilArrowLeft className="mr-2" size={16} />
  Back
  <ContextMenuShortcut>Alt+←</ContextMenuShortcut>
  </ContextMenuItem>
@@ -182,17 +169,17 @@ export function GlobalContextMenu({ children }: GlobalContextMenuProps) {
  {getContextMenuItems()}
  <ContextMenuSeparator />
  <ContextMenuItem onClick={handleRefresh}>
- <ArrowsClockwise className="mr-2" size={16} weight="bold" />
+ <UilSync className="mr-2" size={16} />
  Refresh
  <ContextMenuShortcut>Ctrl+R</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuItem onClick={() => window.location.href = '/settings'}>
- <GearSix className="mr-2" size={16} weight="bold" />
+ <UilCog className="mr-2" size={16} />
  Settings
  </ContextMenuItem>
  <ContextMenuSeparator />
  <ContextMenuItem onClick={handleOpenDevTools}>
- <Bug className="mr-2" size={16} weight="bold" />
+ <UilBug className="mr-2" size={16} />
  Developer Mode
  <ContextMenuShortcut>F12</ContextMenuShortcut>
  </ContextMenuItem>
