@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, ArrowsClockwise, CheckCircle, XCircle, Pulse, TreeStructure, Lightning, FloppyDisk } from "@phosphor-icons/react";
+import { UilBrain, UilSync, UilCheckCircle, UilTimesCircle, UilHeartRate, UilSitemap, UilBolt, UilSave } from "@iconscout/react-unicons";
 import openClaw from "@/services/openclaw";
 import { useToast } from "@/hooks/use-toast";
 
@@ -80,7 +80,7 @@ export default function LLMSettings() {
       <Card className="bg-card/50 backdrop-blur">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TreeStructure size={20} weight="duotone" className="text-emerald-500" />
+            <UilSitemap size={20} className="text-emerald-500" />
             OpenClaw VPS Configuration
           </CardTitle>
           <CardDescription>
@@ -107,7 +107,7 @@ export default function LLMSettings() {
               onClick={saveOpenClawEndpoint}
               className="flex-1"
             >
-              <FloppyDisk size={16} weight="bold" className="mr-2" />
+              <UilSave size={16} className="mr-2" />
               Save Endpoint
             </Button>
             <Button
@@ -118,12 +118,12 @@ export default function LLMSettings() {
             >
               {testingConnection ? (
                 <>
-                  <ArrowsClockwise size={16} weight="bold" className="mr-2 animate-spin" />
+                  <UilSync size={16} className="mr-2 animate-spin" />
                   Testing...
                 </>
               ) : (
                 <>
-                  <CheckCircle size={16} weight="bold" className="mr-2" />
+                  <UilCheckCircle size={16} className="mr-2" />
                   Test Connection
                 </>
               )}
@@ -144,7 +144,7 @@ export default function LLMSettings() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Pulse size={20} weight="duotone" className={`${openClawConnected ? 'text-emerald-500' : 'text-red-500'}`} />
+                <UilHeartRate size={20} className={`${openClawConnected ? 'text-emerald-500' : 'text-red-500'}`} />
                 OpenClaw VPS Status
               </CardTitle>
               <CardDescription>
@@ -185,7 +185,7 @@ export default function LLMSettings() {
         <Card className="bg-card/50 backdrop-blur">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-white">Total Models</CardTitle>
-            <Brain size={16} weight="bold" className="text-emerald-500" />
+            <UilBrain size={16} className="text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-500">{loadingModels ? '...' : models.length}</div>
@@ -198,7 +198,7 @@ export default function LLMSettings() {
         <Card className="bg-card/50 backdrop-blur">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-white">VPS Status</CardTitle>
-            <Pulse size={16} weight="bold" className="text-emerald-500" />
+            <UilHeartRate size={16} className="text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-500">
@@ -211,7 +211,7 @@ export default function LLMSettings() {
         <Card className="bg-card/50 backdrop-blur">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-white">Cost</CardTitle>
-            <Lightning size={16} weight="bold" className="text-emerald-500" />
+            <UilBolt size={16} className="text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-500">$0</div>
@@ -228,7 +228,7 @@ export default function LLMSettings() {
           className="border-transparent text-emerald-500 hover:bg-transparent"
           disabled={loadingModels}
         >
-          <ArrowsClockwise size={16} weight="bold" className={`mr-2 ${loadingModels ? 'animate-spin' : ''}`} />
+          <UilSync size={16} className={`mr-2 ${loadingModels ? 'animate-spin' : ''}`} />
           Refresh Models
         </Button>
       </div>
@@ -237,7 +237,7 @@ export default function LLMSettings() {
       {loadingModels ? (
         <Card className="bg-card/50 backdrop-blur">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <ArrowsClockwise size={64} weight="duotone" className="text-emerald-500 mb-4 animate-spin" />
+            <UilSync size={64} className="text-emerald-500 mb-4 animate-spin" />
             <h3 className="text-lg font-semibold text-white mb-2">Loading Models...</h3>
             <p className="text-muted-foreground text-center">
               Fetching available OpenClaw models
@@ -247,7 +247,7 @@ export default function LLMSettings() {
       ) : models.length === 0 ? (
         <Card className="bg-card/50 backdrop-blur">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Brain size={64} weight="duotone" className="text-muted-foreground mb-4" />
+            <UilBrain size={64} className="text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">No Models Available</h3>
             <p className="text-muted-foreground text-center mb-4">
               Connect to OpenClaw VPS to access models
@@ -262,7 +262,7 @@ export default function LLMSettings() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-white flex items-center gap-2">
-                      <Brain size={20} weight="duotone" className="text-emerald-500" />
+                      <UilBrain size={20} className="text-emerald-500" />
                       {model.name || model.id}
                     </CardTitle>
                     <CardDescription className="terminal-text mt-1">

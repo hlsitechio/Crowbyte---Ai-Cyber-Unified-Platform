@@ -1,17 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Clock, Warning } from "@phosphor-icons/react";
-import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
+import { UilCheckCircle, UilClock, UilExclamationTriangle } from "@iconscout/react-unicons";
+import type { ComponentType } from "react";
+type PhosphorIcon = ComponentType<{ size?: number | string; color?: string; className?: string }>;
 
 function StatusBadge({ status }: { status: "ready" | "beta" | "dev" }) {
   const config = {
-    ready: { bg: "bg-transparent text-emerald-500 border-transparent", icon: CheckCircle, label: "READY" },
-    beta: { bg: "bg-transparent text-yellow-500 border-transparent", icon: Clock, label: "BETA" },
-    dev: { bg: "bg-transparent text-orange-500 border-transparent", icon: Warning, label: "DEV" },
+    ready: { bg: "bg-transparent text-emerald-500 border-transparent", icon: UilCheckCircle, label: "READY" },
+    beta: { bg: "bg-transparent text-yellow-500 border-transparent", icon: UilClock, label: "BETA" },
+    dev: { bg: "bg-transparent text-orange-500 border-transparent", icon: UilExclamationTriangle, label: "DEV" },
   }[status];
   return (
     <Badge className={config.bg}>
-      <config.icon size={12} weight="bold" className="mr-1" />{config.label}
+      <config.icon size={12} className="mr-1" />{config.label}
     </Badge>
   );
 }
@@ -27,7 +28,7 @@ export function DocHeader({ icon: Icon, title, description, status }: {
   return (
     <div className="space-y-2 mb-6">
       <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-        <Icon size={32} weight="duotone" className="text-primary" />
+        <Icon size={32} className="text-primary" />
         {title}
         {status && <StatusBadge status={status} />}
       </h1>

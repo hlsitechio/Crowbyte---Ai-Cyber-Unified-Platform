@@ -9,6 +9,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { pgOr } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -537,7 +538,7 @@ class DetectionEngine {
 
     if (filters?.format) query = query.eq('format', filters.format);
     if (filters?.status) query = query.eq('status', filters.status);
-    if (filters?.search) query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    if (filters?.search) query = query.or(`name.ilike.%${pgOr(filters.search)}%,description.ilike.%${pgOr(filters.search)}%`);
 
     const { data, error } = await query;
     if (error) throw new Error(`Failed to fetch rules: ${error.message}`);

@@ -123,11 +123,108 @@ class AnalyticsService {
     }
   }
 
-  async getTodayUsageStats(): Promise<ApiUsageStats[]> { return []; }
+  async getTodayUsageStats(): Promise<ApiUsageStats[]> {
+    try {
+      const userId = await this.getUserId();
+      if (!userId) return [];
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('analytics')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('created_at', `${today}T00:00:00`)
+        .order('created_at', { ascending: false });
+
+      if (!data || data.length === 0) return [];
+
+      // Aggregate by page/service
+      const byService: Record<string, { calls: number; success: number; errors: number; totalMs: number }> = {};
+      for (const row of data) {
+        const svc = row.page || row.event_type || 'unknown';
+        if (!byService[svc]) byService[svc] = { calls: 0, success: 0, errors: 0, totalMs: 0 };
+        byService[svc].calls++;
+        byService[svc].success++;
+        byService[svc].totalMs += (row.duration_ms || 0);
+      }
+
+      return Object.entries(byService).map(([service, stats]) => ({
+        service_name: service,
+        call_count: stats.calls,
+        success_count: stats.success,
+        error_count: stats.errors,
+        total_response_time_ms: stats.totalMs,
+        avg_response_time_ms: stats.calls > 0 ? Math.round(stats.totalMs / stats.calls) : 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
   async getServiceUsageStats(_service: string, _days?: number): Promise<ApiUsageStats[]> { return []; }
-  async getActivitySummary(_days?: number): Promise<Record<string, number>> { return {}; }
-  subscribeToActivityUpdates(_callback: any): () => void { return () => {}; }
-  subscribeToUsageStatsUpdates(_callback: any): () => void { return () => {}; }
+
+  async getActivitySummary(days = 7): Promise<Record<string, number>> {
+    try {
+      const userId = await this.getUserId();
+      if (!userId) return {};
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      const { data } = await supabase
+        .from('analytics')
+        .select('created_at')
+        .eq('user_id', userId)
+        .gte('created_at', since.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (!data) return {};
+
+      const byDay: Record<string, number> = {};
+      for (const row of data) {
+        const day = new Date(row.created_at).toISOString().split('T')[0];
+        byDay[day] = (byDay[day] || 0) + 1;
+      }
+      return byDay;
+    } catch {
+      return {};
+    }
+  }
+
+  subscribeToActivityUpdates(callback: (activity: ActivityLog) => void): () => void {
+    const channel = supabase
+      .channel('analytics-activity')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'analytics' }, (payload) => {
+        const r = payload.new as any;
+        callback({
+          id: r.id,
+          user_id: r.user_id,
+          activity_type: r.event_type,
+          service_name: r.page || '',
+          action: r.tool || '',
+          response_time_ms: r.duration_ms,
+          details: r.event_data,
+          created_at: r.created_at,
+        });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }
+
+  subscribeToUsageStatsUpdates(callback: (stats: ApiUsageStats) => void): () => void {
+    const channel = supabase
+      .channel('analytics-usage')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'analytics' }, (payload) => {
+        const r = payload.new as any;
+        callback({
+          service_name: r.page || r.event_type || 'unknown',
+          call_count: 1,
+          success_count: 1,
+          error_count: 0,
+          total_response_time_ms: r.duration_ms || 0,
+          avg_response_time_ms: r.duration_ms || 0,
+        });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }
 }
 
 export const analyticsService = new AnalyticsService();

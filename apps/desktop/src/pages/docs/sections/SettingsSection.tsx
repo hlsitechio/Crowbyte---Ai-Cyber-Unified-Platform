@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GearSix } from "@phosphor-icons/react";
+import { UilCog } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function SettingsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={GearSix} title="Settings" description="Application configuration, API keys, profile management, and preferences" status="ready" />
+      <DocHeader icon={UilCog} title="Settings" description="Application configuration, API keys, profile management, and preferences" status="ready" />
 
       <Card><CardHeader><CardTitle>Settings Categories</CardTitle></CardHeader>
         <CardContent>

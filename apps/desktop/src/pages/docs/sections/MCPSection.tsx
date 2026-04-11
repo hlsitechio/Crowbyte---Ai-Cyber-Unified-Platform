@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DesktopTower } from "@phosphor-icons/react";
+import { UilDesktopAlt } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function MCPSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={DesktopTower} title="MCP Protocol" description="Model Context Protocol — how Claude accesses external tools inside CrowByte" status="ready" />
+      <DocHeader icon={UilDesktopAlt} title="MCP Protocol" description="Model Context Protocol — how Claude accesses external tools inside CrowByte" status="ready" />
 
       <Card><CardHeader><CardTitle>How MCP works in CrowByte</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>When you use the Claude provider in Chat, CrowByte spawns <code className="text-primary">claude -p</code> via Electron IPC.
-            Claude Code CLI has its own MCP config (in <code className="text-primary">.env-unfiltered/.claude/</code>)
+            Claude UilBracketsCurly CLI has its own MCP config (in <code className="text-primary">.env-unfiltered/.claude/</code>)
             giving it access to security tools, file operations, network intelligence, and persistent memory.</p>
           <p>On the VPS side, OpenClaw agents use <code className="text-primary">mcporter</code> — a skill-based bridge
             that injects tool descriptions into system prompts and executes <code className="text-primary">mcporter call d3bugr.&lt;tool&gt;</code>.</p>
@@ -45,7 +45,7 @@ export function MCPSection() {
       <Card><CardHeader><CardTitle>MCP Architecture</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
-            <div className="text-zinc-500"># Local MCP (Claude Code CLI)</div>
+            <div className="text-zinc-500"># Local MCP (Claude UilBracketsCurly CLI)</div>
             <div><span className="text-primary">mcp-client.ts</span>       <span className="text-zinc-500">StdioClientTransport — spawns MCP server as child process</span></div>
             <div><span className="text-primary">filesystemMCP.ts</span>    <span className="text-zinc-500">17 tools for file operations</span></div>
             <div>&nbsp;</div>

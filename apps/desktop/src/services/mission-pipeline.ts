@@ -129,7 +129,7 @@ export const PHASE_CONFIG: Record<PhaseType, {
     description: 'Automated vulnerability scanning with multiple engines',
     order: 3,
     defaultTools: ['nuclei', 'sqlmap', 'dalfox', 'ssrf-scanner'],
-    icon: 'Bug',
+    icon: 'UilBug',
     color: 'orange',
   },
   exploit: {
@@ -218,6 +218,18 @@ class MissionPipeline {
       .order('updated_at', { ascending: false });
 
     if (error) throw new Error(`Failed to fetch missions: ${error.message}`);
+    return data || [];
+  }
+
+  /** Get missions linked to a specific plan */
+  async getByPlanId(planId: string): Promise<Mission[]> {
+    const { data, error } = await supabase
+      .from('missions')
+      .select('*')
+      .eq('plan_id', planId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(`Failed to fetch missions by plan: ${error.message}`);
     return data || [];
   }
 

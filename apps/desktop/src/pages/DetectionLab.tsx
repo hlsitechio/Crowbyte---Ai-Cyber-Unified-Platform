@@ -34,36 +34,7 @@ import {
   type GenerateRuleRequest, type TestResults,
   MITRE_TACTICS, COMMON_TECHNIQUES,
 } from "@/services/detection-engine";
-import {
-  Lightning,
-  Plus,
-  MagnifyingGlass,
-  Trash,
-  DotsThreeVertical,
-  Copy,
-  DownloadSimple,
-  PencilSimple,
-  Play,
-  ArrowsClockwise,
-  CheckCircle,
-  Clock,
-  Tag,
-  CaretDown,
-  X,
-  Warning,
-  ShieldCheck,
-  Code,
-  FloppyDisk,
-  TestTube,
-  Rocket,
-  ListBullets,
-  ArrowsLeftRight,
-  Eye,
-  Target,
-  Funnel,
-  TreeStructure,
-  CaretRight,
-} from "@phosphor-icons/react";
+import { UilBolt, UilPlus, UilSearch, UilTrashAlt, UilEllipsisV, UilCopy, UilDownloadAlt, UilPen, UilPlay, UilSync, UilCheckCircle, UilClock, UilTag, UilAngleDown, UilTimes, UilExclamationTriangle, UilShieldCheck, UilBracketsCurly, UilSave, UilFlask, UilRocket, UilListUl, UilEye, UilFocusTarget, UilFilter, UilSitemap, UilAngleRight, UilExchange } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -86,20 +57,20 @@ const SEVERITY_OPTIONS = [
 ];
 
 const FORMAT_BADGE_COLORS: Record<RuleFormat, string> = {
-  sigma: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
-  kql: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  spl: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
-  yara: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-  snort: "bg-red-500/20 text-red-400 border border-red-500/30",
-  suricata: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
+  sigma: "bg-purple-500/20 text-purple-400",
+  kql: "bg-blue-500/20 text-blue-400",
+  spl: "bg-orange-500/20 text-orange-400",
+  yara: "bg-emerald-500/20 text-emerald-400",
+  snort: "bg-red-500/20 text-red-400",
+  suricata: "bg-amber-500/20 text-amber-400",
 };
 
 const STATUS_BADGE_COLORS: Record<RuleStatus, string> = {
-  draft: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
-  testing: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  active: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+  draft: "bg-zinc-500/20 text-zinc-400",
+  testing: "bg-yellow-500/20 text-yellow-400",
+  active: "bg-emerald-500/20 text-emerald-400",
   disabled: "bg-zinc-600/20 text-zinc-500 border border-zinc-600/30",
-  retired: "bg-red-500/20 text-red-400 border border-red-500/30",
+  retired: "bg-red-500/20 text-red-400",
 };
 
 const STATUS_LABELS: Record<RuleStatus, string> = {
@@ -531,14 +502,12 @@ function DetectionLab() {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-background">
       {/* ── Header ───────────────────────────────────────────────────────────── */}
       <div className="flex-none px-6 pt-6 pb-4 border-b border-zinc-800/50">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-cyan-500/10">
-              <Lightning size={24} weight="duotone" className="text-cyan-400" />
-            </div>
+            <UilBolt size={24} className="text-cyan-400" />
             <div>
               <h1 className="text-xl font-bold text-zinc-100">Detection Lab</h1>
               <p className="text-sm text-zinc-500">
@@ -550,7 +519,7 @@ function DetectionLab() {
             onClick={() => setShowNewDialog(true)}
             className="bg-cyan-600 hover:bg-cyan-500 text-white"
           >
-            <Plus size={16} weight="bold" className="mr-1.5" />
+            <UilPlus size={16} className="mr-1.5" />
             New Rule
           </Button>
         </div>
@@ -558,25 +527,25 @@ function DetectionLab() {
         {/* Stats bar */}
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-1.5">
-            <ListBullets size={14} weight="duotone" className="text-zinc-500" />
+            <UilListUl size={14} className="text-zinc-500" />
             <span className="text-zinc-400">
               <span className="text-zinc-100 font-medium">{stats?.total ?? 0}</span> rules
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <CheckCircle size={14} weight="duotone" className="text-emerald-400" />
+            <UilCheckCircle size={14} className="text-emerald-400" />
             <span className="text-zinc-400">
               <span className="text-emerald-400 font-medium">{stats?.active ?? 0}</span> active
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <PencilSimple size={14} weight="duotone" className="text-zinc-500" />
+            <UilPen size={14} className="text-zinc-500" />
             <span className="text-zinc-400">
               <span className="text-zinc-100 font-medium">{stats?.by_status?.draft ?? 0}</span> drafts
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Code size={14} weight="duotone" className="text-cyan-400" />
+            <UilBracketsCurly size={14} className="text-cyan-400" />
             <span className="text-zinc-400">
               <span className="text-cyan-400 font-medium">
                 {stats ? Object.keys(stats.by_format).length : 0}
@@ -585,7 +554,7 @@ function DetectionLab() {
           </div>
           {stats && stats.avg_confidence > 0 && (
             <div className="flex items-center gap-1.5">
-              <Target size={14} weight="duotone" className="text-purple-400" />
+              <UilFocusTarget size={14} className="text-purple-400" />
               <span className="text-zinc-400">
                 <span className="text-purple-400 font-medium">
                   {Math.round(stats.avg_confidence * 100)}%
@@ -608,7 +577,7 @@ function DetectionLab() {
             <Card className="bg-zinc-900/50 border-zinc-800/50">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base text-zinc-100">
-                  <Lightning size={18} weight="duotone" className="text-cyan-400" />
+                  <UilBolt size={18} className="text-cyan-400" />
                   Natural Language Rule Generator
                 </CardTitle>
               </CardHeader>
@@ -619,7 +588,7 @@ function DetectionLab() {
                     placeholder="Describe the threat behavior in plain English... e.g. 'Detect PowerShell encoded commands used for obfuscation' or 'Alert on LSASS credential dumping via Mimikatz'"
                     value={genDescription}
                     onChange={(e) => setGenDescription(e.target.value)}
-                    className="bg-zinc-950 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 min-h-[100px] text-sm resize-none"
+                    className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 min-h-[100px] text-sm resize-none"
                   />
                   <p className="text-xs text-muted-foreground mt-1.5">Pattern-based generation. AI-powered generation coming soon.</p>
                 </div>
@@ -649,7 +618,7 @@ function DetectionLab() {
 
                   {/* Severity selector */}
                   <Select value={genSeverity} onValueChange={setGenSeverity}>
-                    <SelectTrigger className="w-[120px] h-7 bg-zinc-950 border-zinc-700 text-xs">
+                    <SelectTrigger className="w-[120px] h-7 bg-zinc-900 border-zinc-700 text-xs">
                       <SelectValue placeholder="Severity" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -670,9 +639,9 @@ function DetectionLab() {
                     className="bg-cyan-600 hover:bg-cyan-500 text-white h-8"
                   >
                     {generating ? (
-                      <ArrowsClockwise size={14} weight="bold" className="mr-1.5 animate-spin" />
+                      <UilSync size={14} className="mr-1.5 animate-spin" />
                     ) : (
-                      <Lightning size={14} weight="bold" className="mr-1.5" />
+                      <UilBolt size={14} className="mr-1.5" />
                     )}
                     {generating ? "Generating..." : "Generate Rule"}
                   </Button>
@@ -704,16 +673,16 @@ function DetectionLab() {
                           <Badge
                             key={tag}
                             variant="outline"
-                            className="text-xs bg-violet-500/10 text-violet-400 border-violet-500/30"
+                            className="text-xs bg-violet-500/10 text-violet-400"
                           >
                             {tag}
                           </Badge>
                         ))}
                       </div>
 
-                      {/* Code block */}
+                      {/* UilBracketsCurly block */}
                       <div className="relative group">
-                        <pre className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 overflow-x-auto text-sm font-mono text-zinc-300 leading-relaxed max-h-[400px] overflow-y-auto">
+                        <pre className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 overflow-x-auto text-sm font-mono text-zinc-300 leading-relaxed max-h-[400px] overflow-y-auto">
                           {generatedResult.rule_content}
                         </pre>
                         <Button
@@ -722,7 +691,7 @@ function DetectionLab() {
                           onClick={() => handleCopyRule(generatedResult.rule_content)}
                           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 p-0 text-zinc-500 hover:text-zinc-100"
                         >
-                          <Copy size={14} weight="duotone" />
+                          <UilCopy size={14} />
                         </Button>
                       </div>
 
@@ -732,16 +701,16 @@ function DetectionLab() {
                           onClick={handleSaveGenerated}
                           className="bg-cyan-600 hover:bg-cyan-500 text-white h-8"
                         >
-                          <FloppyDisk size={14} weight="bold" className="mr-1.5" />
+                          <UilSave size={14} className="mr-1.5" />
                           Save Rule
                         </Button>
 
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-400 h-8">
-                              <ArrowsLeftRight size={14} weight="duotone" className="mr-1.5" />
+                              <UilExchange size={14} className="mr-1.5" />
                               Convert
-                              <CaretDown size={12} className="ml-1" />
+                              <UilAngleDown size={12} className="ml-1" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
@@ -763,7 +732,7 @@ function DetectionLab() {
                           onClick={() => setGeneratedResult(null)}
                           className="text-zinc-500 hover:text-zinc-300 h-8"
                         >
-                          <X size={14} weight="bold" className="mr-1" />
+                          <UilTimes size={14} className="mr-1" />
                           Clear
                         </Button>
                       </div>
@@ -777,7 +746,7 @@ function DetectionLab() {
           {/* ── Rules Library ───────────────────────────────────────────────── */}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
-              <MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <UilSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <Input
                 placeholder="Search rules..."
                 value={searchQuery}
@@ -788,7 +757,7 @@ function DetectionLab() {
 
             <Select value={filterFormat} onValueChange={(v) => setFilterFormat(v as RuleFormat | "all")}>
               <SelectTrigger className="w-[130px] h-8 bg-zinc-900/50 border-zinc-800 text-xs">
-                <Funnel size={12} className="mr-1 text-zinc-500" />
+                <UilFilter size={12} className="mr-1 text-zinc-500" />
                 <SelectValue placeholder="Format" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -801,7 +770,7 @@ function DetectionLab() {
 
             <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as RuleStatus | "all")}>
               <SelectTrigger className="w-[130px] h-8 bg-zinc-900/50 border-zinc-800 text-xs">
-                <Funnel size={12} className="mr-1 text-zinc-500" />
+                <UilFilter size={12} className="mr-1 text-zinc-500" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -818,7 +787,7 @@ function DetectionLab() {
               onClick={() => { loadRules(); loadStats(); }}
               className="text-zinc-500 hover:text-zinc-300 h-8"
             >
-              <ArrowsClockwise size={14} weight="duotone" />
+              <UilSync size={14} />
             </Button>
           </div>
 
@@ -832,7 +801,7 @@ function DetectionLab() {
           ) : filteredRules.length === 0 ? (
             <Card className="bg-zinc-900/50 border-zinc-800/50">
               <CardContent className="py-16 text-center">
-                <Lightning size={48} weight="duotone" className="mx-auto mb-4 text-zinc-700" />
+                <UilBolt size={48} className="mx-auto mb-4 text-zinc-700" />
                 <h3 className="text-lg font-medium text-zinc-400 mb-1">No detection rules yet</h3>
                 <p className="text-sm text-zinc-600 mb-4">
                   Generate your first rule using natural language above, or create one manually.
@@ -842,7 +811,7 @@ function DetectionLab() {
                   variant="outline"
                   className="border-zinc-700 text-zinc-300"
                 >
-                  <Plus size={14} weight="bold" className="mr-1.5" />
+                  <UilPlus size={14} className="mr-1.5" />
                   Create Rule
                 </Button>
               </CardContent>
@@ -868,9 +837,8 @@ function DetectionLab() {
                         className="flex items-center gap-3 p-4 cursor-pointer"
                         onClick={() => handleExpandRule(rule)}
                       >
-                        <CaretRight
+                        <UilAngleRight
                           size={14}
-                          weight="bold"
                           className={`text-zinc-500 transition-transform ${
                             expandedRuleId === rule.id ? "rotate-90" : ""
                           }`}
@@ -891,26 +859,26 @@ function DetectionLab() {
                           <div className="flex items-center gap-3 text-xs text-zinc-500">
                             {rule.mitre_tactics.length > 0 && (
                               <span className="flex items-center gap-1">
-                                <TreeStructure size={10} weight="duotone" />
+                                <UilSitemap size={10} />
                                 {rule.mitre_tactics.slice(0, 3).join(", ")}
                                 {rule.mitre_tactics.length > 3 && ` +${rule.mitre_tactics.length - 3}`}
                               </span>
                             )}
                             {rule.mitre_techniques.length > 0 && (
                               <span className="flex items-center gap-1">
-                                <Tag size={10} weight="duotone" />
+                                <Tag size={10} />
                                 {rule.mitre_techniques.slice(0, 3).join(", ")}
                                 {rule.mitre_techniques.length > 3 && ` +${rule.mitre_techniques.length - 3}`}
                               </span>
                             )}
                             {rule.last_tested_at && (
                               <span className="flex items-center gap-1">
-                                <TestTube size={10} weight="duotone" />
+                                <UilFlask size={10} />
                                 tested {formatDistanceToNow(new Date(rule.last_tested_at), { addSuffix: true })}
                               </span>
                             )}
                             <span className="flex items-center gap-1">
-                              <Clock size={10} weight="duotone" />
+                              <UilClock size={10} />
                               {formatDistanceToNow(new Date(rule.updated_at), { addSuffix: true })}
                             </span>
                           </div>
@@ -920,7 +888,7 @@ function DetectionLab() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-zinc-500 hover:text-zinc-300">
-                              <DotsThreeVertical size={16} weight="bold" />
+                              <UilEllipsisV size={16} />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="bg-zinc-900 border-zinc-700" align="end">
@@ -928,14 +896,14 @@ function DetectionLab() {
                               onClick={(e) => { e.stopPropagation(); handleCopyRule(rule.rule_content); }}
                               className="text-zinc-300 text-xs"
                             >
-                              <Copy size={12} className="mr-2" />
-                              Copy Rule
+                              <UilCopy size={12} className="mr-2" />
+                              UilCopy Rule
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={(e) => { e.stopPropagation(); handleExportRule(rule); }}
                               className="text-zinc-300 text-xs"
                             >
-                              <DownloadSimple size={12} className="mr-2" />
+                              <UilDownloadAlt size={12} className="mr-2" />
                               Export
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-zinc-800" />
@@ -955,7 +923,7 @@ function DetectionLab() {
                               onClick={(e) => { e.stopPropagation(); setDeleteTarget(rule); }}
                               className="text-red-400 text-xs"
                             >
-                              <Trash size={12} className="mr-2" />
+                              <UilTrashAlt size={12} className="mr-2" />
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -976,19 +944,19 @@ function DetectionLab() {
                               <Tabs value={activeTab} onValueChange={setActiveTab}>
                                 <TabsList className="bg-zinc-800/50 mb-4">
                                   <TabsTrigger value="rule" className="text-xs data-[state=active]:bg-zinc-700">
-                                    <Code size={12} weight="duotone" className="mr-1" />
+                                    <UilBracketsCurly size={12} className="mr-1" />
                                     Rule
                                   </TabsTrigger>
                                   <TabsTrigger value="test" className="text-xs data-[state=active]:bg-zinc-700">
-                                    <TestTube size={12} weight="duotone" className="mr-1" />
+                                    <UilFlask size={12} className="mr-1" />
                                     Test
                                   </TabsTrigger>
                                   <TabsTrigger value="deploy" className="text-xs data-[state=active]:bg-zinc-700">
-                                    <Rocket size={12} weight="duotone" className="mr-1" />
+                                    <UilRocket size={12} className="mr-1" />
                                     Deploy
                                   </TabsTrigger>
                                   <TabsTrigger value="history" className="text-xs data-[state=active]:bg-zinc-700">
-                                    <Clock size={12} weight="duotone" className="mr-1" />
+                                    <UilClock size={12} className="mr-1" />
                                     History
                                   </TabsTrigger>
                                 </TabsList>
@@ -998,7 +966,7 @@ function DetectionLab() {
                                   <Textarea
                                     value={editContent}
                                     onChange={(e) => setEditContent(e.target.value)}
-                                    className="bg-zinc-950 border-zinc-700 text-zinc-300 font-mono text-sm min-h-[300px] leading-relaxed resize-y"
+                                    className="bg-zinc-900 border-zinc-700 text-zinc-300 font-mono text-sm min-h-[300px] leading-relaxed resize-y"
                                     spellCheck={false}
                                   />
                                   <div className="flex items-center gap-2">
@@ -1009,9 +977,9 @@ function DetectionLab() {
                                       className="bg-cyan-600 hover:bg-cyan-500 text-white h-7 text-xs"
                                     >
                                       {saving ? (
-                                        <ArrowsClockwise size={12} className="mr-1 animate-spin" />
+                                        <UilSync size={12} className="mr-1 animate-spin" />
                                       ) : (
-                                        <FloppyDisk size={12} className="mr-1" />
+                                        <UilSave size={12} className="mr-1" />
                                       )}
                                       Save & Version
                                     </Button>
@@ -1021,8 +989,8 @@ function DetectionLab() {
                                       onClick={() => handleCopyRule(editContent)}
                                       className="text-zinc-500 h-7 text-xs"
                                     >
-                                      <Copy size={12} className="mr-1" />
-                                      Copy
+                                      <UilCopy size={12} className="mr-1" />
+                                      UilCopy
                                     </Button>
                                     <Button
                                       size="sm"
@@ -1044,7 +1012,7 @@ function DetectionLab() {
                                           <Badge
                                             key={t}
                                             variant="outline"
-                                            className="text-xs bg-violet-500/10 text-violet-400 border-violet-500/30"
+                                            className="text-xs bg-violet-500/10 text-violet-400"
                                           >
                                             {t}
                                           </Badge>
@@ -1053,7 +1021,7 @@ function DetectionLab() {
                                           <Badge
                                             key={t}
                                             variant="outline"
-                                            className="text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
+                                            className="text-xs bg-cyan-500/10 text-cyan-400"
                                           >
                                             {t}
                                           </Badge>
@@ -1073,7 +1041,7 @@ function DetectionLab() {
                                       placeholder={"powershell.exe -EncodedCommand JABzAD0A...\ncmd.exe /c whoami\nnormal_process.exe --flag value"}
                                       value={testLogs}
                                       onChange={(e) => setTestLogs(e.target.value)}
-                                      className="bg-zinc-950 border-zinc-700 text-zinc-300 font-mono text-sm min-h-[150px] resize-y"
+                                      className="bg-zinc-900 border-zinc-700 text-zinc-300 font-mono text-sm min-h-[150px] resize-y"
                                       spellCheck={false}
                                     />
                                   </div>
@@ -1084,9 +1052,9 @@ function DetectionLab() {
                                     className="bg-cyan-600 hover:bg-cyan-500 text-white h-7 text-xs"
                                   >
                                     {testRunning ? (
-                                      <ArrowsClockwise size={12} className="mr-1 animate-spin" />
+                                      <UilSync size={12} className="mr-1 animate-spin" />
                                     ) : (
-                                      <Play size={12} weight="fill" className="mr-1" />
+                                      <UilPlay size={12} className="mr-1" />
                                     )}
                                     {testRunning ? "Running..." : "Run Test"}
                                   </Button>
@@ -1101,38 +1069,38 @@ function DetectionLab() {
                                       >
                                         <Separator className="bg-zinc-800" />
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                          <div className="bg-zinc-950 rounded-lg p-3 border border-zinc-800">
+                                          <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
                                             <div className="text-xs text-zinc-500 mb-1">Samples Tested</div>
                                             <div className="text-lg font-bold text-zinc-100">{testResults.samples_tested}</div>
                                           </div>
-                                          <div className="bg-zinc-950 rounded-lg p-3 border border-emerald-800/30">
+                                          <div className="bg-zinc-900 rounded-lg p-3 border border-emerald-800/30">
                                             <div className="text-xs text-zinc-500 mb-1">True Positives</div>
                                             <div className="text-lg font-bold text-emerald-400">{testResults.true_positives}</div>
                                           </div>
-                                          <div className="bg-zinc-950 rounded-lg p-3 border border-red-800/30">
+                                          <div className="bg-zinc-900 rounded-lg p-3 border border-red-800/30">
                                             <div className="text-xs text-zinc-500 mb-1">False Negatives</div>
                                             <div className="text-lg font-bold text-red-400">{testResults.false_negatives}</div>
                                           </div>
-                                          <div className="bg-zinc-950 rounded-lg p-3 border border-yellow-800/30">
+                                          <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-800/30">
                                             <div className="text-xs text-zinc-500 mb-1">False Positives</div>
                                             <div className="text-lg font-bold text-yellow-400">{testResults.false_positives}</div>
                                           </div>
                                         </div>
 
                                         <div className="grid grid-cols-3 gap-3">
-                                          <div className="bg-zinc-950 rounded-lg p-3 border border-zinc-800">
+                                          <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
                                             <div className="text-xs text-zinc-500 mb-1">Accuracy</div>
                                             <div className="text-lg font-bold text-cyan-400">
                                               {Math.round(testResults.accuracy * 100)}%
                                             </div>
                                           </div>
-                                          <div className="bg-zinc-950 rounded-lg p-3 border border-zinc-800">
+                                          <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
                                             <div className="text-xs text-zinc-500 mb-1">Precision</div>
                                             <div className="text-lg font-bold text-cyan-400">
                                               {Math.round(testResults.precision * 100)}%
                                             </div>
                                           </div>
-                                          <div className="bg-zinc-950 rounded-lg p-3 border border-zinc-800">
+                                          <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
                                             <div className="text-xs text-zinc-500 mb-1">Recall</div>
                                             <div className="text-lg font-bold text-cyan-400">
                                               {Math.round(testResults.recall * 100)}%
@@ -1148,9 +1116,9 @@ function DetectionLab() {
                                 <TabsContent value="deploy" className="space-y-3 mt-0">
                                   <div className="flex items-end gap-3">
                                     <div className="flex-1">
-                                      <Label className="text-xs text-zinc-400 mb-1.5 block">Target SIEM / IDS</Label>
+                                      <Label className="text-xs text-zinc-400 mb-1.5 block">UilFocusTarget SIEM / IDS</Label>
                                       <Select value={deployTarget} onValueChange={setDeployTarget}>
-                                        <SelectTrigger className="bg-zinc-950 border-zinc-700 text-sm h-8">
+                                        <SelectTrigger className="bg-zinc-900 border-zinc-700 text-sm h-8">
                                           <SelectValue placeholder="Select target..." />
                                         </SelectTrigger>
                                         <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -1167,9 +1135,9 @@ function DetectionLab() {
                                       className="bg-cyan-600 hover:bg-cyan-500 text-white h-8 text-xs"
                                     >
                                       {deploying ? (
-                                        <ArrowsClockwise size={12} className="mr-1 animate-spin" />
+                                        <UilSync size={12} className="mr-1 animate-spin" />
                                       ) : (
-                                        <Rocket size={12} weight="duotone" className="mr-1" />
+                                        <UilRocket size={12} className="mr-1" />
                                       )}
                                       Deploy
                                     </Button>
@@ -1183,10 +1151,10 @@ function DetectionLab() {
                                         {rule.deployed_to.map(target => (
                                           <div
                                             key={target}
-                                            className="flex items-center justify-between bg-zinc-950 rounded-md p-2.5 border border-zinc-800"
+                                            className="flex items-center justify-between bg-zinc-900 rounded-md p-2.5 border border-zinc-800"
                                           >
                                             <div className="flex items-center gap-2">
-                                              <CheckCircle size={14} weight="duotone" className="text-emerald-400" />
+                                              <UilCheckCircle size={14} className="text-emerald-400" />
                                               <span className="text-sm text-zinc-200">{target}</span>
                                             </div>
                                             <Button
@@ -1205,7 +1173,7 @@ function DetectionLab() {
 
                                   {rule.deployed_to.length === 0 && (
                                     <div className="text-center py-8 text-zinc-600 text-sm">
-                                      <Rocket size={24} weight="duotone" className="mx-auto mb-2 text-zinc-700" />
+                                      <UilRocket size={24} className="mx-auto mb-2 text-zinc-700" />
                                       Not deployed anywhere yet
                                     </div>
                                   )}
@@ -1220,20 +1188,20 @@ function DetectionLab() {
                                 {/* History tab */}
                                 <TabsContent value="history" className="space-y-3 mt-0">
                                   <div className="space-y-2">
-                                    <div className="flex items-center justify-between bg-zinc-950 rounded-md p-3 border border-zinc-800">
+                                    <div className="flex items-center justify-between bg-zinc-900 rounded-md p-3 border border-zinc-800">
                                       <div>
                                         <div className="text-sm text-zinc-200 font-medium">Version {rule.version}</div>
                                         <div className="text-xs text-zinc-500">
                                           Current — updated {formatDistanceToNow(new Date(rule.updated_at), { addSuffix: true })}
                                         </div>
                                       </div>
-                                      <Badge variant="outline" className="text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/30">
+                                      <Badge variant="outline" className="text-xs bg-cyan-500/10 text-cyan-400">
                                         current
                                       </Badge>
                                     </div>
 
                                     {rule.last_tested_at && (
-                                      <div className="flex items-center justify-between bg-zinc-950 rounded-md p-3 border border-zinc-800">
+                                      <div className="flex items-center justify-between bg-zinc-900 rounded-md p-3 border border-zinc-800">
                                         <div>
                                           <div className="text-sm text-zinc-300">Last Test Run</div>
                                           <div className="text-xs text-zinc-500">
@@ -1248,7 +1216,7 @@ function DetectionLab() {
                                       </div>
                                     )}
 
-                                    <div className="flex items-center justify-between bg-zinc-950 rounded-md p-3 border border-zinc-800">
+                                    <div className="flex items-center justify-between bg-zinc-900 rounded-md p-3 border border-zinc-800">
                                       <div>
                                         <div className="text-sm text-zinc-300">Created</div>
                                         <div className="text-xs text-zinc-500">
@@ -1289,7 +1257,7 @@ function DetectionLab() {
           <Card className="bg-zinc-900/50 border-zinc-800/50">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base text-zinc-100">
-                <TreeStructure size={18} weight="duotone" className="text-violet-400" />
+                <UilSitemap size={18} className="text-violet-400" />
                 MITRE ATT&CK Coverage
               </CardTitle>
             </CardHeader>
@@ -1306,18 +1274,17 @@ function DetectionLab() {
                     <div key={tactic.id} className="space-y-1">
                       <button
                         onClick={() => setExpandedTactic(isExpanded ? null : tactic.id)}
-                        className="w-full flex items-center justify-between p-2 rounded-md bg-zinc-950 border border-zinc-800 hover:border-violet-700/50 transition-colors text-left"
+                        className="w-full flex items-center justify-between p-2 rounded-md bg-zinc-900 border border-zinc-800 hover:border-violet-700/50 transition-colors text-left"
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <CaretRight
+                          <UilAngleRight
                             size={10}
-                            weight="bold"
                             className={`text-zinc-500 transition-transform flex-none ${isExpanded ? "rotate-90" : ""}`}
                           />
                           <span className="text-xs text-zinc-300 truncate">{tactic.name}</span>
                         </div>
                         {ruleCount > 0 && (
-                          <Badge variant="outline" className="text-[10px] bg-violet-500/10 text-violet-400 border-violet-500/30 flex-none ml-1">
+                          <Badge variant="outline" className="text-[10px] bg-violet-500/10 text-violet-400 flex-none ml-1">
                             {ruleCount}
                           </Badge>
                         )}
@@ -1370,13 +1337,13 @@ function DetectionLab() {
                 placeholder="e.g. Detect Encoded PowerShell Execution"
                 value={newRuleName}
                 onChange={(e) => setNewRuleName(e.target.value)}
-                className="bg-zinc-950 border-zinc-700 text-zinc-100"
+                className="bg-zinc-900 border-zinc-700 text-zinc-100"
               />
             </div>
             <div>
               <Label className="text-xs text-zinc-400 mb-1.5 block">Format</Label>
               <Select value={newRuleFormat} onValueChange={(v) => setNewRuleFormat(v as RuleFormat)}>
-                <SelectTrigger className="bg-zinc-950 border-zinc-700">
+                <SelectTrigger className="bg-zinc-900 border-zinc-700">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -1392,7 +1359,7 @@ function DetectionLab() {
                 placeholder="Paste or write rule content..."
                 value={newRuleContent}
                 onChange={(e) => setNewRuleContent(e.target.value)}
-                className="bg-zinc-950 border-zinc-700 text-zinc-300 font-mono text-sm min-h-[120px]"
+                className="bg-zinc-900 border-zinc-700 text-zinc-300 font-mono text-sm min-h-[120px]"
                 spellCheck={false}
               />
             </div>
@@ -1409,7 +1376,7 @@ function DetectionLab() {
               onClick={handleCreateManual}
               className="bg-cyan-600 hover:bg-cyan-500 text-white"
             >
-              <Plus size={14} weight="bold" className="mr-1.5" />
+              <UilPlus size={14} className="mr-1.5" />
               Create Rule
             </Button>
           </DialogFooter>
@@ -1421,7 +1388,7 @@ function DetectionLab() {
         <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-zinc-100 flex items-center gap-2">
-              <Warning size={20} weight="duotone" className="text-red-400" />
+              <UilExclamationTriangle size={20} className="text-red-400" />
               Delete Detection Rule
             </DialogTitle>
             <DialogDescription className="text-zinc-500">
@@ -1440,7 +1407,7 @@ function DetectionLab() {
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-500 text-white"
             >
-              <Trash size={14} weight="bold" className="mr-1.5" />
+              <UilTrashAlt size={14} className="mr-1.5" />
               Delete
             </Button>
           </DialogFooter>

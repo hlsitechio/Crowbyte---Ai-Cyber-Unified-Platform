@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, CircleNotch, Lock, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import { UilArrowLeft, UilSpinner, UilLock, UilCheckCircle, UilExclamationCircle } from "@iconscout/react-unicons";
 import { toast } from "sonner";
 
 type ResetState = "loading" | "ready" | "submitting" | "success" | "error";
@@ -94,7 +94,7 @@ export default function PasswordReset() {
  onClick={() => { window.location.href = '/'; }}
  className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-blue-500 transition-colors font-['JetBrains_Mono'] cursor-pointer"
  >
- <ArrowLeft size={14} weight="bold" />
+ <UilArrowLeft size={14} />
  Back to website
  </button>
  <div className="flex flex-col items-center gap-3">
@@ -113,12 +113,12 @@ export default function PasswordReset() {
  </div>
  </div>
 
- <Card className="w-full border-blue-500/20 bg-zinc-950/50">
+ <Card className="w-full border-blue-500/20 bg-zinc-900/50">
  <CardHeader className="text-center">
  {state === "loading" && (
  <>
  <div className="mx-auto mb-2">
- <CircleNotch size={40} weight="bold" className="animate-spin text-blue-500" />
+ <UilSpinner size={40} className="animate-spin text-blue-500" />
  </div>
  <CardTitle className="text-xl">Verifying Reset Link</CardTitle>
  <CardDescription>Please wait while we verify your password reset token...</CardDescription>
@@ -128,7 +128,7 @@ export default function PasswordReset() {
  {state === "error" && (
  <>
  <div className="mx-auto mb-2">
- <WarningCircle size={40} weight="duotone" className="text-red-500" />
+ <UilExclamationCircle size={40} className="text-red-500" />
  </div>
  <CardTitle className="text-xl text-red-400">Reset Link Invalid</CardTitle>
  <CardDescription className="text-red-400/70">{errorMsg}</CardDescription>
@@ -138,7 +138,7 @@ export default function PasswordReset() {
  {(state === "ready" || state === "submitting") && (
  <>
  <div className="mx-auto mb-2">
- <Lock size={40} weight="duotone" className="text-blue-500" />
+ <UilLock size={40} className="text-blue-500" />
  </div>
  <CardTitle className="text-xl">Set New Password</CardTitle>
  <CardDescription>Enter your new password below</CardDescription>
@@ -148,7 +148,7 @@ export default function PasswordReset() {
  {state === "success" && (
  <>
  <div className="mx-auto mb-2">
- <CheckCircle size={40} weight="duotone" className="text-green-500" />
+ <UilCheckCircle size={40} className="text-green-500" />
  </div>
  <CardTitle className="text-xl text-green-400">Password Updated!</CardTitle>
  <CardDescription>Your password has been changed successfully. Redirecting to dashboard...</CardDescription>
@@ -209,7 +209,7 @@ export default function PasswordReset() {
  >
  {state === "submitting" ? (
  <>
- <CircleNotch size={16} weight="bold" className="mr-2 animate-spin" />
+ <UilSpinner size={16} className="mr-2 animate-spin" />
  Updating password...
  </>
  ) : (

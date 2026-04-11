@@ -47,11 +47,11 @@ export interface AgentTask {
   input: Record<string, unknown>;
   output: Record<string, unknown> | null;
   error: string | null;
-  assigned_to: string | null;
+  assigned_at: string | null;
   scheduled_at: string | null;
   started_at: string | null;
   completed_at: string | null;
-  retry_count: number;
+  retries: number;
   max_retries: number;
   timeout_ms: number;
   created_at: string;
@@ -150,8 +150,8 @@ const AGENT_REGISTRY: Record<string, {
   intel:        { team: 'security', capabilities: ['osint', 'threat_intel', 'ioc_correlate'], description: 'Threat intelligence gathering', default_timeout_ms: 600000 },
 
   // Dev team
-  coder:        { team: 'dev', capabilities: ['code_gen', 'refactor', 'implement'], description: 'Code generation & implementation', default_timeout_ms: 600000 },
-  reviewer:     { team: 'dev', capabilities: ['code_review', 'security_audit', 'best_practice'], description: 'Code review & security audit', default_timeout_ms: 300000 },
+  coder:        { team: 'dev', capabilities: ['code_gen', 'refactor', 'implement'], description: 'UilBracketsCurly generation & implementation', default_timeout_ms: 600000 },
+  reviewer:     { team: 'dev', capabilities: ['code_review', 'security_audit', 'best_practice'], description: 'UilBracketsCurly review & security audit', default_timeout_ms: 300000 },
   tester:       { team: 'dev', capabilities: ['unit_test', 'integration_test', 'e2e_test'], description: 'Test generation & execution', default_timeout_ms: 600000 },
   debugger:     { team: 'dev', capabilities: ['debug', 'trace', 'profile'], description: 'Debugging & profiling', default_timeout_ms: 300000 },
   docs:         { team: 'dev', capabilities: ['doc_gen', 'api_docs', 'readme'], description: 'Documentation generation', default_timeout_ms: 180000 },
@@ -317,18 +317,28 @@ class AgentOrchestrator {
     const agentInfo = AGENT_REGISTRY[params.agentType];
     const timeoutMs = params.timeoutMs || agentInfo?.default_timeout_ms || 300000;
 
+    // Build human-readable task name from type + input
+    const taskName = (params.input?.name as string)
+      || (params.input?.schedule_name as string)
+      || `${params.taskType} — ${params.agentType}`;
+    const target = (params.input?.target as string) || 'system';
+
     const { data, error } = await supabase
       .from('agent_tasks')
       .insert({
         team_id: params.teamId,
         user_id: params.userId,
+        agent: params.agentType,
         agent_type: params.agentType,
+        task: taskName,
         task_type: params.taskType,
+        target,
         priority: params.priority || 50,
         status: 'queued' as TaskStatus,
         input: params.input,
         scheduled_at: params.scheduledAt || null,
         max_retries: params.maxRetries || 3,
+        retries: 0,
         timeout_ms: timeoutMs,
       })
       .select()
@@ -433,7 +443,7 @@ class AgentOrchestrator {
 
     if (fetchError || !task) return null;
     if (task.status !== 'failed') return null;
-    if (task.retry_count >= task.max_retries) {
+    if (task.retries >= task.max_retries) {
       console.error('[orchestrator] Max retries reached for task:', taskId);
       return null;
     }
@@ -442,9 +452,9 @@ class AgentOrchestrator {
       .from('agent_tasks')
       .update({
         status: 'queued' as TaskStatus,
-        retry_count: task.retry_count + 1,
+        retries: task.retries + 1,
         error: null,
-        assigned_to: null,
+        assigned_at: null,
         started_at: null,
         completed_at: null,
         updated_at: new Date().toISOString(),
@@ -545,7 +555,7 @@ class AgentOrchestrator {
       .eq('agent_type', agentType)
       .eq('status', 'idle')
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error || !data) return null;
     return data as AgentInstance;
@@ -608,7 +618,7 @@ class AgentOrchestrator {
           .from('agent_tasks')
           .update({
             status: 'assigned' as TaskStatus,
-            assigned_to: instance.id,
+            assigned_at: now,
             updated_at: now,
           })
           .eq('id', task.id);
@@ -712,7 +722,7 @@ class AgentOrchestrator {
         .eq('id', instance.id);
 
       // Auto-retry if under limit
-      if (task.retry_count < task.max_retries) {
+      if (task.retries < task.max_retries) {
         await this.retryTask(task.id);
       }
     }
@@ -1015,10 +1025,13 @@ class AgentOrchestrator {
 
         processed++;
       } else {
+        // CRITICAL: Always advance next_run_at on failure to prevent infinite retry loop
+        const nextRun = this.getNextCronRun(schedule.cron_expression, schedule.timezone);
         await supabase
           .from('agent_schedules')
           .update({
             failure_count: (schedule.failure_count || 0) + 1,
+            next_run_at: nextRun,
             updated_at: now,
           })
           .eq('id', schedule.id);
@@ -1034,43 +1047,49 @@ class AgentOrchestrator {
    * "0 0 * * *" (daily), "0 0 * * 0" (weekly).
    */
   private getNextCronRun(cronExpr: string, _timezone: string): string {
-    const parts = cronExpr.split(' ');
-    const now = new Date();
-    const next = new Date(now);
+    const fallback = new Date(Date.now() + 3600000).toISOString(); // 1h from now
 
-    if (parts.length !== 5) {
-      // Invalid cron — default to 1 hour from now
-      next.setHours(next.getHours() + 1);
+    try {
+      const parts = (cronExpr || '').trim().split(/\s+/);
+
+      if (parts.length !== 5) return fallback;
+
+      const now = new Date();
+      const next = new Date(now);
+      const [minute, hour, dayOfMonth, , dayOfWeek] = parts;
+
+      if (minute === '*' && hour === '*') {
+        next.setMinutes(next.getMinutes() + 1);
+      } else if (hour === '*') {
+        const m = parseInt(minute);
+        if (isNaN(m)) return fallback;
+        next.setMinutes(m);
+        if (next <= now) next.setHours(next.getHours() + 1);
+      } else if (dayOfMonth === '*' && dayOfWeek === '*') {
+        const h = parseInt(hour), m = parseInt(minute);
+        if (isNaN(h) || isNaN(m)) return fallback;
+        next.setHours(h, m, 0, 0);
+        if (next <= now) next.setDate(next.getDate() + 1);
+      } else if (dayOfWeek !== '*') {
+        const d = parseInt(dayOfWeek), h = parseInt(hour), m = parseInt(minute);
+        if (isNaN(d) || isNaN(h) || isNaN(m)) return fallback;
+        next.setHours(h, m, 0, 0);
+        const daysUntil = (d - next.getDay() + 7) % 7 || 7;
+        next.setDate(next.getDate() + daysUntil);
+      } else {
+        const dom = parseInt(dayOfMonth), h = parseInt(hour), m = parseInt(minute);
+        if (isNaN(dom) || isNaN(h) || isNaN(m)) return fallback;
+        next.setDate(dom);
+        next.setHours(h, m, 0, 0);
+        if (next <= now) next.setMonth(next.getMonth() + 1);
+      }
+
+      // Final guard — if date is invalid, use fallback
+      if (isNaN(next.getTime())) return fallback;
       return next.toISOString();
+    } catch {
+      return fallback;
     }
-
-    const [minute, hour, dayOfMonth, , dayOfWeek] = parts;
-
-    if (minute === '*' && hour === '*') {
-      // Every minute
-      next.setMinutes(next.getMinutes() + 1);
-    } else if (hour === '*') {
-      // Every hour at minute X
-      next.setMinutes(parseInt(minute));
-      if (next <= now) next.setHours(next.getHours() + 1);
-    } else if (dayOfMonth === '*' && dayOfWeek === '*') {
-      // Daily at hour:minute
-      next.setHours(parseInt(hour), parseInt(minute), 0, 0);
-      if (next <= now) next.setDate(next.getDate() + 1);
-    } else if (dayOfWeek !== '*') {
-      // Weekly on specific day
-      const targetDay = parseInt(dayOfWeek);
-      next.setHours(parseInt(hour), parseInt(minute), 0, 0);
-      const daysUntil = (targetDay - next.getDay() + 7) % 7 || 7;
-      next.setDate(next.getDate() + daysUntil);
-    } else {
-      // Monthly on specific day
-      next.setDate(parseInt(dayOfMonth));
-      next.setHours(parseInt(hour), parseInt(minute), 0, 0);
-      if (next <= now) next.setMonth(next.getMonth() + 1);
-    }
-
-    return next.toISOString();
   }
 
   // ── Queue Polling ───────────────────────────────────────────────────────
@@ -1085,15 +1104,23 @@ class AgentOrchestrator {
     console.log(`[orchestrator] Starting queue processor (${intervalMs}ms interval)`);
 
     this.pollInterval = setInterval(async () => {
-      try {
-        const dispatched = await this.processQueue();
-        const scheduled = await this.processSchedules();
+      let dispatched = 0;
+      let scheduled = 0;
 
-        if (dispatched > 0 || scheduled > 0) {
-          console.log(`[orchestrator] Dispatched: ${dispatched} tasks, Scheduled: ${scheduled} jobs`);
-        }
+      try {
+        dispatched = await this.processQueue();
       } catch (err) {
-        console.error('[orchestrator] Queue processing error:', err);
+        console.warn('[orchestrator] Queue error:', (err as Error).message);
+      }
+
+      try {
+        scheduled = await this.processSchedules();
+      } catch (err) {
+        console.warn('[orchestrator] Schedule error:', (err as Error).message);
+      }
+
+      if (dispatched > 0 || scheduled > 0) {
+        console.log(`[orchestrator] Dispatched: ${dispatched} tasks, Scheduled: ${scheduled} jobs`);
       }
     }, intervalMs);
 

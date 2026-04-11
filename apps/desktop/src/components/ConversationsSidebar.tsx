@@ -4,23 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DndContext, DragOverlay, useDraggable, useDroppable, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import {
- ChatDots,
- Plus,
- Trash,
- PencilSimple,
- FolderPlus,
- Folder,
- CaretRight,
- CaretDown,
- Check,
- X,
- CheckSquare,
- Square,
- CheckSquare as SquareCheck,
- MagnifyingGlass,
-} from "@phosphor-icons/react";
+import { DndContext, DragOverlay, useDraggable, useDroppable, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { UilCommentDots, UilPlus, UilTrashAlt, UilPen, UilFolderPlus, UilFolder, UilAngleRight, UilAngleDown, UilCheck, UilTimes, UilCheckSquare, UilSquare, UilSearch } from "@iconscout/react-unicons";
 import {
  AlertDialog,
  AlertDialogAction,
@@ -76,6 +61,12 @@ export function ConversationsSidebar({
  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
  const [searchQuery, setSearchQuery] = useState("");
  const { toast } = useToast();
+
+ // Require 8px drag distance before activating — prevents click-to-select from triggering drag
+ const pointerSensor = useSensor(PointerSensor, {
+   activationConstraint: { distance: 8 },
+ });
+ const sensors = useSensors(pointerSensor);
 
  // Search filter
  const filteredConversations = useMemo(() => {
@@ -161,7 +152,7 @@ export function ConversationsSidebar({
  } else {
  toast({
  title: "Success",
- description: `${type === "conversation" ? "Chat" : "Folder"} renamed successfully`,
+ description: `${type === "conversation" ? "Chat" : "UilFolder"} renamed successfully`,
  });
  setEditingId(null);
  fetchData();
@@ -187,7 +178,7 @@ export function ConversationsSidebar({
  } else {
  toast({
  title: "Success",
- description: `${deleteType === "conversation" ? "Chat" : "Folder"} deleted successfully`,
+ description: `${deleteType === "conversation" ? "Chat" : "UilFolder"} deleted successfully`,
  });
  fetchData();
  }
@@ -213,7 +204,7 @@ export function ConversationsSidebar({
  } else {
  toast({
  title: "Success",
- description: "Folder created successfully",
+ description: "UilFolder created successfully",
  });
  setIsCreatingFolder(false);
  setNewFolderName("");
@@ -396,9 +387,9 @@ export function ConversationsSidebar({
  }}
  >
  {isSelected ? (
- <SquareCheck size={16} weight="bold" className="text-primary" />
+ <UilCheckSquare size={16} className="text-primary" />
  ) : (
- <Square size={16} weight="bold" />
+ <UilSquare size={16} />
  )}
  </Button>
  )}
@@ -419,10 +410,10 @@ export function ConversationsSidebar({
  }}
  />
  <Button size="sm" className="h-7 w-7 p-0" onClick={() => handleRename(conversation.id, "conversation")}>
- <Check size={12} weight="bold" />
+ <UilCheck size={12} />
  </Button>
  <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => setEditingId(null)}>
- <X size={12} weight="bold" />
+ <UilTimes size={12} />
  </Button>
  </div>
  ) : (
@@ -434,12 +425,12 @@ export function ConversationsSidebar({
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
- <Folder size={12} weight="bold" />
+ <UilFolder size={12} />
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent>
  <DropdownMenuItem onClick={() => handleMoveToFolder(conversation.id, null)}>
- No Folder
+ No UilFolder
  </DropdownMenuItem>
  {folders.map(folder => (
  <DropdownMenuItem key={folder.id} onClick={() => handleMoveToFolder(conversation.id, folder.id)}>
@@ -457,7 +448,7 @@ export function ConversationsSidebar({
  setEditingName(conversation.title || "");
  }}
  >
- <PencilSimple size={12} weight="bold" />
+ <UilPen size={12} />
  </Button>
  <Button
  size="sm"
@@ -468,7 +459,7 @@ export function ConversationsSidebar({
  setDeleteType("conversation");
  }}
  >
- <Trash size={12} weight="bold" />
+ <UilTrashAlt size={12} />
  </Button>
  </div>
  )}
@@ -477,12 +468,12 @@ export function ConversationsSidebar({
  };
 
  return (
- <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+ <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
  <div className="w-72 border-r border-white/[0.04] bg-black/20 backdrop-blur-md flex flex-col h-full">
  <div className="p-3 border-b border-white/[0.04] space-y-2">
  {/* Search */}
  <div className="relative">
- <MagnifyingGlass size={14} weight="bold" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
+ <UilSearch size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
  <Input
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
@@ -493,7 +484,7 @@ export function ConversationsSidebar({
  {!selectionMode ? (
  <>
  <Button onClick={onNewConversation} className="w-full h-8 text-xs bg-violet-600 hover:bg-violet-500 text-white">
- <Plus size={14} weight="bold" className="mr-1.5" />
+ <UilPlus size={14} className="mr-1.5" />
  New Chat
  </Button>
  <div className="flex gap-2">
@@ -502,15 +493,15 @@ export function ConversationsSidebar({
  variant="outline"
  className="flex-1"
  >
- <FolderPlus size={16} weight="bold" className="mr-2" />
- New Folder
+ <UilFolderPlus size={16} className="mr-2" />
+ New UilFolder
  </Button>
  <Button
  onClick={() => setSelectionMode(true)}
  variant="outline"
  className="flex-1"
  >
- <CheckSquare size={16} weight="bold" className="mr-2" />
+ <UilCheckSquare size={16} className="mr-2" />
  Select
  </Button>
  </div>
@@ -529,7 +520,7 @@ export function ConversationsSidebar({
  setSelectedConversations(new Set());
  }}
  >
- <X size={16} weight="bold" className="mr-1" />
+ <UilTimes size={16} className="mr-1" />
  Cancel
  </Button>
  </div>
@@ -540,12 +531,12 @@ export function ConversationsSidebar({
  >
  {selectedConversations.size === getAllConversationIds().length ? (
  <>
- <Square size={16} weight="bold" className="mr-2" />
+ <UilSquare size={16} className="mr-2" />
  Deselect All
  </>
  ) : (
  <>
- <SquareCheck size={16} weight="bold" className="mr-2" />
+ <UilCheckSquare size={16} className="mr-2" />
  Select All
  </>
  )}
@@ -558,13 +549,13 @@ export function ConversationsSidebar({
  className="flex-1"
  disabled={selectedConversations.size === 0}
  >
- <Folder size={16} weight="bold" className="mr-2" />
+ <UilFolder size={16} className="mr-2" />
  Move
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent>
  <DropdownMenuItem onClick={() => handleBulkMoveToFolder(null)}>
- No Folder
+ No UilFolder
  </DropdownMenuItem>
  {folders.map(folder => (
  <DropdownMenuItem key={folder.id} onClick={() => handleBulkMoveToFolder(folder.id)}>
@@ -579,7 +570,7 @@ export function ConversationsSidebar({
  className="flex-1"
  disabled={selectedConversations.size === 0}
  >
- <Trash size={16} weight="bold" className="mr-2" />
+ <UilTrashAlt size={16} className="mr-2" />
  Delete
  </Button>
  </div>
@@ -593,7 +584,7 @@ export function ConversationsSidebar({
  <Input
  value={newFolderName}
  onChange={(e) => setNewFolderName(e.target.value)}
- placeholder="Folder name"
+ placeholder="UilFolder name"
  className="flex-1"
  autoFocus
  onKeyDown={(e) => {
@@ -602,10 +593,10 @@ export function ConversationsSidebar({
  }}
  />
  <Button size="sm" onClick={handleCreateFolder}>
- <Check size={16} weight="bold" />
+ <UilCheck size={16} />
  </Button>
  <Button size="sm" variant="outline" onClick={() => setIsCreatingFolder(false)}>
- <X size={16} weight="bold" />
+ <UilTimes size={16} />
  </Button>
  </div>
  </div>
@@ -624,12 +615,12 @@ export function ConversationsSidebar({
  onClick={() => toggleFolder(folder.id)}
  >
  {expandedFolders.has(folder.id) ? (
- <CaretDown size={16} weight="bold" />
+ <UilAngleDown size={16} />
  ) : (
- <CaretRight size={16} weight="bold" />
+ <UilAngleRight size={16} />
  )}
  </Button>
- <Folder size={16} weight="bold" className="text-primary" />
+ <UilFolder size={16} className="text-primary" />
  {editingId === folder.id ? (
  <div className="flex gap-1 flex-1">
  <Input
@@ -643,7 +634,7 @@ export function ConversationsSidebar({
  }}
  />
  <Button size="sm" className="h-7 w-7 p-0" onClick={() => handleRename(folder.id, "folder")}>
- <Check size={12} weight="bold" />
+ <UilCheck size={12} />
  </Button>
  </div>
  ) : (
@@ -660,7 +651,7 @@ export function ConversationsSidebar({
  setEditingName(folder.name);
  }}
  >
- <PencilSimple size={12} weight="bold" />
+ <UilPen size={12} />
  </Button>
  <Button
  size="sm"
@@ -672,7 +663,7 @@ export function ConversationsSidebar({
  setDeleteType("folder");
  }}
  >
- <Trash size={12} weight="bold" />
+ <UilTrashAlt size={12} />
  </Button>
  </div>
  </div>
@@ -691,7 +682,7 @@ export function ConversationsSidebar({
  <DroppableFolderZone folderId="unorganized">
  <div className="mt-4">
  <div className="flex items-center gap-2 px-2 py-1 mb-1">
- <ChatDots size={16} weight="bold" className="text-muted-foreground" />
+ <UilCommentDots size={16} className="text-muted-foreground" />
  <span className="text-xs font-medium text-muted-foreground uppercase">Unorganized</span>
  </div>
  <div className="space-y-1">
@@ -708,7 +699,7 @@ export function ConversationsSidebar({
  <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
  <AlertDialogContent>
  <AlertDialogHeader>
- <AlertDialogTitle>Delete {deleteType === "conversation" ? "Chat" : "Folder"}?</AlertDialogTitle>
+ <AlertDialogTitle>Delete {deleteType === "conversation" ? "Chat" : "UilFolder"}?</AlertDialogTitle>
  <AlertDialogDescription>
  {deleteType === "conversation"
  ? "This will permanently delete this conversation and all its messages."

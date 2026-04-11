@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { pgOr } from '@/lib/utils';
 
 export interface Bookmark {
   id: string;
@@ -114,7 +115,7 @@ class BookmarksService {
     const { data, error } = await supabase
       .from('bookmarks')
       .select('*')
-      .or(`title.ilike.%${query}%,url.ilike.%${query}%,description.ilike.%${query}%`)
+      .or(`title.ilike.%${pgOr(query)}%,url.ilike.%${pgOr(query)}%,description.ilike.%${pgOr(query)}%`)
       .order('created_at', { ascending: false });
 
     if (error) {

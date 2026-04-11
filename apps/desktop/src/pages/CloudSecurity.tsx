@@ -1,7 +1,7 @@
 /**
- * Cloud Security — Cloud Security Posture Management (CSPM)
+ * UilCloud Security — UilCloud Security Posture Management (CSPM)
  * Phase 7 of the Cybersecurity Gaps Integration Plan.
- * Cloud accounts, resource inventory, findings with reachability, SBOM, compliance.
+ * UilCloud accounts, resource inventory, findings with reachability, SBOM, compliance.
  */
 
 import { useState, useMemo } from "react";
@@ -23,43 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Shield,
-  ShieldCheck,
-  ShieldWarning,
-  Cloud,
-  CloudArrowUp,
-  Database,
-  Lock,
-  Eye,
-  Warning,
-  CheckCircle,
-  XCircle,
-  Plus,
-  Trash,
-  ArrowsClockwise,
-  DownloadSimple,
-  PlugsConnected,
-  TreeStructure,
-  Package,
-  Bug,
-  Wrench,
-  CaretRight,
-  CaretDown,
-  Copy,
-  Lightning,
-  Funnel,
-  Globe,
-  WifiHigh,
-  WifiSlash,
-  HardDrives,
-  Key,
-  Scroll,
-  Cpu,
-  FileCode,
-  X,
-  HardHat,
-} from "@phosphor-icons/react";
+import { UilShield, UilShieldCheck, UilShieldExclamation, UilCloud, UilDatabase, UilLock, UilEye, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilPlus, UilTrashAlt, UilSync, UilDownloadAlt, UilPlug, UilSitemap, UilBox, UilBug, UilWrench, UilAngleRight, UilAngleDown, UilCopy, UilBolt, UilFilter, UilGlobe, UilWifi, UilServer, UilKeySkeleton, UilScroll, UilProcessor, UilTimes, UilHardHat, UilUpload, UilFileAlt } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Types (local, matching service) ──────────────────────────────────────────
@@ -131,11 +95,11 @@ interface SBOMComponent {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SEVERITY_COLORS: Record<FindingSeverity, string> = {
-  critical: "bg-red-500/20 text-red-400 border-red-500/30",
-  high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  info: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
+  critical: "bg-red-500/20 text-red-400",
+  high: "bg-orange-500/20 text-orange-400",
+  medium: "bg-yellow-500/20 text-yellow-400",
+  low: "bg-blue-500/20 text-blue-400",
+  info: "bg-zinc-500/20 text-zinc-400",
 };
 
 const SEVERITY_DOT: Record<FindingSeverity, string> = {
@@ -147,11 +111,11 @@ const SEVERITY_DOT: Record<FindingSeverity, string> = {
 };
 
 const STATUS_COLORS: Record<FindingStatus, string> = {
-  open: "bg-red-500/20 text-red-400 border-red-500/30",
-  remediated: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  accepted_risk: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  false_positive: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
-  suppressed: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  open: "bg-red-500/20 text-red-400",
+  remediated: "bg-emerald-500/20 text-emerald-400",
+  accepted_risk: "bg-yellow-500/20 text-yellow-400",
+  false_positive: "bg-zinc-500/20 text-zinc-400",
+  suppressed: "bg-purple-500/20 text-purple-400",
 };
 
 const STATUS_LABELS: Record<FindingStatus, string> = {
@@ -168,13 +132,13 @@ const PROVIDER_COLORS: Record<CloudProvider, { bg: string; text: string; label: 
   gcp: { bg: "bg-emerald-500/20", text: "text-emerald-400", label: "GCP" },
 };
 
-const CATEGORY_ICONS: Record<FindingCategory, typeof Shield> = {
-  iam: Key,
-  storage: Database,
-  network: Globe,
-  encryption: Lock,
-  logging: Scroll,
-  compute: Cpu,
+const CATEGORY_ICONS: Record<FindingCategory, typeof UilShield> = {
+  iam: UilKeySkeleton,
+  storage: UilDatabase,
+  network: UilGlobe,
+  encryption: UilLock,
+  logging: UilScroll,
+  compute: UilProcessor,
 };
 
 const CATEGORY_LABELS: Record<FindingCategory, string> = {
@@ -186,18 +150,18 @@ const CATEGORY_LABELS: Record<FindingCategory, string> = {
   compute: "Compute",
 };
 
-const EXPOSURE_CONFIG: Record<ExposureLevel, { color: string; icon: typeof Globe; label: string }> = {
-  internet: { color: "text-red-400", icon: Globe, label: "Internet-Exposed" },
-  vpc: { color: "text-yellow-400", icon: WifiHigh, label: "VPC-Only" },
-  none: { color: "text-emerald-400", icon: WifiSlash, label: "Not Reachable" },
+const EXPOSURE_CONFIG: Record<ExposureLevel, { color: string; icon: typeof UilGlobe; label: string }> = {
+  internet: { color: "text-red-400", icon: UilGlobe, label: "Internet-Exposed" },
+  vpc: { color: "text-yellow-400", icon: UilWifi, label: "VPC-Only" },
+  none: { color: "text-emerald-400", icon: UilShieldCheck, label: "Not Reachable" },
 };
 
 const FRAMEWORK_LABELS: ComplianceFramework[] = ["CIS", "SOC2", "PCI-DSS", "HIPAA", "NIST", "ISO27001"];
 
 const FORMAT_COLORS: Record<SBOMFormat, string> = {
-  cyclonedx: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-  spdx: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  syft: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  cyclonedx: "bg-cyan-500/20 text-cyan-400",
+  spdx: "bg-purple-500/20 text-purple-400",
+  syft: "bg-amber-500/20 text-amber-400",
 };
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -453,7 +417,7 @@ const MOCK_FINDINGS: MockFinding[] = [
   {
     id: "f-17", account_id: "acc-2",
     title: "Azure SQL Database TDE Disabled",
-    description: "SQL Database 'staging-appdb' does not have Transparent Data Encryption enabled.",
+    description: "SQL UilDatabase 'staging-appdb' does not have Transparent Data Encryption enabled.",
     severity: "critical", category: "encryption",
     compliance_frameworks: ["CIS", "SOC2", "PCI-DSS", "HIPAA"],
     exposure: "vpc",
@@ -755,14 +719,14 @@ function ScoreDonut({ score, size = 120 }: { score: number; size?: number }) {
 }
 
 function StatCard({ label, value, icon: Icon, color = "text-zinc-400" }: {
-  label: string; value: string | number; icon: typeof Shield; color?: string;
+  label: string; value: string | number; icon: typeof UilShield; color?: string;
 }) {
   return (
     <motion.div {...fadeIn}>
       <Card className="bg-zinc-900/50 border-zinc-800">
         <CardContent className="p-4 flex items-center gap-3">
           <div className={`p-2 rounded-lg bg-zinc-800/80 ${color}`}>
-            <Icon size={20} weight="duotone" />
+            <Icon size={20} />
           </div>
           <div>
             <p className="text-xs text-zinc-500">{label}</p>
@@ -918,12 +882,12 @@ export default function CloudSecurity() {
           </Card>
         </motion.div>
         <div className="col-span-9 grid grid-cols-3 gap-4">
-          <StatCard label="Cloud Accounts" value={accounts.length} icon={Cloud} color="text-blue-400" />
-          <StatCard label="Total Resources" value={totalResources} icon={HardDrives} color="text-cyan-400" />
-          <StatCard label="Open Findings" value={openFindings.length} icon={Warning} color="text-yellow-400" />
-          <StatCard label="Critical Findings" value={criticalCount} icon={ShieldWarning} color="text-red-400" />
-          <StatCard label="Compliance (CIS)" value={`${COMPLIANCE_DATA.CIS.score}%`} icon={ShieldCheck} color="text-emerald-400" />
-          <StatCard label="Auto-Remediable" value={openFindings.filter(f => f.auto_remediable).length} icon={Wrench} color="text-purple-400" />
+          <StatCard label="UilCloud Accounts" value={accounts.length} icon={UilCloud} color="text-blue-400" />
+          <StatCard label="Total Resources" value={totalResources} icon={UilServer} color="text-cyan-400" />
+          <StatCard label="Open Findings" value={openFindings.length} icon={UilExclamationTriangle} color="text-yellow-400" />
+          <StatCard label="Critical Findings" value={criticalCount} icon={UilShieldExclamation} color="text-red-400" />
+          <StatCard label="Compliance (CIS)" value={`${COMPLIANCE_DATA.CIS.score}%`} icon={UilShieldCheck} color="text-emerald-400" />
+          <StatCard label="Auto-Remediable" value={openFindings.filter(f => f.auto_remediable).length} icon={UilWrench} color="text-purple-400" />
         </div>
       </div>
 
@@ -932,7 +896,7 @@ export default function CloudSecurity() {
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
-                <Warning size={16} weight="duotone" /> Findings by Severity
+                <UilExclamationTriangle size={16} /> Findings by Severity
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pb-4">
@@ -949,7 +913,7 @@ export default function CloudSecurity() {
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
-                <TreeStructure size={16} weight="duotone" /> Findings by Category
+                <UilSitemap size={16} /> Findings by Category
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pb-4">
@@ -957,7 +921,7 @@ export default function CloudSecurity() {
                 const Icon = CATEGORY_ICONS[cat];
                 return (
                   <div key={cat} className="flex items-center gap-2">
-                    <Icon size={14} weight="duotone" className="text-zinc-500" />
+                    <Icon size={14} className="text-zinc-500" />
                     <span className="text-xs text-zinc-400 w-20 capitalize">{CATEGORY_LABELS[cat]}</span>
                     <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-cyan-500/70"
@@ -975,7 +939,7 @@ export default function CloudSecurity() {
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
-                <Eye size={16} weight="duotone" /> Reachability Breakdown
+                <UilEye size={16} /> Reachability Breakdown
               </CardTitle>
             </CardHeader>
             <CardContent className="pb-4">
@@ -991,7 +955,7 @@ export default function CloudSecurity() {
                   const ExpIcon = cfg.icon;
                   return (
                     <div key={level} className="flex items-center gap-2">
-                      <ExpIcon size={14} weight="duotone" className={cfg.color} />
+                      <ExpIcon size={14} className={cfg.color} />
                       <span className="text-xs text-zinc-400 flex-1">{cfg.label}</span>
                       <span className={`text-xs font-medium ${cfg.color}`}>{exposureCounts[level]}</span>
                     </div>
@@ -1007,7 +971,7 @@ export default function CloudSecurity() {
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
-              <Lightning size={16} weight="duotone" /> Recent Findings
+              <UilBolt size={16} /> Recent Findings
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -1022,7 +986,7 @@ export default function CloudSecurity() {
                       onClick={() => { setSelectedFinding(f); setActiveTab("findings"); }}>
                       <div className={`w-2 h-2 rounded-full ${SEVERITY_DOT[f.severity]}`} />
                       <span className="text-sm text-zinc-200 flex-1 truncate">{f.title}</span>
-                      <ExpIcon size={14} weight="duotone" className={ExpCfg.color} />
+                      <ExpIcon size={14} className={ExpCfg.color} />
                       <Badge variant="outline" className={`text-[10px] ${SEVERITY_COLORS[f.severity]}`}>
                         {f.severity}
                       </Badge>
@@ -1044,12 +1008,12 @@ export default function CloudSecurity() {
     <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-100">Cloud Accounts</h2>
+          <h2 className="text-lg font-semibold text-zinc-100">UilCloud Accounts</h2>
           <p className="text-xs text-zinc-500">{accounts.length} accounts configured</p>
         </div>
         <Button size="sm" onClick={() => setConnectDialogOpen(true)}
           className="gap-1.5 bg-cyan-600 hover:bg-cyan-700">
-          <Plus size={14} weight="bold" /> Connect Account
+          <UilPlus size={14} /> Connect Account
         </Button>
       </div>
 
@@ -1086,7 +1050,7 @@ export default function CloudSecurity() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <div className={`p-1.5 rounded ${pCfg.bg}`}>
-                        <Cloud size={18} weight="duotone" className={pCfg.text} />
+                        <UilCloud size={18} className={pCfg.text} />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-zinc-100">{acc.account_name}</p>
@@ -1094,12 +1058,12 @@ export default function CloudSecurity() {
                       </div>
                     </div>
                     <Badge variant="outline" className={connected
-                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                      ? "bg-emerald-500/20 text-emerald-400"
                       : acc.status === "scanning"
-                        ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                        : "bg-zinc-600/20 text-zinc-400 border-zinc-600/30"
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : "bg-zinc-600/20 text-zinc-400"
                     }>
-                      {connected && <PlugsConnected size={10} weight="duotone" className="mr-1" />}
+                      {connected && <UilPlug size={10} className="mr-1" />}
                       {acc.status}
                     </Badge>
                   </div>
@@ -1140,12 +1104,12 @@ export default function CloudSecurity() {
                         className="h-7 px-2 text-xs text-zinc-400 hover:text-cyan-400"
                         disabled={!connected}
                         onClick={() => toast({ title: "Scan started", description: `Scanning ${acc.account_name}...` })}>
-                        <ArrowsClockwise size={12} weight="duotone" className="mr-1" /> Scan
+                        <UilSync size={12} className="mr-1" /> Scan
                       </Button>
                       <Button size="sm" variant="ghost"
                         className="h-7 px-2 text-xs text-zinc-400 hover:text-red-400"
                         onClick={() => toast({ title: "Disconnected", description: `${acc.account_name} removed.` })}>
-                        <Trash size={12} weight="duotone" />
+                        <UilTrashAlt size={12} />
                       </Button>
                     </div>
                   </div>
@@ -1160,7 +1124,7 @@ export default function CloudSecurity() {
       <Dialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-800 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-zinc-100">Connect Cloud Account</DialogTitle>
+            <DialogTitle className="text-zinc-100">Connect UilCloud Account</DialogTitle>
             <DialogDescription className="text-zinc-500">
               Add a new cloud provider account for CSPM scanning.
             </DialogDescription>
@@ -1200,7 +1164,7 @@ export default function CloudSecurity() {
               setConnectDialogOpen(false);
               setNewAccountName(""); setNewAccountId("");
             }}>
-              <PlugsConnected size={14} weight="duotone" className="mr-1" /> Connect
+              <UilPlug size={14} className="mr-1" /> Connect
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1217,7 +1181,7 @@ export default function CloudSecurity() {
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardContent className="p-3">
             <div className="flex items-center gap-2 flex-wrap">
-              <Funnel size={14} weight="duotone" className="text-zinc-500" />
+              <UilFilter size={14} className="text-zinc-500" />
               <Input placeholder="Search findings..." value={findingSearch}
                 onChange={e => setFindingSearch(e.target.value)}
                 className="bg-zinc-800 border-zinc-700 h-8 text-xs w-48" />
@@ -1289,7 +1253,7 @@ export default function CloudSecurity() {
                   onClick={() => handleBulkAction("suppressed")}>Suppress</Button>
                 <Button size="sm" variant="ghost" className="h-6 text-[10px] text-zinc-400 hover:bg-zinc-500/10 ml-auto"
                   onClick={() => setSelectedFindings(new Set())}>
-                  <X size={12} /> Clear
+                  <UilTimes size={12} /> Clear
                 </Button>
               </CardContent>
             </Card>
@@ -1322,15 +1286,15 @@ export default function CloudSecurity() {
                           <div className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer ${
                             isSelected ? "bg-cyan-500 border-cyan-500" : "border-zinc-600"
                           }`}>
-                            {isSelected && <CheckCircle size={10} weight="bold" className="text-white" />}
+                            {isSelected && <UilCheckCircle size={10} className="text-white" />}
                           </div>
                         </div>
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${SEVERITY_DOT[f.severity]}`} />
-                        <CatIcon size={13} weight="duotone" className="text-zinc-500 flex-shrink-0" />
+                        <CatIcon size={13} className="text-zinc-500 flex-shrink-0" />
                         <span className="text-xs text-zinc-200 flex-1 truncate">{f.title}</span>
-                        <ExpIcon size={13} weight="duotone" className={`flex-shrink-0 ${ExpCfg.color}`} />
+                        <ExpIcon size={13} className={`flex-shrink-0 ${ExpCfg.color}`} />
                         {f.auto_remediable && (
-                          <Wrench size={11} weight="duotone" className="text-purple-400 flex-shrink-0" />
+                          <UilWrench size={11} className="text-purple-400 flex-shrink-0" />
                         )}
                         <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${SEVERITY_COLORS[f.severity]}`}>
                           {f.severity}
@@ -1361,7 +1325,7 @@ export default function CloudSecurity() {
                     <CardTitle className="text-sm text-zinc-100">{selectedFinding.title}</CardTitle>
                     <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-zinc-500"
                       onClick={() => setSelectedFinding(null)}>
-                      <X size={14} />
+                      <UilTimes size={14} />
                     </Button>
                   </div>
                 </CardHeader>
@@ -1406,9 +1370,9 @@ export default function CloudSecurity() {
                       {selectedFinding.exposure === "internet" ? (
                         <>
                           <span className="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded text-[10px]">Internet</span>
-                          <CaretRight size={10} className="text-zinc-600" />
+                          <UilAngleRight size={10} className="text-zinc-600" />
                           <span className="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded text-[10px]">Firewall/SG</span>
-                          <CaretRight size={10} className="text-zinc-600" />
+                          <UilAngleRight size={10} className="text-zinc-600" />
                           <span className="bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded text-[10px]">
                             {selectedFinding.resource_type}
                           </span>
@@ -1416,7 +1380,7 @@ export default function CloudSecurity() {
                       ) : selectedFinding.exposure === "vpc" ? (
                         <>
                           <span className="bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded text-[10px]">VPC Peering</span>
-                          <CaretRight size={10} className="text-zinc-600" />
+                          <UilAngleRight size={10} className="text-zinc-600" />
                           <span className="bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded text-[10px]">
                             {selectedFinding.resource_type}
                           </span>
@@ -1438,12 +1402,12 @@ export default function CloudSecurity() {
 
                   <div>
                     <div className="flex items-center gap-1 mb-1">
-                      <Wrench size={12} weight="duotone" className="text-purple-400" />
+                      <UilWrench size={12} className="text-purple-400" />
                       <p className="text-[10px] text-zinc-500">
                         Remediation ({selectedFinding.remediation_type})
                       </p>
                     </div>
-                    <div className="bg-zinc-950 border border-zinc-800 rounded p-3 relative group">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded p-3 relative group">
                       <pre className="text-[10px] text-emerald-400 font-mono whitespace-pre-wrap overflow-x-auto">
                         {selectedFinding.remediation_code}
                       </pre>
@@ -1453,7 +1417,7 @@ export default function CloudSecurity() {
                           navigator.clipboard.writeText(selectedFinding.remediation_code);
                           toast({ title: "Copied", description: "Remediation code copied to clipboard." });
                         }}>
-                        <Copy size={12} />
+                        <UilCopy size={12} />
                       </Button>
                     </div>
                   </div>
@@ -1461,7 +1425,7 @@ export default function CloudSecurity() {
                   {selectedFinding.status === "open" && (
                     <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-sm gap-1.5"
                       onClick={() => handleRemediate(selectedFinding.id)}>
-                      <Lightning size={14} weight="duotone" />
+                      <UilBolt size={14} />
                       {selectedFinding.auto_remediable ? "Auto-Remediate" : "Mark Remediated"}
                     </Button>
                   )}
@@ -1487,22 +1451,22 @@ export default function CloudSecurity() {
         </div>
         <Button size="sm" onClick={() => setImportDialogOpen(true)}
           className="gap-1.5 bg-cyan-600 hover:bg-cyan-700">
-          <CloudArrowUp size={14} weight="duotone" /> Import SBOM
+          <UilUpload size={14} /> Import SBOM
         </Button>
       </div>
 
       <motion.div className="grid grid-cols-4 gap-4" {...fadeIn}>
         <StatCard label="Total Components"
-          value={sboms.reduce((s, b) => s + b.total_deps, 0)} icon={Package} color="text-cyan-400" />
+          value={sboms.reduce((s, b) => s + b.total_deps, 0)} icon={UilBox} color="text-cyan-400" />
         <StatCard label="Vulnerable Deps"
-          value={sboms.reduce((s, b) => s + b.vuln_deps, 0)} icon={Bug} color="text-red-400" />
+          value={sboms.reduce((s, b) => s + b.vuln_deps, 0)} icon={UilBug} color="text-red-400" />
         <StatCard label="Reachable Vulns"
-          value={sboms.reduce((s, b) => s + b.reachable_vulns, 0)} icon={Globe} color="text-orange-400" />
+          value={sboms.reduce((s, b) => s + b.reachable_vulns, 0)} icon={UilGlobe} color="text-orange-400" />
         <StatCard label="Reachable %"
           value={`${Math.round(
             (sboms.reduce((s, b) => s + b.reachable_vulns, 0) /
               Math.max(sboms.reduce((s, b) => s + b.vuln_deps, 0), 1)) * 100
-          )}%`} icon={Eye} color="text-yellow-400" />
+          )}%`} icon={UilEye} color="text-yellow-400" />
       </motion.div>
 
       <div className="grid grid-cols-12 gap-4">
@@ -1516,7 +1480,7 @@ export default function CloudSecurity() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <FileCode size={18} weight="duotone" className="text-cyan-400" />
+                        <UilFileAlt size={18} className="text-cyan-400" />
                         <div>
                           <p className="text-sm font-medium text-zinc-100">{sbom.name}</p>
                           <p className="text-[10px] text-zinc-500">Imported {timeAgo(sbom.imported_at)}</p>
@@ -1560,12 +1524,12 @@ export default function CloudSecurity() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm text-zinc-100">
-                      <Package size={14} weight="duotone" className="inline mr-1 text-cyan-400" />
+                      <UilBox size={14} className="inline mr-1 text-cyan-400" />
                       {selectedSBOM.name} -- Dependencies
                     </CardTitle>
                     <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-zinc-500"
                       onClick={() => setSelectedSBOM(null)}>
-                      <X size={14} />
+                      <UilTimes size={14} />
                     </Button>
                   </div>
                 </CardHeader>
@@ -1578,7 +1542,7 @@ export default function CloudSecurity() {
                         return (
                           <div key={i} className="px-4 py-2">
                             <div className="flex items-center gap-2">
-                              <Package size={12} weight="duotone"
+                              <UilBox size={12}
                                 className={hasVulns ? "text-red-400" : "text-zinc-600"} />
                               <span className="text-xs text-zinc-200 font-mono">{comp.name}</span>
                               <span className="text-[10px] text-zinc-600">@{comp.version}</span>
@@ -1591,13 +1555,13 @@ export default function CloudSecurity() {
                               )}
                               {hasVulns && (
                                 <Badge variant="outline"
-                                  className="text-[9px] bg-red-500/20 text-red-400 border-red-500/30 px-1 py-0">
+                                  className="text-[9px] bg-red-500/20 text-red-400 px-1 py-0">
                                   {comp.vulnerabilities.length} vuln{comp.vulnerabilities.length > 1 ? "s" : ""}
                                 </Badge>
                               )}
                               {reachableVulns.length > 0 && (
                                 <Badge variant="outline"
-                                  className="text-[9px] bg-orange-500/20 text-orange-400 border-orange-500/30 px-1 py-0">
+                                  className="text-[9px] bg-orange-500/20 text-orange-400 px-1 py-0">
                                   {reachableVulns.length} reachable
                                 </Badge>
                               )}
@@ -1606,7 +1570,7 @@ export default function CloudSecurity() {
                               <div className="ml-6 mt-1 space-y-0.5">
                                 {comp.vulnerabilities.map((v, vi) => (
                                   <div key={vi} className="flex items-center gap-2 text-[10px]">
-                                    <Bug size={10} weight="duotone"
+                                    <UilBug size={10}
                                       className={v.is_reachable ? "text-orange-400" : "text-zinc-500"} />
                                     <span className="text-zinc-400 font-mono">{v.cve_id}</span>
                                     <Badge variant="outline"
@@ -1679,7 +1643,7 @@ export default function CloudSecurity() {
               setImportDialogOpen(false);
               setSbomName(""); setSbomContent("");
             }}>
-              <CloudArrowUp size={14} weight="duotone" className="mr-1" /> Import
+              <UilUpload size={14} className="mr-1" /> Import
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1701,7 +1665,7 @@ export default function CloudSecurity() {
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <ShieldCheck size={16} weight="duotone" className="text-emerald-400" />
+                <UilShieldCheck size={16} className="text-emerald-400" />
                 <span className="text-xs text-zinc-400">Framework:</span>
                 <div className="flex gap-1">
                   {FRAMEWORK_LABELS.map(fw => (
@@ -1723,7 +1687,7 @@ export default function CloudSecurity() {
                       title: "Report exported",
                       description: `${selectedFramework} compliance report downloaded.`,
                     })}>
-                    <DownloadSimple size={12} weight="duotone" /> Export Report
+                    <UilDownloadAlt size={12} /> Export Report
                   </Button>
                 </div>
               </div>
@@ -1800,8 +1764,8 @@ export default function CloudSecurity() {
                             <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-800/30 transition-colors"
                               onClick={() => toggleSection(section.name)}>
                               {isExpanded
-                                ? <CaretDown size={12} className="text-zinc-500" />
-                                : <CaretRight size={12} className="text-zinc-500" />}
+                                ? <UilAngleDown size={12} className="text-zinc-500" />
+                                : <UilAngleRight size={12} className="text-zinc-500" />}
                               <span className="text-xs text-zinc-200 flex-1">{section.name}</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-emerald-400">{section.passed} passed</span>
@@ -1822,14 +1786,14 @@ export default function CloudSecurity() {
                                   animate={{ height: "auto", opacity: 1 }}
                                   exit={{ height: 0, opacity: 0 }}
                                   className="overflow-hidden">
-                                  <div className="bg-zinc-950/50 px-4 py-2 space-y-1">
+                                  <div className="bg-zinc-900/50 px-4 py-2 space-y-1">
                                     {section.checks.map((check, ci) => (
                                       <div key={ci} className="flex items-center gap-2 py-1">
                                         {check.passed ? (
-                                          <CheckCircle size={12} weight="duotone"
+                                          <UilCheckCircle size={12}
                                             className="text-emerald-400 flex-shrink-0" />
                                         ) : (
-                                          <XCircle size={12} weight="duotone"
+                                          <UilTimesCircle size={12}
                                             className="text-red-400 flex-shrink-0" />
                                         )}
                                         <span className={`text-[11px] flex-1 ${
@@ -1864,29 +1828,27 @@ export default function CloudSecurity() {
   // ─── Main Render ──────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50"
         initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-cyan-500/10">
-            <Shield size={22} weight="duotone" className="text-cyan-400" />
-          </div>
+          <UilShield size={22} className="text-cyan-400" />
           <div>
-            <h1 className="text-lg font-semibold text-zinc-100">Cloud Security</h1>
-            <p className="text-xs text-zinc-500">Cloud Security Posture Management (CSPM)</p>
+            <h1 className="text-lg font-semibold text-zinc-100">UilCloud Security</h1>
+            <p className="text-xs text-zinc-500">UilCloud Security Posture Management (CSPM)</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline"
-            className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+            className="text-[10px] bg-emerald-500/10 text-emerald-400">
             {accounts.filter(a => a.status === "connected").length} connected
           </Badge>
           <Badge variant="outline" className={`text-[10px] ${
             criticalCount > 0
-              ? "bg-red-500/10 text-red-400 border-red-500/30"
-              : "bg-zinc-800 text-zinc-400 border-zinc-700"
+              ? "bg-red-500/10 text-red-400"
+              : "bg-zinc-800 text-zinc-400"
           }`}>
             {criticalCount} critical
           </Badge>
@@ -1894,9 +1856,9 @@ export default function CloudSecurity() {
       </motion.div>
 
       {/* Preview Banner */}
-      <div className="mx-6 mt-4 mb-0 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
-        <HardHat size={16} weight="duotone" />
-        <span>Cloud Security is in preview — sample data shown. Connect your cloud provider in Settings to enable live scanning.</span>
+      <div className="mx-6 mt-4 mb-0 rounded-lg border bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
+        <UilHardHat size={16} />
+        <span>UilCloud Security is in preview — sample data shown. Connect your cloud provider in Settings to enable live scanning.</span>
       </div>
 
       {/* Tabs */}
@@ -1905,13 +1867,13 @@ export default function CloudSecurity() {
           <div className="px-6 pt-3 border-b border-zinc-800/50">
             <TabsList className="bg-zinc-900/50 border border-zinc-800">
               <TabsTrigger value="dashboard" className="text-xs gap-1.5 data-[state=active]:bg-zinc-800">
-                <Shield size={13} weight="duotone" /> Dashboard
+                <UilShield size={13} /> Dashboard
               </TabsTrigger>
               <TabsTrigger value="accounts" className="text-xs gap-1.5 data-[state=active]:bg-zinc-800">
-                <Cloud size={13} weight="duotone" /> Accounts
+                <UilCloud size={13} /> Accounts
               </TabsTrigger>
               <TabsTrigger value="findings" className="text-xs gap-1.5 data-[state=active]:bg-zinc-800">
-                <Warning size={13} weight="duotone" /> Findings
+                <UilExclamationTriangle size={13} /> Findings
                 {openFindings.length > 0 && (
                   <span className="ml-1 bg-red-500/20 text-red-400 text-[9px] px-1.5 rounded-full">
                     {openFindings.length}
@@ -1919,10 +1881,10 @@ export default function CloudSecurity() {
                 )}
               </TabsTrigger>
               <TabsTrigger value="sbom" className="text-xs gap-1.5 data-[state=active]:bg-zinc-800">
-                <Package size={13} weight="duotone" /> SBOM
+                <UilBox size={13} /> SBOM
               </TabsTrigger>
               <TabsTrigger value="compliance" className="text-xs gap-1.5 data-[state=active]:bg-zinc-800">
-                <ShieldCheck size={13} weight="duotone" /> Compliance
+                <UilShieldCheck size={13} /> Compliance
               </TabsTrigger>
             </TabsList>
           </div>

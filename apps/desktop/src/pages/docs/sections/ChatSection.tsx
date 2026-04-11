@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChatDots, Brain, Lightning } from "@phosphor-icons/react";
+import { UilCommentDots, UilBrain, UilBolt } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList } from "../components";
 
 export function ChatSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={ChatDots} title="AI Chat" description="Dual-provider AI chat with streaming, tool use, and conversation history" status="ready" />
+      <DocHeader icon={UilCommentDots} title="AI Chat" description="Dual-provider AI chat with streaming, tool use, and conversation history" status="ready" />
 
-      <Card className="border-transparent"><CardHeader><CardTitle className="flex items-center gap-2"><Brain size={20} weight="duotone" className="text-blue-500" /> Claude Code CLI Provider</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="flex items-center gap-2"><UilBrain size={20} className="text-blue-500" /> Claude UilBracketsCurly CLI Provider</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             Claude runs <strong className="text-foreground">inside CrowByte</strong> via Electron IPC. The app spawns
@@ -25,7 +25,7 @@ export function ChatSection() {
           ]} />
         </CardContent></Card>
 
-      <Card className="border-transparent"><CardHeader><CardTitle className="flex items-center gap-2"><Lightning size={20} weight="duotone" className="text-emerald-500" /> OpenClaw Provider</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="flex items-center gap-2"><UilBolt size={20} className="text-emerald-500" /> OpenClaw Provider</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             OpenClaw connects to a remote VPS agent swarm at <code className="text-primary">your-vps-ip</code> (configured via VITE_OPENCLAW_HOST).
@@ -48,7 +48,7 @@ export function ChatSection() {
           { text: "Provider switcher — toggle between Claude and OpenClaw mid-conversation", status: "done" },
           { text: "Streaming responses with real-time token output", status: "done" },
           { text: "Markdown rendering (ReactMarkdown + remark-gfm)", status: "done" },
-          { text: "Code block syntax highlighting with copy buttons", status: "done" },
+          { text: "UilBracketsCurly block syntax highlighting with copy buttons", status: "done" },
           { text: "Thinking/reasoning block collapse (DeepSeek <think> tags)", status: "done" },
           { text: "Conversation sidebar — saved chat history", status: "done" },
           { text: "System prompt customization via settings sheet", status: "done" },

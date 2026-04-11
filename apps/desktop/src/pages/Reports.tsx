@@ -42,35 +42,7 @@ import {
   type ReportTemplateConfig,
 } from "@/services/report-generator";
 import { findingsEngine, type Finding } from "@/services/findings-engine";
-import {
-  FileText,
-  Plus,
-  MagnifyingGlass,
-  Trash,
-  DotsThreeVertical,
-  Copy,
-  DownloadSimple,
-  Eye,
-  PencilSimple,
-  Crosshair,
-  ClipboardText,
-  Export,
-  FileMd,
-  FileHtml,
-  FileJs,
-  FileCode,
-  ArrowsClockwise,
-  CheckCircle,
-  Clock,
-  Note,
-  Target,
-  Tag,
-  CaretDown,
-  X,
-  Warning,
-  ShieldCheck,
-  Lightning,
-} from "@phosphor-icons/react";
+import { UilFileAlt, UilPlus, UilSearch, UilTrashAlt, UilEllipsisV, UilCopy, UilDownloadAlt, UilEye, UilPen, UilCrosshair, UilClipboard, UilSync, UilCheckCircle, UilClock, UilFocusTarget, UilTag, UilAngleDown, UilTimes, UilExclamationTriangle, UilShieldCheck, UilBolt, UilFileExport } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -94,10 +66,10 @@ const TEMPLATES: { value: ReportTemplate; label: string; description: string }[]
 ];
 
 const STATUS_COLORS: Record<ReportStatus, string> = {
-  draft: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
-  review: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  final: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-  submitted: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+  draft: "bg-zinc-500/20 text-zinc-400",
+  review: "bg-yellow-500/20 text-yellow-400",
+  final: "bg-emerald-500/20 text-emerald-400",
+  submitted: "bg-blue-500/20 text-blue-400",
 };
 
 const STATUS_LABELS: Record<ReportStatus, string> = {
@@ -108,11 +80,11 @@ const STATUS_LABELS: Record<ReportStatus, string> = {
 };
 
 const TYPE_COLORS: Record<ReportType, string> = {
-  pentest: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
-  bounty: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30",
-  disclosure: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
-  compliance: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  executive: "bg-rose-500/20 text-rose-400 border border-rose-500/30",
+  pentest: "bg-purple-500/20 text-purple-400",
+  bounty: "bg-cyan-500/20 text-cyan-400",
+  disclosure: "bg-amber-500/20 text-amber-400",
+  compliance: "bg-blue-500/20 text-blue-400",
+  executive: "bg-rose-500/20 text-rose-400",
 };
 
 const TYPE_LABELS: Record<ReportType, string> = {
@@ -124,20 +96,20 @@ const TYPE_LABELS: Record<ReportType, string> = {
 };
 
 const EXPORT_FORMATS: { value: ExportFormat; label: string; icon: React.ComponentType<any> }[] = [
-  { value: "markdown", label: "Markdown", icon: FileMd },
-  { value: "html", label: "HTML", icon: FileHtml },
-  { value: "pdf_html", label: "PDF-ready HTML", icon: FileCode },
-  { value: "hackerone_json", label: "HackerOne JSON", icon: FileJs },
-  { value: "bugcrowd_json", label: "Bugcrowd JSON", icon: FileJs },
-  { value: "json", label: "Raw JSON", icon: FileCode },
+  { value: "markdown", label: "Markdown", icon: UilFileAlt },
+  { value: "html", label: "HTML", icon: UilFileAlt },
+  { value: "pdf_html", label: "PDF-ready HTML", icon: UilFileAlt },
+  { value: "hackerone_json", label: "HackerOne JSON", icon: UilFileAlt },
+  { value: "bugcrowd_json", label: "Bugcrowd JSON", icon: UilFileAlt },
+  { value: "json", label: "Raw JSON", icon: UilFileAlt },
 ];
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: "bg-red-500/20 text-red-400 border border-red-500/30",
-  high: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
-  medium: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  low: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  info: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+  critical: "bg-red-500/20 text-red-400",
+  high: "bg-orange-500/20 text-orange-400",
+  medium: "bg-yellow-500/20 text-yellow-400",
+  low: "bg-blue-500/20 text-blue-400",
+  info: "bg-zinc-500/20 text-zinc-400",
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -605,7 +577,7 @@ export default function Reports() {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 overflow-hidden">
+    <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* ─── Header ──────────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -615,9 +587,7 @@ export default function Reports() {
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
-              <FileText size={24} weight="duotone" className="text-cyan-400" />
-            </div>
+            <UilFileAlt size={24} className="text-cyan-400" />
             <div>
               <h1 className="text-xl font-semibold text-zinc-100">Reports</h1>
               <p className="text-sm text-zinc-500">Generate, manage, and export security reports</p>
@@ -628,7 +598,7 @@ export default function Reports() {
             onClick={() => setCreateOpen(true)}
             className="bg-cyan-600 hover:bg-cyan-700 text-white gap-2"
           >
-            <Plus size={16} weight="bold" />
+            <UilPlus size={16} />
             New Report
           </Button>
         </div>
@@ -636,14 +606,14 @@ export default function Reports() {
         {/* Stats Bar */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: "Total Reports", value: stats.total, icon: FileText, color: "text-zinc-400" },
-            { label: "Drafts", value: stats.drafts, icon: PencilSimple, color: "text-zinc-400" },
-            { label: "Finalized", value: stats.finals, icon: CheckCircle, color: "text-emerald-400" },
-            { label: "Exported", value: stats.exported, icon: Export, color: "text-cyan-400" },
+            { label: "Total Reports", value: stats.total, icon: UilFileAlt, color: "text-zinc-400" },
+            { label: "Drafts", value: stats.drafts, icon: UilPen, color: "text-zinc-400" },
+            { label: "Finalized", value: stats.finals, icon: UilCheckCircle, color: "text-emerald-400" },
+            { label: "Exported", value: stats.exported, icon: UilFileExport, color: "text-cyan-400" },
           ].map((stat) => (
             <Card key={stat.label} className="bg-zinc-900/50 border-zinc-800/50">
               <CardContent className="p-3 flex items-center gap-3">
-                <stat.icon size={20} weight="duotone" className={stat.color} />
+                <stat.icon size={20} className={stat.color} />
                 <div>
                   <p className="text-lg font-semibold text-zinc-100">{stat.value}</p>
                   <p className="text-xs text-zinc-500">{stat.label}</p>
@@ -667,7 +637,7 @@ export default function Reports() {
             <CardHeader className="p-4 flex-shrink-0 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                  <UilSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <Input
                     placeholder="Search reports..."
                     value={search}
@@ -720,7 +690,7 @@ export default function Reports() {
                     }}
                     className="h-8 px-2 text-zinc-500 hover:text-zinc-300"
                   >
-                    <X size={14} />
+                    <UilTimes size={14} />
                   </Button>
                 )}
               </div>
@@ -736,7 +706,7 @@ export default function Reports() {
                   </div>
                 ) : filteredReports.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                    <FileText size={48} weight="duotone" className="text-zinc-700 mb-3" />
+                    <UilFileAlt size={48} className="text-zinc-700 mb-3" />
                     <p className="text-zinc-500 text-sm">
                       {reports.length === 0 ? "No reports yet" : "No reports match filters"}
                     </p>
@@ -747,7 +717,7 @@ export default function Reports() {
                         onClick={() => setCreateOpen(true)}
                         className="mt-2 text-cyan-400 hover:text-cyan-300"
                       >
-                        <Plus size={14} className="mr-1" />
+                        <UilPlus size={14} className="mr-1" />
                         Create your first report
                       </Button>
                     )}
@@ -769,7 +739,7 @@ export default function Reports() {
                           }}
                           className={`group p-3 rounded-lg cursor-pointer transition-all duration-150 border ${
                             selectedReport?.id === report.id
-                              ? "bg-cyan-500/10 border-cyan-500/30"
+                              ? "bg-cyan-500/10"
                               : "bg-zinc-900/30 border-transparent hover:bg-zinc-800/50 hover:border-zinc-700/50"
                           }`}
                         >
@@ -780,7 +750,7 @@ export default function Reports() {
                               </p>
                               {report.target && (
                                 <p className="text-xs text-zinc-500 truncate mt-0.5">
-                                  <Target size={10} weight="duotone" className="inline mr-1" />
+                                  <UilFocusTarget size={10} className="inline mr-1" />
                                   {report.target}
                                 </p>
                               )}
@@ -794,7 +764,7 @@ export default function Reports() {
                                   className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <DotsThreeVertical size={14} className="text-zinc-500" />
+                                  <UilEllipsisV size={14} className="text-zinc-500" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
@@ -809,7 +779,7 @@ export default function Reports() {
                                   }}
                                   className="text-zinc-300 focus:text-zinc-100"
                                 >
-                                  <Eye size={14} className="mr-2" />
+                                  <UilEye size={14} className="mr-2" />
                                   Open
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
@@ -820,7 +790,7 @@ export default function Reports() {
                                   }}
                                   className="text-zinc-300 focus:text-zinc-100"
                                 >
-                                  <Export size={14} className="mr-2" />
+                                  <UilFileExport size={14} className="mr-2" />
                                   Export
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="bg-zinc-700" />
@@ -831,7 +801,7 @@ export default function Reports() {
                                   }}
                                   className="text-red-400 focus:text-red-300"
                                 >
-                                  <Trash size={14} className="mr-2" />
+                                  <UilTrashAlt size={14} className="mr-2" />
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -891,16 +861,16 @@ export default function Reports() {
                       <div className="flex items-center gap-3 text-xs text-zinc-500">
                         {selectedReport.target && (
                           <span className="flex items-center gap-1">
-                            <Target size={12} weight="duotone" />
+                            <UilFocusTarget size={12} />
                             {selectedReport.target}
                           </span>
                         )}
                         <span className="flex items-center gap-1">
-                          <Tag size={12} weight="duotone" />
+                          <Tag size={12} />
                           {TYPE_LABELS[selectedReport.report_type]}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Clock size={12} weight="duotone" />
+                          <UilClock size={12} />
                           Updated {formatDistanceToNow(new Date(selectedReport.updated_at), { addSuffix: true })}
                         </span>
                       </div>
@@ -911,7 +881,7 @@ export default function Reports() {
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm" className="h-8 gap-1 border-zinc-700 text-zinc-300">
                             Status
-                            <CaretDown size={12} />
+                            <UilAngleDown size={12} />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
@@ -936,7 +906,7 @@ export default function Reports() {
                         onClick={() => setSelectedReport(null)}
                         className="h-8 w-8 p-0 text-zinc-500 hover:text-zinc-300"
                       >
-                        <X size={16} />
+                        <UilTimes size={16} />
                       </Button>
                     </div>
                   </div>
@@ -953,17 +923,17 @@ export default function Reports() {
                       value="overview"
                       className="text-xs data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-100 text-zinc-400 px-4"
                     >
-                      <Note size={14} weight="duotone" className="mr-1.5" />
+                      <UilFileAlt size={14} className="mr-1.5" />
                       Overview
                     </TabsTrigger>
                     <TabsTrigger
                       value="findings"
                       className="text-xs data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-100 text-zinc-400 px-4"
                     >
-                      <Crosshair size={14} weight="duotone" className="mr-1.5" />
+                      <UilCrosshair size={14} className="mr-1.5" />
                       Findings
                       {reportFindings.length > 0 && (
-                        <Badge className="ml-1.5 text-[10px] px-1 py-0 bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
+                        <Badge className="ml-1.5 text-[10px] px-1 py-0 bg-cyan-500/20 text-cyan-400">
                           {reportFindings.length}
                         </Badge>
                       )}
@@ -972,7 +942,7 @@ export default function Reports() {
                       value="export"
                       className="text-xs data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-100 text-zinc-400 px-4"
                     >
-                      <Export size={14} weight="duotone" className="mr-1.5" />
+                      <UilFileExport size={14} className="mr-1.5" />
                       Export
                     </TabsTrigger>
                   </TabsList>
@@ -1067,9 +1037,9 @@ export default function Reports() {
                             className="bg-cyan-600 hover:bg-cyan-700 text-white gap-2"
                           >
                             {saving ? (
-                              <ArrowsClockwise size={14} className="animate-spin" />
+                              <UilSync size={14} className="animate-spin" />
                             ) : (
-                              <CheckCircle size={14} weight="duotone" />
+                              <UilCheckCircle size={14} />
                             )}
                             {saving ? "Saving..." : "Save Changes"}
                           </Button>
@@ -1092,12 +1062,12 @@ export default function Reports() {
                             disabled={autoPopulating}
                             variant="outline"
                             size="sm"
-                            className="h-8 gap-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                            className="h-8 gap-2 text-cyan-400 hover:bg-cyan-500/10"
                           >
                             {autoPopulating ? (
-                              <ArrowsClockwise size={14} className="animate-spin" />
+                              <UilSync size={14} className="animate-spin" />
                             ) : (
-                              <Lightning size={14} weight="duotone" />
+                              <UilBolt size={14} />
                             )}
                             Auto-Populate
                           </Button>
@@ -1112,7 +1082,7 @@ export default function Reports() {
                           </div>
                         ) : reportFindings.length === 0 ? (
                           <div className="flex flex-col items-center py-8 text-center">
-                            <Crosshair size={36} weight="duotone" className="text-zinc-700 mb-2" />
+                            <UilCrosshair size={36} className="text-zinc-700 mb-2" />
                             <p className="text-sm text-zinc-500">No findings attached yet</p>
                             <p className="text-xs text-zinc-600 mt-1">
                               Use Auto-Populate or add findings manually below
@@ -1154,7 +1124,7 @@ export default function Reports() {
                                   onClick={() => handleRemoveFinding(finding.id)}
                                   className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-red-400"
                                 >
-                                  <X size={12} />
+                                  <UilTimes size={12} />
                                 </Button>
                               </motion.div>
                             ))}
@@ -1176,9 +1146,8 @@ export default function Reports() {
                                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/30 cursor-pointer transition-colors group"
                                     onClick={() => handleAddFinding(finding.id)}
                                   >
-                                    <Plus
+                                    <UilPlus
                                       size={14}
-                                      weight="bold"
                                       className="text-zinc-600 group-hover:text-cyan-400 transition-colors flex-shrink-0"
                                     />
 
@@ -1230,7 +1199,7 @@ export default function Reports() {
                                 {EXPORT_FORMATS.map(fmt => (
                                   <SelectItem key={fmt.value} value={fmt.value}>
                                     <div className="flex items-center gap-2">
-                                      <fmt.icon size={14} weight="duotone" />
+                                      <fmt.icon size={14} />
                                       {fmt.label}
                                     </div>
                                   </SelectItem>
@@ -1246,9 +1215,9 @@ export default function Reports() {
                               className="bg-cyan-600 hover:bg-cyan-700 text-white gap-2 h-9"
                             >
                               {loadingPreview ? (
-                                <ArrowsClockwise size={14} className="animate-spin" />
+                                <UilSync size={14} className="animate-spin" />
                               ) : (
-                                <Eye size={14} weight="duotone" />
+                                <UilEye size={14} />
                               )}
                               {loadingPreview ? "Generating..." : "Generate"}
                             </Button>
@@ -1263,8 +1232,8 @@ export default function Reports() {
                               onClick={handleCopyToClipboard}
                               className="h-8 gap-1.5 border-zinc-700 text-zinc-300"
                             >
-                              <Copy size={14} weight="duotone" />
-                              Copy to Clipboard
+                              <UilCopy size={14} />
+                              UilCopy to Clipboard
                             </Button>
                             <Button
                               variant="outline"
@@ -1272,7 +1241,7 @@ export default function Reports() {
                               onClick={handleDownload}
                               className="h-8 gap-1.5 border-zinc-700 text-zinc-300"
                             >
-                              <DownloadSimple size={14} weight="duotone" />
+                              <UilDownloadAlt size={14} />
                               Download
                             </Button>
                             {selectedReport.last_exported_at && (
@@ -1294,7 +1263,7 @@ export default function Reports() {
                           </ScrollArea>
                         ) : (
                           <div className="flex flex-col items-center justify-center h-full text-center">
-                            <Export size={48} weight="duotone" className="text-zinc-700 mb-3" />
+                            <UilFileExport size={48} className="text-zinc-700 mb-3" />
                             <p className="text-sm text-zinc-500">Select a format and click Generate</p>
                             <p className="text-xs text-zinc-600 mt-1">
                               Preview will appear here before downloading
@@ -1321,7 +1290,7 @@ export default function Reports() {
         <DialogContent className="bg-zinc-900 border-zinc-700 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-zinc-100 flex items-center gap-2">
-              <FileText size={20} weight="duotone" className="text-cyan-400" />
+              <UilFileAlt size={20} className="text-cyan-400" />
               New Report
             </DialogTitle>
             <DialogDescription className="text-zinc-500">
@@ -1341,7 +1310,7 @@ export default function Reports() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs text-zinc-400">Target</Label>
+              <Label className="text-xs text-zinc-400">UilFocusTarget</Label>
               <Input
                 value={createData.target || ""}
                 onChange={(e) => setCreateData(prev => ({ ...prev, target: e.target.value }))}
@@ -1461,9 +1430,9 @@ export default function Reports() {
               className="bg-cyan-600 hover:bg-cyan-700 text-white gap-2"
             >
               {creating ? (
-                <ArrowsClockwise size={14} className="animate-spin" />
+                <UilSync size={14} className="animate-spin" />
               ) : (
-                <Plus size={14} weight="bold" />
+                <UilPlus size={14} />
               )}
               {creating ? "Creating..." : "Create Report"}
             </Button>
@@ -1476,7 +1445,7 @@ export default function Reports() {
         <DialogContent className="bg-zinc-900 border-zinc-700 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-zinc-100 flex items-center gap-2">
-              <Warning size={20} weight="duotone" className="text-red-400" />
+              <UilExclamationTriangle size={20} className="text-red-400" />
               Delete Report
             </DialogTitle>
             <DialogDescription className="text-zinc-500">
@@ -1499,9 +1468,9 @@ export default function Reports() {
               className="bg-red-600 hover:bg-red-700 text-white gap-2"
             >
               {deleting ? (
-                <ArrowsClockwise size={14} className="animate-spin" />
+                <UilSync size={14} className="animate-spin" />
               ) : (
-                <Trash size={14} weight="bold" />
+                <UilTrashAlt size={14} />
               )}
               {deleting ? "Deleting..." : "Delete"}
             </Button>

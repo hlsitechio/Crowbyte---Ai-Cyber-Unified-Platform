@@ -1,122 +1,123 @@
-import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { UilUserPlus, UilWindow, UilCrosshair, UilFileAlt } from "@iconscout/react-unicons";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { UserPlus, Crosshair, Search, FileText } from "lucide-react";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const steps = [
   {
-    icon: UilUserPlus,
     num: "01",
+    icon: UserPlus,
     title: "Sign Up",
     desc: "Free in your browser. Pro unlocks desktop apps for Linux, Windows, macOS.",
-    color: "#3b82f6",
   },
   {
-    icon: UilWindow,
     num: "02",
+    icon: Crosshair,
     title: "Target",
     desc: "Give it a domain. CrowByte spawns 9 agents across your attack surface.",
-    color: "#f97316",
   },
   {
-    icon: UilCrosshair,
     num: "03",
+    icon: Search,
     title: "Hunt",
     desc: "Agents find vulns, chain exploits, verify everything. You watch.",
-    color: "#a855f7",
   },
   {
-    icon: UilFileAlt,
     num: "04",
+    icon: FileText,
     title: "Collect",
     desc: "Auto-generated report. Submit. Get paid.",
-    color: "#10b981",
   },
 ];
 
-const stepReveal = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: 0.15 + i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
+function AnimatedContainer({
+  className,
+  delay = 0.1,
+  children,
+}: {
+  className?: string;
+  delay?: number;
+  children: React.ReactNode;
+}) {
+  const shouldReduceMotion = useReducedMotion();
 
-const lineGrow = {
-  hidden: { scaleX: 0 },
-  visible: (i: number) => ({
-    scaleX: 1,
-    transition: { delay: 0.4 + i * 0.12, duration: 0.8, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
+  if (shouldReduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
+  return (
+    <motion.div
+      initial={{ filter: "blur(4px)", translateY: -8, opacity: 0 }}
+      whileInView={{ filter: "blur(0px)", translateY: 0, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.8 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function HowItWorks() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <section ref={ref} className="py-28 px-6 border-y border-white/[0.04]">
-      <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="mb-16 text-center"
-        >
-          <h2 className="font-sans text-3xl md:text-4xl font-bold text-white tracking-tight">
+    <section ref={ref} className="py-24 px-6">
+      <div className="mx-auto w-full max-w-5xl space-y-8">
+        <AnimatedContainer className="mx-auto max-w-3xl text-center">
+          <h2 className="font-['JetBrains_Mono'] text-3xl font-bold tracking-wide text-balance text-white md:text-4xl">
             how it works
           </h2>
-          <p className="font-sans text-zinc-500 text-sm mt-3">
+          <p className="text-zinc-500 mt-4 text-sm tracking-wide text-balance font-['JetBrains_Mono']">
             from first scan to full report in four steps
           </p>
-        </motion.div>
+        </AnimatedContainer>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {steps.map((step, i) => (
-            <motion.div
+        <AnimatedContainer
+          delay={0.4}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
+          {steps.map((step) => (
+            <div
               key={step.num}
-              custom={i}
-              variants={stepReveal}
-              initial="hidden"
-              animate={inView ? "visible" : "hidden"}
-              className="relative"
+              className="relative min-h-[14rem] list-none rounded-2xl border border-white/[0.04] p-[3px]"
             >
-              {/* Connector line */}
-              {i < steps.length - 1 && (
-                <motion.div
-                  custom={i}
-                  variants={lineGrow}
-                  initial="hidden"
-                  animate={inView ? "visible" : "hidden"}
-                  className="hidden md:block absolute top-5 left-[calc(100%+8px)] w-[calc(100%-32px)] h-[1px] origin-left"
-                  style={{
-                    background: `linear-gradient(90deg, ${step.color}40, transparent)`,
-                  }}
-                />
-              )}
+              <GlowingEffect
+                spread={40}
+                glow
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={1}
+                blur={4}
+              />
+              <div className="relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-xl bg-white/[0.02] backdrop-blur-sm p-6 shadow-[0px_0px_27px_0px_#2D2D2D]">
+                <div className="relative flex flex-1 flex-col justify-between gap-3">
+                  {/* Icon */}
+                  <div className="w-fit rounded-lg border border-zinc-700 p-2">
+                    <step.icon className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
+                  </div>
 
-              {/* Step number */}
-              <div
-                className="font-['JetBrains_Mono'] text-xs font-bold tracking-widest mb-4"
-                style={{ color: step.color }}
-              >
+                  {/* Content */}
+                  <div className="space-y-3">
+                    <h3 className="font-sans text-xl font-semibold leading-tight text-white">
+                      {step.title}
+                    </h3>
+                    <p className="font-sans text-sm text-zinc-400 leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step number — subtle top-right */}
+              <span className="absolute top-4 right-4 font-['JetBrains_Mono'] text-[11px] text-zinc-700 font-medium z-10">
                 {step.num}
-              </div>
-
-              {/* Icon + Title — no box */}
-              <div className="flex items-center gap-3 mb-3">
-                <step.icon size={20} style={{ color: step.color }} />
-                <h3 className="font-sans text-[15px] font-semibold text-white">
-                  {step.title}
-                </h3>
-              </div>
-
-              <p className="font-sans text-[13px] text-zinc-500 leading-relaxed">
-                {step.desc}
-              </p>
-            </motion.div>
+              </span>
+            </div>
           ))}
-        </div>
+        </AnimatedContainer>
       </div>
     </section>
   );

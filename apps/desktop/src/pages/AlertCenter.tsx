@@ -25,35 +25,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Bell,
-  MagnifyingGlass,
-  Plus,
-  X,
-  CaretRight,
-  CaretDown,
-  CheckCircle,
-  ShieldCheck,
-  ShieldSlash,
-  Lightning,
-  Clock,
-  Eye,
-  TreeStructure,
-  ArrowSquareOut,
-  Copy,
-  Plugs,
-  Target,
-  GitBranch,
-  ArrowsClockwise,
-  PencilSimple,
-  Cube,
-  Users,
-  Desktop,
-  WebhooksLogo,
-  ListBullets,
-  Graph,
-  Archive,
-} from "@phosphor-icons/react";
+import { UilBell, UilSearch, UilPlus, UilTimes, UilAngleRight, UilAngleDown, UilCheckCircle, UilShieldCheck, UilShieldSlash, UilBolt, UilClock, UilEye, UilSitemap, UilExternalLinkAlt, UilCopy, UilPlug, UilFocusTarget, UilCodeBranch, UilSync, UilPen, UilUsersAlt, UilDesktop, UilListUl, UilLink, UilArchive, UilExclamationTriangle } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -73,43 +45,43 @@ import {
 
 const SEVERITY_COLORS: Record<string, { badge: string; dot: string; text: string }> = {
   critical: {
-    badge: "bg-red-500/20 text-red-400 border border-red-500/30",
+    badge: "bg-red-500/20 text-red-400",
     dot: "bg-red-500",
     text: "text-red-400",
   },
   high: {
-    badge: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
+    badge: "bg-orange-500/20 text-orange-400",
     dot: "bg-orange-500",
     text: "text-orange-400",
   },
   medium: {
-    badge: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+    badge: "bg-yellow-500/20 text-yellow-400",
     dot: "bg-yellow-500",
     text: "text-yellow-400",
   },
   low: {
-    badge: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+    badge: "bg-blue-500/20 text-blue-400",
     dot: "bg-blue-500",
     text: "text-blue-400",
   },
   info: {
-    badge: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+    badge: "bg-zinc-500/20 text-zinc-400",
     dot: "bg-zinc-500",
     text: "text-zinc-400",
   },
   informational: {
-    badge: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+    badge: "bg-zinc-500/20 text-zinc-400",
     dot: "bg-zinc-500",
     text: "text-zinc-400",
   },
 };
 
 const STATUS_COLORS: Record<AlertStatus, string> = {
-  new: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30",
-  triaging: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  escalated: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
-  resolved: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-  false_positive: "bg-zinc-600/20 text-zinc-500 border border-zinc-600/30",
+  new: "bg-cyan-500/20 text-cyan-400",
+  triaging: "bg-yellow-500/20 text-yellow-400",
+  escalated: "bg-orange-500/20 text-orange-400",
+  resolved: "bg-emerald-500/20 text-emerald-400",
+  false_positive: "bg-zinc-600/20 text-zinc-500 border",
 };
 
 const STATUS_LABELS: Record<AlertStatus, string> = {
@@ -127,21 +99,21 @@ const SOURCE_STATUS_COLORS: Record<SourceStatus, { bg: string; dot: string }> = 
   syncing: { bg: "bg-blue-500/20 text-blue-400", dot: "bg-blue-500" },
 };
 
-const SOURCE_ICONS: Record<SourceType, typeof Cube> = {
-  splunk: Lightning,
-  elastic: MagnifyingGlass,
-  sentinel: ShieldCheck,
-  crowdstrike: Target,
-  pagerduty: Bell,
-  syslog: ListBullets,
-  webhook: WebhooksLogo,
-  manual: PencilSimple,
+const SOURCE_ICONS: Record<SourceType, typeof UilBell> = {
+  splunk: UilBolt,
+  elastic: UilSearch,
+  sentinel: UilShieldCheck,
+  crowdstrike: UilFocusTarget,
+  pagerduty: UilBell,
+  syslog: UilListUl,
+  webhook: UilLink,
+  manual: UilPen,
 };
 
 const TIMELINE_STATUS_COLORS: Record<string, string> = {
-  active: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-  closed: "bg-zinc-600/20 text-zinc-500 border border-zinc-600/30",
-  archived: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
+  active: "bg-emerald-500/20 text-emerald-400",
+  closed: "bg-zinc-600/20 text-zinc-500 border",
+  archived: "bg-purple-500/20 text-purple-400",
 };
 
 // ─── Animations ─────────────────────────────────────────────────────────────
@@ -387,7 +359,7 @@ export default function AlertCenter() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-full bg-zinc-950 overflow-hidden">
+      <div className="flex flex-col h-full bg-background overflow-hidden">
         {/* Header */}
         <motion.div
           className="flex-none px-6 py-4 border-b border-zinc-800/50"
@@ -395,9 +367,7 @@ export default function AlertCenter() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-                <Bell weight="duotone" className="w-5 h-5 text-red-400" />
-              </div>
+              <UilBell className="w-5 h-5 text-red-400" />
               <div>
                 <h1 className="text-lg font-semibold text-zinc-100">Alert Center</h1>
                 <p className="text-xs text-zinc-500">
@@ -407,16 +377,16 @@ export default function AlertCenter() {
             </div>
             <div className="flex items-center gap-2">
               {/* Summary badges */}
-              <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30 text-xs">
+              <Badge variant="outline" className="bg-red-500/10 text-red-400 text-xs">
                 {stats.criticalCount} Critical
               </Badge>
-              <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 text-xs">
+              <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 text-xs">
                 {stats.newCount} New
               </Badge>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 text-xs">
                 {stats.sourcesConnected}/{sources.length} Sources
               </Badge>
-              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
+              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 text-xs">
                 {stats.activeInvestigations} Active Investigations
               </Badge>
             </div>
@@ -428,30 +398,30 @@ export default function AlertCenter() {
           <div className="flex-none px-6 pt-3 border-b border-zinc-800/50">
             <TabsList className="bg-zinc-900/50 border border-zinc-800/50">
               <TabsTrigger value="feed" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 gap-1.5 text-xs">
-                <Bell weight="duotone" className="w-3.5 h-3.5" />
+                <UilBell className="w-3.5 h-3.5" />
                 Alert Feed
-                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-red-500/10 text-red-400 border-red-500/30">
+                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-red-500/10 text-red-400">
                   {stats.newCount}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="sources" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 gap-1.5 text-xs">
-                <Plugs weight="duotone" className="w-3.5 h-3.5" />
+                <UilPlug className="w-3.5 h-3.5" />
                 Sources
-                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-zinc-700/50 text-zinc-400 border-zinc-600/30">
+                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-zinc-700/50 text-zinc-400">
                   {sources.length}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="investigations" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 gap-1.5 text-xs">
-                <GitBranch weight="duotone" className="w-3.5 h-3.5" />
+                <UilCodeBranch className="w-3.5 h-3.5" />
                 Investigations
-                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-zinc-700/50 text-zinc-400 border-zinc-600/30">
+                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-zinc-700/50 text-zinc-400">
                   {investigations.length}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="correlation" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 gap-1.5 text-xs">
-                <Graph weight="duotone" className="w-3.5 h-3.5" />
+                <UilSitemap className="w-3.5 h-3.5" />
                 Correlation
-                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-zinc-700/50 text-zinc-400 border-zinc-600/30">
+                <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-zinc-700/50 text-zinc-400">
                   {correlationGroups.length}
                 </Badge>
               </TabsTrigger>
@@ -466,7 +436,7 @@ export default function AlertCenter() {
               {/* Filter bar */}
               <div className="flex-none px-6 py-3 border-b border-zinc-800/30 flex items-center gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-[200px] max-w-[360px]">
-                  <MagnifyingGlass weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <UilSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                   <Input
                     placeholder="Search alerts by title, host, or IP..."
                     value={searchQuery}
@@ -475,7 +445,7 @@ export default function AlertCenter() {
                   />
                   {searchQuery && (
                     <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2">
-                      <X className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300" />
+                      <UilTimes className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300" />
                     </button>
                   )}
                 </div>
@@ -534,28 +504,28 @@ export default function AlertCenter() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 text-[10px] bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                      className="h-7 text-[10px] bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                       onClick={() => bulkAction("resolved")}
                     >
-                      <CheckCircle weight="duotone" className="w-3 h-3 mr-1" />
+                      <UilCheckCircle className="w-3 h-3 mr-1" />
                       Resolve
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 text-[10px] bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+                      className="h-7 text-[10px] bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
                       onClick={() => bulkAction("escalated")}
                     >
-                      <ArrowSquareOut weight="duotone" className="w-3 h-3 mr-1" />
+                      <UilExternalLinkAlt className="w-3 h-3 mr-1" />
                       Escalate
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 text-[10px] bg-zinc-600/20 border-zinc-600/30 text-zinc-400 hover:bg-zinc-600/30"
+                      className="h-7 text-[10px] bg-zinc-600/20 text-zinc-400 hover:bg-zinc-600/30"
                       onClick={() => bulkAction("false_positive")}
                     >
-                      <ShieldSlash weight="duotone" className="w-3 h-3 mr-1" />
+                      <UilShieldSlash className="w-3 h-3 mr-1" />
                       False Positive
                     </Button>
                   </>
@@ -570,7 +540,7 @@ export default function AlertCenter() {
                     {/* Loading State */}
                     {loading && (
                       <div className="flex flex-col items-center justify-center py-20 gap-3">
-                        <ArrowsClockwise weight="duotone" className="w-8 h-8 text-zinc-500 animate-spin" />
+                        <UilSync className="w-8 h-8 text-zinc-500 animate-spin" />
                         <p className="text-sm text-zinc-500">Loading alerts from Supabase...</p>
                       </div>
                     )}
@@ -578,7 +548,7 @@ export default function AlertCenter() {
                     {/* Empty State */}
                     {!loading && alerts.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-20 gap-3">
-                        <ShieldCheck weight="duotone" className="w-12 h-12 text-zinc-600" />
+                        <UilShieldCheck className="w-12 h-12 text-zinc-600" />
                         <p className="text-sm text-zinc-400">No alerts yet</p>
                         <p className="text-xs text-zinc-500">Alerts are generated automatically from intel reports by the CrowByte Alert Agent.</p>
                       </div>
@@ -587,7 +557,7 @@ export default function AlertCenter() {
                     {/* No Results (filtered) */}
                     {!loading && alerts.length > 0 && filteredAlerts.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-16 gap-2">
-                        <MagnifyingGlass weight="duotone" className="w-8 h-8 text-zinc-600" />
+                        <UilSearch className="w-8 h-8 text-zinc-600" />
                         <p className="text-sm text-zinc-400">No alerts match your filters</p>
                       </div>
                     )}
@@ -608,7 +578,7 @@ export default function AlertCenter() {
                       <AnimatePresence mode="popLayout">
                         {filteredAlerts.map(alert => {
                           const sevColor = SEVERITY_COLORS[alert.severity] || SEVERITY_COLORS.medium;
-                          const StatusIcon = SOURCE_ICONS[alert.source_type] || Cube;
+                          const StatusIcon = SOURCE_ICONS[alert.source_type] || UilBell;
                           const isSelected = selectedAlertIds.has(alert.id);
                           const isDetail = detailAlert?.id === alert.id;
 
@@ -655,12 +625,12 @@ export default function AlertCenter() {
                                         {STATUS_LABELS[alert.status]}
                                       </Badge>
                                       <span className="flex items-center gap-1 text-[10px] text-zinc-500">
-                                        <StatusIcon weight="duotone" className="w-3 h-3" />
+                                        <StatusIcon className="w-3 h-3" />
                                         {alert.source_type}
                                       </span>
                                       {alert.affected_host && (
                                         <span className="flex items-center gap-1 text-[10px] text-zinc-500">
-                                          <Desktop weight="duotone" className="w-3 h-3" />
+                                          <UilDesktop className="w-3 h-3" />
                                           {alert.affected_host}
                                         </span>
                                       )}
@@ -674,7 +644,7 @@ export default function AlertCenter() {
                                           </Badge>
                                         ))}
                                         {alert.mitre_techniques.map(t => (
-                                          <Badge key={t} variant="outline" className="text-[9px] px-1 py-0 bg-zinc-700/40 text-zinc-400 border-zinc-600/30 font-mono">
+                                          <Badge key={t} variant="outline" className="text-[9px] px-1 py-0 bg-zinc-700/40 text-zinc-400 font-mono">
                                             {t}
                                           </Badge>
                                         ))}
@@ -693,7 +663,7 @@ export default function AlertCenter() {
 
                       {filteredAlerts.length === 0 && (
                         <div className="text-center py-12 text-zinc-600">
-                          <Bell weight="duotone" className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <UilBell className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p className="text-sm">No alerts match your filters</p>
                         </div>
                       )}
@@ -707,7 +677,7 @@ export default function AlertCenter() {
                     <motion.div
                       key="detail-panel"
                       {...slideIn}
-                      className="w-[45%] border-l border-zinc-800/50 bg-zinc-950 flex flex-col min-h-0"
+                      className="w-[45%] border-l border-zinc-800/50 bg-background flex flex-col min-h-0"
                     >
                       <ScrollArea className="flex-1">
                         <div className="p-5">
@@ -730,7 +700,7 @@ export default function AlertCenter() {
                               className="h-7 w-7 text-zinc-500 hover:text-zinc-300"
                               onClick={() => setDetailAlert(null)}
                             >
-                              <X className="w-4 h-4" />
+                              <UilTimes className="w-4 h-4" />
                             </Button>
                           </div>
 
@@ -747,7 +717,7 @@ export default function AlertCenter() {
                             <div className="bg-zinc-900/50 rounded-lg p-3 border border-zinc-800/30">
                               <Label className="text-[10px] text-zinc-500 uppercase tracking-wider">Source</Label>
                               <p className="text-xs text-zinc-300 mt-0.5 flex items-center gap-1">
-                                {(() => { const Icon = SOURCE_ICONS[detailAlert.source_type]; return <Icon weight="duotone" className="w-3.5 h-3.5" />; })()}
+                                {(() => { const Icon = SOURCE_ICONS[detailAlert.source_type]; return <Icon className="w-3.5 h-3.5" />; })()}
                                 {detailAlert.source_type}
                               </p>
                             </div>
@@ -804,7 +774,7 @@ export default function AlertCenter() {
                                   </Badge>
                                 ))}
                                 {detailAlert.mitre_techniques.map(t => (
-                                  <Badge key={t} variant="outline" className="text-[10px] bg-zinc-700/40 text-zinc-400 border-zinc-600/30 font-mono">
+                                  <Badge key={t} variant="outline" className="text-[10px] bg-zinc-700/40 text-zinc-400 font-mono">
                                     {t}
                                   </Badge>
                                 ))}
@@ -818,7 +788,7 @@ export default function AlertCenter() {
                               onClick={() => setShowOriginalJson(!showOriginalJson)}
                               className="flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
                             >
-                              {showOriginalJson ? <CaretDown className="w-3 h-3" /> : <CaretRight className="w-3 h-3" />}
+                              {showOriginalJson ? <UilAngleDown className="w-3 h-3" /> : <UilAngleRight className="w-3 h-3" />}
                               <span className="uppercase tracking-wider">Original JSON</span>
                             </button>
                             <AnimatePresence>
@@ -845,40 +815,40 @@ export default function AlertCenter() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 text-xs bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                              className="h-8 text-xs bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                               onClick={() => {
                                 setAlerts(prev => prev.map(a => a.id === detailAlert.id ? { ...a, status: "resolved" as AlertStatus, resolved_at: new Date().toISOString() } : a));
                                 setDetailAlert({ ...detailAlert, status: "resolved" });
                                 toast({ title: "Alert resolved" });
                               }}
                             >
-                              <CheckCircle weight="duotone" className="w-3.5 h-3.5 mr-1" />
+                              <UilCheckCircle className="w-3.5 h-3.5 mr-1" />
                               Mark Resolved
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 text-xs bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+                              className="h-8 text-xs bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
                               onClick={() => {
                                 setAlerts(prev => prev.map(a => a.id === detailAlert.id ? { ...a, status: "escalated" as AlertStatus } : a));
                                 setDetailAlert({ ...detailAlert, status: "escalated" });
                                 toast({ title: "Alert escalated to finding" });
                               }}
                             >
-                              <ArrowSquareOut weight="duotone" className="w-3.5 h-3.5 mr-1" />
+                              <UilExternalLinkAlt className="w-3.5 h-3.5 mr-1" />
                               Escalate to Finding
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 text-xs bg-zinc-600/20 border-zinc-600/30 text-zinc-400 hover:bg-zinc-600/30"
+                              className="h-8 text-xs bg-zinc-600/20 text-zinc-400 hover:bg-zinc-600/30"
                               onClick={() => {
                                 setAlerts(prev => prev.map(a => a.id === detailAlert.id ? { ...a, status: "false_positive" as AlertStatus, resolved_at: new Date().toISOString() } : a));
                                 setDetailAlert({ ...detailAlert, status: "false_positive" });
                                 toast({ title: "Marked as false positive" });
                               }}
                             >
-                              <ShieldSlash weight="duotone" className="w-3.5 h-3.5 mr-1" />
+                              <UilShieldSlash className="w-3.5 h-3.5 mr-1" />
                               False Positive
                             </Button>
                             <Button
@@ -891,7 +861,7 @@ export default function AlertCenter() {
                                 toast({ title: "Alert set to triaging" });
                               }}
                             >
-                              <Eye weight="duotone" className="w-3.5 h-3.5 mr-1" />
+                              <UilEye className="w-3.5 h-3.5 mr-1" />
                               Start Triage
                             </Button>
                             <Button
@@ -903,8 +873,8 @@ export default function AlertCenter() {
                                 toast({ title: "Alert data copied to clipboard" });
                               }}
                             >
-                              <Copy weight="duotone" className="w-3.5 h-3.5 mr-1" />
-                              Copy JSON
+                              <UilCopy className="w-3.5 h-3.5 mr-1" />
+                              UilCopy JSON
                             </Button>
                           </div>
                         </div>
@@ -933,10 +903,10 @@ export default function AlertCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
+                    className="h-8 text-xs bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
                     onClick={() => setShowAddSource(true)}
                   >
-                    <Plus weight="bold" className="w-3.5 h-3.5 mr-1" />
+                    <UilPlus className="w-3.5 h-3.5 mr-1" />
                     Add Source
                   </Button>
                 </div>
@@ -950,7 +920,7 @@ export default function AlertCenter() {
                 >
                   {sources.map(source => {
                     const statusColor = SOURCE_STATUS_COLORS[source.status];
-                    const Icon = SOURCE_ICONS[source.source_type] || Cube;
+                    const Icon = SOURCE_ICONS[source.source_type] || UilBell;
                     // Generate sparkline from ingestion count (simulates recent activity curve)
                     const ingested = source.alerts_ingested || 0;
                     const sparkData: number[] = Array.from({ length: 12 }, (_, i) => {
@@ -968,11 +938,11 @@ export default function AlertCenter() {
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-2.5">
                                 <div className={`p-2 rounded-lg ${
-                                  source.status === "connected" ? "bg-emerald-500/10 border border-emerald-500/20"
-                                  : source.status === "error" ? "bg-red-500/10 border border-red-500/20"
+                                  source.status === "connected" ? "bg-emerald-500/10"
+                                  : source.status === "error" ? "bg-red-500/10"
                                   : "bg-zinc-800/50 border border-zinc-700/30"
                                 }`}>
-                                  <Icon weight="duotone" className={`w-4 h-4 ${
+                                  <Icon className={`w-4 h-4 ${
                                     source.status === "connected" ? "text-emerald-400"
                                     : source.status === "error" ? "text-red-400"
                                     : "text-zinc-500"
@@ -995,7 +965,7 @@ export default function AlertCenter() {
 
                             {/* Error message */}
                             {source.error_message && (
-                              <div className="mb-3 p-2 rounded bg-red-500/10 border border-red-500/20">
+                              <div className="mb-3 p-2 rounded bg-red-500/10">
                                 <p className="text-[10px] text-red-400">{source.error_message}</p>
                               </div>
                             )}
@@ -1043,10 +1013,10 @@ export default function AlertCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
+                    className="h-8 text-xs bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
                     onClick={() => setShowCreateInvestigation(true)}
                   >
-                    <Plus weight="bold" className="w-3.5 h-3.5 mr-1" />
+                    <UilPlus className="w-3.5 h-3.5 mr-1" />
                     New Investigation
                   </Button>
                 </div>
@@ -1068,8 +1038,8 @@ export default function AlertCenter() {
                             >
                               <div className="pt-0.5">
                                 {isExpanded
-                                  ? <CaretDown weight="bold" className="w-4 h-4 text-zinc-500" />
-                                  : <CaretRight weight="bold" className="w-4 h-4 text-zinc-500" />
+                                  ? <UilAngleDown className="w-4 h-4 text-zinc-500" />
+                                  : <UilAngleRight className="w-4 h-4 text-zinc-500" />
                                 }
                               </div>
                               <div className="flex-1 min-w-0">
@@ -1087,21 +1057,21 @@ export default function AlertCenter() {
                                 )}
                                 <div className="flex items-center gap-3 mt-1.5 text-[10px] text-zinc-600">
                                   <span className="flex items-center gap-1">
-                                    <Bell weight="duotone" className="w-3 h-3" />
+                                    <UilBell className="w-3 h-3" />
                                     {inv.alert_ids.length} alerts
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <ListBullets weight="duotone" className="w-3 h-3" />
+                                    <UilListUl className="w-3 h-3" />
                                     {inv.timeline_events.length} events
                                   </span>
                                   {inv.lead_analyst && (
                                     <span className="flex items-center gap-1">
-                                      <Users weight="duotone" className="w-3 h-3" />
+                                      <UilUsersAlt className="w-3 h-3" />
                                       {inv.lead_analyst}
                                     </span>
                                   )}
                                   <span className="flex items-center gap-1">
-                                    <Clock weight="duotone" className="w-3 h-3" />
+                                    <UilClock className="w-3 h-3" />
                                     {formatDistanceToNow(new Date(inv.updated_at), { addSuffix: true })}
                                   </span>
                                 </div>
@@ -1174,14 +1144,14 @@ export default function AlertCenter() {
                                             toast({ title: "Investigation closed" });
                                           }}
                                         >
-                                          <CheckCircle weight="duotone" className="w-3 h-3 mr-1" />
+                                          <UilCheckCircle className="w-3 h-3 mr-1" />
                                           Close Investigation
                                         </Button>
                                       )}
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="h-7 text-[10px] bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
+                                        className="h-7 text-[10px] bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
                                         onClick={() => {
                                           setInvestigations(prev => prev.map(i =>
                                             i.id === inv.id ? { ...i, status: "archived" as const, updated_at: new Date().toISOString() } : i
@@ -1189,7 +1159,7 @@ export default function AlertCenter() {
                                           toast({ title: "Investigation archived" });
                                         }}
                                       >
-                                        <Archive weight="duotone" className="w-3 h-3 mr-1" />
+                                        <UilArchive className="w-3 h-3 mr-1" />
                                         Archive
                                       </Button>
                                     </div>
@@ -1224,10 +1194,10 @@ export default function AlertCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs bg-violet-500/10 border-violet-500/30 text-violet-400 hover:bg-violet-500/20"
+                    className="h-8 text-xs bg-violet-500/10 text-violet-400 hover:bg-violet-500/20"
                     onClick={() => toast({ title: "Correlation engine running", description: "Re-analyzing alert relationships..." })}
                   >
-                    <ArrowsClockwise weight="duotone" className="w-3.5 h-3.5 mr-1" />
+                    <UilSync className="w-3.5 h-3.5 mr-1" />
                     Re-correlate
                   </Button>
                 </div>
@@ -1285,15 +1255,15 @@ export default function AlertCenter() {
                             >
                               <div className="pt-0.5">
                                 {isExpanded
-                                  ? <CaretDown weight="bold" className="w-4 h-4 text-zinc-500" />
-                                  : <CaretRight weight="bold" className="w-4 h-4 text-zinc-500" />
+                                  ? <UilAngleDown className="w-4 h-4 text-zinc-500" />
+                                  : <UilAngleRight className="w-4 h-4 text-zinc-500" />
                                 }
                               </div>
                               <div className={`p-1.5 rounded-lg ${
-                                group.severity === "critical" ? "bg-red-500/10 border border-red-500/20"
-                                : "bg-orange-500/10 border border-orange-500/20"
+                                group.severity === "critical" ? "bg-red-500/10"
+                                : "bg-orange-500/10"
                               }`}>
-                                <Graph weight="duotone" className={`w-4 h-4 ${sevColor.text}`} />
+                                <UilExclamationTriangle className={`w-4 h-4 ${sevColor.text}`} />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
@@ -1309,13 +1279,13 @@ export default function AlertCenter() {
                                   {/* Affected hosts */}
                                   {group.affected_hosts.map(h => (
                                     <span key={h} className="flex items-center gap-1 text-[10px] text-zinc-500">
-                                      <Desktop weight="duotone" className="w-3 h-3" />
+                                      <UilDesktop className="w-3 h-3" />
                                       {h}
                                     </span>
                                   ))}
                                   {/* Time range */}
                                   <span className="flex items-center gap-1 text-[10px] text-zinc-600">
-                                    <Clock weight="duotone" className="w-3 h-3" />
+                                    <UilClock className="w-3 h-3" />
                                     {format(new Date(group.time_range.start), "HH:mm:ss")} — {format(new Date(group.time_range.end), "HH:mm:ss")}
                                   </span>
                                 </div>
@@ -1346,7 +1316,7 @@ export default function AlertCenter() {
                                     </Label>
                                     {group.alerts.map(alert => {
                                       const alertSev = SEVERITY_COLORS[alert.severity] || SEVERITY_COLORS.medium;
-                                      const AlertIcon = SOURCE_ICONS[alert.source_type] || Cube;
+                                      const AlertIcon = SOURCE_ICONS[alert.source_type] || UilBell;
                                       return (
                                         <div
                                           key={alert.id}
@@ -1360,7 +1330,7 @@ export default function AlertCenter() {
                                           <div className="flex-1 min-w-0">
                                             <p className="text-xs text-zinc-300 truncate">{alert.title}</p>
                                             <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-500">
-                                              <AlertIcon weight="duotone" className="w-3 h-3" />
+                                              <AlertIcon className="w-3 h-3" />
                                               <span>{alert.source_type}</span>
                                               <span className="font-mono">{alert.affected_host}</span>
                                               <span>{format(new Date(alert.alert_time), "HH:mm:ss")}</span>
@@ -1378,7 +1348,7 @@ export default function AlertCenter() {
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="h-7 text-[10px] bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
+                                        className="h-7 text-[10px] bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
                                         onClick={() => {
                                           const newInv: InvestigationTimeline = {
                                             id: `inv-from-${group.id}`,
@@ -1405,13 +1375,13 @@ export default function AlertCenter() {
                                           toast({ title: "Investigation created from correlation group" });
                                         }}
                                       >
-                                        <GitBranch weight="duotone" className="w-3 h-3 mr-1" />
+                                        <UilCodeBranch className="w-3 h-3 mr-1" />
                                         Create Investigation
                                       </Button>
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="h-7 text-[10px] bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+                                        className="h-7 text-[10px] bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
                                         onClick={() => {
                                           setAlerts(prev => prev.map(a =>
                                             group.alerts.some(ga => ga.id === a.id) ? { ...a, status: "escalated" as AlertStatus } : a
@@ -1419,7 +1389,7 @@ export default function AlertCenter() {
                                           toast({ title: `${group.alerts.length} alerts escalated` });
                                         }}
                                       >
-                                        <ArrowSquareOut weight="duotone" className="w-3 h-3 mr-1" />
+                                        <UilExternalLinkAlt className="w-3 h-3 mr-1" />
                                         Escalate All
                                       </Button>
                                     </div>
@@ -1438,7 +1408,7 @@ export default function AlertCenter() {
                 <Card className="bg-zinc-900/30 border-zinc-800/40 mt-6">
                   <CardHeader className="pb-2 pt-4 px-4">
                     <CardTitle className="text-xs text-zinc-400 flex items-center gap-2">
-                      <TreeStructure weight="duotone" className="w-4 h-4" />
+                      <UilSitemap className="w-4 h-4" />
                       Correlation Rules
                     </CardTitle>
                   </CardHeader>
@@ -1478,7 +1448,7 @@ export default function AlertCenter() {
           <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
             <DialogHeader>
               <DialogTitle className="text-zinc-100 flex items-center gap-2">
-                <Plugs weight="duotone" className="w-5 h-5 text-cyan-400" />
+                <UilPlug className="w-5 h-5 text-cyan-400" />
                 Add Alert Source
               </DialogTitle>
               <DialogDescription className="text-zinc-500">
@@ -1529,7 +1499,7 @@ export default function AlertCenter() {
 
               {newSourceType !== "syslog" && newSourceType !== "webhook" && (
                 <div>
-                  <Label className="text-xs text-zinc-400">API Key / Token</Label>
+                  <Label className="text-xs text-zinc-400">API UilKeySkeleton / Token</Label>
                   <Input
                     type="password"
                     value={newSourceApiKey}
@@ -1551,7 +1521,7 @@ export default function AlertCenter() {
                 disabled={!newSourceName.trim()}
                 className="bg-cyan-600 hover:bg-cyan-500 text-white"
               >
-                <Plus weight="bold" className="w-3.5 h-3.5 mr-1" />
+                <UilPlus className="w-3.5 h-3.5 mr-1" />
                 Add Source
               </Button>
             </DialogFooter>
@@ -1563,7 +1533,7 @@ export default function AlertCenter() {
           <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
             <DialogHeader>
               <DialogTitle className="text-zinc-100 flex items-center gap-2">
-                <GitBranch weight="duotone" className="w-5 h-5 text-cyan-400" />
+                <UilCodeBranch className="w-5 h-5 text-cyan-400" />
                 New Investigation
               </DialogTitle>
               <DialogDescription className="text-zinc-500">
@@ -1619,7 +1589,7 @@ export default function AlertCenter() {
                 disabled={!newInvName.trim()}
                 className="bg-cyan-600 hover:bg-cyan-500 text-white"
               >
-                <Plus weight="bold" className="w-3.5 h-3.5 mr-1" />
+                <UilPlus className="w-3.5 h-3.5 mr-1" />
                 Create Investigation
               </Button>
             </DialogFooter>

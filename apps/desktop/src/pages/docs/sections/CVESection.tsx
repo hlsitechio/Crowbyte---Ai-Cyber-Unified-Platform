@@ -1,15 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bug } from "@phosphor-icons/react";
+import { UilBug } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function CVESection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Bug} title="CVE Database" description="Cloud-synced vulnerability tracking with NVD + Shodan parallel lookup" status="ready" />
+      <DocHeader icon={UilBug} title="CVE UilDatabase" description="Cloud-synced vulnerability tracking with NVD + Shodan parallel lookup" status="ready" />
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>The CVE Database stores vulnerabilities in the Supabase <code className="text-primary">cves</code> table,
-            shared in real-time across all CrowByte instances, Claude Code CLI sessions, and the OpenClaw AI chat.
+          <p>The CVE UilDatabase stores vulnerabilities in the Supabase <code className="text-primary">cves</code> table,
+            shared in real-time across all CrowByte instances, Claude UilBracketsCurly CLI sessions, and the OpenClaw AI chat.
             CVEs can be added three ways: manually through the UI form, auto-saved via the <code className="text-primary">cve-db</code> CLI,
             or by asking the AI in Chat to look up a CVE.</p>
           <p>The lookup engine fetches from <strong className="text-foreground">NVD API v2.0</strong> and
@@ -64,7 +64,7 @@ export function CVESection() {
             <div><span className="text-emerald-500">cve-db nvd</span> CVE-2024-3400</div>
             <div><span className="text-emerald-500">cve-db shodan</span> CVE-2024-3400</div>
             <div>&nbsp;</div>
-            <div className="text-zinc-500"># Database operations</div>
+            <div className="text-zinc-500"># UilDatabase operations</div>
             <div><span className="text-emerald-500">cve-db search</span> "RCE"</div>
             <div><span className="text-emerald-500">cve-db list</span> --severity CRITICAL</div>
             <div><span className="text-emerald-500">cve-db list</span> -n 20</div>

@@ -1,5 +1,5 @@
 /**
- * Claude Code CLI Provider
+ * Claude UilBracketsCurly CLI Provider
  * Streams Claude responses via Electron IPC → claude -p --output-format stream-json
  * Uses the full .env-unfiltered setup (CLAUDE.md, MCP servers, tools, plugins)
  */
@@ -211,7 +211,7 @@ class ClaudeProvider {
       }
       events.push({
         type: 'system',
-        content: `Claude Code v${raw.claude_code_version || '?'} | ${raw.model || 'unknown'} | ${raw.tools?.length || 0} tools | ${raw.mcp_servers?.filter((s: any) => s.status === 'connected').length || 0} MCP servers`,
+        content: `Claude UilBracketsCurly v${raw.claude_code_version || '?'} | ${raw.model || 'unknown'} | ${raw.tools?.length || 0} tools | ${raw.mcp_servers?.filter((s: any) => s.status === 'connected').length || 0} MCP servers`,
         sessionId: raw.session_id,
       });
     }

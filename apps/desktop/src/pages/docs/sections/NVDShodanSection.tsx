@@ -1,11 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { UilSearch } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function NVDShodanSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={MagnifyingGlass} title="NVD & Shodan" description="Dual-source vulnerability intelligence integrated into the CVE workflow" status="ready" />
+      <DocHeader icon={UilSearch} title="NVD & Shodan" description="Dual-source vulnerability intelligence integrated into the CVE workflow" status="ready" />
 
       <Card><CardHeader><CardTitle>NVD API v2.0</CardTitle><CardDescription>services.nvd.nist.gov/rest/json/cves/2.0</CardDescription></CardHeader>
         <CardContent><FeatureList items={[

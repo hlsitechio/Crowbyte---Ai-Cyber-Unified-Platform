@@ -6,35 +6,35 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Headset,
-  Eye,
-  Terminal,
-  AlertTriangle,
-  Activity,
-  Wifi,
-  WifiOff,
-  Clock,
-  User,
-  Monitor,
-  Cpu,
-  HardDrive,
-  RefreshCw,
-  Send,
-  Bot,
-  Shield,
-  X,
-  ChevronDown,
-  ChevronRight,
-  Circle,
-  Zap,
-  Ticket,
-  Bell,
-  MessageSquare,
-  CheckCircle2,
-  XCircle,
-  Timer,
-  ArrowUpRight,
-} from "lucide-react";
+  UilHeadphones,
+  UilEye,
+  UilWindow,
+  UilExclamationTriangle,
+  UilHeartbeat,
+  UilWifi,
+  UilWifiSlash,
+  UilClock,
+  UilUser,
+  UilMonitor,
+  UilProcessor,
+  UilServer,
+  UilSync,
+  UilPlaneFly,
+  UilShield,
+  UilTimes,
+  UilAngleDown,
+  UilAngleRight,
+  UilCircle,
+  UilBolt,
+  UilBell,
+  UilCommentDots,
+  UilCheckCircle,
+  UilArrowUpRight,
+  UilClock as UilTimer,
+  UilTimesCircle,
+  UilRobot,
+  UilTicket,
+} from "@iconscout/react-unicons";
 import {
   getActiveSessions,
   getSessionHistory,
@@ -80,9 +80,9 @@ interface TicketRow {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const STATUS_BADGE: Record<string, { className: string; label: string }> = {
-  open: { className: "bg-amber-500/20 text-amber-300 border-amber-500/30", label: "Open" },
-  in_progress: { className: "bg-blue-500/20 text-blue-300 border-blue-500/30", label: "In Progress" },
-  resolved: { className: "bg-green-500/20 text-green-300 border-green-500/30", label: "Resolved" },
+  open: { className: "bg-amber-500/20 text-amber-300", label: "Open" },
+  in_progress: { className: "bg-blue-500/20 text-blue-300", label: "In Progress" },
+  resolved: { className: "bg-green-500/20 text-green-300", label: "Resolved" },
   closed: { className: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30", label: "Closed" },
 };
 
@@ -127,8 +127,8 @@ function TicketCard({
       </div>
       <div className="text-sm text-white font-medium truncate mb-1">{ticket.subject}</div>
       <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-        <span className="flex items-center gap-1"><User size={10} /> {ticket.user_email}</span>
-        <span className="flex items-center gap-1"><MessageSquare size={10} /> {convo.length}</span>
+        <span className="flex items-center gap-1"><UilUser size={10} /> {ticket.user_email}</span>
+        <span className="flex items-center gap-1"><UilCommentDots size={10} /> {convo.length}</span>
       </div>
       <div className="text-[10px] text-zinc-600 mt-1">{getTimeAgo(ticket.created_at)}</div>
     </button>
@@ -159,10 +159,10 @@ function TicketDetail({
       <div className="p-4 border-b border-white/[0.06]">
         <h2 className="text-lg font-bold text-white mb-1">{ticket.subject}</h2>
         <div className="flex items-center gap-3 text-xs text-zinc-500">
-          <span className="flex items-center gap-1"><User size={11} /> {ticket.user_email}</span>
-          <span className="flex items-center gap-1"><Clock size={11} /> {new Date(ticket.created_at).toLocaleString()}</span>
+          <span className="flex items-center gap-1"><UilUser size={11} /> {ticket.user_email}</span>
+          <span className="flex items-center gap-1"><UilClock size={11} /> {new Date(ticket.created_at).toLocaleString()}</span>
           {ticket.assigned_to && (
-            <span className="flex items-center gap-1"><ArrowUpRight size={11} /> {ticket.assigned_to}</span>
+            <span className="flex items-center gap-1"><UilArrowUpRight size={11} /> {ticket.assigned_to}</span>
           )}
         </div>
       </div>
@@ -172,32 +172,32 @@ function TicketDetail({
         {ticket.status !== "in_progress" && ticket.status !== "resolved" && (
           <button
             onClick={() => onStatusChange("in_progress")}
-            className="h-7 px-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-400 hover:bg-blue-500/20 transition-all flex items-center gap-1"
+            className="h-7 px-3 rounded-lg bg-blue-500/10 text-xs text-blue-400 hover:bg-blue-500/20 transition-all flex items-center gap-1"
           >
-            <Timer size={11} /> Start Working
+            <UilTimer size={11} /> Start Working
           </button>
         )}
         {ticket.status !== "resolved" && (
           <button
             onClick={() => onStatusChange("resolved", notes)}
-            className="h-7 px-3 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-400 hover:bg-green-500/20 transition-all flex items-center gap-1"
+            className="h-7 px-3 rounded-lg bg-green-500/10 text-xs text-green-400 hover:bg-green-500/20 transition-all flex items-center gap-1"
           >
-            <CheckCircle2 size={11} /> Resolve
+            <UilCheckCircle size={11} /> Resolve
           </button>
         )}
         {ticket.status !== "closed" && (
           <button
             onClick={() => onStatusChange("closed", notes)}
-            className="h-7 px-3 rounded-lg bg-zinc-500/10 border border-zinc-500/20 text-xs text-zinc-400 hover:bg-zinc-500/20 transition-all flex items-center gap-1"
+            className="h-7 px-3 rounded-lg bg-zinc-500/10 text-xs text-zinc-400 hover:bg-zinc-500/20 transition-all flex items-center gap-1"
           >
-            <XCircle size={11} /> Close
+            <UilTimesCircle size={11} /> Close
           </button>
         )}
         <button
           onClick={() => setShowNotifForm(!showNotifForm)}
-          className="h-7 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs text-orange-400 hover:bg-orange-500/20 transition-all flex items-center gap-1 ml-auto"
+          className="h-7 px-3 rounded-lg bg-orange-500/10 text-xs text-orange-400 hover:bg-orange-500/20 transition-all flex items-center gap-1 ml-auto"
         >
-          <Bell size={11} /> Push Notification
+          <UilBell size={11} /> Push Notification
         </button>
       </div>
 
@@ -367,13 +367,13 @@ function SessionCard({
 
       <div className="flex items-center gap-3 text-[11px] text-zinc-500 mb-3">
         <span className="flex items-center gap-1">
-          <Monitor size={10} /> {meta?.platform || "Unknown"}
+          <UilMonitor size={10} /> {meta?.platform || "Unknown"}
         </span>
         <span className="flex items-center gap-1">
-          <Eye size={10} /> {meta?.screen || "?"}
+          <UilEye size={10} /> {meta?.screen || "?"}
         </span>
         <span className="flex items-center gap-1">
-          <Terminal size={10} /> {meta?.route || "/"}
+          <UilWindow size={10} /> {meta?.route || "/"}
         </span>
       </div>
 
@@ -382,13 +382,13 @@ function SessionCard({
           onClick={onConnect}
           className="w-full h-8 rounded-lg bg-blue-600/80 hover:bg-blue-500 text-xs text-white font-medium transition-all flex items-center justify-center gap-1.5"
         >
-          <Wifi size={12} /> Connect
+          <UilWifi size={12} /> Connect
         </button>
       )}
 
       {isActive && (
         <div className="flex items-center gap-1.5 text-[11px] text-green-400">
-          <Circle size={8} fill="currentColor" /> Connected — streaming live
+          <UilCircle size={8} /> Connected — streaming live
         </div>
       )}
     </div>
@@ -468,7 +468,7 @@ function StateInspector({ state }: { state: Record<string, unknown> | null }) {
               className="flex items-center gap-1 w-full text-left hover:bg-white/[0.04] rounded px-1 py-0.5"
             >
               {isObj ? (
-                expanded ? <ChevronDown size={10} className="text-zinc-600" /> : <ChevronRight size={10} className="text-zinc-600" />
+                expanded ? <UilAngleDown size={10} className="text-zinc-600" /> : <UilAngleRight size={10} className="text-zinc-600" />
               ) : (
                 <span className="w-2.5" />
               )}
@@ -505,7 +505,7 @@ function AnalysisPanel({ analysis }: { analysis: DebugAnalysis | null }) {
   if (!analysis) {
     return (
       <div className="flex items-center justify-center h-full text-xs text-zinc-600">
-        <Bot size={16} className="mr-2" /> Run analysis to diagnose issues
+        <UilRobot size={16} className="mr-2" /> Run analysis to diagnose issues
       </div>
     );
   }
@@ -552,7 +552,7 @@ function AnalysisPanel({ analysis }: { analysis: DebugAnalysis | null }) {
                 </div>
                 <div className="text-xs text-white mb-1">{issue.message}</div>
                 <div className="text-[11px] text-zinc-400">
-                  <Zap size={10} className="inline mr-1 text-blue-400" />
+                  <UilBolt size={10} className="inline mr-1 text-blue-400" />
                   {issue.suggestion}
                 </div>
               </div>
@@ -712,7 +712,7 @@ export default function Support() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Headset size={20} className="text-blue-400" />
+            <UilHeadphones size={20} className="text-blue-400" />
             Support Console
           </h1>
           <p className="text-xs text-zinc-500 mt-1">Ticket management, remote debug, push notifications</p>
@@ -721,8 +721,8 @@ export default function Support() {
         {/* Main tab toggle */}
         <div className="flex gap-1 bg-white/[0.04] rounded-lg p-0.5">
           {[
-            { id: "tickets" as const, label: "Tickets", icon: Ticket, count: ticketStats.open },
-            { id: "remote" as const, label: "Remote Debug", icon: Monitor, count: sessions.length },
+            { id: "tickets" as const, label: "Tickets", icon: UilTicket, count: ticketStats.open },
+            { id: "remote" as const, label: "Remote Debug", icon: UilMonitor, count: sessions.length },
           ].map(({ id, label, icon: Icon, count }) => (
             <button
               key={id}
@@ -801,7 +801,7 @@ export default function Support() {
               ) : (
                 <div className="flex items-center justify-center h-full text-center space-y-3">
                   <div>
-                    <Ticket size={32} className="text-zinc-700 mx-auto mb-3" />
+                    <UilTicket size={32} className="text-zinc-700 mx-auto mb-3" />
                     <p className="text-sm text-zinc-500">Select a ticket to view details</p>
                   </div>
                 </div>
@@ -831,7 +831,7 @@ export default function Support() {
                 }}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+                <UilSync size={12} className={loading ? "animate-spin" : ""} />
               </button>
             </div>
 
@@ -869,7 +869,7 @@ export default function Support() {
             {!activeSession ? (
               <div className="flex-1 flex items-center justify-center border border-white/[0.04] rounded-xl bg-white/[0.01]">
                 <div className="text-center space-y-3">
-                  <Headset size={32} className="text-zinc-700 mx-auto" />
+                  <UilHeadphones size={32} className="text-zinc-700 mx-auto" />
                   <p className="text-sm text-zinc-500">Select a session to connect</p>
                   <p className="text-xs text-zinc-600">
                     Users must accept the support connection before you can view their dashboard
@@ -904,18 +904,18 @@ export default function Support() {
                         const analysis = analyzeState(activeSession.latestState);
                         setActiveSession((prev) => prev ? { ...prev, analysis } : prev);
                       }}
-                      className="h-7 px-3 rounded-lg bg-violet-500/10 border border-violet-500/20 text-xs text-violet-400 hover:bg-violet-500/20 transition-all flex items-center gap-1.5"
+                      className="h-7 px-3 rounded-lg bg-violet-500/10 text-xs text-violet-400 hover:bg-violet-500/20 transition-all flex items-center gap-1.5"
                     >
-                      <Bot size={12} /> AI Diagnose
+                      <UilRobot size={12} /> AI Diagnose
                     </button>
                     <button
                       onClick={() => {
                         if (activeSession?.subscription) activeSession.subscription.unsubscribe();
                         setActiveSession(null);
                       }}
-                      className="h-7 px-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
+                      className="h-7 px-3 rounded-lg bg-red-500/10 text-xs text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
                     >
-                      <WifiOff size={12} /> Disconnect
+                      <UilWifiSlash size={12} /> Disconnect
                     </button>
                   </div>
                 </div>
@@ -924,15 +924,15 @@ export default function Support() {
                 {activeSession.latestState && (
                   <div className="flex items-center gap-4 mb-3 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
                     <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                      <Eye size={11} />
+                      <UilEye size={11} />
                       <span className="text-zinc-300">{(activeSession.latestState.route as string) || "/"}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                      <AlertTriangle size={11} />
+                      <UilExclamationTriangle size={11} />
                       <span className="text-zinc-300">{((activeSession.latestState.errors as any[]) || []).length} errors</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                      <Activity size={11} />
+                      <UilHeartbeat size={11} />
                       <span className="text-zinc-300">{activeSession.frames.length} frames</span>
                     </div>
                   </div>
@@ -941,9 +941,9 @@ export default function Support() {
                 {/* Tab bar */}
                 <div className="flex gap-1 mb-2">
                   {[
-                    { id: "logs" as const, label: "Logs", icon: Terminal },
-                    { id: "state" as const, label: "State", icon: Eye },
-                    { id: "analysis" as const, label: "AI Analysis", icon: Bot },
+                    { id: "logs" as const, label: "Logs", icon: UilWindow },
+                    { id: "state" as const, label: "State", icon: UilEye },
+                    { id: "analysis" as const, label: "AI Analysis", icon: UilRobot },
                   ].map(({ id, label, icon: Icon }) => (
                     <button
                       key={id}
@@ -996,7 +996,7 @@ export default function Support() {
                     disabled={!commandInput.trim()}
                     className="h-8 px-3 rounded-lg bg-blue-600/80 hover:bg-blue-500 disabled:opacity-30 text-xs text-white transition-all flex items-center gap-1.5"
                   >
-                    <Send size={12} /> Send
+                    <UilPlaneFly size={12} /> Send
                   </button>
                 </div>
               </>

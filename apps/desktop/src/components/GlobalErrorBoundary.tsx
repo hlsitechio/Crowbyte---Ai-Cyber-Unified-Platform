@@ -26,13 +26,13 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center h-screen bg-zinc-950 text-zinc-300">
-          <div className="max-w-lg p-8 rounded-lg border border-red-500/20 bg-zinc-900 space-y-4">
+        <div className="flex items-center justify-center h-screen bg-background text-zinc-300">
+          <div className="max-w-lg p-8 rounded-lg bg-zinc-900 space-y-4">
             <h1 className="text-xl font-bold text-red-400">Something went wrong</h1>
             <p className="text-sm text-zinc-400">
               {this.state.error?.message || "An unexpected error occurred."}
             </p>
-            <pre className="text-xs text-zinc-500 bg-zinc-950 p-3 rounded overflow-auto max-h-40">
+            <pre className="text-xs text-zinc-500 bg-zinc-900 p-3 rounded overflow-auto max-h-40">
               {this.state.error?.stack?.split("\n").slice(0, 5).join("\n")}
             </pre>
             <button

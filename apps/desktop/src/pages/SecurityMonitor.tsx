@@ -6,18 +6,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import {
-  Shield,
-  Warning,
-  Pulse,
-  Brain,
-  Broadcast,
-  Eye,
-  ArrowsClockwise,
-  CheckCircle,
-  XCircle,
-  Info,
-} from "@phosphor-icons/react";
+import { UilShield, UilExclamationTriangle, UilHeartRate, UilBrain, UilSignalAlt, UilEye, UilSync, UilCheckCircle, UilTimesCircle, UilInfoCircle } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -168,7 +157,7 @@ const SecurityMonitor = () => {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Shield size={28} weight="duotone" className="text-primary" />
+              <UilShield size={28} className="text-primary" />
               Security Monitor
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -185,12 +174,12 @@ const SecurityMonitor = () => {
             >
               {isScanning ? (
                 <>
-                  <ArrowsClockwise size={16} weight="bold" className="mr-1.5 animate-spin" />
+                  <UilSync size={16} className="mr-1.5 animate-spin" />
                   Scanning...
                 </>
               ) : (
                 <>
-                  <Eye size={16} weight="duotone" className="mr-1.5" />
+                  <UilEye size={16} className="mr-1.5" />
                   Scan Now
                 </>
               )}
@@ -203,7 +192,7 @@ const SecurityMonitor = () => {
               variant="ghost"
               className={autoOn ? "text-emerald-400" : "text-muted-foreground"}
             >
-              <Broadcast size={16} weight="duotone" className={`mr-1.5 ${autoOn ? "animate-pulse" : ""}`} />
+              <UilSignalAlt size={16} className={`mr-1.5 ${autoOn ? "animate-pulse" : ""}`} />
               {autoOn ? "Auto: ON" : "Auto: OFF"}
             </Button>
           </div>
@@ -213,7 +202,7 @@ const SecurityMonitor = () => {
       {/* ── Browser mode info line ─────────────────────────────────── */}
       {!IS_ELECTRON && (
         <div className="flex items-center gap-2 text-xs text-amber-400/80">
-          <Info size={14} weight="duotone" />
+          <UilInfoCircle size={14} />
           <span>Desktop mode required for system metrics</span>
         </div>
       )}
@@ -238,7 +227,7 @@ const SecurityMonitor = () => {
           {/* AI Analysis */}
           <div className="rounded-lg bg-transparent p-4">
             <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
-              <Brain size={14} weight="duotone" />
+              <UilBrain size={14} />
               <span className="uppercase tracking-wide">AI Analysis</span>
             </div>
             <ScrollArea className="h-[320px]">
@@ -252,7 +241,7 @@ const SecurityMonitor = () => {
           {report.securityThreats.length > 0 && (
             <div className="rounded-lg bg-transparent p-4">
               <div className="flex items-center gap-2 mb-3 text-xs text-red-400">
-                <Warning size={14} weight="duotone" />
+                <UilExclamationTriangle size={14} />
                 <span className="uppercase tracking-wide">Threats</span>
               </div>
               <ul className="space-y-2">
@@ -270,7 +259,7 @@ const SecurityMonitor = () => {
           {report.anomalies.length > 0 && (
             <div className="rounded-lg bg-transparent p-4">
               <div className="flex items-center gap-2 mb-3 text-xs text-amber-400">
-                <Pulse size={14} weight="duotone" />
+                <UilHeartRate size={14} />
                 <span className="uppercase tracking-wide">Anomalies</span>
               </div>
               <ul className="space-y-2">
@@ -288,7 +277,7 @@ const SecurityMonitor = () => {
           {recommendations.length > 0 && (
             <div className="rounded-lg bg-transparent p-4">
               <div className="flex items-center gap-2 mb-3 text-xs text-emerald-400">
-                <CheckCircle size={14} weight="duotone" />
+                <UilCheckCircle size={14} />
                 <span className="uppercase tracking-wide">Recommendations</span>
               </div>
               <ol className="space-y-1.5 list-decimal list-inside">
@@ -308,7 +297,7 @@ const SecurityMonitor = () => {
           animate={{ opacity: 1 }}
           className="flex flex-col items-center justify-center py-20 text-center"
         >
-          <Shield size={48} weight="duotone" className="text-zinc-600 mb-4" />
+          <UilShield size={48} className="text-zinc-600 mb-4" />
           <p className="text-sm text-muted-foreground">
             No scan data. Click <span className="text-zinc-300">Scan Now</span> to analyze system security.
           </p>
@@ -324,7 +313,7 @@ const SecurityMonitor = () => {
           className="rounded-lg bg-transparent p-4"
         >
           <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground">
-            <ArrowsClockwise size={14} weight="duotone" />
+            <UilSync size={14} />
             <span className="uppercase tracking-wide">Scan History</span>
             <span className="ml-auto text-[10px] text-zinc-600">{history.length} entries</span>
           </div>
@@ -363,7 +352,7 @@ const SecurityMonitor = () => {
                         </p>
                         {entry.criticalInfo && (
                           <p>
-                            <span className="text-zinc-500">Critical Info:</span>{" "}
+                            <span className="text-zinc-500">Critical UilInfoCircle:</span>{" "}
                             <span className="text-red-400">{entry.criticalInfo}</span>
                           </p>
                         )}

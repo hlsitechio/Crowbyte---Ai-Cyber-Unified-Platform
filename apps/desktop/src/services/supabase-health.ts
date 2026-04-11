@@ -76,7 +76,7 @@ class SupabaseHealthMonitor {
 
       if (error) {
         return {
-          name: 'Database',
+          name: 'UilDatabase',
           status: 'down',
           responseTime,
           lastChecked: new Date(),
@@ -85,14 +85,14 @@ class SupabaseHealthMonitor {
       }
 
       return {
-        name: 'Database',
+        name: 'UilDatabase',
         status: responseTime < 1000 ? 'healthy' : 'degraded',
         responseTime,
         lastChecked: new Date(),
       };
     } catch (error: unknown) {
       return {
-        name: 'Database',
+        name: 'UilDatabase',
         status: 'down',
         responseTime: Date.now() - startTime,
         lastChecked: new Date(),

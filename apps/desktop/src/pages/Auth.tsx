@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, CircleNotch, GithubLogo } from "@phosphor-icons/react";
+import { UilArrowLeft, UilSpinner, UilGithub } from "@iconscout/react-unicons";
 import { credentialStorage } from "@/services/credentialStorage";
 import { deviceFingerprint } from "@/services/deviceFingerprint";
 import { supabase } from "@/lib/supabase";
@@ -178,29 +178,40 @@ export default function Auth() {
  }
  };
 
- const handleGitHubLogin = async () => {
+ const handleOAuthLogin = async (provider: 'github' | 'google' | 'azure' | 'gitlab', label: string, scopes?: string) => {
  setLoading(true);
  try {
- // Use current origin for redirect — works in both Electron and browser
- const redirectUrl = `${window.location.origin}/auth`;
+ const redirectUrl = IS_ELECTRON
+   ? 'https://crowbyte.io/auth'
+   : `${window.location.origin}/auth`;
 
  const { data, error } = await supabase.auth.signInWithOAuth({
- provider: 'github',
+ provider,
  options: {
  redirectTo: redirectUrl,
- scopes: 'read:user user:email',
+ ...(scopes ? { scopes } : {}),
+ skipBrowserRedirect: IS_ELECTRON,
  },
  });
 
  if (error) throw error;
 
- console.log('GitHub OAuth initiated, redirecting to GitHub...');
- toast.info('Opening GitHub authorization...', {
- description: 'You will be redirected back after authorization',
- });
+ if (IS_ELECTRON && data?.url) {
+   const result = await window.electronAPI?.openOAuthPopup?.(data.url, redirectUrl);
+   if (result?.access_token) {
+     const { error: sessionError } = await supabase.auth.setSession({
+       access_token: result.access_token,
+       refresh_token: result.refresh_token,
+     });
+     if (sessionError) throw sessionError;
+     toast.success(`Signed in with ${label}!`);
+     navigate('/dashboard');
+   }
+   setLoading(false);
+ }
  } catch (error: unknown) {
- console.error('GitHub login error:', error);
- const errorMsg = error instanceof Error ? error.message : 'Failed to sign in with GitHub';
+ console.error(`${label} login error:`, error);
+ const errorMsg = error instanceof Error ? error.message : `Failed to sign in with ${label}`;
  toast.error(errorMsg);
  setLoading(false);
  }
@@ -261,9 +272,9 @@ export default function Auth() {
  // Show loading spinner while checking for stored credentials
  if (isCheckingCredentials) {
  return (
- <div className="min-h-screen flex items-center justify-center bg-background">
+ <div className="min-h-screen flex items-center justify-center bg-[#030308]">
  <div className="flex flex-col items-center gap-4">
- <CircleNotch size={48} weight="bold" className="animate-spin text-blue-500" />
+ <UilSpinner size={48} className="animate-spin text-blue-500" />
  <p className="text-sm text-muted-foreground">Checking device credentials...</p>
  </div>
  </div>
@@ -271,13 +282,13 @@ export default function Auth() {
  }
 
  return (
- <div className="min-h-screen flex items-center justify-center bg-background p-4">
+ <div className="min-h-screen flex items-center justify-center bg-[#030308] p-4">
  <div className="w-full max-w-md space-y-6">
  <button
  onClick={() => { window.location.href = '/'; }}
  className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-blue-500 transition-colors font-['JetBrains_Mono'] cursor-pointer"
  >
- <ArrowLeft size={14} weight="bold" />
+ <UilArrowLeft size={14} />
  Back to website
  </button>
  <div className="flex flex-col items-center gap-3">
@@ -301,7 +312,7 @@ export default function Auth() {
  </div>
  )}
  </div>
- <Card className="w-full border-blue-500/20 bg-zinc-950/50">
+ <Card className="w-full border-blue-500/20 bg-zinc-900/50">
  <CardHeader className="text-center">
  <CardTitle className="text-2xl">{isLogin ? "Operator Login" : "New Operator Registration"}</CardTitle>
  <CardDescription>
@@ -368,7 +379,7 @@ export default function Auth() {
  <Button type="submit" className="w-full" disabled={loading}>
  {loading ? (
  <>
- <CircleNotch size={16} weight="bold" className="mr-2 animate-spin" />
+ <UilSpinner size={16} className="mr-2 animate-spin" />
  {isLogin ? "Signing in..." : "Creating account..."}
  </>
  ) : (
@@ -388,17 +399,19 @@ export default function Auth() {
  </div>
  </div>
 
- {/* GitHub OAuth Button */}
+ {/* OAuth Providers */}
+ <div className="grid grid-cols-1 gap-2">
  <Button
  type="button"
  variant="outline"
  className="w-full bg-[#24292e] hover:bg-[#1a1e22] text-white border-[#24292e] hover:border-[#1a1e22]"
- onClick={handleGitHubLogin}
+ onClick={() => handleOAuthLogin('github', 'GitHub', 'read:user user:email')}
  disabled={loading}
  >
- <GithubLogo size={20} weight="duotone" className="mr-2" />
- Continue with GitHub
+ <UilGithub size={18} className="mr-1.5" />
+ GitHub
  </Button>
+ </div>
 
  <Button
  type="button"
@@ -420,7 +433,7 @@ export default function Auth() {
  {/* Reset Password Modal */}
  {showResetPassword && (
  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
- <Card className="w-full max-w-sm border-blue-500/20 bg-zinc-950/95">
+ <Card className="w-full max-w-sm border-blue-500/20 bg-card/95">
  <CardHeader className="text-center pb-3">
  <CardTitle className="text-lg">Reset Password</CardTitle>
  <CardDescription>
@@ -451,7 +464,7 @@ export default function Auth() {
  disabled={resetLoading || !resetEmail}
  >
  {resetLoading ? (
- <><CircleNotch size={16} weight="bold" className="mr-2 animate-spin" /> Sending...</>
+ <><UilSpinner size={16} className="mr-2 animate-spin" /> Sending...</>
  ) : (
  "Send Reset Link"
  )}
@@ -475,7 +488,7 @@ export default function Auth() {
  disabled={resetLoading}
  >
  {resetLoading ? (
- <><CircleNotch size={16} weight="bold" className="mr-2 animate-spin" /> Resending...</>
+ <><UilSpinner size={16} className="mr-2 animate-spin" /> Resending...</>
  ) : (
  "Resend Email"
  )}

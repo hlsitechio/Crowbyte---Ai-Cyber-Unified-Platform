@@ -1,6 +1,5 @@
 import * as React from "react";
-import { CaretLeft, CaretRight, DotsThree } from "@phosphor-icons/react";
-
+import { UilAngleLeft, UilAngleRight, UilEllipsisH } from "@iconscout/react-unicons";
 import { cn } from "@/lib/utils";
 import { ButtonProps, buttonVariants } from "@/components/ui/button";
 
@@ -48,7 +47,7 @@ PaginationLink.displayName = "PaginationLink";
 
 const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink aria-label="Go to previous page" size="default" className={cn("gap-1 pl-2.5", className)} {...props}>
-    <CaretLeft size={16} weight="bold" />
+    <UilAngleLeft size={16} />
     <span>Previous</span>
   </PaginationLink>
 );
@@ -57,14 +56,14 @@ PaginationPrevious.displayName = "PaginationPrevious";
 const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink aria-label="Go to next page" size="default" className={cn("gap-1 pr-2.5", className)} {...props}>
     <span>Next</span>
-    <CaretRight size={16} weight="bold" />
+    <UilAngleRight size={16} />
   </PaginationLink>
 );
 PaginationNext.displayName = "PaginationNext";
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => (
   <span aria-hidden className={cn("flex h-9 w-9 items-center justify-center", className)} {...props}>
-    <DotsThree size={16} weight="bold" />
+    <UilEllipsisH size={16} />
     <span className="sr-only">More pages</span>
   </span>
 );

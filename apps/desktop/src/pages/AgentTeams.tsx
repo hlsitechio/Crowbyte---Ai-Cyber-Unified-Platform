@@ -6,11 +6,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Shield, Code, Server, Headset, Play, Pause, RotateCcw,
-  Clock, CheckCircle, XCircle, AlertTriangle, Zap, Users,
-  Calendar, Plus, Trash2, Settings, Activity, BarChart3,
-  Bot, ChevronRight, Loader2, RefreshCw,
-} from 'lucide-react';
+  UilShield, UilBracketsCurly, UilServer, UilHeadphones,
+  UilPlay, UilPause, UilSync,
+  UilClock, UilCheckCircle, UilTimesCircle, UilExclamationTriangle, UilBolt, UilUsersAlt,
+  UilCalendarAlt, UilPlus, UilTrashAlt, UilHeartbeat,
+  UilRobot, UilAngleRight, UilSpinner,
+} from '@iconscout/react-unicons';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,11 +51,13 @@ import orchestrator, {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TEAM_ICONS: Record<TeamType, typeof Shield> = {
-  security: Shield,
-  dev: Code,
-  ops: Server,
-  support: Headset,
+type IconComponent = React.FC<{ className?: string; size?: number; color?: string }>;
+
+const TEAM_ICONS: Record<TeamType, IconComponent> = {
+  security: UilShield,
+  dev: UilBracketsCurly,
+  ops: UilServer,
+  support: UilHeadphones,
 };
 
 const TEAM_COLORS: Record<TeamType, string> = {
@@ -65,10 +68,10 @@ const TEAM_COLORS: Record<TeamType, string> = {
 };
 
 const TEAM_BG: Record<TeamType, string> = {
-  security: 'bg-red-500/10 border-red-500/20',
-  dev: 'bg-blue-500/10 border-blue-500/20',
-  ops: 'bg-green-500/10 border-green-500/20',
-  support: 'bg-purple-500/10 border-purple-500/20',
+  security: '',
+  dev: '',
+  ops: '',
+  support: '',
 };
 
 const STATUS_BADGE: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
@@ -89,7 +92,7 @@ const STATUS_BADGE: Record<string, { variant: 'default' | 'secondary' | 'destruc
 const TASK_TYPE_LABELS: Record<TaskType, string> = {
   scan: 'Security Scan',
   build: 'Build',
-  review: 'Code Review',
+  review: 'UilBracketsCurly Review',
   deploy: 'Deploy',
   monitor: 'Monitor',
   triage: 'Triage',
@@ -283,7 +286,7 @@ export default function AgentTeams() {
   if (loading && !stats) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+        <UilSpinner className="w-8 h-8 animate-spin text-zinc-500" />
       </div>
     );
   }
@@ -302,7 +305,7 @@ export default function AgentTeams() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
         <div className="flex items-center gap-3">
-          <Bot className="w-6 h-6 text-orange-400" />
+          <UilRobot className="w-6 h-6 text-orange-400" />
           <h1 className="text-xl font-bold">Agent Teams</h1>
           <Badge variant="outline" className="text-xs">
             {teams.length} teams
@@ -317,11 +320,11 @@ export default function AgentTeams() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={loadData}>
-            <RefreshCw className="w-4 h-4" />
+            <UilSync className="w-4 h-4" />
           </Button>
           {teams.length === 0 && (
             <Button size="sm" onClick={handleProvisionTeams}>
-              <Plus className="w-4 h-4 mr-1" />
+              <UilPlus className="w-4 h-4 mr-1" />
               Provision Teams
             </Button>
           )}
@@ -336,7 +339,7 @@ export default function AgentTeams() {
           </div>
           <ScrollArea className="flex-1">
             {teams.map((team) => {
-              const Icon = TEAM_ICONS[team.team_type as TeamType] || Shield;
+              const Icon = TEAM_ICONS[team.team_type as TeamType] || UilShield;
               const color = TEAM_COLORS[team.team_type as TeamType] || 'text-zinc-400';
               const isSelected = selectedTeam?.id === team.id;
 
@@ -355,17 +358,17 @@ export default function AgentTeams() {
                       {(team.agents_enabled || []).length} agents · {team.tier}
                     </p>
                   </div>
-                  <ChevronRight className={`w-4 h-4 text-zinc-600 ${isSelected ? 'text-orange-400' : ''}`} />
+                  <UilAngleRight className={`w-4 h-4 text-zinc-600 ${isSelected ? 'text-orange-400' : ''}`} />
                 </button>
               );
             })}
 
             {teams.length === 0 && (
               <div className="p-6 text-center">
-                <Bot className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+                <UilRobot className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
                 <p className="text-sm text-zinc-500">No teams yet</p>
                 <Button size="sm" className="mt-3" onClick={handleProvisionTeams}>
-                  <Plus className="w-4 h-4 mr-1" />
+                  <UilPlus className="w-4 h-4 mr-1" />
                   Provision
                 </Button>
               </div>
@@ -400,11 +403,11 @@ export default function AgentTeams() {
           {/* Stats Bar */}
           {stats && (
             <div className="grid grid-cols-5 gap-3 px-6 py-4 border-b border-zinc-800">
-              <StatCard icon={Zap} label="Running" value={stats.runningTasks} color="text-blue-400" />
-              <StatCard icon={Clock} label="Queued" value={stats.queuedTasks} color="text-amber-400" />
-              <StatCard icon={CheckCircle} label="Completed" value={stats.completedTasks} color="text-green-400" />
-              <StatCard icon={XCircle} label="Failed" value={stats.failedTasks} color="text-red-400" />
-              <StatCard icon={Calendar} label="Schedules" value={stats.schedules} color="text-purple-400" />
+              <StatCard icon={UilBolt} label="Running" value={stats.runningTasks} color="text-blue-400" />
+              <StatCard icon={UilClock} label="Queued" value={stats.queuedTasks} color="text-amber-400" />
+              <StatCard icon={UilCheckCircle} label="Completed" value={stats.completedTasks} color="text-green-400" />
+              <StatCard icon={UilTimesCircle} label="Failed" value={stats.failedTasks} color="text-red-400" />
+              <StatCard icon={UilCalendarAlt} label="Schedules" value={stats.schedules} color="text-purple-400" />
             </div>
           )}
 
@@ -422,7 +425,7 @@ export default function AgentTeams() {
                   <Dialog open={showNewTask} onOpenChange={setShowNewTask}>
                     <DialogTrigger asChild>
                       <Button size="sm">
-                        <Plus className="w-4 h-4 mr-1" />
+                        <UilPlus className="w-4 h-4 mr-1" />
                         New Task
                       </Button>
                     </DialogTrigger>
@@ -488,7 +491,7 @@ export default function AgentTeams() {
                   <Dialog open={showNewSchedule} onOpenChange={setShowNewSchedule}>
                     <DialogTrigger asChild>
                       <Button size="sm">
-                        <Plus className="w-4 h-4 mr-1" />
+                        <UilPlus className="w-4 h-4 mr-1" />
                         New Schedule
                       </Button>
                     </DialogTrigger>
@@ -569,7 +572,7 @@ export default function AgentTeams() {
                               <CardContent className="p-4">
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center gap-2">
-                                    <Bot className="w-4 h-4 text-orange-400" />
+                                    <UilRobot className="w-4 h-4 text-orange-400" />
                                     <span className="text-sm font-medium">{name}</span>
                                   </div>
                                   <Badge variant={statusInfo.variant} className="text-xs">
@@ -630,7 +633,7 @@ export default function AgentTeams() {
                   </AnimatePresence>
                   {teamTasks.length === 0 && (
                     <div className="text-center py-12">
-                      <Zap className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+                      <UilBolt className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
                       <p className="text-zinc-500">No tasks in queue</p>
                     </div>
                   )}
@@ -670,7 +673,7 @@ export default function AgentTeams() {
                           {instance.current_task_id && (
                             <div className="mt-2 pt-2 border-t border-zinc-800">
                               <p className="text-xs text-blue-400">
-                                <Activity className="w-3 h-3 inline mr-1" />
+                                <UilHeartbeat className="w-3 h-3 inline mr-1" />
                                 Active task: {instance.current_task_id.slice(0, 8)}...
                               </p>
                             </div>
@@ -686,7 +689,7 @@ export default function AgentTeams() {
                   })}
                   {instances.length === 0 && (
                     <div className="text-center py-12">
-                      <Users className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+                      <UilUsersAlt className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
                       <p className="text-zinc-500">No agent instances. Provision a team first.</p>
                     </div>
                   )}
@@ -701,7 +704,7 @@ export default function AgentTeams() {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Calendar className={`w-5 h-5 ${schedule.enabled ? 'text-green-400' : 'text-zinc-600'}`} />
+                            <UilCalendarAlt className={`w-5 h-5 ${schedule.enabled ? 'text-green-400' : 'text-zinc-600'}`} />
                             <div>
                               <p className="text-sm font-medium">{schedule.name}</p>
                               <p className="text-xs text-zinc-500">
@@ -719,7 +722,7 @@ export default function AgentTeams() {
                               className="h-7 w-7"
                               onClick={() => handleToggleSchedule(schedule.id, !schedule.enabled)}
                             >
-                              {schedule.enabled ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                              {schedule.enabled ? <UilPause className="w-3.5 h-3.5" /> : <UilPlay className="w-3.5 h-3.5" />}
                             </Button>
                             <Button
                               variant="ghost"
@@ -727,7 +730,7 @@ export default function AgentTeams() {
                               className="h-7 w-7 text-red-400 hover:text-red-300"
                               onClick={() => handleDeleteSchedule(schedule.id)}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <UilTrashAlt className="w-3.5 h-3.5" />
                             </Button>
                           </div>
                         </div>
@@ -747,7 +750,7 @@ export default function AgentTeams() {
                   ))}
                   {schedules.length === 0 && (
                     <div className="text-center py-12">
-                      <Calendar className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+                      <UilCalendarAlt className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
                       <p className="text-zinc-500">No scheduled jobs</p>
                     </div>
                   )}
@@ -763,7 +766,7 @@ export default function AgentTeams() {
 
 // ─── Sub-Components ───────────────────────────────────────────────────────────
 
-function StatCard({ icon: Icon, label, value, color }: { icon: typeof Zap; label: string; value: number; color: string }) {
+function StatCard({ icon: Icon, label, value, color }: { icon: IconComponent; label: string; value: number; color: string }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-zinc-900/50 rounded-lg border border-zinc-800">
       <Icon className={`w-5 h-5 ${color}`} />
@@ -776,7 +779,7 @@ function StatCard({ icon: Icon, label, value, color }: { icon: typeof Zap; label
 }
 
 function TeamOverviewCard({ team, instances }: { team: AgentTeam; instances: AgentInstance[] }) {
-  const Icon = TEAM_ICONS[team.team_type as TeamType] || Shield;
+  const Icon = TEAM_ICONS[team.team_type as TeamType] || UilShield;
   const bg = TEAM_BG[team.team_type as TeamType] || 'bg-zinc-900 border-zinc-800';
   const color = TEAM_COLORS[team.team_type as TeamType] || 'text-zinc-400';
 
@@ -784,13 +787,11 @@ function TeamOverviewCard({ team, instances }: { team: AgentTeam; instances: Age
   const busyCount = instances.filter((i) => i.status === 'busy').length;
 
   return (
-    <Card className={`${bg} border`}>
+    <Card className={`${bg}`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-black/30">
-              <Icon className={`w-8 h-8 ${color}`} />
-            </div>
+            <Icon className={`w-8 h-8 ${color}`} />
             <div>
               <h2 className="text-xl font-bold capitalize">{team.team_type} Team</h2>
               <p className="text-sm text-zinc-400">
@@ -860,10 +861,10 @@ function TaskRow({
                 {statusInfo.label}
               </Badge>
               {task.priority > 75 && (
-                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                <UilExclamationTriangle className="w-3 h-3 text-amber-400" />
               )}
               {(hasOutput || hasError) && (
-                <ChevronRight className={`w-3 h-3 text-zinc-500 transition-transform ${showOutput ? 'rotate-90' : ''}`} />
+                <UilAngleRight className={`w-3 h-3 text-zinc-500 transition-transform ${showOutput ? 'rotate-90' : ''}`} />
               )}
             </div>
             {expanded && !showOutput && (
@@ -882,12 +883,12 @@ function TaskRow({
         <div className="flex items-center gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
           {(task.status === 'queued' || task.status === 'assigned') && (
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onCancel(task.id)}>
-              <XCircle className="w-3.5 h-3.5 text-zinc-500" />
+              <UilTimesCircle className="w-3.5 h-3.5 text-zinc-500" />
             </Button>
           )}
           {task.status === 'failed' && task.retry_count < task.max_retries && (
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRetry(task.id)}>
-              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+              <UilSync className="w-3.5 h-3.5 text-amber-400" />
             </Button>
           )}
         </div>

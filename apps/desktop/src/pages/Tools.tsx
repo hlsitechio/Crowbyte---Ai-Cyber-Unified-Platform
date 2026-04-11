@@ -7,7 +7,7 @@ import { Input } from"@/components/ui/input";
 import { Label } from"@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
 import { Textarea } from"@/components/ui/textarea";
-import { Wrench, Play, GearSix, Plus, Trash, Pulse, CheckCircle } from "@phosphor-icons/react";
+import { UilWrench, UilPlay, UilCog, UilPlus, UilTrashAlt, UilHeartRate, UilCheckCircle } from "@iconscout/react-unicons";
 import { useToast } from"@/hooks/use-toast";
 import { toolsService, type Tool, type CreateToolData } from"@/services/tools";
 import { motion } from"framer-motion";
@@ -159,7 +159,7 @@ const Tools = () => {
  <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
  <DialogTrigger asChild>
  <Button className="bg-primary hover:bg-primary/90">
- <Plus size={16} weight="bold" className="mr-2" />
+ <UilPlus size={16} className="mr-2" />
  Add Tool
  </Button>
  </DialogTrigger>
@@ -262,7 +262,7 @@ const Tools = () => {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Total Tools</CardTitle>
- <Wrench size={16} weight="bold" className="text-primary" />
+ <UilWrench size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">{stats.totalTools}</div>
@@ -273,7 +273,7 @@ const Tools = () => {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Total Executions</CardTitle>
- <Play size={16} weight="bold" className="text-primary" />
+ <UilPlay size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">{stats.totalExecutions}</div>
@@ -284,7 +284,7 @@ const Tools = () => {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Success Rate</CardTitle>
- <CheckCircle size={16} weight="bold" className="text-primary" />
+ <UilCheckCircle size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">{stats.successRate.toFixed(1)}%</div>
@@ -295,7 +295,7 @@ const Tools = () => {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium text-white">Categories</CardTitle>
- <Pulse size={16} weight="bold" className="text-primary" />
+ <UilHeartRate size={16} className="text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-white">5</div>
@@ -314,7 +314,7 @@ const Tools = () => {
  ) : tools.length === 0 ? (
  <Card>
  <CardContent className="flex flex-col items-center justify-center py-12">
- <Wrench size={64} weight="duotone" className="text-muted-foreground mb-4" />
+ <UilWrench size={64} className="text-muted-foreground mb-4" />
  <h3 className="text-lg font-semibold text-white mb-2">No AI Tools Configured</h3>
  {loadError ? (
  <p className="text-yellow-400 text-center mb-4 text-sm">
@@ -330,7 +330,7 @@ const Tools = () => {
  className="border-border text-white hover:bg-primary/10"
  onClick={() => setAddDialogOpen(true)}
  >
- <Plus size={16} weight="bold" className="mr-2" />
+ <UilPlus size={16} className="mr-2" />
  Add First Tool
  </Button>
  </CardContent>
@@ -348,7 +348,7 @@ const Tools = () => {
  <CardHeader>
  <div className="flex items-start justify-between">
  <div className="rounded-md bg-primary/10 p-2">
- <Wrench size={20} weight="duotone" className="text-primary" />
+ <UilWrench size={20} className="text-primary" />
  </div>
  <Badge variant="secondary" className="text-xs">
  {tool.category}
@@ -387,7 +387,7 @@ const Tools = () => {
  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
  onClick={() => handleExecuteTool(tool.id)}
  >
- <Play size={12} weight="bold" className="mr-1" />
+ <UilPlay size={12} className="mr-1" />
  Execute
  </Button>
  <Button
@@ -396,7 +396,7 @@ const Tools = () => {
  className="border-border text-white hover:bg-destructive/20 hover:text-destructive"
  onClick={() => handleDeleteTool(tool.id)}
  >
- <Trash size={12} weight="bold" />
+ <UilTrashAlt size={12} />
  </Button>
  </div>
  </CardContent>

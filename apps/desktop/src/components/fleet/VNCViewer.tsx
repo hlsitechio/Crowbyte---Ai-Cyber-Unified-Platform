@@ -10,12 +10,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Monitor, Eye, Mouse, Cursor, ArrowsOut, ArrowsIn,
-  Copy, ClipboardText, VideoCamera, VideoCameraSlash, X, WifiHigh, WifiSlash, Lock,
-  ShieldCheck, Screencast, Keyboard, Gauge, GearSix, SpeakerHigh, SpeakerX,
-  Warning, CheckCircle, Clock, ArrowsClockwise, Minus, Square,
-} from '@phosphor-icons/react';
+import { UilMonitor, UilEye, UilMouseAlt, UilExpandArrows, UilCompressArrows, UilCopy, UilClipboard, UilTimes, UilWifi, UilLock, UilShieldCheck, UilTachometerFast, UilCog, UilVolumeUp, UilVolumeMute, UilExclamationTriangle, UilCheckCircle, UilClock, UilSync, UilMinus, UilSquare, UilKeyboard } from "@iconscout/react-unicons";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -233,7 +228,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
               {/* Left — Session info */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <Screencast size={16} weight="bold" className="text-emerald-500" />
+                  <UilCheckCircle size={16} className="text-emerald-500" />
                   <span className="text-sm font-medium text-white">{hostLabel}</span>
                   <span className="text-xs text-zinc-500 font-mono">{ipLabel}</span>
                 </div>
@@ -242,11 +237,11 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
 
                 <div className="flex items-center gap-1.5">
                   {status === 'connected' ? (
-                    <CheckCircle size={14} weight="bold" className="text-emerald-500" />
+                    <UilCheckCircle size={14} className="text-emerald-500" />
                   ) : status === 'connecting' ? (
-                    <ArrowsClockwise size={14} weight="bold" className="text-blue-500 animate-spin" />
+                    <UilSync size={14} className="text-blue-500 animate-spin" />
                   ) : (
-                    <WifiSlash size={14} weight="bold" className="text-red-500" />
+                    <UilExclamationTriangle size={14} className="text-red-500" />
                   )}
                   <span className={`text-xs ${
                     status === 'connected' ? 'text-emerald-500' :
@@ -262,7 +257,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                 {status === 'connected' && (
                   <>
                     <span className="flex items-center gap-1 text-[10px] text-zinc-400">
-                      <Clock size={12} weight="bold" />
+                      <UilClock size={12} />
                       {formatTime(connectionTime)}
                     </span>
                   </>
@@ -275,7 +270,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={sendCtrlAltDel}>
-                        <Keyboard size={14} weight="bold" />
+                        <UilKeyboard size={14} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Ctrl+Alt+Del</TooltipContent>
@@ -284,7 +279,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={toggleFullscreen}>
-                        {isFullscreen ? <ArrowsIn size={14} weight="bold" /> : <ArrowsOut size={14} weight="bold" />}
+                        {isFullscreen ? <UilCompressArrows size={14} /> : <UilExpandArrows size={14} />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
@@ -293,7 +288,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleReconnect}>
-                        <ArrowsClockwise size={14} weight="bold" />
+                        <UilSync size={14} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Reconnect</TooltipContent>
@@ -304,7 +299,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
               {/* Right — Encryption badge + Disconnect */}
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1 text-emerald-500">
-                  <Lock size={12} weight="bold" />
+                  <UilLock size={12} />
                   <span className="text-[10px]">TLS Encrypted</span>
                 </div>
                 <Button
@@ -313,7 +308,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   className="h-7 text-xs"
                   onClick={handleDisconnect}
                 >
-                  <X size={14} weight="bold" className="mr-1" />
+                  <UilTimes size={14} className="mr-1" />
                   Disconnect
                 </Button>
               </div>
@@ -330,7 +325,7 @@ export function VNCViewer({ open, onOpenChange, endpoint, wsUrl, password }: VNC
                   animate={{ rotate: 360 }}
                   transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
                 >
-                  <WifiHigh size={64} weight="duotone" className="text-blue-500" />
+                  <UilWifi size={64} className="text-blue-500" />
                 </motion.div>
                 <p className="text-lg text-zinc-300">Connecting to {hostLabel}...</p>
                 <p className="text-sm text-zinc-500">Establishing encrypted VNC tunnel</p>

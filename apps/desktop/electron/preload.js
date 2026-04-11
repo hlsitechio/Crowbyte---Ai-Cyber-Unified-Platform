@@ -7,6 +7,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose protected methods to renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
+  // Open URL in system browser (for OAuth, passkeys, etc.)
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
+
+  // Open OAuth popup window (no CSP, proper CSS rendering, captures tokens)
+  openOAuthPopup: (url, redirectOrigin) => ipcRenderer.invoke('open-oauth-popup', url, redirectOrigin),
+
   // Initialize Venice.ai with API key
   initVenice: (apiKey) => ipcRenderer.invoke('init-venice', apiKey),
 
@@ -151,7 +157,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onboardingComplete: () => ipcRenderer.invoke('onboarding:complete'),
   onboardingSkip: () => ipcRenderer.invoke('onboarding:skip'),
 
-  // Claude Code CLI
+  // Claude Code CLI (legacy — kept for backward compat)
   claudeChat: (options) => ipcRenderer.invoke('claude-chat', options),
   claudeStop: () => ipcRenderer.invoke('claude-stop'),
   onClaudeStreamEvent: (callback) => {
@@ -167,6 +173,41 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners('claude-stream-event');
     ipcRenderer.removeAllListeners('claude-stream-end');
     ipcRenderer.removeAllListeners('claude-stream-error');
+  },
+
+  // OpenRouter API Key Storage
+  getOpenRouterKey: () => ipcRenderer.invoke('openrouter:get-key'),
+  setOpenRouterKey: (key) => ipcRenderer.invoke('openrouter:set-key', key),
+
+  // Intercept Proxy (built-in MITM proxy for bug bounty)
+  proxy: {
+    start: (opts) => ipcRenderer.invoke('proxy:start', opts),
+    stop: () => ipcRenderer.invoke('proxy:stop'),
+    status: () => ipcRenderer.invoke('proxy:status'),
+    pause: () => ipcRenderer.invoke('proxy:pause'),
+    resume: () => ipcRenderer.invoke('proxy:resume'),
+    setScope: (scope, excludeScope) => ipcRenderer.invoke('proxy:set-scope', { scope, excludeScope }),
+    history: (filters) => ipcRenderer.invoke('proxy:history', filters),
+    getCapture: (id) => ipcRenderer.invoke('proxy:get-capture', id),
+    replay: (id, modifications) => ipcRenderer.invoke('proxy:replay', { id, modifications }),
+    clear: () => ipcRenderer.invoke('proxy:clear'),
+    caPath: () => ipcRenderer.invoke('proxy:ca-path'),
+    onCapture: (callback) => {
+      ipcRenderer.on('proxy:capture', (event, data) => callback(data));
+    },
+    onError: (callback) => {
+      ipcRenderer.on('proxy:error', (event, error) => callback(error));
+    },
+    removeListeners: () => {
+      ipcRenderer.removeAllListeners('proxy:capture');
+      ipcRenderer.removeAllListeners('proxy:error');
+    },
+  },
+
+  // Generic invoke for dynamic IPC (hunt-graph, etc.)
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  on: (channel, callback) => {
+    ipcRenderer.on(channel, (event, ...args) => callback(event, ...args));
   },
 });
 

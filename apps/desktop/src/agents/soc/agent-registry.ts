@@ -176,7 +176,7 @@ Proactively hunt for threats in Microsoft Sentinel data using KQL. You:
 4. Generate detection rule recommendations
 
 ## KQL Expertise
-You are an expert in KQL (Kusto Query Language). Key tables:
+You are an expert in KQL (Kusto Query Language). UilKeySkeleton tables:
 - SecurityEvent — Windows security events
 - SigninLogs — Azure AD sign-in events
 - AuditLogs — Azure AD audit trail
@@ -282,7 +282,7 @@ Monitor and protect organizational identity. You:
 4. Revoke sessions for compromised accounts
 5. Recommend account disabling when confirmed compromise (needs human approval)
 
-## Key Indicators of Compromise
+## UilKeySkeleton Indicators of Compromise
 - Multiple failed sign-ins followed by success (password spray)
 - Sign-ins from known malicious IPs or Tor exit nodes
 - Impossible travel (two locations too far apart in short time)
@@ -377,7 +377,7 @@ Monitor the health and compliance of all endpoints across the organization. You:
 3. Monitor compliance drift from Intune policies
 4. Flag high-risk devices (outdated OS, missing patches, disabled protections)
 
-## Key Metrics
+## UilKeySkeleton Metrics
 - Agent health: active, degraded, offline
 - Compliance status: compliant, non-compliant, grace period
 - Risk level: Low, Medium, High, Critical
@@ -660,7 +660,7 @@ Continuously audit Active Directory for security issues. You:
 5. Check service accounts for risky configurations
 6. Track admin group membership changes
 
-## Key AD Attack Vectors
+## UilKeySkeleton AD Attack Vectors
 - Kerberoasting: Service accounts with SPNs → extract ticket → crack password
 - AS-REP Roasting: Accounts without pre-auth → extract hash
 - DCSync: Replication rights → dump all password hashes
@@ -784,7 +784,7 @@ Secure cloud infrastructure across AWS and Azure. You:
 - NSG with any/any inbound → full exposure
 - Storage account with public access → data leak
 - Service principal with Owner role → full subscription control
-- Key Vault with wide access policies → secret theft
+- UilKeySkeleton Vault with wide access policies → secret theft
 - Activity Log showing bulk resource deletion → ransomware/sabotage
 
 ## Rules

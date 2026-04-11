@@ -1,27 +1,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { motion } from "framer-motion";
-import {
-  WindowsLogo,
-  LinuxLogo,
-  AppleLogo,
-  DownloadSimple,
-  Lock,
-  ArrowSquareOut,
-  Package,
-  ShieldCheck,
-  Spinner,
-  Crown,
-  Info,
-} from "@phosphor-icons/react";
-
+import { UilWindows, UilLinux, UilApple, UilDownloadAlt, UilLock, UilExternalLinkAlt, UilBox, UilShieldCheck, UilSpinner, UilAward, UilInfoCircle } from "@iconscout/react-unicons";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface PackageInfo {
   name: string;
   file: string;
   size: string;
-  icon: typeof WindowsLogo;
+  icon: typeof UilWindows;
   platform: string;
   ext: string;
   description: string;
@@ -112,7 +99,7 @@ export default function Downloads() {
       name: "Windows Installer",
       file: `windows/CrowByte-Setup-${version}.exe`,
       size: FILE_SIZES[`CrowByte-Setup-${version}.exe`] || "~110 MB",
-      icon: WindowsLogo,
+      icon: UilWindows,
       platform: "Windows 10/11",
       ext: ".exe",
       description: "Recommended for most users",
@@ -121,7 +108,7 @@ export default function Downloads() {
       name: "Windows MSI",
       file: `windows/CrowByte-${version}-x64.msi`,
       size: FILE_SIZES[`CrowByte-${version}-x64.msi`] || "~122 MB",
-      icon: WindowsLogo,
+      icon: UilWindows,
       platform: "Windows 10/11",
       ext: ".msi",
       description: "Enterprise deployment / GPO",
@@ -130,7 +117,7 @@ export default function Downloads() {
       name: "Linux AppImage",
       file: `linux/CrowByte-${version}.AppImage`,
       size: FILE_SIZES[`CrowByte-${version}.AppImage`] || "~136 MB",
-      icon: LinuxLogo,
+      icon: UilLinux,
       platform: "Linux x64",
       ext: ".AppImage",
       description: "Universal — runs on any distro",
@@ -139,7 +126,7 @@ export default function Downloads() {
       name: "Linux Debian",
       file: `linux/CrowByte-${version}-amd64.deb`,
       size: FILE_SIZES[`CrowByte-${version}-amd64.deb`] || "~101 MB",
-      icon: LinuxLogo,
+      icon: UilLinux,
       platform: "Ubuntu / Debian / Kali",
       ext: ".deb",
       description: "apt install compatible",
@@ -148,7 +135,7 @@ export default function Downloads() {
       name: "macOS",
       file: `macos/CrowByte-${version}-arm64.dmg`,
       size: "Coming Soon",
-      icon: AppleLogo,
+      icon: UilApple,
       platform: "macOS 12+ (Apple Silicon)",
       ext: ".dmg",
       description: "Coming soon — macOS build in testing",
@@ -195,7 +182,7 @@ export default function Downloads() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Spinner size={24} className="animate-spin text-zinc-500" />
+        <UilSpinner size={24} className="animate-spin text-zinc-500" />
       </div>
     );
   }
@@ -213,13 +200,13 @@ export default function Downloads() {
 
         {/* Version banner */}
         <div className="flex items-center gap-4 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-          <Package size={20} weight="duotone" className="text-blue-400 flex-shrink-0" />
+          <UilBox size={20} className="text-blue-400 flex-shrink-0" />
           <div className="flex-1">
             <span className="text-sm font-medium text-zinc-200">v{version}</span>
             <span className="text-xs text-zinc-600 ml-3">Released {releaseDate}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <ShieldCheck size={14} weight="duotone" className="text-green-400" />
+            <UilShieldCheck size={14} className="text-green-400" />
             <span className="text-xs text-zinc-500">Signed</span>
           </div>
         </div>
@@ -229,11 +216,11 @@ export default function Downloads() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-6"
+            className="relative overflow-hidden rounded-xl bg-blue-500/[0.04] p-6"
           >
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 flex-shrink-0">
-                <Crown size={22} weight="duotone" className="text-blue-400" />
+                <UilAward size={22} className="text-blue-400" />
               </div>
               <div className="flex-1 space-y-2">
                 <h3 className="text-sm font-semibold text-zinc-100">
@@ -246,7 +233,7 @@ export default function Downloads() {
                   onClick={() => window.location.href = "/settings/profile"}
                   className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
                 >
-                  <ArrowSquareOut size={14} weight="bold" />
+                  <UilExternalLinkAlt size={14} />
                   Upgrade Plan
                 </button>
               </div>
@@ -261,7 +248,7 @@ export default function Downloads() {
           {/* Windows */}
           <PlatformSection
             title="Windows"
-            packages={packages.filter((p) => p.icon === WindowsLogo)}
+            packages={packages.filter((p) => p.icon === UilWindows)}
             isPaid={isPaid}
             downloading={downloading}
             onDownload={handleDownload}
@@ -270,7 +257,7 @@ export default function Downloads() {
           {/* Linux */}
           <PlatformSection
             title="Linux"
-            packages={packages.filter((p) => p.icon === LinuxLogo)}
+            packages={packages.filter((p) => p.icon === UilLinux)}
             isPaid={isPaid}
             downloading={downloading}
             onDownload={handleDownload}
@@ -279,7 +266,7 @@ export default function Downloads() {
           {/* macOS */}
           <PlatformSection
             title="macOS"
-            packages={packages.filter((p) => p.icon === AppleLogo)}
+            packages={packages.filter((p) => p.icon === UilApple)}
             isPaid={isPaid}
             downloading={downloading}
             onDownload={handleDownload}
@@ -288,7 +275,7 @@ export default function Downloads() {
 
         {/* Auto-update info */}
         <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-          <Info size={16} weight="duotone" className="text-zinc-500 mt-0.5 flex-shrink-0" />
+          <UilInfoCircle size={16} className="text-zinc-500 mt-0.5 flex-shrink-0" />
           <div className="text-xs text-zinc-500 leading-relaxed">
             <span className="text-zinc-400 font-medium">Auto-updates:</span> Once installed, CrowByte checks for updates automatically on launch. New versions are downloaded and applied in the background — no need to revisit this page.
           </div>
@@ -335,7 +322,7 @@ function PlatformSection({
   );
 }
 
-// ─── Package Card ────────────────────────────────────────────────────────────
+// ─── UilBox Card ────────────────────────────────────────────────────────────
 
 function PackageCard({
   pkg,
@@ -371,12 +358,11 @@ function PackageCard({
       >
         <Icon
           size={22}
-          weight="duotone"
           className={isPaid ? "text-zinc-300" : "text-zinc-600"}
         />
       </div>
 
-      {/* Info */}
+      {/* UilInfoCircle */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span
@@ -403,21 +389,20 @@ function PackageCard({
       <div className="flex-shrink-0">
         {isPaid ? (
           isDownloading ? (
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10">
-              <Spinner size={16} className="animate-spin text-blue-400" />
+            <div className="flex h-8 w-8 items-center justify-center">
+              <UilSpinner size={16} className="animate-spin text-blue-400" />
             </div>
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-zinc-800/60 group-hover:bg-blue-500/10 transition-colors">
-              <DownloadSimple
+            <div className="flex h-8 w-8 items-center justify-center text-zinc-500 group-hover:text-blue-400 transition-colors">
+              <UilDownloadAlt
                 size={16}
-                weight="bold"
                 className="text-zinc-500 group-hover:text-blue-400 transition-colors"
               />
             </div>
           )
         ) : (
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-zinc-800/30">
-            <Lock size={14} weight="duotone" className="text-zinc-600" />
+            <UilLock size={14} className="text-zinc-600" />
           </div>
         )}
       </div>

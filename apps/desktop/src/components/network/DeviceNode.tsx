@@ -5,30 +5,26 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import {
-  DesktopTower, Monitor, ShareNetwork, ShieldWarning, Stack, Cloud, Database,
-  Scales, Printer, Cpu, Package, ShieldCheck, WifiHigh, Question,
-  Globe, Skull, Lock, LockOpen,
-} from '@phosphor-icons/react';
+import { UilDesktopAlt, UilMonitor, UilShieldExclamation, UilLayerGroup, UilCloud, UilDatabase, UilProcessor, UilBox, UilShieldCheck, UilWifi, UilQuestionCircle, UilGlobe, UilExclamation, UilLock, UilLockOpenAlt, UilSitemap, UilServer, UilPrint } from "@iconscout/react-unicons";
 import { type NetworkDevice, DEVICE_TYPES } from './types';
 
 const DEVICE_ICONS: Record<string, React.ElementType> = {
-  server: DesktopTower,
-  workstation: Monitor,
-  router: ShareNetwork,
-  firewall: ShieldWarning,
-  switch: Stack,
-  cloud: Cloud,
-  database: Database,
-  loadbalancer: Scales,
-  printer: Printer,
-  iot: Cpu,
-  container: Package,
-  vpn: ShieldCheck,
-  wap: WifiHigh,
-  unknown: Question,
-  internet: Globe,
-  attacker: Skull,
+  server: UilDesktopAlt,
+  workstation: UilMonitor,
+  router: UilSitemap,
+  firewall: UilShieldExclamation,
+  switch: UilLayerGroup,
+  cloud: UilCloud,
+  database: UilDatabase,
+  loadbalancer: UilServer,
+  printer: UilPrint,
+  iot: UilProcessor,
+  container: UilBox,
+  vpn: UilShieldCheck,
+  wap: UilWifi,
+  unknown: UilQuestionCircle,
+  internet: UilGlobe,
+  attacker: UilExclamation,
 };
 
 type DeviceNodeData = NetworkDevice & { selected?: boolean };
@@ -36,7 +32,7 @@ type DeviceNodeData = NetworkDevice & { selected?: boolean };
 function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeData }) {
   const device = data as DeviceNodeData;
   const meta = DEVICE_TYPES[device.type] || DEVICE_TYPES.unknown;
-  const Icon = DEVICE_ICONS[device.type] || Question;
+  const Icon = DEVICE_ICONS[device.type] || UilQuestionCircle;
   const openPorts = device.ports?.filter(p => p.state === 'open').length || 0;
   const isUp = device.status === 'up';
   const isAttacker = device.type === 'attacker';
@@ -70,7 +66,7 @@ function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeD
         {/* Header */}
         <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
           <div className={`p-1.5 rounded-md ${meta.bgColor} ${meta.color}`}>
-            <Icon size={16} weight="bold" />
+            <Icon size={16} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-white truncate leading-tight">{device.label}</p>
@@ -104,7 +100,7 @@ function DeviceNodeComponent({ data, selected }: NodeProps & { data: DeviceNodeD
                       : 'text-amber-500 bg-transparent border-transparent'
                   }`}
                 >
-                  {p.state === 'open' ? <LockOpen size={8} weight="bold" /> : <Lock size={8} weight="bold" />}
+                  {p.state === 'open' ? <UilLockOpenAlt size={8} /> : <UilLock size={8} />}
                   {p.port}
                 </span>
               ))}

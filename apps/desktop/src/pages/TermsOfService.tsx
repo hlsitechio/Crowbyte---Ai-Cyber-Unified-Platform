@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { UilArrowLeft } from '@iconscout/react-unicons';
 
 export default function TermsOfService() {
   return (
@@ -8,7 +8,7 @@ export default function TermsOfService() {
           onClick={() => { window.location.href = '/'; }}
           className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-blue-500 transition-colors mb-8 font-['JetBrains_Mono'] cursor-pointer"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <UilArrowLeft className="w-3.5 h-3.5" />
           Back to CrowByte
         </button>
 

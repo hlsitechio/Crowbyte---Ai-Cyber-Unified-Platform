@@ -1,7 +1,6 @@
 import * as React from "react";
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
-import { Check, CaretRight, Circle } from "@phosphor-icons/react";
-
+import { UilCheck, UilAngleRight, UilCircle } from "@iconscout/react-unicons";
 import { cn } from "@/lib/utils";
 
 const ContextMenu = ContextMenuPrimitive.Root;
@@ -32,7 +31,7 @@ const ContextMenuSubTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <CaretRight size={16} weight="bold" className="ml-auto" />
+    <UilAngleRight size={16} className="ml-auto" />
   </ContextMenuPrimitive.SubTrigger>
 ));
 ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName;
@@ -102,7 +101,7 @@ const ContextMenuCheckboxItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <ContextMenuPrimitive.ItemIndicator>
-        <Check size={16} weight="bold" />
+        <UilCheck size={16} />
       </ContextMenuPrimitive.ItemIndicator>
     </span>
     {children}
@@ -124,7 +123,7 @@ const ContextMenuRadioItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <ContextMenuPrimitive.ItemIndicator>
-        <Circle size={8} weight="fill" className="fill-current" />
+        <UilCircle size={8} className="fill-current" />
       </ContextMenuPrimitive.ItemIndicator>
     </span>
     {children}

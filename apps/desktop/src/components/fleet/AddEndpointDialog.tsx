@@ -15,16 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Monitor,
-  Cpu,
-  HardDrives,
-  Memory,
-  TreeStructure,
-  CircleNotch,
-  CheckCircle,
-  WarningCircle,
-} from '@phosphor-icons/react';
+import { UilMonitor, UilProcessor, UilServer, UilSitemap, UilSpinner, UilCheckCircle, UilExclamationCircle, UilBrain } from "@iconscout/react-unicons";
 import { systemMonitor, SystemMetrics } from '@/services/systemMonitor';
 import { endpointService } from '@/services/endpointService';
 import { toast } from 'sonner';
@@ -98,7 +89,7 @@ export function AddEndpointDialog({
       <DialogContent className="sm:max-w-[500px] bg-background/95 backdrop-blur border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Monitor size={20} weight="duotone" className="text-primary" />
+            <UilMonitor size={20} className="text-primary" />
             Register This Device
           </DialogTitle>
           <DialogDescription>
@@ -108,12 +99,12 @@ export function AddEndpointDialog({
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-8 gap-4">
-            <CircleNotch size={32} weight="duotone" className="animate-spin text-primary" />
+            <UilSpinner size={32} className="animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Detecting system information...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-8 gap-4">
-            <WarningCircle size={32} weight="duotone" className="text-destructive" />
+            <UilExclamationCircle size={32} className="text-destructive" />
             <p className="text-sm text-destructive">{error}</p>
             <Button variant="outline" onClick={loadSystemMetrics}>
               Retry
@@ -137,28 +128,28 @@ export function AddEndpointDialog({
 
             <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
               <h4 className="text-sm font-medium flex items-center gap-2">
-                <CheckCircle size={16} weight="bold" className="text-emerald-500" />
+                <UilCheckCircle size={16} className="text-emerald-500" />
                 System Detected
               </h4>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <Monitor size={16} weight="bold" className="text-muted-foreground" />
+                  <UilMonitor size={16} className="text-muted-foreground" />
                   <span className="text-muted-foreground">OS:</span>
                   <span>{metrics.platform} {metrics.osVersion}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <TreeStructure size={16} weight="bold" className="text-muted-foreground" />
+                  <UilSitemap size={16} className="text-muted-foreground" />
                   <span className="text-muted-foreground">IP:</span>
                   <span>{metrics.ipAddress}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Cpu size={16} weight="bold" className="text-muted-foreground" />
+                  <UilProcessor size={16} className="text-muted-foreground" />
                   <span className="text-muted-foreground">CPU:</span>
                   <span>{metrics.cpuCores} cores</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Memory size={16} weight="bold" className="text-muted-foreground" />
+                  <UilBrain size={16} className="text-muted-foreground" />
                   <span className="text-muted-foreground">RAM:</span>
                   <span>{formatBytes(metrics.memoryTotal)}</span>
                 </div>
@@ -177,7 +168,7 @@ export function AddEndpointDialog({
                     <div className="text-lg font-semibold text-blue-500">
                       {Math.round(metrics.memoryUsage)}%
                     </div>
-                    <div className="text-xs text-muted-foreground">Memory</div>
+                    <div className="text-xs text-muted-foreground">RAM</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-semibold text-amber-500">
@@ -210,7 +201,7 @@ export function AddEndpointDialog({
           >
             {saving ? (
               <>
-                <CircleNotch size={16} weight="bold" className="mr-2 animate-spin" />
+                <UilSpinner size={16} className="mr-2 animate-spin" />
                 Adding...
               </>
             ) : (

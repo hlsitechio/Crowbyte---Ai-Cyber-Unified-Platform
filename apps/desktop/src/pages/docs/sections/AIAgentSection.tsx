@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain } from "@phosphor-icons/react";
+import { UilBrain } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AIAgentSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Brain} title="Search AI Agent" description="Autonomous research agent powered by Tavily web search with multi-step reasoning" status="beta" />
+      <DocHeader icon={UilBrain} title="Search AI Agent" description="Autonomous research agent powered by Tavily web search with multi-step reasoning" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookmarkSimple } from "@phosphor-icons/react";
+import { UilBookmark } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function BookmarksSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={BookmarkSimple} title="Bookmarks" description="Save and organize URLs, resources, and references with categories and tags" status="ready" />
+      <DocHeader icon={UilBookmark} title="Bookmarks" description="Save and organize URLs, resources, and references with categories and tags" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

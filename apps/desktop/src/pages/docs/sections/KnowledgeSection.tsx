@@ -1,16 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen } from "@phosphor-icons/react";
+import { UilBookOpen } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function KnowledgeSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={BookOpen} title="Knowledge Base" description="Cloud-synced documentation, findings, and research storage" status="ready" />
+      <DocHeader icon={UilBookOpen} title="Knowledge Base" description="Cloud-synced documentation, findings, and research storage" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>The Knowledge Base stores entries in the Supabase <code className="text-primary">knowledge_base</code> table,
-            shared in real-time across all CrowByte instances and Claude Code CLI sessions.</p>
+            shared in real-time across all CrowByte instances and Claude UilBracketsCurly CLI sessions.</p>
           <p>Entries can be created from the UI, from the <code className="text-primary">kb</code> CLI tool in any terminal,
             or by asking the AI in Chat. File attachments are stored in Supabase Storage (50MB limit).</p>
         </CardContent></Card>

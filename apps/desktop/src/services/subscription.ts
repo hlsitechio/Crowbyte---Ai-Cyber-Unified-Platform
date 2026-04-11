@@ -296,12 +296,33 @@ export async function checkLimit(resource: string, tier: Tier): Promise<{ allowe
 
 // ─── Realtime Subscription ──────────────────────────────────────────────────
 
+// Track active feed channels to prevent duplicate subscriptions
+const activeFeedChannels = new Map<string, { channel: any; listeners: Set<(item: FeedItem) => void> }>();
+
 export function subscribeFeedRealtime(
   userId: string,
   onInsert: (item: FeedItem) => void
 ) {
+  const key = `feed:${userId}`;
+
+  // If channel already exists, just add this listener
+  if (activeFeedChannels.has(key)) {
+    const entry = activeFeedChannels.get(key)!;
+    entry.listeners.add(onInsert);
+    return () => {
+      entry.listeners.delete(onInsert);
+      // Only remove channel when last listener unsubscribes
+      if (entry.listeners.size === 0) {
+        supabase.removeChannel(entry.channel);
+        activeFeedChannels.delete(key);
+      }
+    };
+  }
+
+  // First subscriber — create channel
+  const listeners = new Set<(item: FeedItem) => void>([onInsert]);
   const channel = supabase
-    .channel(`feed:${userId}`)
+    .channel(key)
     .on(
       "postgres_changes",
       {
@@ -311,13 +332,20 @@ export function subscribeFeedRealtime(
         filter: `user_id=eq.${userId}`,
       },
       (payload) => {
-        onInsert(payload.new as FeedItem);
+        const item = payload.new as FeedItem;
+        for (const fn of listeners) fn(item);
       }
     )
     .subscribe();
 
+  activeFeedChannels.set(key, { channel, listeners });
+
   return () => {
-    supabase.removeChannel(channel);
+    listeners.delete(onInsert);
+    if (listeners.size === 0) {
+      supabase.removeChannel(channel);
+      activeFeedChannels.delete(key);
+    }
   };
 }
 

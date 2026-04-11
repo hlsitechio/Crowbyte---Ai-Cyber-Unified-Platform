@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { FloppyDisk } from "@phosphor-icons/react";
+import { UilSave } from "@iconscout/react-unicons";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SecuritySettings() {
@@ -127,7 +127,7 @@ export default function SecuritySettings() {
           onClick={handleSaveSecurity}
           className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
-          <FloppyDisk size={16} weight="bold" className="mr-2" />
+          <UilSave size={16} className="mr-2" />
           Save Settings
         </Button>
       </div>

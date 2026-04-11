@@ -5,30 +5,15 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
- Shield,
- Brain,
- Terminal,
- ChatDots,
- Database,
- Lightning,
- CheckCircle,
- Warning,
- Clock,
- GearSix,
- Code,
- TreeStructure,
- Pulse
-} from "@phosphor-icons/react";
-
+import { UilShield, UilBrain, UilWindow, UilCommentDots, UilDatabase, UilBolt, UilCheckCircle, UilExclamationTriangle, UilClock, UilCog, UilBracketsCurly, UilSitemap, UilHeartRate } from "@iconscout/react-unicons";
 export function AppDocumentation() {
  return (
  <div className="space-y-6 pb-8">
  {/* Header */}
  <div className="space-y-2">
  <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
- <Shield size={32} weight="duotone" className="text-primary" />
- CrowByte Terminal - Documentation
+ <UilShield size={32} className="text-primary" />
+ CrowByte UilWindow - Documentation
  </h1>
  <p className="text-muted-foreground">
  Complete guide to features, capabilities, and development status
@@ -41,28 +26,28 @@ export function AppDocumentation() {
  <Card className="border-primary/30">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Pulse size={20} weight="duotone" />
+ <UilHeartRate size={20} />
  Feature Status Legend
  </CardTitle>
  </CardHeader>
  <CardContent className="grid gap-3">
  <div className="flex items-center gap-2">
  <span className="flex items-center gap-1 text-xs text-emerald-500">
- <CheckCircle size={12} weight="bold" />
+ <UilCheckCircle size={12} />
  READY
  </span>
  <span className="text-sm">Fully implemented and tested</span>
  </div>
  <div className="flex items-center gap-2">
  <span className="flex items-center gap-1 text-xs text-yellow-500">
- <Clock size={12} weight="bold" />
+ <UilClock size={12} />
  BETA
  </span>
  <span className="text-sm">Functional but may have limitations</span>
  </div>
  <div className="flex items-center gap-2">
  <span className="flex items-center gap-1 text-xs text-orange-500">
- <Warning size={12} weight="bold" />
+ <UilExclamationTriangle size={12} />
  DEV
  </span>
  <span className="text-sm">Under active development</span>
@@ -70,14 +55,14 @@ export function AppDocumentation() {
  </CardContent>
  </Card>
 
- {/* CrowByte Security Terminal */}
+ {/* CrowByte Security UilWindow */}
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Brain size={20} weight="duotone" className="text-primary" />
- CrowByte Security Terminal
+ <UilBrain size={20} className="text-primary" />
+ CrowByte Security UilWindow
  <span className="flex items-center gap-1 text-xs text-yellow-500">
- <Clock size={12} weight="bold" />
+ <UilClock size={12} />
  BETA
  </span>
  </CardTitle>
@@ -114,7 +99,7 @@ export function AppDocumentation() {
  <h4 className="font-semibold mb-2">How to Use:</h4>
  <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
  <li>Go to Dashboard page</li>
- <li>Find "CrowByte Security Terminal" card</li>
+ <li>Find "CrowByte Security UilWindow" card</li>
  <li>Click "Scan Now" for immediate security analysis</li>
  <li>Toggle "Auto ON" to enable 5-minute automatic monitoring</li>
  <li>View AI analysis results in the card</li>
@@ -134,10 +119,10 @@ export function AppDocumentation() {
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <ChatDots size={20} weight="duotone" className="text-primary" />
+ <UilCommentDots size={20} className="text-primary" />
  OpenClaw AI Chat with MCP Tools
  <span className="flex items-center gap-1 text-xs text-emerald-500">
- <CheckCircle size={12} weight="bold" />
+ <UilCheckCircle size={12} />
  READY
  </span>
  </CardTitle>
@@ -190,10 +175,10 @@ export function AppDocumentation() {
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Database size={20} weight="duotone" className="text-primary" />
+ <UilDatabase size={20} className="text-primary" />
  Supabase Backend
  <span className="flex items-center gap-1 text-xs text-emerald-500">
- <CheckCircle size={12} weight="bold" />
+ <UilCheckCircle size={12} />
  READY
  </span>
  </CardTitle>
@@ -214,7 +199,7 @@ export function AppDocumentation() {
  </div>
 
  <div>
- <h4 className="font-semibold mb-2">Database Tables:</h4>
+ <h4 className="font-semibold mb-2">UilDatabase Tables:</h4>
  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
  <li>profiles - User profile data</li>
  <li>messages - Chat history</li>
@@ -233,14 +218,14 @@ export function AppDocumentation() {
  </CardContent>
  </Card>
 
- {/* Terminal Emulator */}
+ {/* UilWindow Emulator */}
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Terminal size={20} weight="duotone" className="text-primary" />
- Integrated Terminal
+ <UilWindow size={20} className="text-primary" />
+ Integrated UilWindow
  <span className="flex items-center gap-1 text-xs text-emerald-500">
- <CheckCircle size={12} weight="bold" />
+ <UilCheckCircle size={12} />
  READY
  </span>
  </CardTitle>
@@ -264,8 +249,8 @@ export function AppDocumentation() {
  <div>
  <h4 className="font-semibold mb-2">How to Use:</h4>
  <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
- <li>Go to Terminal page</li>
- <li>Terminal loads automatically</li>
+ <li>Go to UilWindow page</li>
+ <li>UilWindow loads automatically</li>
  <li>Type commands like a normal terminal</li>
  <li>Press Ctrl+F to search</li>
  <li>Click on URLs to open in browser</li>
@@ -278,10 +263,10 @@ export function AppDocumentation() {
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <TreeStructure size={20} weight="duotone" className="text-primary" />
+ <UilSitemap size={20} className="text-primary" />
  Model Context Protocol (MCP) Servers
  <span className="flex items-center gap-1 text-xs text-yellow-500">
- <Clock size={12} weight="bold" />
+ <UilClock size={12} />
  BETA
  </span>
  </CardTitle>
@@ -293,7 +278,7 @@ export function AppDocumentation() {
  <div>
  <h4 className="font-semibold mb-2">Configured Servers:</h4>
  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
- <li>Supabase MCP - Database operations (Cloud-hosted)</li>
+ <li>Supabase MCP - UilDatabase operations (Cloud-hosted)</li>
  <li>ByteRover Memory - Long-term memory for AI</li>
  <li>Filesystem - File operations</li>
  </ul>
@@ -322,10 +307,10 @@ export function AppDocumentation() {
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Lightning size={20} weight="duotone" className="text-primary" />
+ <UilBolt size={20} className="text-primary" />
  Ollama Cloud (DeepSeek V3.1)
  <span className="flex items-center gap-1 text-xs text-emerald-500">
- <CheckCircle size={12} weight="bold" />
+ <UilCheckCircle size={12} />
  READY
  </span>
  </CardTitle>
@@ -348,10 +333,10 @@ export function AppDocumentation() {
  <div>
  <h4 className="font-semibold mb-2">Use Cases:</h4>
  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
- <li>CrowByte Security Terminal analysis</li>
+ <li>CrowByte Security UilWindow analysis</li>
  <li>Complex reasoning tasks</li>
  <li>Security threat assessment</li>
- <li>Code analysis and generation</li>
+ <li>UilBracketsCurly analysis and generation</li>
  </ul>
  </div>
 
@@ -367,7 +352,7 @@ export function AppDocumentation() {
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Code size={20} weight="duotone" className="text-primary" />
+ <UilBracketsCurly size={20} className="text-primary" />
  Development & Configuration
  </CardTitle>
  <CardDescription>
@@ -376,13 +361,13 @@ export function AppDocumentation() {
  </CardHeader>
  <CardContent className="space-y-4">
  <div>
- <h4 className="font-semibold mb-2">Technology Stack:</h4>
+ <h4 className="font-semibold mb-2">Technology UilLayerGroup:</h4>
  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
  <li>Framework: React 18 + TypeScript</li>
  <li>Desktop: Electron 39</li>
  <li>Build Tool: Vite 7</li>
  <li>UI Components: Radix UI + Tailwind CSS v3</li>
- <li>Terminal: xterm.js</li>
+ <li>UilWindow: xterm.js</li>
  <li>Backend: Supabase (PostgreSQL + Edge Functions)</li>
  </ul>
  </div>
@@ -426,10 +411,10 @@ export function AppDocumentation() {
  <Card className="border-transparent">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <GearSix size={20} weight="duotone" className="text-orange-500" />
+ <UilCog size={20} className="text-orange-500" />
  Future Enhancements
  <span className="flex items-center gap-1 text-xs text-orange-500">
- <Warning size={12} weight="bold" />
+ <UilExclamationTriangle size={12} />
  PLANNED
  </span>
  </CardTitle>
@@ -459,7 +444,7 @@ export function AppDocumentation() {
  <strong>File Upload:</strong> Attach files to chat conversations
  </li>
  <li>
- <strong>Code Execution:</strong> Run code snippets safely in sandbox
+ <strong>UilBracketsCurly Execution:</strong> Run code snippets safely in sandbox
  </li>
  <li>
  <strong>Custom MCP Servers:</strong> User-configurable MCP server connections
@@ -492,7 +477,7 @@ export function AppDocumentation() {
  </div>
 
  <div>
- <h4 className="font-semibold mb-2">Key Files:</h4>
+ <h4 className="font-semibold mb-2">UilKeySkeleton Files:</h4>
  <ul className="list-disc list-inside space-y-1 text-sm font-mono text-muted-foreground">
  <li>.env - Environment configuration</li>
  <li>electron/main.js - Electron main process</li>
@@ -505,7 +490,7 @@ export function AppDocumentation() {
  <div className="p-4 bg-primary/10 border border-primary/30 rounded-md">
  <p className="text-sm">
  <strong>Version:</strong> 1.0.0<br />
- <strong>Product Name:</strong> CrowByte Terminal<br />
+ <strong>Product Name:</strong> CrowByte UilWindow<br />
  <strong>License:</strong> Private<br />
  <strong>Last Updated:</strong> {new Date().toLocaleDateString()}
  </p>

@@ -7,17 +7,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Shield,
-  Lock,
-  ArrowRight,
-  RefreshCw,
-  LogOut,
-  Monitor,
-  Zap,
-  Globe,
-  Terminal,
-  Crown,
-} from "lucide-react";
+  UilLock,
+  UilArrowRight,
+  UilSync,
+  UilSignout,
+  UilMonitor,
+  UilBolt,
+  UilGlobe,
+  UilWindow,
+  UilAward,
+  UilShield,
+} from "@iconscout/react-unicons";
 import { supabase } from "@/integrations/supabase/client";
 import { verifyLicense, type LicenseStatus } from "@/services/license-guard";
 
@@ -41,11 +41,10 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
   };
 
   const openUpgrade = () => {
-    // Open browser to pricing page
     if (window.electronAPI?.executeCommand) {
-      window.electronAPI.executeCommand('start https://crowbyte.io/pricing');
+      window.electronAPI.executeCommand('start https://crowbyte.io/payments');
     } else {
-      window.open('https://crowbyte.io/pricing', '_blank');
+      window.open('https://crowbyte.io/payments', '_blank');
     }
   };
 
@@ -63,7 +62,7 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
   const isTierIssue = ['no_subscription', 'tier_insufficient', 'expired'].includes(status.status);
 
   return (
-    <div className="w-screen h-screen bg-[#0a0a0a] flex flex-col items-center justify-center relative select-none overflow-hidden">
+    <div className="w-screen h-screen bg-background flex flex-col items-center justify-center relative select-none overflow-hidden">
       {/* Drag region */}
       <div
         className="absolute top-0 left-0 right-0 h-8 z-40"
@@ -91,8 +90,8 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
         className="relative z-10 flex flex-col items-center gap-6 px-10 max-w-md"
       >
         {/* Lock icon */}
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-          <Lock size={28} className="text-red-400" />
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center">
+          <UilLock size={28} className="text-red-400" />
         </div>
 
         {/* Title */}
@@ -127,15 +126,15 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
         {isTierIssue && (
           <div className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-2.5">
             <div className="flex items-center gap-2 text-xs font-semibold text-blue-400">
-              <Crown size={14} />
+              <UilAward size={14} />
               <span>Pro Plan Includes</span>
             </div>
             {[
-              [Terminal, 'Full desktop app access'],
-              [Zap, 'AI chat — 50 messages/day'],
-              [Monitor, 'VPS agent deployment'],
-              [Shield, 'Advanced scanning tools'],
-              [Globe, 'API access & webhooks'],
+              [UilWindow, 'Full desktop app access'],
+              [UilBolt, 'AI chat — 50 messages/day'],
+              [UilMonitor, 'VPS agent deployment'],
+              [UilShield, 'Advanced scanning tools'],
+              [UilGlobe, 'API access & webhooks'],
             ].map(([Icon, label], i) => (
               <div key={i} className="flex items-center gap-2.5 text-xs text-zinc-400">
                 <Icon size={12} className="text-zinc-500 flex-shrink-0" />
@@ -152,7 +151,7 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
               onClick={openUpgrade}
               className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
             >
-              Upgrade to Pro — $29/mo <ArrowRight size={14} />
+              Upgrade to Pro — $19/mo <UilArrowRight size={14} />
             </button>
           )}
 
@@ -161,7 +160,7 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
               onClick={() => { window.location.hash = '#/auth'; window.location.reload(); }}
               className="w-full h-11 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2"
             >
-              Sign In <ArrowRight size={14} />
+              Sign In <UilArrowRight size={14} />
             </button>
           )}
 
@@ -177,7 +176,7 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
                 transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
               />
             ) : (
-              <><RefreshCw size={14} /> Re-check Subscription</>
+              <><UilSync size={14} /> Re-check Subscription</>
             )}
           </button>
 
@@ -195,7 +194,7 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
               onClick={handleLogout}
               className="w-full text-xs text-zinc-600 hover:text-red-400 transition-colors py-1 flex items-center justify-center gap-1"
             >
-              <LogOut size={10} /> Sign out
+              <UilSignout size={10} /> Sign out
             </button>
           )}
         </div>

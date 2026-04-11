@@ -214,6 +214,13 @@ class SetupService {
 
   /** Check server-side setup status and sync to localStorage */
   async checkServerSetup(): Promise<boolean> {
+    // Web builds have no setup API — mark complete and skip
+    if (typeof __BUILD_TARGET__ !== 'undefined' && __BUILD_TARGET__ === 'web') {
+      this.config.setupComplete = true;
+      this.config.setupVersion = CURRENT_SETUP_VERSION;
+      this.saveConfig();
+      return true;
+    }
     try {
       const res = await fetch(`${window.location.origin}/api/setup/status`);
       if (res.ok) {

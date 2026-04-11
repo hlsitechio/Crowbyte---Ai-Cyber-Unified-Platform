@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wrench } from "@phosphor-icons/react";
+import { UilWrench } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function ToolsPageSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Wrench} title="Tools Registry" description="Custom tool management with execution tracking and statistics" status="beta" />
+      <DocHeader icon={UilWrench} title="Tools Registry" description="Custom tool management with execution tracking and statistics" status="beta" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

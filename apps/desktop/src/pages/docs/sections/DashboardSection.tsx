@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pulse } from "@phosphor-icons/react";
+import { UilHeartRate } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function DashboardSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Pulse} title="Dashboard" description="Central command overview with real-time system metrics, AI analysis, and quick actions" status="ready" />
+      <DocHeader icon={UilHeartRate} title="Dashboard" description="Central command overview with real-time system metrics, AI analysis, and quick actions" status="ready" />
 
       <Card><CardHeader><CardTitle>What it does</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

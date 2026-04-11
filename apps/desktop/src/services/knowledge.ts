@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { pgOr } from '@/lib/utils';
 import { veniceAI } from './veniceai';
 
 export interface KnowledgeEntry {
@@ -94,7 +95,7 @@ class KnowledgeService {
     }
 
     if (filters?.search) {
-      query = query.or(`title.ilike.%${filters.search}%,content.ilike.%${filters.search}%,summary.ilike.%${filters.search}%`);
+      query = query.or(`title.ilike.%${pgOr(filters.search)}%,content.ilike.%${pgOr(filters.search)}%,summary.ilike.%${pgOr(filters.search)}%`);
     }
 
     const { data, error } = await query;
@@ -197,7 +198,7 @@ class KnowledgeService {
       .single();
 
     if (error) {
-      console.error('❌ Database error:', error);
+      console.error('❌ UilDatabase error:', error);
       throw error;
     }
 

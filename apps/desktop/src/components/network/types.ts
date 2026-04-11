@@ -65,7 +65,7 @@ export const DEVICE_TYPES: Record<DeviceType, { label: string; color: string; bg
   firewall:     { label: 'Firewall',      color: 'text-red-500',     bgColor: 'bg-red-500/15',     borderColor: 'border-transparent' },
   switch:       { label: 'Switch',        color: 'text-teal-500',    bgColor: 'bg-teal-500/15',    borderColor: 'border-transparent' },
   cloud:        { label: 'Cloud',         color: 'text-sky-500',     bgColor: 'bg-sky-500/15',     borderColor: 'border-transparent' },
-  database:     { label: 'Database',      color: 'text-amber-500',   bgColor: 'bg-amber-500/15',   borderColor: 'border-transparent' },
+  database:     { label: 'UilDatabase',      color: 'text-amber-500',   bgColor: 'bg-amber-500/15',   borderColor: 'border-transparent' },
   loadbalancer: { label: 'Load Balancer', color: 'text-emerald-500', bgColor: 'bg-emerald-500/15', borderColor: 'border-transparent' },
   printer:      { label: 'Printer',       color: 'text-zinc-500',    bgColor: 'bg-zinc-500/15',    borderColor: 'border-transparent' },
   iot:          { label: 'IoT Device',    color: 'text-orange-500',  bgColor: 'bg-orange-500/15',  borderColor: 'border-transparent' },

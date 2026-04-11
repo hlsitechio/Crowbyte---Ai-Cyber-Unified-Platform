@@ -431,7 +431,7 @@ ${critCount > 0 ? `\n> **URGENT:** ${critCount} critical finding(s) require imme
 
 ${report.scope || `Target: ${report.target || 'See findings for individual targets'}`}
 
-## Key Findings
+## UilKeySkeleton Findings
 
 ${findings.filter(f => f.severity === 'critical' || f.severity === 'high').map(f =>
   `### ${f.severity.toUpperCase()}: ${f.title}\n\n${f.description || 'See technical details.'}\n\n**Target:** ${f.target_url || f.target_host}\n`
@@ -698,7 +698,7 @@ ${report.recommendations || findings.filter(f => f.severity === 'critical' || f.
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-    // Code blocks
+    // UilBracketsCurly blocks
     html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>');
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
@@ -814,7 +814,7 @@ hr { border: none; border-top: 1px solid #27272a; margin: 30px 0; }
         sections: [
           { key: 'executive_summary', title: 'Executive Summary', required: true, auto_populate: true },
           { key: 'risk_overview', title: 'Risk Overview', required: true, auto_populate: true },
-          { key: 'key_findings', title: 'Key Findings', required: true, auto_populate: true },
+          { key: 'key_findings', title: 'UilKeySkeleton Findings', required: true, auto_populate: true },
           { key: 'recommendations', title: 'Recommendations', required: true, auto_populate: true },
         ],
       },

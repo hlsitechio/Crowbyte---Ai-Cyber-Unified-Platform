@@ -1,5 +1,5 @@
 /**
- * Scoped Database Client
+ * Scoped UilDatabase Client
  * Wraps Supabase queries to auto-inject platform + org_id context.
  *
  * Usage:

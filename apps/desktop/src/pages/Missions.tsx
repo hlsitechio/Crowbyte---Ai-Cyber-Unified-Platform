@@ -27,45 +27,7 @@ import {
   type PhaseType, type CreateMissionData,
   PHASE_CONFIG,
 } from "@/services/mission-pipeline";
-import {
-  Rocket,
-  Plus,
-  Play,
-  Pause,
-  Stop,
-  ArrowClockwise,
-  MagnifyingGlass,
-  TreeStructure,
-  Bug,
-  Crosshair,
-  Crown,
-  FileText,
-  Lightning,
-  Target,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Warning,
-  SkipForward,
-  ArrowRight,
-  CaretRight,
-  CaretDown,
-  Trash,
-  Eye,
-  Pulse,
-  ShieldCheck,
-  Gauge,
-  Wrench,
-  Timer,
-  CalendarBlank,
-  ArrowsClockwise,
-  X,
-  CircleNotch,
-  Info,
-  MinusCircle,
-  FlagCheckered,
-  HardHat,
-} from "@phosphor-icons/react";
+import { UilRocket, UilPlus, UilPlay, UilSearch, UilSitemap, UilBug, UilCrosshair, UilAward, UilFileAlt, UilBolt, UilFocusTarget, UilClock, UilCheckCircle, UilTimesCircle, UilExclamationTriangle, UilArrowRight, UilAngleRight, UilAngleDown, UilTrashAlt, UilEye, UilHeartRate, UilShieldCheck, UilTachometerFast, UilWrench, UilCalendarAlt, UilSync, UilTimes, UilSpinner, UilInfoCircle, UilHardHat, UilPause, UilStopCircle, UilSkipForwardCircle } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -76,12 +38,12 @@ const PHASE_ORDER: PhaseType[] = [
 ];
 
 const PHASE_ICONS: Record<PhaseType, React.ComponentType<any>> = {
-  recon: MagnifyingGlass,
-  enumerate: TreeStructure,
-  vuln_scan: Bug,
-  exploit: Crosshair,
-  post_exploit: Crown,
-  report: FileText,
+  recon: UilSearch,
+  enumerate: UilSitemap,
+  vuln_scan: UilBug,
+  exploit: UilCrosshair,
+  post_exploit: UilAward,
+  report: UilFileAlt,
 };
 
 const PHASE_COLORS: Record<PhaseType, {
@@ -133,23 +95,23 @@ const PHASE_COLORS: Record<PhaseType, {
 
 const STATUS_BADGE: Record<MissionStatus, { className: string; label: string }> = {
   created: {
-    className: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+    className: "bg-zinc-500/20 text-zinc-400",
     label: "Created",
   },
   running: {
-    className: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 animate-pulse",
+    className: "bg-cyan-500/20 text-cyan-400 animate-pulse",
     label: "Running",
   },
   paused: {
-    className: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+    className: "bg-yellow-500/20 text-yellow-400",
     label: "Paused",
   },
   completed: {
-    className: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+    className: "bg-emerald-500/20 text-emerald-400",
     label: "Completed",
   },
   failed: {
-    className: "bg-red-500/20 text-red-400 border border-red-500/30",
+    className: "bg-red-500/20 text-red-400",
     label: "Failed",
   },
   aborted: {
@@ -164,15 +126,15 @@ const PHASE_STATUS_BADGE: Record<string, { className: string; label: string }> =
     label: "Pending",
   },
   running: {
-    className: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 animate-pulse",
+    className: "bg-cyan-500/20 text-cyan-400 animate-pulse",
     label: "Running",
   },
   completed: {
-    className: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+    className: "bg-emerald-500/20 text-emerald-400",
     label: "Completed",
   },
   failed: {
-    className: "bg-red-500/20 text-red-400 border border-red-500/30",
+    className: "bg-red-500/20 text-red-400",
     label: "Failed",
   },
   skipped: {
@@ -182,17 +144,17 @@ const PHASE_STATUS_BADGE: Record<string, { className: string; label: string }> =
 };
 
 const EVENT_ICONS: Record<string, React.ComponentType<any>> = {
-  mission_created: Rocket,
-  mission_started: Play,
-  mission_paused: Pause,
-  mission_resumed: ArrowClockwise,
-  mission_completed: FlagCheckered,
-  mission_aborted: Stop,
-  phase_start: Lightning,
-  phase_complete: CheckCircle,
-  phase_skipped: SkipForward,
-  report_generated: FileText,
-  error: XCircle,
+  mission_created: UilRocket,
+  mission_started: UilPlay,
+  mission_paused: UilPause,
+  mission_resumed: UilPlay,
+  mission_completed: UilCheckCircle,
+  mission_aborted: UilStopCircle,
+  phase_start: UilBolt,
+  phase_complete: UilCheckCircle,
+  phase_skipped: UilSkipForwardCircle,
+  report_generated: UilFileAlt,
+  error: UilTimesCircle,
 };
 
 const EVENT_COLORS: Record<string, string> = {
@@ -587,16 +549,16 @@ export default function Missions() {
   const renderStatsBar = () => (
     <div className="grid grid-cols-5 gap-3">
       {[
-        { label: "Total Missions", value: stats.total, icon: Rocket, color: "text-zinc-400" },
-        { label: "Running", value: stats.running, icon: Pulse, color: "text-cyan-400" },
-        { label: "Completed", value: stats.completed, icon: CheckCircle, color: "text-emerald-400" },
-        { label: "Total Findings", value: stats.total_findings, icon: Bug, color: "text-orange-400" },
-        { label: "Critical", value: stats.total_critical, icon: Warning, color: "text-red-400" },
+        { label: "Total Missions", value: stats.total, icon: UilRocket, color: "text-zinc-400" },
+        { label: "Running", value: stats.running, icon: UilHeartRate, color: "text-cyan-400" },
+        { label: "Completed", value: stats.completed, icon: UilCheckCircle, color: "text-emerald-400" },
+        { label: "Total Findings", value: stats.total_findings, icon: UilBug, color: "text-orange-400" },
+        { label: "Critical", value: stats.total_critical, icon: UilExclamationTriangle, color: "text-red-400" },
       ].map((stat) => (
         <Card key={stat.label} className="bg-zinc-900/50 border-zinc-800/50">
           <CardContent className="p-3 flex items-center gap-3">
             <div className={`p-2 rounded-lg bg-zinc-800/50 ${stat.color}`}>
-              <stat.icon size={18} weight="duotone" />
+              <stat.icon size={18} />
             </div>
             <div>
               <p className="text-xs text-zinc-500">{stat.label}</p>
@@ -638,7 +600,7 @@ export default function Missions() {
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-semibold text-zinc-100 truncate">{mission.name}</h3>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Target size={12} weight="duotone" className="text-zinc-500 shrink-0" />
+                  <UilFocusTarget size={12} className="text-zinc-500 shrink-0" />
                   <span className="text-xs text-zinc-500 font-mono truncate">{mission.target}</span>
                 </div>
               </div>
@@ -652,7 +614,7 @@ export default function Missions() {
                   className="h-6 w-6 text-zinc-600 hover:text-red-400"
                   onClick={(e) => { e.stopPropagation(); setDeleteTarget(mission); }}
                 >
-                  <Trash size={12} weight="duotone" />
+                  <UilTrashAlt size={12} />
                 </Button>
               </div>
             </div>
@@ -677,18 +639,18 @@ export default function Missions() {
             <div className="flex items-center justify-between text-[10px] text-zinc-500">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <Bug size={10} weight="duotone" />
+                  <UilBug size={10} />
                   {mission.total_findings} findings
                 </span>
                 {mission.critical_findings > 0 && (
                   <span className="flex items-center gap-1 text-red-400">
-                    <Warning size={10} weight="duotone" />
+                    <UilExclamationTriangle size={10} />
                     {mission.critical_findings} critical
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-1">
-                <Clock size={10} weight="duotone" />
+                <UilClock size={10} />
                 {getMissionDuration(mission)}
               </div>
             </div>
@@ -704,9 +666,8 @@ export default function Missions() {
     <div className="space-y-3">
       {/* Search */}
       <div className="relative">
-        <MagnifyingGlass
+        <UilSearch
           size={14}
-          weight="duotone"
           className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
         />
         <Input
@@ -726,7 +687,7 @@ export default function Missions() {
             ))
           ) : filteredMissions.length === 0 ? (
             <div className="text-center py-12 text-zinc-600">
-              <Rocket size={40} weight="duotone" className="mx-auto mb-3 opacity-50" />
+              <UilRocket size={40} className="mx-auto mb-3 opacity-50" />
               <p className="text-sm">No missions yet</p>
               <p className="text-xs mt-1">Create a mission to start your pipeline</p>
             </div>
@@ -790,9 +751,9 @@ export default function Missions() {
                     <div className="flex items-center gap-2">
                       <div className={`p-1.5 rounded-md bg-zinc-900/60 ${colors.text}`}>
                         {isRunning ? (
-                          <CircleNotch size={14} weight="bold" className="animate-spin" />
+                          <UilSpinner size={14} className="animate-spin" />
                         ) : (
-                          <PhaseIcon size={14} weight="duotone" />
+                          <PhaseIcon size={14} />
                         )}
                       </div>
                       <div className="min-w-0">
@@ -809,12 +770,12 @@ export default function Missions() {
                     {/* Tools count + findings */}
                     <div className="flex items-center justify-between text-[9px] text-zinc-500">
                       <span className="flex items-center gap-0.5">
-                        <Wrench size={8} weight="duotone" />
+                        <UilWrench size={8} />
                         {phase.tools?.length || 0} tools
                       </span>
                       {phase.findings_created > 0 && (
                         <span className="flex items-center gap-0.5 text-orange-400">
-                          <Bug size={8} weight="duotone" />
+                          <UilBug size={8} />
                           {phase.findings_created}
                         </span>
                       )}
@@ -823,7 +784,7 @@ export default function Missions() {
                     {/* Duration */}
                     {phase.duration_ms && (
                       <div className="text-[9px] text-zinc-600 flex items-center gap-0.5">
-                        <Timer size={8} weight="duotone" />
+                        <UilClock size={8} />
                         {formatDuration(phase.duration_ms)}
                       </div>
                     )}
@@ -837,7 +798,7 @@ export default function Missions() {
                         onClick={(e) => { e.stopPropagation(); handleSkipPhase(phase.id); }}
                         disabled={actionLoading === `skip-${phase.id}`}
                       >
-                        <SkipForward size={10} weight="duotone" className="mr-0.5" />
+                        <UilSkipForwardCircle size={10} className="mr-0.5" />
                         Skip
                       </Button>
                     )}
@@ -848,9 +809,8 @@ export default function Missions() {
                 {idx < phases.length - 1 && (
                   <div className="flex items-center px-1">
                     <div className={`h-px w-4 ${isCompleted ? "bg-emerald-500/50" : "bg-zinc-700/50"}`} />
-                    <ArrowRight
+                    <UilArrowRight
                       size={10}
-                      weight="bold"
                       className={isCompleted ? "text-emerald-500/50" : "text-zinc-700/50"}
                     />
                   </div>
@@ -895,7 +855,7 @@ export default function Missions() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className={`text-sm ${colors.text} flex items-center gap-2`}>
-                {(() => { const I = getPhaseIcon(type); return <I size={16} weight="duotone" />; })()}
+                {(() => { const I = getPhaseIcon(type); return <I size={16} />; })()}
                 {config.label} Detail
               </CardTitle>
               <Button
@@ -904,12 +864,12 @@ export default function Missions() {
                 className="h-6 w-6 text-zinc-500"
                 onClick={() => setExpandedPhase(null)}
               >
-                <X size={12} weight="bold" />
+                <UilTimes size={12} />
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Info grid */}
+            {/* UilInfoCircle grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div>
                 <p className="text-zinc-500 mb-0.5">Status</p>
@@ -945,7 +905,7 @@ export default function Missions() {
                     className="flex items-center justify-between p-2 rounded-md bg-zinc-800/30 border border-zinc-800/50"
                   >
                     <div className="flex items-center gap-2">
-                      <Wrench size={12} weight="duotone" className="text-zinc-500" />
+                      <UilWrench size={12} className="text-zinc-500" />
                       <span className="text-xs text-zinc-300 font-mono">{tool.tool}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -956,11 +916,11 @@ export default function Missions() {
                       )}
                       <Badge className={`text-[9px] px-1 py-0 ${
                         tool.status === "done"
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                          ? "bg-emerald-500/20 text-emerald-400"
                           : tool.status === "running"
-                          ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 animate-pulse"
+                          ? "bg-cyan-500/20 text-cyan-400 animate-pulse"
                           : tool.status === "failed"
-                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          ? "bg-red-500/20 text-red-400"
                           : "bg-zinc-500/20 text-zinc-500 border border-zinc-600/30"
                       }`}>
                         {tool.status || "pending"}
@@ -975,9 +935,9 @@ export default function Missions() {
             {phase.error_message && (
               <>
                 <Separator className="bg-zinc-800/50" />
-                <div className="p-3 rounded-md bg-red-500/5 border border-red-500/20">
+                <div className="p-3 rounded-md bg-red-500/5">
                   <div className="flex items-center gap-2 mb-1">
-                    <XCircle size={14} weight="duotone" className="text-red-400" />
+                    <UilTimesCircle size={14} className="text-red-400" />
                     <span className="text-xs font-medium text-red-400">Error</span>
                   </div>
                   <p className="text-xs text-red-300/70 font-mono">{phase.error_message}</p>
@@ -992,7 +952,7 @@ export default function Missions() {
                 <div>
                   <h5 className="text-xs font-medium text-zinc-400 mb-2">Output</h5>
                   <ScrollArea className="h-[120px]">
-                    <pre className="text-[10px] text-zinc-500 font-mono bg-zinc-950/50 p-2 rounded-md border border-zinc-800/30 whitespace-pre-wrap">
+                    <pre className="text-[10px] text-zinc-500 font-mono bg-zinc-900/50 p-2 rounded-md border border-zinc-800/30 whitespace-pre-wrap">
                       {JSON.stringify(phase.output, null, 2)}
                     </pre>
                   </ScrollArea>
@@ -1021,9 +981,9 @@ export default function Missions() {
             disabled={actionLoading === `start-${m.id}`}
           >
             {actionLoading === `start-${m.id}` ? (
-              <CircleNotch size={12} weight="bold" className="animate-spin mr-1" />
+              <UilSpinner size={12} className="animate-spin mr-1" />
             ) : (
-              <Play size={12} weight="fill" className="mr-1" />
+              <UilPlay size={12} className="mr-1" />
             )}
             Start
           </Button>
@@ -1036,7 +996,7 @@ export default function Missions() {
             onClick={() => handlePauseMission(m)}
             disabled={actionLoading === `pause-${m.id}`}
           >
-            <Pause size={12} weight="fill" className="mr-1" />
+            <UilPause size={12} className="mr-1" />
             Pause
           </Button>
         )}
@@ -1047,7 +1007,7 @@ export default function Missions() {
             onClick={() => handleResumeMission(m)}
             disabled={actionLoading === `resume-${m.id}`}
           >
-            <Play size={12} weight="fill" className="mr-1" />
+            <UilPlay size={12} className="mr-1" />
             Resume
           </Button>
         )}
@@ -1055,11 +1015,11 @@ export default function Missions() {
           <Button
             size="sm"
             variant="outline"
-            className="h-7 px-3 text-xs border-red-500/30 text-red-400 hover:bg-red-500/10"
+            className="h-7 px-3 text-xs text-red-400 hover:bg-red-500/10"
             onClick={() => handleAbortMission(m)}
             disabled={actionLoading === `abort-${m.id}`}
           >
-            <Stop size={12} weight="fill" className="mr-1" />
+            <UilStopCircle size={12} className="mr-1" />
             Abort
           </Button>
         )}
@@ -1069,7 +1029,7 @@ export default function Missions() {
           className="h-7 px-2 text-xs text-zinc-500 hover:text-zinc-300"
           onClick={handleRefresh}
         >
-          <ArrowsClockwise size={12} weight="duotone" />
+          <UilSync size={12} />
         </Button>
       </div>
     );
@@ -1089,25 +1049,25 @@ export default function Missions() {
           {
             label: "Phases",
             value: `${completedPhases}/${totalPhases}`,
-            icon: Gauge,
+            icon: UilTachometerFast,
             color: "text-blue-400",
           },
           {
             label: "Findings",
             value: m.total_findings,
-            icon: Bug,
+            icon: UilBug,
             color: "text-orange-400",
           },
           {
             label: "Critical / High",
             value: `${m.critical_findings} / ${m.high_findings}`,
-            icon: Warning,
+            icon: UilExclamationTriangle,
             color: "text-red-400",
           },
           {
             label: "Duration",
             value: getMissionDuration(m),
-            icon: Timer,
+            icon: UilClock,
             color: "text-zinc-400",
           },
         ].map((stat) => (
@@ -1115,7 +1075,7 @@ export default function Missions() {
             key={stat.label}
             className="flex items-center gap-2 p-2.5 rounded-lg bg-zinc-800/30 border border-zinc-800/50"
           >
-            <stat.icon size={14} weight="duotone" className={stat.color} />
+            <stat.icon size={14} className={stat.color} />
             <div>
               <p className="text-[10px] text-zinc-500">{stat.label}</p>
               <p className={`text-sm font-semibold font-mono ${stat.color}`}>{stat.value}</p>
@@ -1140,7 +1100,7 @@ export default function Missions() {
               <p className="text-xs text-zinc-600 text-center py-6">No events yet</p>
             ) : (
               events.map((event) => {
-                const EventIcon = EVENT_ICONS[event.event_type] || Info;
+                const EventIcon = EVENT_ICONS[event.event_type] || UilInfoCircle;
                 const color = EVENT_COLORS[event.event_type] || "text-zinc-500";
 
                 return (
@@ -1149,7 +1109,7 @@ export default function Missions() {
                     className="flex items-start gap-2 p-2 rounded-md hover:bg-zinc-800/30 transition-colors"
                   >
                     <div className={`mt-0.5 shrink-0 ${color}`}>
-                      <EventIcon size={12} weight="duotone" />
+                      <EventIcon size={12} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs text-zinc-300 leading-snug">{event.message}</p>
@@ -1159,9 +1119,9 @@ export default function Missions() {
                     </div>
                     <Badge className={`text-[8px] px-1 py-0 shrink-0 ${
                       event.event_type.includes("error")
-                        ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                        ? "bg-red-500/10 text-red-400"
                         : event.event_type.includes("complete")
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                        ? "bg-emerald-500/10 text-emerald-400"
                         : "bg-zinc-500/10 text-zinc-500 border border-zinc-600/20"
                     }`}>
                       {event.event_type.replace(/_/g, " ")}
@@ -1183,7 +1143,7 @@ export default function Missions() {
       return (
         <div className="flex items-center justify-center h-full text-zinc-600">
           <div className="text-center">
-            <Rocket size={48} weight="duotone" className="mx-auto mb-3 opacity-30" />
+            <UilRocket size={48} className="mx-auto mb-3 opacity-30" />
             <p className="text-sm">Select a mission to view details</p>
             <p className="text-xs mt-1">Or create a new one to get started</p>
           </div>
@@ -1206,16 +1166,16 @@ export default function Missions() {
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
               <span className="flex items-center gap-1 font-mono">
-                <Target size={11} weight="duotone" />
+                <UilFocusTarget size={11} />
                 {m.target}
               </span>
               <span className="flex items-center gap-1">
-                <CalendarBlank size={11} weight="duotone" />
+                <UilCalendarAlt size={11} />
                 {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
               </span>
               {m.rules_of_engagement && (
                 <span className="flex items-center gap-1">
-                  <ShieldCheck size={11} weight="duotone" />
+                  <UilShieldCheck size={11} />
                   RoE defined
                 </span>
               )}
@@ -1255,7 +1215,7 @@ export default function Missions() {
       <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-zinc-100 flex items-center gap-2">
-            <Rocket size={18} weight="duotone" className="text-cyan-400" />
+            <UilRocket size={18} className="text-cyan-400" />
             New Mission
           </DialogTitle>
           <DialogDescription className="text-zinc-500">
@@ -1275,9 +1235,9 @@ export default function Missions() {
             />
           </div>
 
-          {/* Target */}
+          {/* UilFocusTarget */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-400">Target *</Label>
+            <Label className="text-xs text-zinc-400">UilFocusTarget *</Label>
             <Input
               placeholder="e.g., example.com"
               value={createData.target}
@@ -1352,7 +1312,7 @@ export default function Missions() {
                       checked={!isSkipped}
                       className="border-zinc-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                     />
-                    <PhaseIcon size={14} weight="duotone" className={isSkipped ? "text-zinc-600" : colors.text} />
+                    <PhaseIcon size={14} className={isSkipped ? "text-zinc-600" : colors.text} />
                     <span className={`text-xs font-medium ${isSkipped ? "text-zinc-600" : colors.text}`}>
                       {config.label}
                     </span>
@@ -1371,9 +1331,9 @@ export default function Missions() {
             disabled={creating}
           >
             {creating ? (
-              <CircleNotch size={12} weight="bold" className="animate-spin mr-1" />
+              <UilSpinner size={12} className="animate-spin mr-1" />
             ) : (
-              <FileText size={12} weight="duotone" className="mr-1" />
+              <UilFileAlt size={12} className="mr-1" />
             )}
             Create as Draft
           </Button>
@@ -1383,9 +1343,9 @@ export default function Missions() {
             disabled={creating}
           >
             {creating ? (
-              <CircleNotch size={12} weight="bold" className="animate-spin mr-1" />
+              <UilSpinner size={12} className="animate-spin mr-1" />
             ) : (
-              <Rocket size={12} weight="duotone" className="mr-1" />
+              <UilRocket size={12} className="mr-1" />
             )}
             Create & Start
           </Button>
@@ -1401,7 +1361,7 @@ export default function Missions() {
       <DialogContent className="bg-zinc-900 border-zinc-800 max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-zinc-100 flex items-center gap-2">
-            <Warning size={18} weight="duotone" className="text-red-400" />
+            <UilExclamationTriangle size={18} className="text-red-400" />
             Delete Mission
           </DialogTitle>
           <DialogDescription className="text-zinc-500">
@@ -1424,9 +1384,9 @@ export default function Missions() {
             disabled={deleting}
           >
             {deleting ? (
-              <CircleNotch size={12} weight="bold" className="animate-spin mr-1" />
+              <UilSpinner size={12} className="animate-spin mr-1" />
             ) : (
-              <Trash size={12} weight="duotone" className="mr-1" />
+              <UilTrashAlt size={12} className="mr-1" />
             )}
             Delete
           </Button>
@@ -1438,12 +1398,12 @@ export default function Missions() {
   // ─── Main Layout ───────────────────────────────────────────────────────────
 
   return (
-    <div className="h-full bg-zinc-950 p-4 space-y-4 overflow-hidden">
+    <div className="h-full bg-background p-4 space-y-4 overflow-hidden">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Rocket size={22} weight="duotone" className="text-cyan-400" />
+            <UilRocket size={22} className="text-cyan-400" />
             <h1 className="text-lg font-bold text-zinc-100">Missions</h1>
           </div>
           <p className="text-xs text-zinc-500 mt-0.5 ml-[30px]">
@@ -1457,14 +1417,14 @@ export default function Missions() {
             className="h-8 px-2 text-xs text-zinc-500 hover:text-zinc-300"
             onClick={handleRefresh}
           >
-            <ArrowsClockwise size={14} weight="duotone" />
+            <UilSync size={14} />
           </Button>
           <Button
             size="sm"
             className="h-8 px-3 text-xs bg-cyan-600 hover:bg-cyan-500 text-black font-semibold"
             onClick={() => setCreateOpen(true)}
           >
-            <Plus size={14} weight="bold" className="mr-1" />
+            <UilPlus size={14} className="mr-1" />
             New Mission
           </Button>
         </div>
@@ -1472,7 +1432,7 @@ export default function Missions() {
 
       {/* Preview Banner */}
       <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
-        <HardHat size={16} weight="duotone" />
+        <UilHardHat size={16} />
         <span>Mission Pipeline is in preview — tool execution is simulated. Connect MCP scanning tools for live results.</span>
       </div>
 

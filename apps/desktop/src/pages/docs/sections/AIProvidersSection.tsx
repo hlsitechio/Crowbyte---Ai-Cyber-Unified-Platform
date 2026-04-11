@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Broadcast } from "@phosphor-icons/react";
+import { UilSignalAlt } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AIProvidersSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Broadcast} title="AI Providers" description="Deep dive into all 6 AI provider implementations" status="ready" />
+      <DocHeader icon={UilSignalAlt} title="AI Providers" description="Deep dive into all 6 AI provider implementations" status="ready" />
 
-      <Card className="border-transparent"><CardHeader><CardTitle className="text-violet-500">1. Claude Code CLI (claude-provider.ts)</CardTitle></CardHeader>
+      <Card className="border-transparent"><CardHeader><CardTitle className="text-violet-500">1. Claude UilBracketsCurly CLI (claude-provider.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Spawns claude -p as child process via Electron IPC</div>

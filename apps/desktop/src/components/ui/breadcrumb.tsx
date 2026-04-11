@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { CaretRight, DotsThree } from "@phosphor-icons/react";
-
+import { UilAngleRight, UilEllipsisH } from "@iconscout/react-unicons";
 import { cn } from "@/lib/utils";
 
 const Breadcrumb = React.forwardRef<
@@ -61,7 +60,7 @@ BreadcrumbPage.displayName = "BreadcrumbPage";
 
 const BreadcrumbSeparator = ({ children, className, ...props }: React.ComponentProps<"li">) => (
   <li role="presentation" aria-hidden="true" className={cn("[&>svg]:size-3.5", className)} {...props}>
-    {children ?? <CaretRight size={14} weight="bold" />}
+    {children ?? <UilAngleRight size={14} />}
   </li>
 );
 BreadcrumbSeparator.displayName = "BreadcrumbSeparator";
@@ -73,7 +72,7 @@ const BreadcrumbEllipsis = ({ className, ...props }: React.ComponentProps<"span"
     className={cn("flex h-9 w-9 items-center justify-center", className)}
     {...props}
   >
-    <DotsThree size={16} weight="bold" />
+    <UilEllipsisH size={16} />
     <span className="sr-only">More</span>
   </span>
 );

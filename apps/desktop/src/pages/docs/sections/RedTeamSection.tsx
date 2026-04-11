@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Crosshair } from "@phosphor-icons/react";
+import { UilCrosshair } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function RedTeamSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Crosshair} title="Red Team" description="Offensive security operation tracking with findings management and AI analysis" status="ready" />
+      <DocHeader icon={UilCrosshair} title="Red Team" description="Offensive security operation tracking with findings management and AI analysis" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -27,7 +27,7 @@ export function RedTeamSection() {
             <div className="text-zinc-500"># Operation types</div>
             <div><span className="text-primary">pentest</span>            <span className="text-zinc-500">Standard penetration test</span></div>
             <div><span className="text-primary">red_team</span>           <span className="text-zinc-500">Full adversary simulation</span></div>
-            <div><span className="text-primary">bug_bounty</span>         <span className="text-zinc-500">Bug bounty program engagement</span></div>
+            <div><span className="text-primary">bug_bounty</span>         <span className="text-zinc-500">UilBug bounty program engagement</span></div>
             <div><span className="text-primary">social_engineering</span> <span className="text-zinc-500">Phishing/SE campaigns</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># Finding schema (embedded in operation)</div>

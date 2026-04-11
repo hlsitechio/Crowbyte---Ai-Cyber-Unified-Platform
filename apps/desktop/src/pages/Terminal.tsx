@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from"react";
+import { IS_WEB } from "@/lib/platform";
 import { Card } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
-import { Terminal as TerminalIcon, Plus, X, CaretDown, Brain, DesktopTower, Code, Sword, Pulse, MagnifyingGlass, ArrowsOut, ArrowsIn, Columns, Rows, GridFour, CaretRight, CaretLeft, ArrowUp, ArrowDown, ArrowCounterClockwise, SplitHorizontal, SplitVertical, ArrowsClockwise, TextT } from "@phosphor-icons/react";
+import { UilWindow, UilPlus, UilTimes, UilAngleDown, UilBrain, UilDesktopAlt, UilBracketsCurly, UilBoltAlt, UilHeartRate, UilSearch, UilExpandArrows, UilCompressArrows, UilColumns, UilSubject, UilGrid, UilAngleRight, UilAngleLeft, UilArrowUp, UilArrowDown, UilHistory, UilSync, UilText, UilBolt, UilCog } from "@iconscout/react-unicons";
 import {
  DropdownMenu,
  DropdownMenuContent,
@@ -44,22 +45,23 @@ interface TerminalInstance {
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
- brain: <Brain size={14} weight="bold" className="text-violet-500" />,
- server: <DesktopTower size={14} weight="bold" className="text-blue-500" />,
- code: <Code size={14} weight="bold" className="text-emerald-500" />,
- swords: <Sword size={14} weight="bold" className="text-red-500" />,
- activity: <Pulse size={14} weight="bold" className="text-amber-500" />,
- terminal: <TerminalIcon size={14} weight="bold" className="text-primary" />,
+ brain: <UilBrain size={14} className="text-violet-500" />,
+ server: <UilDesktopAlt size={14} className="text-blue-500" />,
+ code: <UilBracketsCurly size={14} className="text-emerald-500" />,
+ swords: <UilBoltAlt size={14} className="text-red-500" />,
+ activity: <UilHeartRate size={14} className="text-amber-500" />,
+ terminal: <UilWindow size={14} className="text-primary" />,
 };
 
 const TAB_ICON_MAP: Record<string, React.ReactNode> = {
- claude: <Brain size={12} weight="bold" className="text-violet-500" />,
- 'ssh-vps': <DesktopTower size={12} weight="bold" className="text-blue-500" />,
- python: <Code size={12} weight="bold" className="text-emerald-500" />,
- node: <Code size={12} weight="bold" className="text-amber-500" />,
- msf: <Sword size={12} weight="bold" className="text-red-500" />,
- htop: <Pulse size={12} weight="bold" className="text-cyan-500" />,
- tmux: <TerminalIcon size={12} weight="bold" className="text-emerald-500" />,
+ claude: <UilBrain size={12} className="text-violet-500" />,
+ qwenhacker: <UilBoltAlt size={12} className="text-orange-500" />,
+ 'ssh-vps': <UilDesktopAlt size={12} className="text-blue-500" />,
+ python: <UilBracketsCurly size={12} className="text-emerald-500" />,
+ node: <UilBracketsCurly size={12} className="text-amber-500" />,
+ msf: <UilBoltAlt size={12} className="text-red-500" />,
+ htop: <UilHeartRate size={12} className="text-cyan-500" />,
+ tmux: <UilWindow size={12} className="text-emerald-500" />,
 };
 
 const Terminal = () => {
@@ -397,7 +399,7 @@ const Terminal = () => {
  {/* Header bar */}
  <div className={`flex items-center justify-between shrink-0 ${isFullscreen ? 'px-3 py-1.5 bg-[#181818] border-b border-white/[0.04]/20' : 'pb-2'}`}>
  <div className="flex items-center gap-2">
- <TerminalIcon size={16} weight="bold" className="text-primary" />
+ <UilWindow size={16} className="text-primary" />
  <span className="text-sm font-semibold text-white">Terminal</span>
  {terminals.length > 0 && (
  <span className="text-[10px] text-muted-foreground bg-muted/20 px-1.5 py-0.5 rounded">
@@ -427,17 +429,17 @@ const Terminal = () => {
  )}
 
  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setSearchVisible(v => !v)} title="Search (Ctrl+Shift+F)">
- <MagnifyingGlass size={14} weight="bold" />
+ <UilSearch size={14} />
  </Button>
 
  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setIsFullscreen(f => !f)} title="Fullscreen">
- {isFullscreen ? <ArrowsIn size={14} weight="bold" /> : <ArrowsOut size={14} weight="bold" />}
+ {isFullscreen ? <UilCompressArrows size={14} /> : <UilExpandArrows size={14} />}
  </Button>
 
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button variant="default" size="sm" className="h-6 gap-1 text-[11px] px-2">
- <Plus size={12} weight="bold" /> New <CaretDown size={10} weight="bold" />
+ <UilPlus size={12} /> New <UilAngleDown size={10} />
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end" className="w-44">
@@ -460,7 +462,7 @@ const Terminal = () => {
  {/* Search bar */}
  {searchVisible && (
  <div className="flex items-center gap-2 px-3 py-1 bg-[#181818] border-b border-white/[0.04]/20 shrink-0">
- <MagnifyingGlass size={12} weight="bold" className="text-muted-foreground" />
+ <UilSearch size={12} className="text-muted-foreground" />
  <input
  type="text"
  className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
@@ -475,7 +477,7 @@ const Terminal = () => {
  />
  <button className="text-[10px] text-muted-foreground hover:text-white px-1" onClick={() => doSearch(searchQuery, 'prev')}>▲</button>
  <button className="text-[10px] text-muted-foreground hover:text-white px-1" onClick={() => doSearch(searchQuery, 'next')}>▼</button>
- <button className="text-muted-foreground hover:text-white" onClick={() => setSearchVisible(false)}><X size={12} weight="bold" /></button>
+ <button className="text-muted-foreground hover:text-white" onClick={() => setSearchVisible(false)}><UilTimes size={12} /></button>
  </div>
  )}
 
@@ -494,7 +496,7 @@ const Terminal = () => {
  }`}
  onClick={() => switchTab(t.id)}
  >
- {TAB_ICON_MAP[t.shellType] || <TerminalIcon size={12} weight="bold" />}
+ {TAB_ICON_MAP[t.shellType] || <UilWindow size={12} />}
  <span className="whitespace-nowrap">{t.name}</span>
  {!t.alive && <span className="text-[9px] text-red-500/70">✕</span>}
  <button
@@ -504,7 +506,7 @@ const Terminal = () => {
  onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
  onMouseLeave={e => (e.currentTarget.style.opacity = activeTerminalId === t.id ? '0.5' : '0')}
  >
- <X size={10} weight="bold" />
+ <UilTimes size={10} />
  </button>
  </div>
  ))}
@@ -518,10 +520,10 @@ const Terminal = () => {
  {terminals.length === 0 ? (
  <div className="absolute inset-0 flex items-center justify-center">
  <div className="text-center space-y-3">
- <TerminalIcon size={48} weight="duotone" className="mx-auto text-primary/15" />
+ <UilWindow size={48} className="mx-auto text-primary/15" />
  <p className="text-xs text-muted-foreground/60">No sessions</p>
  <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => createTerminal()}>
- <Plus size={12} weight="bold" className="mr-1" /> Open Terminal
+ <UilPlus size={12} className="mr-1" /> Open Terminal
  </Button>
  </div>
  </div>
@@ -550,49 +552,49 @@ const Terminal = () => {
  {/* Pane Splits */}
  <div className="px-2 py-1 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Splits</div>
  <ContextMenuItem onClick={() => runTmuxCommand('split-window -h')} className="gap-2">
- <Columns size={14} weight="bold" className="text-blue-500" /> Split Left / Right
+ <UilColumns size={14} className="text-blue-500" /> Split Left / Right
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('split-window -v')} className="gap-2">
- <Rows size={14} weight="bold" className="text-emerald-500" /> Split Top / Bottom
+ <UilSubject size={14} className="text-emerald-500" /> Split Top / Bottom
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('split-window -h \\; split-window -v \\; select-pane -t 0 \\; split-window -v')} className="gap-2">
- <GridFour size={14} weight="bold" className="text-violet-500" /> 4 Panes (Grid)
+ <UilGrid size={14} className="text-violet-500" /> 4 Panes (Grid)
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('select-layout even-horizontal')} className="gap-2">
- <SplitHorizontal size={14} weight="bold" className="text-cyan-500" /> Even Horizontal
+ <UilColumns size={14} className="text-cyan-500" /> Even Horizontal
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('select-layout even-vertical')} className="gap-2">
- <SplitVertical size={14} weight="bold" className="text-cyan-500" /> Even Vertical
+ <UilSubject size={14} className="text-cyan-500" /> Even Vertical
  </ContextMenuItem>
  <ContextMenuSeparator />
 
  {/* Pane Navigation */}
  <div className="px-2 py-1 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Panes</div>
  <ContextMenuItem onClick={() => runTmuxCommand('select-pane -t :.+')} className="gap-2">
- <CaretRight size={14} weight="bold" /> Next Pane
+ <UilAngleRight size={14} /> Next Pane
  <ContextMenuShortcut>Ctrl+B o</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('select-pane -t :.-')} className="gap-2">
- <CaretLeft size={14} weight="bold" /> Previous Pane
+ <UilAngleLeft size={14} /> Previous Pane
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('swap-pane -U')} className="gap-2">
- <ArrowUp size={14} weight="bold" className="text-amber-500" /> Swap Up
+ <UilArrowUp size={14} className="text-amber-500" /> Swap Up
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('swap-pane -D')} className="gap-2">
- <ArrowDown size={14} weight="bold" className="text-amber-500" /> Swap Down
+ <UilArrowDown size={14} className="text-amber-500" /> Swap Down
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('rotate-window')} className="gap-2">
- <ArrowCounterClockwise size={14} weight="bold" className="text-amber-500" /> Rotate Panes
+ <UilHistory size={14} className="text-amber-500" /> Rotate Panes
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('resize-pane -Z')} className="gap-2">
- <ArrowsOut size={14} weight="bold" /> Zoom Pane
+ <UilExpandArrows size={14} /> Zoom Pane
  <ContextMenuShortcut>Ctrl+B z</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('respawn-pane -k')} className="gap-2">
- <ArrowsClockwise size={14} weight="bold" className="text-teal-500" /> Respawn Pane
+ <UilSync size={14} className="text-teal-500" /> Respawn Pane
  </ContextMenuItem>
  <ContextMenuItem onClick={() => runTmuxCommand('kill-pane')} className="gap-2 text-orange-500">
- <X size={14} weight="bold" /> Kill Pane
+ <UilTimes size={14} /> Kill Pane
  <ContextMenuShortcut>Ctrl+B x</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuSeparator />
@@ -602,17 +604,17 @@ const Terminal = () => {
  Clear <ContextMenuShortcut>Ctrl+Shift+K</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuItem onClick={() => setSearchVisible(v => !v)} className="gap-2">
- <MagnifyingGlass size={14} weight="bold" /> Search <ContextMenuShortcut>Ctrl+Shift+F</ContextMenuShortcut>
+ <UilSearch size={14} /> Search <ContextMenuShortcut>Ctrl+Shift+F</ContextMenuShortcut>
  </ContextMenuItem>
  <ContextMenuSeparator />
 
  {/* New terminals & presets */}
  <div className="px-2 py-1 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">New</div>
  <ContextMenuItem onClick={() => createTerminal()} className="gap-2">
- <TerminalIcon size={14} weight="bold" /> New tmux
+ <UilWindow size={14} /> New tmux
  </ContextMenuItem>
  <ContextMenuItem onClick={() => createTerminal('zsh')} className="gap-2">
- <TerminalIcon size={14} weight="bold" /> New Zsh
+ <UilWindow size={14} /> New Zsh
  </ContextMenuItem>
  {presets.map(p => (
  <ContextMenuItem key={p.id} onClick={() => createTerminal(p.id)} className="gap-2">
@@ -624,7 +626,7 @@ const Terminal = () => {
  onClick={() => activeTerminalId && closeTerminal(activeTerminalId)}
  className="text-red-500 gap-2"
  >
- <X size={14} weight="bold" /> Close Terminal
+ <UilTimes size={14} /> Close Terminal
  </ContextMenuItem>
  </ContextMenuContent>
  </ContextMenu>
@@ -633,4 +635,300 @@ const Terminal = () => {
  );
 };
 
-export default Terminal;
+// ─── Web Terminal ─────────────────────────────────────────────────────────────
+// xterm.js + WebSocket PTY — real zsh shell on VPS via crowbyte.io/terminal/ws
+// On desktop: full Electron terminal (tmux, node-pty) — unchanged.
+
+// xterm imports shared with Electron Terminal above (XTerm, FitAddon, WebLinksAddon, SearchAddon)
+
+const TERM_WS_URL = 'wss://crowbyte.io/terminal/ws';
+const TERM_TOKEN = 'cb-term-2026-r41n';
+const TERM_MODE = 'cb'; // 'cb' for CrowByte CLI, 'shell' for plain zsh
+
+const WebTerminalPage = () => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [connected, setConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const termContainerRef = useRef<HTMLDivElement>(null);
+  const xtermRef = useRef<XTerm | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  const searchAddonRef = useRef<SearchAddon | null>(null);
+
+  // Initialize xterm + WebSocket
+  useEffect(() => {
+    if (!termContainerRef.current) return;
+
+    const xterm = new XTerm({
+      cursorBlink: true,
+      cursorStyle: 'bar',
+      cursorWidth: 2,
+      fontSize: 14,
+      fontFamily: '"JetBrains Mono", "Cascadia Code", "Fira Code", "SF Mono", Menlo, Monaco, monospace',
+      fontWeight: '400',
+      fontWeightBold: '600',
+      lineHeight: 1.15,
+      theme: {
+        background: '#0c0c0c',
+        foreground: '#d4d4d4',
+        cursor: '#00ff41',
+        cursorAccent: '#0c0c0c',
+        selectionBackground: 'rgba(0, 255, 65, 0.15)',
+        selectionForeground: '#ffffff',
+        black: '#1e1e1e',
+        red: '#f44747',
+        green: '#6a9955',
+        yellow: '#dcdcaa',
+        blue: '#569cd6',
+        magenta: '#c586c0',
+        cyan: '#4ec9b0',
+        white: '#d4d4d4',
+        brightBlack: '#808080',
+        brightRed: '#f44747',
+        brightGreen: '#6a9955',
+        brightYellow: '#dcdcaa',
+        brightBlue: '#9cdcfe',
+        brightMagenta: '#c586c0',
+        brightCyan: '#4ec9b0',
+        brightWhite: '#ffffff',
+      },
+      allowTransparency: true,
+      scrollback: 50000,
+      smoothScrollDuration: 100,
+      allowProposedApi: true,
+      rightClickSelectsWord: true,
+    });
+
+    const fitAddon = new FitAddon();
+    const webLinksAddon = new WebLinksAddon();
+    const searchAddon = new SearchAddon();
+
+    xterm.loadAddon(fitAddon);
+    xterm.loadAddon(webLinksAddon);
+    xterm.loadAddon(searchAddon);
+
+    xtermRef.current = xterm;
+    fitAddonRef.current = fitAddon;
+    searchAddonRef.current = searchAddon;
+
+    xterm.open(termContainerRef.current);
+    fitAddon.fit();
+
+    // Keyboard shortcuts
+    xterm.attachCustomKeyEventHandler((event) => {
+      if (event.type !== 'keydown') return true;
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
+        const sel = xterm.getSelection();
+        if (sel) navigator.clipboard.writeText(sel);
+        return false;
+      }
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyV') {
+        navigator.clipboard.readText().then(text => {
+          if (text && wsRef.current?.readyState === 1) wsRef.current.send(text);
+        });
+        return false;
+      }
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyF') {
+        setSearchVisible(v => !v);
+        return false;
+      }
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyK') {
+        xterm.clear();
+        return false;
+      }
+      return true;
+    });
+
+    // Connect WebSocket
+    const wsUrl = `${TERM_WS_URL}?token=${encodeURIComponent(TERM_TOKEN)}&cols=${xterm.cols}&rows=${xterm.rows}&mode=${TERM_MODE}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setConnected(true);
+      setError(null);
+      xterm.focus();
+    };
+
+    ws.onmessage = (event) => {
+      xterm.write(event.data);
+    };
+
+    ws.onclose = (event) => {
+      setConnected(false);
+      if (event.code !== 1000) {
+        setError(event.code === 4001 ? 'Authentication failed' : `Disconnected (${event.code})`);
+        xterm.writeln('\r\n\x1b[90m[connection closed]\x1b[0m');
+      }
+    };
+
+    ws.onerror = () => {
+      setError('Connection failed');
+      setConnected(false);
+    };
+
+    // User input → WebSocket
+    xterm.onData((data) => {
+      if (ws.readyState === 1) ws.send(data);
+    });
+
+    xterm.onBinary((data) => {
+      if (ws.readyState === 1) ws.send(data);
+    });
+
+    // Resize → WebSocket
+    xterm.onResize(({ cols, rows }) => {
+      if (ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'resize', cols, rows }));
+      }
+    });
+
+    // Window resize → fit
+    const handleResize = () => { try { fitAddon.fit(); } catch {} };
+    window.addEventListener('resize', handleResize);
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    if (termContainerRef.current) resizeObserver.observe(termContainerRef.current);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
+      ws.close();
+      xterm.dispose();
+    };
+  }, []);
+
+  // Search
+  const doSearch = useCallback((query: string, direction: 'next' | 'prev' = 'next') => {
+    const sa = searchAddonRef.current;
+    if (!sa || !query) return;
+    if (direction === 'next') sa.findNext(query);
+    else sa.findPrevious(query);
+  }, []);
+
+  // Reconnect
+  const reconnect = useCallback(() => {
+    const xterm = xtermRef.current;
+    if (!xterm) return;
+
+    setError(null);
+    xterm.clear();
+    xterm.writeln('\x1b[90m[reconnecting...]\x1b[0m');
+
+    const wsUrl = `${TERM_WS_URL}?token=${encodeURIComponent(TERM_TOKEN)}&cols=${xterm.cols}&rows=${xterm.rows}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => { setConnected(true); setError(null); xterm.focus(); };
+    ws.onmessage = (event) => { xterm.write(event.data); };
+    ws.onclose = (event) => {
+      setConnected(false);
+      if (event.code !== 1000) {
+        setError(`Disconnected (${event.code})`);
+        xterm.writeln('\r\n\x1b[90m[connection closed]\x1b[0m');
+      }
+    };
+    ws.onerror = () => { setError('Connection failed'); setConnected(false); };
+    xterm.onData((data) => { if (ws.readyState === 1) ws.send(data); });
+    xterm.onBinary((data) => { if (ws.readyState === 1) ws.send(data); });
+    xterm.onResize(({ cols, rows }) => {
+      if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'resize', cols, rows }));
+    });
+  }, []);
+
+  return (
+    <div className={`animate-fade-in flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-[#0c0c0c]' : 'h-[calc(100vh-6rem)]'}`}>
+      {/* Header bar */}
+      <div className={`flex items-center justify-between shrink-0 ${isFullscreen ? 'px-3 py-1.5 bg-[#181818] border-b border-white/[0.04]' : 'pb-2'}`}>
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10">
+            <UilWindow size={14} className="text-emerald-400" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-zinc-100">Terminal</span>
+            {connected && (
+              <span className="flex items-center gap-1 text-[10px] text-emerald-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                zsh
+              </span>
+            )}
+            {!connected && !error && (
+              <span className="flex items-center gap-1 text-[10px] text-amber-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                Connecting...
+              </span>
+            )}
+            {error && (
+              <span className="flex items-center gap-1 text-[10px] text-red-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                {error}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          {/* Reconnect */}
+          {!connected && (
+            <button
+              onClick={reconnect}
+              title="Reconnect"
+              className="flex items-center justify-center gap-1.5 h-7 px-2.5 rounded-md transition-all duration-150 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs font-medium"
+            >
+              <UilSync size={14} />
+              <span className="hidden sm:inline">Reconnect</span>
+            </button>
+          )}
+
+          {/* Search */}
+          <button
+            onClick={() => setSearchVisible(v => !v)}
+            title="Search (Ctrl+Shift+F)"
+            className="flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150 bg-zinc-800/60 text-zinc-500 hover:bg-zinc-700/60 hover:text-zinc-300 backdrop-blur-sm border border-zinc-700/40"
+          >
+            <UilSearch size={14} />
+          </button>
+
+          <button
+            onClick={() => setIsFullscreen(f => !f)}
+            title="Fullscreen"
+            className="flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150 bg-zinc-800/60 text-zinc-500 hover:bg-zinc-700/60 hover:text-zinc-300 backdrop-blur-sm border border-zinc-700/40"
+          >
+            {isFullscreen ? <UilCompressArrows size={14} /> : <UilExpandArrows size={14} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Search bar */}
+      {searchVisible && (
+        <div className="flex items-center gap-2 px-3 py-1 bg-[#181818] border-b border-zinc-800/50 shrink-0">
+          <UilSearch size={12} className="text-muted-foreground" />
+          <input
+            type="text"
+            className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); doSearch(e.target.value); }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') doSearch(searchQuery, e.shiftKey ? 'prev' : 'next');
+              if (e.key === 'Escape') setSearchVisible(false);
+            }}
+            autoFocus
+          />
+          <button className="text-[10px] text-muted-foreground hover:text-white px-1" onClick={() => doSearch(searchQuery, 'prev')}>▲</button>
+          <button className="text-[10px] text-muted-foreground hover:text-white px-1" onClick={() => doSearch(searchQuery, 'next')}>▼</button>
+          <button className="text-muted-foreground hover:text-white" onClick={() => setSearchVisible(false)}><UilTimes size={12} /></button>
+        </div>
+      )}
+
+      {/* Terminal */}
+      <div className="flex-1 overflow-hidden rounded-lg border border-zinc-800 bg-[#0c0c0c]">
+        <div ref={termContainerRef} className="h-full w-full" />
+      </div>
+    </div>
+  );
+};
+
+export default IS_WEB ? WebTerminalPage : Terminal;

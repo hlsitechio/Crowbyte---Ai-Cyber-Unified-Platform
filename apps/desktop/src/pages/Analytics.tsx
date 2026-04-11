@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pulse, ChartBar, TrendUp, Clock, Lightning, Database, ChatDots, MagnifyingGlass, BookOpen, Eye, ArrowsClockwise, Shield, Warning, TrendDown, Target, Scan, Bug, DesktopTower, Globe, Lock, LockOpen, Brain, TreeStructure, Cpu, HardDrives } from "@phosphor-icons/react";
+import { UilHeartRate, UilChartBar, UilChartGrowth, UilClock, UilBolt, UilDatabase, UilCommentDots, UilSearch, UilBookOpen, UilEye, UilSync, UilShield, UilExclamationTriangle, UilChartDown, UilFocusTarget, UilQrcodeScan, UilBug, UilDesktopAlt, UilGlobe, UilLock, UilLockOpenAlt, UilBrain, UilSitemap, UilProcessor, UilServer } from "@iconscout/react-unicons";
 import { motion } from "framer-motion";
 import { analyticsService, type ActivityLog, type ApiUsageStats } from "@/services/analytics";
 import { Button } from "@/components/ui/button";
@@ -269,7 +269,7 @@ const Analytics = () => {
     const services: ServiceStatus[] = [];
     const { supabase } = await import("@/lib/supabase");
 
-    // Supabase / Database check
+    // Supabase / UilDatabase check
     try {
       const start = performance.now();
       const { error } = await supabase.from("cves").select("id").limit(1);
@@ -362,11 +362,11 @@ const Analytics = () => {
       startDate.setDate(startDate.getDate() - 6);
 
       const { data, error } = await supabase
-        .from("api_usage_stats")
-        .select("date, call_count")
+        .from("analytics")
+        .select("created_at")
         .eq("user_id", user.id)
-        .gte("date", startDate.toISOString().split("T")[0])
-        .order("date", { ascending: true });
+        .gte("created_at", startDate.toISOString())
+        .order("created_at", { ascending: true });
 
       if (error || !data) {
         setWeeklyUsage([]);
@@ -376,8 +376,8 @@ const Analytics = () => {
       // Group by date
       const byDate: Record<string, number> = {};
       for (const row of data) {
-        const d = row.date || "unknown";
-        byDate[d] = (byDate[d] || 0) + (row.call_count || 0);
+        const d = row.created_at ? new Date(row.created_at).toISOString().split("T")[0] : "unknown";
+        byDate[d] = (byDate[d] || 0) + 1;
       }
 
       // Fill in missing days
@@ -683,15 +683,15 @@ const Analytics = () => {
   const getActionIcon = (action: string) => {
     switch (action) {
       case "chat_message":
-        return ChatDots;
+        return UilCommentDots;
       case "web_search":
-        return MagnifyingGlass;
+        return UilSearch;
       case "knowledge_query":
-        return BookOpen;
+        return UilBookOpen;
       case "api_call":
-        return Database;
+        return UilDatabase;
       default:
-        return Pulse;
+        return UilHeartRate;
     }
   };
 
@@ -798,7 +798,7 @@ const Analytics = () => {
       >
         <div>
           <h1 className="text-4xl font-bold text-gradient-silver flex items-center gap-3">
-            <Shield size={40} weight="duotone" className="text-primary animate-pulse" />
+            <UilShield size={40} className="text-primary animate-pulse" />
             Analytics Dashboard
           </h1>
           <p className="text-sm text-muted-foreground terminal-text mt-2">
@@ -811,7 +811,7 @@ const Analytics = () => {
           variant="outline"
           className="gap-2"
         >
-          <ArrowsClockwise size={16} weight="bold" className={`${isLoading || cveLoading ? "animate-spin" : ""}`} />
+          <UilSync size={16} className={`${isLoading || cveLoading ? "animate-spin" : ""}`} />
           Refresh Data
         </Button>
       </motion.div>
@@ -827,7 +827,7 @@ const Analytics = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               <div className="flex items-center gap-4">
                 <div className="p-4 rounded-full bg-transparent">
-                  <Scan size={32} weight="duotone" className="text-primary" />
+                  <UilQrcodeScan size={32} className="text-primary" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-mono">THREAT LEVEL</p>
@@ -837,7 +837,7 @@ const Analytics = () => {
 
               <div className="flex items-center gap-4">
                 <div className="p-4 rounded-full bg-transparent">
-                  <Shield size={32} weight="duotone" className="text-emerald-500" />
+                  <UilShield size={32} className="text-emerald-500" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-mono">SECURITY SCORE</p>
@@ -847,7 +847,7 @@ const Analytics = () => {
 
               <div className="flex items-center gap-4">
                 <div className="p-4 rounded-full bg-transparent">
-                  <Target size={32} weight="duotone" className="text-primary" />
+                  <UilFocusTarget size={32} className="text-primary" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-mono">ACTIVE THREATS</p>
@@ -863,19 +863,19 @@ const Analytics = () => {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">
-            <Eye size={16} weight="bold" className="mr-2" />
+            <UilEye size={16} className="mr-2" />
             Overview
           </TabsTrigger>
           <TabsTrigger value="cve">
-            <Bug size={16} weight="bold" className="mr-2" />
+            <UilBug size={16} className="mr-2" />
             CVE Intelligence
           </TabsTrigger>
           <TabsTrigger value="threats">
-            <Warning size={16} weight="bold" className="mr-2" />
+            <UilExclamationTriangle size={16} className="mr-2" />
             Threat Analysis
           </TabsTrigger>
           <TabsTrigger value="system">
-            <DesktopTower size={16} weight="bold" className="mr-2" />
+            <UilDesktopAlt size={16} className="mr-2" />
             System Metrics
           </TabsTrigger>
         </TabsList>
@@ -892,7 +892,7 @@ const Analytics = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Database size={16} weight="bold" className="text-primary" />
+                    <UilDatabase size={16} className="text-primary" />
                     <span className="text-muted-foreground">Total API Calls</span>
                   </CardTitle>
                 </CardHeader>
@@ -911,7 +911,7 @@ const Analytics = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <TrendUp size={16} weight="bold" className="text-emerald-500" />
+                    <UilChartGrowth size={16} className="text-emerald-500" />
                     <span className="text-emerald-500">Remaining</span>
                   </CardTitle>
                 </CardHeader>
@@ -930,7 +930,7 @@ const Analytics = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Lightning size={16} weight="bold" className="text-amber-500" />
+                    <UilBolt size={16} className="text-amber-500" />
                     <span className="text-amber-500">Usage Rate</span>
                   </CardTitle>
                 </CardHeader>
@@ -956,7 +956,7 @@ const Analytics = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Pulse size={16} weight="bold" className="text-blue-500" />
+                    <UilHeartRate size={16} className="text-blue-500" />
                     <span className="text-blue-500">Activities</span>
                   </CardTitle>
                 </CardHeader>
@@ -979,7 +979,7 @@ const Analytics = () => {
               <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                    <ChartBar size={20} weight="duotone" className="text-primary" />
+                    <UilChartBar size={20} className="text-primary" />
                     Usage by Action Type
                   </CardTitle>
                   <CardDescription className="text-muted-foreground/50 font-mono">API calls grouped by service</CardDescription>
@@ -989,7 +989,7 @@ const Analytics = () => {
                     <div className="space-y-4">
                       {usageStats.length === 0 && !isLoading && (
                         <div className="text-center py-8 text-muted-foreground/50">
-                          <ChartBar size={48} weight="duotone" className="mx-auto mb-3 text-primary/50" />
+                          <UilChartBar size={48} className="mx-auto mb-3 text-primary/50" />
                           <p className="text-sm font-mono">No usage data yet</p>
                           <p className="text-xs font-mono">Start using the app to see statistics</p>
                         </div>
@@ -1007,7 +1007,7 @@ const Analytics = () => {
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-3">
-                                <ActionIcon size={20} weight="duotone" className={`${getActionColor(stat.service_name)}`} />
+                                <ActionIcon size={20} className={`${getActionColor(stat.service_name)}`} />
                                 <div>
                                   <span className="font-semibold text-sm text-muted-foreground font-mono">
                                     {stat.service_name.replace("_", " ").toUpperCase()}
@@ -1054,7 +1054,7 @@ const Analytics = () => {
               <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-blue-500">
-                    <Pulse size={20} weight="duotone" className="text-blue-500" />
+                    <UilHeartRate size={20} className="text-blue-500" />
                     Recent Activity
                   </CardTitle>
                   <CardDescription className="text-blue-500/50 font-mono">Live activity feed from all services</CardDescription>
@@ -1064,7 +1064,7 @@ const Analytics = () => {
                     <div className="space-y-3">
                       {recentActivities.length === 0 && !isLoading && (
                         <div className="text-center py-8 text-muted-foreground/50">
-                          <Pulse size={48} weight="duotone" className="mx-auto mb-3 text-primary/50" />
+                          <UilHeartRate size={48} className="mx-auto mb-3 text-primary/50" />
                           <p className="text-sm font-mono">No recent activity</p>
                           <p className="text-xs font-mono">Activity will appear here as you use the app</p>
                         </div>
@@ -1086,7 +1086,7 @@ const Analytics = () => {
                               <div
                                 className={`p-2 rounded-lg bg-transparent ${getActionColor(activity.activity_type)}`}
                               >
-                                <ActionIcon size={16} weight="bold" />
+                                <ActionIcon size={16} />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1">
@@ -1094,7 +1094,7 @@ const Analytics = () => {
                                     {activity.activity_type.replace("_", " ")}
                                   </span>
                                   <span className="text-xs text-muted-foreground/50 flex items-center gap-1 font-mono">
-                                    <Clock size={12} weight="bold" />
+                                    <UilClock size={12} />
                                     {timeAgo}
                                   </span>
                                 </div>
@@ -1125,7 +1125,7 @@ const Analytics = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                    <TrendUp size={20} weight="duotone" className="text-primary" />
+                    <UilChartGrowth size={20} className="text-primary" />
                     7-Day API Usage Trend
                   </CardTitle>
                   <CardDescription className="text-muted-foreground/50 font-mono">Daily API call volume over the past week</CardDescription>
@@ -1162,7 +1162,7 @@ const Analytics = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <Target size={20} weight="duotone" className="text-primary" />
+                  <UilFocusTarget size={20} className="text-primary" />
                   CVE Severity Distribution
                 </CardTitle>
                 <CardDescription className="text-muted-foreground/50 font-mono">Vulnerability breakdown by severity</CardDescription>
@@ -1203,7 +1203,7 @@ const Analytics = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <TrendUp size={20} weight="duotone" className="text-primary" />
+                  <UilChartGrowth size={20} className="text-primary" />
                   Critical CVE Timeline
                 </CardTitle>
                 <CardDescription className="text-muted-foreground/50 font-mono">CVSS scores over time</CardDescription>
@@ -1234,7 +1234,7 @@ const Analytics = () => {
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-red-500">
-                  <Warning size={20} weight="duotone" className="text-red-500" />
+                  <UilExclamationTriangle size={20} className="text-red-500" />
                   Critical CVE Alerts
                 </CardTitle>
                 <CardDescription className="text-red-500/50 font-mono">
@@ -1246,13 +1246,13 @@ const Analytics = () => {
                   <div className="space-y-3">
                     {cveLoading && (
                       <div className="text-center py-8 text-muted-foreground/50">
-                        <ArrowsClockwise size={48} weight="duotone" className="mx-auto mb-3 text-primary/50 animate-spin" />
+                        <UilSync size={48} className="mx-auto mb-3 text-primary/50 animate-spin" />
                         <p className="text-sm font-mono">Loading threat intelligence...</p>
                       </div>
                     )}
                     {!cveLoading && criticalCVEs.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground/50">
-                        <Shield size={48} weight="duotone" className="mx-auto mb-3 text-emerald-500/50" />
+                        <UilShield size={48} className="mx-auto mb-3 text-emerald-500/50" />
                         <p className="text-sm font-mono">No critical CVEs detected</p>
                       </div>
                     )}
@@ -1266,7 +1266,7 @@ const Analytics = () => {
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-3">
-                            <Bug size={20} weight="duotone" className="text-red-500" />
+                            <UilBug size={20} className="text-red-500" />
                             <div>
                               <span className="font-bold text-red-500 font-mono">{cve.cve_id}</span>
                               <p className="text-xs text-muted-foreground/50 font-mono">
@@ -1299,7 +1299,7 @@ const Analytics = () => {
                               transition={{ duration: 1.5, repeat: Infinity }}
                               className="flex items-center gap-1 text-red-500 text-xs font-mono"
                             >
-                              <LockOpen size={12} weight="bold" />
+                              <UilLockOpenAlt size={12} />
                               EXPLOIT AVAILABLE
                             </motion.div>
                           </div>
@@ -1320,7 +1320,7 @@ const Analytics = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <Scan size={20} weight="duotone" className="text-primary" />
+                  <UilQrcodeScan size={20} className="text-primary" />
                   Threat Surface Analysis
                 </CardTitle>
                 <CardDescription className="text-muted-foreground/50 font-mono">Multi-dimensional risk assessment from CVE + IOC data</CardDescription>
@@ -1347,7 +1347,7 @@ const Analytics = () => {
                   ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground/50">
                       <div className="text-center">
-                        <Scan size={48} weight="duotone" className="mx-auto mb-3 text-primary/30" />
+                        <UilQrcodeScan size={48} className="mx-auto mb-3 text-primary/30" />
                         <p className="text-sm font-mono">No threat data available</p>
                         <p className="text-xs font-mono">Add CVEs or IOCs to populate the radar</p>
                       </div>
@@ -1361,7 +1361,7 @@ const Analytics = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-emerald-500">
-                  <TreeStructure size={20} weight="duotone" className="text-emerald-500" />
+                  <UilSitemap size={20} className="text-emerald-500" />
                   Attack Vector Distribution
                 </CardTitle>
                 <CardDescription className="text-emerald-500/50 font-mono">Actual attack vectors from CVE database</CardDescription>
@@ -1394,7 +1394,7 @@ const Analytics = () => {
                   ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground/50">
                       <div className="text-center">
-                        <TreeStructure size={48} weight="duotone" className="mx-auto mb-3 text-emerald-500/30" />
+                        <UilSitemap size={48} className="mx-auto mb-3 text-emerald-500/30" />
                         <p className="text-sm font-mono">No attack vector data</p>
                         <p className="text-xs font-mono">CVEs with CVSS vector data will appear here</p>
                       </div>
@@ -1408,7 +1408,7 @@ const Analytics = () => {
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-amber-500">
-                  <Brain size={20} weight="duotone" className="text-amber-500" />
+                  <UilBrain size={20} className="text-amber-500" />
                   Vulnerability Intelligence Summary
                 </CardTitle>
                 <CardDescription className="text-amber-500/50 font-mono">Real-time metrics from CVE database</CardDescription>
@@ -1417,7 +1417,7 @@ const Analytics = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="rounded-lg p-4 bg-white/[0.03]">
                     <div className="flex items-center gap-3 mb-3">
-                      <TrendUp size={24} weight="duotone" className="text-amber-500" />
+                      <UilChartGrowth size={24} className="text-amber-500" />
                       <span className="font-semibold text-amber-500 font-mono">EMERGING THREATS</span>
                     </div>
                     <div className="text-3xl font-bold text-amber-500 mb-2 font-mono">
@@ -1428,7 +1428,7 @@ const Analytics = () => {
 
                   <div className="rounded-lg p-4 bg-white/[0.03]">
                     <div className="flex items-center gap-3 mb-3">
-                      <LockOpen size={24} weight="duotone" className="text-red-500" />
+                      <UilLockOpenAlt size={24} className="text-red-500" />
                       <span className="font-semibold text-red-500 font-mono">EXPLOITABLE</span>
                     </div>
                     <div className="text-3xl font-bold text-red-500 mb-2 font-mono">
@@ -1439,7 +1439,7 @@ const Analytics = () => {
 
                   <div className="rounded-lg p-4 bg-white/[0.03]">
                     <div className="flex items-center gap-3 mb-3">
-                      <Lock size={24} weight="duotone" className="text-primary" />
+                      <UilLock size={24} className="text-primary" />
                       <span className="font-semibold text-muted-foreground font-mono">TOTAL CVEs</span>
                     </div>
                     <div className="text-3xl font-bold text-primary mb-2 font-mono">{cveStats?.total_cves || 0}</div>
@@ -1455,9 +1455,9 @@ const Analytics = () => {
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03]">
                       <div className="p-2 rounded-full bg-transparent">
                         {activityTrend === "up" ? (
-                          <TrendUp size={16} weight="bold" className="text-emerald-500" />
+                          <UilChartGrowth size={16} className="text-emerald-500" />
                         ) : (
-                          <TrendDown size={16} weight="bold" className="text-amber-500" />
+                          <UilChartDown size={16} className="text-amber-500" />
                         )}
                       </div>
                       <div>
@@ -1471,7 +1471,7 @@ const Analytics = () => {
                     </div>
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03]">
                       <div className="p-2 rounded-full bg-transparent">
-                        <Globe size={16} weight="bold" className="text-blue-500" />
+                        <UilGlobe size={16} className="text-blue-500" />
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-blue-500 font-mono">DATABASE STATUS</p>
@@ -1494,7 +1494,7 @@ const Analytics = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-emerald-500">
-                  <Cpu size={20} weight="duotone" className="text-emerald-500" />
+                  <UilProcessor size={20} className="text-emerald-500" />
                   System Load
                 </CardTitle>
                 <CardDescription className="text-emerald-500/50 font-mono">Live browser performance</CardDescription>
@@ -1551,8 +1551,8 @@ const Analytics = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-blue-500">
-                  <HardDrives size={20} weight="duotone" className="text-blue-500" />
-                  Database Records
+                  <UilServer size={20} className="text-blue-500" />
+                  UilDatabase Records
                 </CardTitle>
                 <CardDescription className="text-blue-500/50 font-mono">Supabase table row counts</CardDescription>
               </CardHeader>
@@ -1560,28 +1560,28 @@ const Analytics = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
                     <div className="flex items-center gap-2">
-                      <Bug size={16} weight="duotone" className="text-red-500" />
+                      <UilBug size={16} className="text-red-500" />
                       <span className="text-sm text-blue-500 font-mono">CVEs</span>
                     </div>
                     <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.cves.toLocaleString()} rows</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
                     <div className="flex items-center gap-2">
-                      <BookOpen size={16} weight="duotone" className="text-emerald-500" />
+                      <UilBookOpen size={16} className="text-emerald-500" />
                       <span className="text-sm text-blue-500 font-mono">Knowledge Base</span>
                     </div>
                     <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.knowledge.toLocaleString()} rows</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
                     <div className="flex items-center gap-2">
-                      <Globe size={16} weight="duotone" className="text-amber-500" />
+                      <UilGlobe size={16} className="text-amber-500" />
                       <span className="text-sm text-blue-500 font-mono">Bookmarks</span>
                     </div>
                     <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.bookmarks.toLocaleString()} rows</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03]">
                     <div className="flex items-center gap-2">
-                      <Pulse size={16} weight="duotone" className="text-violet-500" />
+                      <UilHeartRate size={16} className="text-violet-500" />
                       <span className="text-sm text-blue-500 font-mono">Activity Logs</span>
                     </div>
                     <span className="text-sm text-blue-500 font-mono font-bold">{storageCounts.activity.toLocaleString()} rows</span>
@@ -1594,7 +1594,7 @@ const Analytics = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <DesktopTower size={20} weight="duotone" className="text-primary" />
+                  <UilDesktopAlt size={20} className="text-primary" />
                   Services Status
                 </CardTitle>
                 <CardDescription className="text-muted-foreground/50 font-mono">Live health checks every 30s</CardDescription>
@@ -1603,7 +1603,7 @@ const Analytics = () => {
                 <div className="space-y-3">
                   {serviceStatuses.length === 0 && (
                     <div className="text-center py-4 text-muted-foreground/50">
-                      <ArrowsClockwise size={24} weight="duotone" className="mx-auto mb-2 animate-spin text-primary/50" />
+                      <UilSync size={24} className="mx-auto mb-2 animate-spin text-primary/50" />
                       <p className="text-xs font-mono">Checking services...</p>
                     </div>
                   )}
@@ -1648,17 +1648,17 @@ const Analytics = () => {
           </div>
           <Separator orientation="vertical" className="h-4 bg-white/[0.06]" />
           <div className="flex items-center gap-2">
-            <Eye size={16} weight="bold" className="text-primary" />
+            <UilEye size={16} className="text-primary" />
             <span>LIVE MONITORING ENABLED</span>
           </div>
           <Separator orientation="vertical" className="h-4 bg-white/[0.06]" />
           <div className="flex items-center gap-2">
-            <Shield size={16} weight="bold" className="text-emerald-500" />
+            <UilShield size={16} className="text-emerald-500" />
             <span>THREAT DETECTION: {threatLevel}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Database size={16} weight="bold" className="text-primary" />
+          <UilDatabase size={16} className="text-primary" />
           <span>LAST UPDATED: {new Date().toLocaleTimeString()}</span>
         </div>
       </motion.div>

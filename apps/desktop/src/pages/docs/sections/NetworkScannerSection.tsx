@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TreeStructure } from "@phosphor-icons/react";
+import { UilSitemap } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function NetworkScannerSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={TreeStructure} title="Network Scanner" description="10-profile nmap GUI with parsed results and scan history" status="ready" />
+      <DocHeader icon={UilSitemap} title="Network Scanner" description="10-profile nmap GUI with parsed results and scan history" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">

@@ -40,25 +40,7 @@ import {
   type CreateFindingData,
 } from "@/services/red-team";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Shield,
-  Target,
-  Pulse,
-  Warning,
-  Plus,
-  Trash,
-  Flag,
-  Play,
-  Pause,
-  CheckCircle,
-  CaretDown,
-  CaretUp,
-  PencilSimple,
-  Bug,
-  ArrowClockwise,
-  XCircle,
-} from "@phosphor-icons/react";
-
+import { UilShield, UilFocusTarget, UilHeartRate, UilExclamationTriangle, UilPlus, UilTrashAlt, UilPlay, UilCheckCircle, UilAngleDown, UilAngleUp, UilPen, UilBug, UilTimesCircle, UilPause } from "@iconscout/react-unicons";
 // --- Status / Severity helpers ---
 
 const STATUS_CONFIG: Record<
@@ -182,7 +164,7 @@ function FindingRow({
         className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500"
         onClick={() => onDelete(finding.id)}
       >
-        <Trash size={14} weight="bold" />
+        <UilTrashAlt size={14} />
       </Button>
     </div>
   );
@@ -269,7 +251,7 @@ function DetailPanel({
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Target</Label>
+            <Label className="text-xs text-muted-foreground">UilFocusTarget</Label>
             <Input
               value={editTarget}
               onChange={(e) => setEditTarget(e.target.value)}
@@ -299,7 +281,7 @@ function DetailPanel({
 
         {hasChanges && (
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            <PencilSimple size={14} weight="bold" className="mr-1" />
+            <UilPen size={14} className="mr-1" />
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         )}
@@ -311,31 +293,31 @@ function DetailPanel({
           </span>
           {operation.status === "planned" && (
             <Button size="sm" variant="outline" onClick={() => onStatusChange("in_progress")}>
-              <Play size={14} weight="bold" className="mr-1" />
+              <UilPlay size={14} className="mr-1" />
               Start
             </Button>
           )}
           {operation.status === "in_progress" && (
             <>
               <Button size="sm" variant="outline" onClick={() => onStatusChange("paused")}>
-                <Pause size={14} weight="bold" className="mr-1" />
+                <UilPause size={14} className="mr-1" />
                 Pause
               </Button>
               <Button size="sm" variant="outline" onClick={() => onStatusChange("completed", 100)}>
-                <CheckCircle size={14} weight="bold" className="mr-1" />
+                <UilCheckCircle size={14} className="mr-1" />
                 Complete
               </Button>
             </>
           )}
           {operation.status === "paused" && (
             <Button size="sm" variant="outline" onClick={() => onStatusChange("in_progress")}>
-              <ArrowClockwise size={14} weight="bold" className="mr-1" />
+              <UilPlay size={14} className="mr-1" />
               Resume
             </Button>
           )}
           {(operation.status === "planned" || operation.status === "in_progress" || operation.status === "paused") && (
             <Button size="sm" variant="outline" onClick={() => onStatusChange("cancelled")}>
-              <XCircle size={14} weight="bold" className="mr-1" />
+              <UilTimesCircle size={14} className="mr-1" />
               Cancel
             </Button>
           )}
@@ -397,7 +379,7 @@ function DetailPanel({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-white">Findings</span>
             <Button size="sm" variant="ghost" onClick={onAddFinding}>
-              <Plus size={14} weight="bold" className="mr-1" />
+              <UilPlus size={14} className="mr-1" />
               Add Finding
             </Button>
           </div>
@@ -683,7 +665,7 @@ const RedTeam = () => {
         <Dialog open={addOpDialogOpen} onOpenChange={setAddOpDialogOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus size={16} weight="bold" className="mr-2" />
+              <UilPlus size={16} className="mr-2" />
               New Operation
             </Button>
           </DialogTrigger>
@@ -706,7 +688,7 @@ const RedTeam = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="op-target">Target</Label>
+                <Label htmlFor="op-target">UilFocusTarget</Label>
                 <Input
                   id="op-target"
                   value={newOperation.target}
@@ -957,13 +939,13 @@ const RedTeam = () => {
         </div>
       ) : operations.length === 0 ? (
         <div className="rounded-lg bg-card flex flex-col items-center justify-center py-16">
-          <Shield size={64} weight="duotone" className="text-muted-foreground mb-4" />
+          <UilShield size={64} className="text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold text-white mb-2">No Active Operations</h3>
           <p className="text-muted-foreground text-center mb-4">
             Start a new penetration test or security assessment
           </p>
           <Button variant="outline" onClick={() => setAddOpDialogOpen(true)}>
-            <Target size={16} weight="bold" className="mr-2" />
+            <UilFocusTarget size={16} className="mr-2" />
             New Operation
           </Button>
         </div>
@@ -1034,12 +1016,12 @@ const RedTeam = () => {
                             setDeleteTarget(op.id);
                           }}
                         >
-                          <Trash size={15} weight="bold" />
+                          <UilTrashAlt size={15} />
                         </Button>
                         {isExpanded ? (
-                          <CaretUp size={16} weight="bold" className="text-muted-foreground" />
+                          <UilAngleUp size={16} className="text-muted-foreground" />
                         ) : (
-                          <CaretDown size={16} weight="bold" className="text-muted-foreground" />
+                          <UilAngleDown size={16} className="text-muted-foreground" />
                         )}
                       </div>
                     </div>

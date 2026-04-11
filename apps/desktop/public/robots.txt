@@ -1,8 +1,139 @@
+# CrowByte — robots.txt
+# https://crowbyte.io
+
+# === Search Engines ===
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /cve
+Disallow: /terminal
+Disallow: /documentation
+Disallow: /red-team
+Disallow: /cyber-ops
+Disallow: /network-scanner
+Disallow: /security-monitor
+Disallow: /fleet
+Disallow: /knowledge
+Disallow: /bookmarks
+Disallow: /agent-builder
+Disallow: /mission-planner
+Disallow: /analytics
+Disallow: /settings
+Disallow: /logs
+Disallow: /ai-agent
+Disallow: /tools
+Disallow: /memory
+Disallow: /agents
+Disallow: /reports
+Disallow: /findings
+Disallow: /passwordreset
+Disallow: /onboarding
+Disallow: /setup-preferences
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /cve
+Disallow: /terminal
+Disallow: /documentation
+Disallow: /red-team
+Disallow: /cyber-ops
+Disallow: /network-scanner
+Disallow: /security-monitor
+Disallow: /fleet
+Disallow: /knowledge
+Disallow: /bookmarks
+Disallow: /agent-builder
+Disallow: /mission-planner
+Disallow: /analytics
+Disallow: /settings
+Disallow: /logs
+Disallow: /ai-agent
+Disallow: /tools
+Disallow: /memory
+Disallow: /agents
+Disallow: /reports
+Disallow: /findings
+Disallow: /passwordreset
+Disallow: /onboarding
+Disallow: /setup-preferences
+
+# === AI Crawlers — allow public content ===
+User-agent: GPTBot
+Allow: /
+Allow: /docs
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /cve
+Disallow: /terminal
+Disallow: /documentation
+Disallow: /red-team
+Disallow: /cyber-ops
+Disallow: /network-scanner
+Disallow: /security-monitor
+Disallow: /fleet
+Disallow: /knowledge
+Disallow: /bookmarks
+Disallow: /agent-builder
+Disallow: /settings
+Disallow: /logs
+Disallow: /passwordreset
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /docs
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /cve
+Disallow: /terminal
+Disallow: /documentation
+Disallow: /red-team
+Disallow: /cyber-ops
+Disallow: /network-scanner
+Disallow: /security-monitor
+Disallow: /fleet
+Disallow: /knowledge
+Disallow: /bookmarks
+Disallow: /agent-builder
+Disallow: /settings
+Disallow: /logs
+Disallow: /passwordreset
+
+User-agent: Claude-Web
+Allow: /
+Allow: /docs
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /settings
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /docs
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /settings
+
+User-agent: Google-Extended
+Allow: /
+Allow: /docs
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /settings
+
+User-agent: cohere-ai
+Allow: /
+Allow: /docs
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /settings
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +141,40 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+# === Default ===
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /cve
+Disallow: /terminal
+Disallow: /documentation
+Disallow: /red-team
+Disallow: /cyber-ops
+Disallow: /network-scanner
+Disallow: /security-monitor
+Disallow: /fleet
+Disallow: /knowledge
+Disallow: /bookmarks
+Disallow: /agent-builder
+Disallow: /mission-planner
+Disallow: /analytics
+Disallow: /settings
+Disallow: /logs
+Disallow: /ai-agent
+Disallow: /tools
+Disallow: /memory
+Disallow: /agents
+Disallow: /reports
+Disallow: /findings
+Disallow: /passwordreset
+Disallow: /onboarding
+Disallow: /setup-preferences
+
+Sitemap: https://crowbyte.io/sitemap.xml

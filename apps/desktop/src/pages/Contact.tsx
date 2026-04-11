@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { ArrowLeft, Mail, MessageSquare, Shield, Bug, HelpCircle, Send } from 'lucide-react';
+import {
+  UilArrowLeft, UilEnvelope, UilCommentDots, UilShield, UilBug,
+  UilQuestionCircle, UilPlaneFly,
+} from '@iconscout/react-unicons';
 
 const TOPICS = [
-  { id: 'general', label: 'General Inquiry', icon: HelpCircle },
-  { id: 'support', label: 'Technical Support', icon: MessageSquare },
-  { id: 'security', label: 'Security Issue', icon: Shield },
-  { id: 'bug', label: 'Bug Report', icon: Bug },
-  { id: 'billing', label: 'Billing / Refund', icon: Mail },
+  { id: 'general', label: 'General Inquiry', icon: UilQuestionCircle },
+  { id: 'support', label: 'Technical Support', icon: UilCommentDots },
+  { id: 'security', label: 'Security Issue', icon: UilShield },
+  { id: 'bug', label: 'UilBug Report', icon: UilBug },
+  { id: 'billing', label: 'Billing / Refund', icon: UilEnvelope },
 ] as const;
 
 export default function Contact() {
@@ -56,7 +59,7 @@ export default function Contact() {
           onClick={() => { window.location.href = '/'; }}
           className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-blue-500 transition-colors mb-8 font-['JetBrains_Mono'] cursor-pointer"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <UilArrowLeft className="w-3.5 h-3.5" />
           Back to CrowByte
         </button>
 
@@ -103,7 +106,7 @@ export default function Contact() {
                       onClick={() => setTopic(t.id)}
                       className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm border transition-all cursor-pointer ${
                         topic === t.id
-                          ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                          ? 'bg-blue-500/10 text-blue-400'
                           : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:border-white/[0.12] hover:text-zinc-400'
                       }`}
                     >
@@ -159,7 +162,7 @@ export default function Contact() {
               disabled={sending}
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm px-6 py-2.5 rounded-lg transition-colors cursor-pointer"
             >
-              <Send className="w-4 h-4" />
+              <UilPlaneFly className="w-4 h-4" />
               {sending ? 'Sending...' : 'Send Message'}
             </button>
             {error && !submitted && (

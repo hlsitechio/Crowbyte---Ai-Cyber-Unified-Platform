@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="websitelaunches-verification" content="1b986fc3f135be8c95ac020cabe2f32e">
-    <link rel="icon" type="image/png" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="CrowByte — AI-Powered Offensive Security Platform. Unifies AI agents, vulnerability scanning, threat intelligence, red team ops, fleet orchestration in one command center. Built by hackers, for hackers." />
     <meta name="author" content="HLSITech" />
@@ -26,8 +30,116 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD: SoftwareApplication — for ChatGPT, Claude, Perplexity, Google AI -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "CrowByte Terminal",
+      "alternateName": ["CrowByte", "CrowByte Security"],
+      "url": "https://crowbyte.io",
+      "applicationCategory": "SecurityApplication",
+      "applicationSubCategory": "Offensive Security Platform",
+      "operatingSystem": "Web, Linux, Windows (coming soon), macOS (coming soon)",
+      "description": "CrowByte is an AI-powered offensive security platform for bug bounty hunters, penetration testers, and security researchers. Multi-provider AI chat (Claude, DeepSeek, Qwen, Mistral), integrated security tools, CVE tracking with NVD and Shodan, red team operation management, network scanner, custom AI agent builder, and threat intelligence in one unified interface.",
+      "softwareVersion": "1.0-beta",
+      "screenshot": "https://crowbyte.io/og-image.png",
+      "featureList": [
+        "Multi-provider AI Chat with Claude, DeepSeek, Qwen, Mistral, and more",
+        "CVE Database with NVD and Shodan dual-source vulnerability lookup",
+        "Red Team operation tracking and findings management",
+        "Cyber Ops toolkit with 95+ integrated security tools",
+        "Network Scanner with 10 nmap scan profiles and parsed results",
+        "Custom AI Agent Builder and Testing Lab",
+        "Threat Intelligence with IOC feeds and enrichment",
+        "Security Monitor with AI-powered anomaly detection",
+        "Knowledge Base with cloud sync and file attachments",
+        "Mission Planner with phase-based operation tracking",
+        "Fleet Management for endpoints and agents",
+        "Integrated terminal with tmux support"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Core features: AI Chat with 3 AI models, CVE Database, Knowledge Base, Bookmarks, Mission Planner"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "19",
+          "priceCurrency": "USD",
+          "description": "Full platform: all AI model providers including Claude, Red Team ops, Cyber Ops, Network Scanner, Agent Builder, Fleet, Security Monitor"
+        },
+        {
+          "@type": "Offer",
+          "name": "Elite",
+          "price": "49",
+          "priceCurrency": "USD",
+          "description": "Pro plus priority AI access, dedicated support, early access to new features, higher rate limits"
+        }
+      ],
+      "author": {
+        "@type": "Organization",
+        "name": "HLSITech",
+        "url": "https://crowbyte.io"
+      },
+      "audience": {
+        "@type": "Audience",
+        "audienceType": "Bug bounty hunters, penetration testers, red team operators, security researchers"
+      }
+    }
+    </script>
+
+    <!-- JSON-LD: WebSite -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "CrowByte",
+      "url": "https://crowbyte.io",
+      "description": "AI-powered offensive security platform for bug bounty hunters and penetration testers"
+    }
+    </script>
+
+    <!-- JSON-LD: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "HLSITech",
+      "url": "https://crowbyte.io",
+      "logo": "https://crowbyte.io/crowbyte-logo.png",
+      "sameAs": ["https://github.com/hlsitechio/crowbyte"],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://crowbyte.io/contact"
+      }
+    }
+    </script>
+    <!-- Theme flash prevention: apply saved theme BEFORE any render -->
+    <script>
+      (function(){
+        try {
+          var t=localStorage.getItem('crowbyte_theme');
+          if(!t||t==='slate')return;
+          var themes={
+            nord:{'--background':'220 16% 22%','--foreground':'219 28% 94%','--card':'222 16% 20%','--card-foreground':'219 28% 94%','--popover':'220 16% 26%','--popover-foreground':'219 28% 94%','--primary':'193 43% 67%','--primary-foreground':'220 16% 16%','--secondary':'220 16% 28%','--secondary-foreground':'219 28% 88%','--muted':'220 16% 26%','--muted-foreground':'219 13% 63%','--accent':'210 34% 63%','--accent-foreground':'220 16% 16%','--destructive':'354 42% 56%','--destructive-foreground':'0 0% 100%','--border':'220 16% 28%','--input':'220 16% 24%','--ring':'193 43% 67%','--sidebar-background':'222 16% 18%','--sidebar-foreground':'219 28% 88%','--sidebar-primary':'193 43% 67%','--sidebar-primary-foreground':'222 16% 18%','--sidebar-accent':'220 16% 25%','--sidebar-accent-foreground':'219 28% 94%','--sidebar-border':'220 16% 25%','--sidebar-ring':'193 43% 67%','--silver-light':'210 34% 63%','--silver':'213 32% 52%','--silver-muted':'219 13% 53%','--silver-dark':'220 16% 32%'},
+            dracula:{'--background':'231 15% 18%','--foreground':'60 30% 96%','--card':'232 14% 17%','--card-foreground':'60 30% 96%','--popover':'231 15% 22%','--popover-foreground':'60 30% 96%','--primary':'265 89% 78%','--primary-foreground':'231 15% 14%','--secondary':'231 15% 24%','--secondary-foreground':'60 30% 90%','--muted':'231 15% 22%','--muted-foreground':'228 8% 56%','--accent':'191 97% 77%','--accent-foreground':'231 15% 14%','--destructive':'0 100% 67%','--destructive-foreground':'0 0% 100%','--border':'231 15% 25%','--input':'231 15% 20%','--ring':'265 89% 78%','--sidebar-background':'235 14% 15%','--sidebar-foreground':'60 30% 90%','--sidebar-primary':'265 89% 78%','--sidebar-primary-foreground':'235 14% 15%','--sidebar-accent':'231 15% 22%','--sidebar-accent-foreground':'60 30% 96%','--sidebar-border':'231 15% 22%','--sidebar-ring':'265 89% 78%','--silver-light':'265 89% 78%','--silver':'191 97% 77%','--silver-muted':'135 94% 65%','--silver-dark':'231 15% 32%'}
+          };
+          var v=themes[t];
+          if(!v)return;
+          var r=document.documentElement;
+          for(var k in v)r.style.setProperty(k,v[k]);
+        }catch(e){}
+      })();
+    </script>
   </head>
-  <body>
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

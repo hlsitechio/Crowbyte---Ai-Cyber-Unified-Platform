@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { pgOr } from '@/lib/utils';
 
 export interface MissionPlan {
   id: string;
@@ -258,7 +259,7 @@ class MissionPlansService {
     const { data, error } = await supabase
       .from('mission_plans')
       .select('*')
-      .or(`name.ilike.%${query}%,objective.ilike.%${query}%`)
+      .or(`name.ilike.%${pgOr(query)}%,objective.ilike.%${pgOr(query)}%`)
       .order('created_at', { ascending: false });
 
     if (error) {

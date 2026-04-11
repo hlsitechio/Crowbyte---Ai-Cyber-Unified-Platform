@@ -9,18 +9,17 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-  GearSix, Sparkle, Robot, Lightning, SidebarSimple,
-  CurrencyDollar, Lock, Crown,
-} from '@phosphor-icons/react';
+import { UilCog, UilStar, UilRobot, UilBolt, UilLeftArrowFromLeft, UilDollarSign, UilLock, UilAward } from "@iconscout/react-unicons";
 import { useToast } from '@/hooks/use-toast';
 import { ConversationsSidebar } from '@/components/ConversationsSidebar';
 import openClaw from '@/services/openclaw';
 import claudeProvider, { type ClaudeStreamEvent } from '@/services/claude-provider';
+import openRouterProvider, { type StreamEvent, type AIModel } from '@/services/openrouter-provider';
 import { IS_WEB } from '@/lib/platform';
 import { analyticsService } from '@/services/analytics';
 import { memoryEngine } from '@/services/memory-engine';
 import { isWebAiAvailable, streamChat, getModels as getWebModels, getUsage, getTierInfo, type AiModel } from '@/services/web-ai-chat';
+import { sendCreditChat, getBalance, refreshBalance, getModelCreditCost, onBalanceChange, type CreditBalance } from '@/services/credits';
 
 // Chat sub-components
 import { AssistantMessage, UserMessage, TypingIndicator, type Message } from '@/components/chat/ChatMessage';
@@ -29,14 +28,16 @@ import { EmptyState } from '@/components/chat/EmptyState';
 
 // ─── Types ───────────────────────────────────────────
 
-type Provider = 'claude' | 'openclaw' | 'crowbyte';
+type Provider = 'openrouter' | 'claude' | 'openclaw' | 'crowbyte';
 
 // ─── Provider Toggle ─────────────────────────────────
 
-const PROVIDERS: { id: Provider; icon: typeof Sparkle; label: string; color: string }[] = [
-  { id: 'claude', icon: Sparkle, label: 'Claude', color: 'violet' },
-  { id: 'openclaw', icon: Robot, label: 'OpenClaw', color: 'emerald' },
-  { id: 'crowbyte', icon: Lightning, label: 'CrowByte', color: 'blue' },
+// Static style maps — TW v4 needs statically-analyzable classes (no dynamic interpolation)
+const PROVIDERS: { id: Provider; icon: typeof UilStar; label: string; active: string; }[] = [
+  { id: 'openrouter', icon: UilBolt, label: 'OpenRouter', active: 'bg-cyan-500/10 text-cyan-400 ring-1 ring-cyan-500/20' },
+  { id: 'claude', icon: UilStar, label: 'Claude', active: 'bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20' },
+  { id: 'openclaw', icon: UilRobot, label: 'OpenClaw', active: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20' },
+  { id: 'crowbyte', icon: UilBolt, label: 'CrowByte', active: 'bg-zinc-800 text-zinc-200 ring-1 ring-zinc-700' },
 ];
 
 const ProviderToggle = ({
@@ -50,12 +51,10 @@ const ProviderToggle = ({
           key={p.id}
           onClick={() => setProvider(p.id)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-            active
-              ? `bg-${p.color}-500/10 text-${p.color}-400 ring-1 ring-${p.color}-500/20`
-              : 'text-zinc-500 hover:text-zinc-300'
+            active ? p.active : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
-          <p.icon size={13} weight={active ? 'duotone' : 'bold'} />
+          <p.icon size={13} />
           {p.label}
         </button>
       );
@@ -85,18 +84,23 @@ const Chat = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const [provider, setProvider] = useState<Provider>(IS_WEB ? 'crowbyte' : 'claude');
+  const [provider, setProvider] = useState<Provider>(IS_WEB ? 'crowbyte' : 'openrouter');
   const [claudeModel, setClaudeModel] = useState('sonnet');
   const [openClawModel, setOpenClawModel] = useState('z-ai/glm5');
+  const [openRouterModel, setOpenRouterModel] = useState('qwen/qwen3.6-plus:free');
   const [openClawConnected, setOpenClawConnected] = useState(false);
   const [claudeAvailable, setClaudeAvailable] = useState(false);
+  const [openRouterAvailable, setOpenRouterAvailable] = useState(false);
   const [sessionCost, setSessionCost] = useState(0);
 
   // Web AI
   const [webAiAvailable, setWebAiAvailable] = useState(false);
-  const [webAiModel, setWebAiModel] = useState('deepseek-ai/deepseek-v3.2');
+  const [webAiModel, setWebAiModel] = useState('qwen/qwen3.6-plus:free');
   const [webAiModels, setWebAiModels] = useState<AiModel[]>([]);
   const [webAiUsage, setWebAiUsage] = useState<{ current: number; limit: number | null; tier: string } | null>(null);
+
+  // Credits
+  const [creditBalance, setCreditBalance] = useState<CreditBalance | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -107,16 +111,20 @@ const Chat = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate('/auth'); return; }
       if (window.electronAPI?.claudeChat) setClaudeAvailable(true);
+      // Init OpenRouter
+      const hasKey = await openRouterProvider.loadApiKey();
+      if (hasKey) setOpenRouterAvailable(true);
       try {
         const health = await openClaw.healthCheck();
         setOpenClawConnected(health.ok);
       } catch { setOpenClawConnected(false); }
 
-      if (isWebAiAvailable()) {
+      // Load credits balance
+      const bal = await getBalance();
+      if (bal) setCreditBalance(bal);
+
+      if (IS_WEB || isWebAiAvailable()) {
         setWebAiAvailable(true);
-        const [modelsResult, usage] = await Promise.all([getWebModels(), getUsage()]);
-        if (modelsResult.models.length > 0) setWebAiModels(modelsResult.models);
-        if (usage) setWebAiUsage({ current: usage.current, limit: usage.limit, tier: usage.tier });
         if (!window.electronAPI?.claudeChat) setProvider('crowbyte');
       }
 
@@ -155,15 +163,19 @@ const Chat = () => {
       .eq('conversation_id', convId)
       .order('created_at', { ascending: true });
     if (data && data.length > 0) {
-      setMessages(data.map(m => ({
+      const mapped = data.map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
         provider: m.provider as Provider | undefined,
         model: m.model,
         timestamp: m.created_at ? new Date(m.created_at).getTime() : undefined,
-      })));
+      }));
+      setMessages(mapped);
+      // Sync OpenRouter provider's in-memory history so it has context
+      openRouterProvider.setHistory(mapped.map(m => ({ role: m.role, content: m.content })));
     } else {
       setMessages([]);
+      openRouterProvider.clearHistory();
     }
   };
 
@@ -187,13 +199,20 @@ const Chat = () => {
   const handleSelectConversation = (convId: string) => {
     setConversationId(convId);
     setSessionCost(0);
+    // Clear in-memory provider history — will be rebuilt from loaded messages
+    openRouterProvider.clearHistory();
   };
 
   const saveMessage = async (role: string, content: string) => {
     if (!conversationId) return;
+    const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('messages').insert({
-      conversation_id: conversationId, role, content,
-      provider, model: provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel,
+      conversation_id: conversationId,
+      user_id: user?.id,
+      role,
+      content,
+      provider,
+      model: provider === 'openrouter' ? openRouterModel : provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel,
     });
     if (error) console.warn('[Chat] Failed to save message:', error.message);
     memoryEngine.saveChat({ content, role: role as 'user' | 'assistant', session_id: conversationId, source: 'chat' });
@@ -221,7 +240,8 @@ const Chat = () => {
     setIsStreaming(true);
 
     try {
-      if (provider === 'claude') await sendClaude(userMessage);
+      if (provider === 'openrouter') await sendOpenRouter(userMessage);
+      else if (provider === 'claude') await sendClaude(userMessage);
       else if (provider === 'openclaw') await sendOpenClaw(userMessage);
       else await sendCrowByte(userMessage);
     } catch (err) {
@@ -230,6 +250,65 @@ const Chat = () => {
       setIsStreaming(false);
     }
   };
+
+  // ─── OpenRouter Send ───────────────────────────
+
+  const sendOpenRouter = useCallback(async (userMessage: Message) => {
+    openRouterProvider.setModel(openRouterModel);
+    openRouterProvider.clearListeners();
+
+    let assistantContent = '';
+    const modelName = openRouterProvider.getModels().find(m => m.id === openRouterModel)?.name || openRouterModel;
+
+    setMessages(prev => [...prev, {
+      role: 'assistant', content: '', isStreaming: true,
+      provider: 'openrouter', model: modelName, timestamp: Date.now(),
+    }]);
+
+    const removeListener = openRouterProvider.onEvent((event: StreamEvent) => {
+      switch (event.type) {
+        case 'text':
+          assistantContent += event.content;
+          break;
+        case 'thinking':
+          assistantContent += `<think>${event.content}</think>`;
+          break;
+        case 'tool_call':
+          assistantContent += `\n\`\`\`\n${event.content}\n\`\`\`\n`;
+          break;
+        case 'error':
+          assistantContent += `\n**Error:** ${event.content}\n`;
+          break;
+        case 'system':
+          break;
+      }
+
+      setMessages(prev => {
+        const next = [...prev];
+        next[next.length - 1] = {
+          role: 'assistant', content: assistantContent, isStreaming: true,
+          provider: 'openrouter', model: modelName,
+        };
+        return next;
+      });
+    });
+
+    try { await openRouterProvider.send(userMessage.content); }
+    finally { removeListener(); }
+
+    setMessages(prev => {
+      const next = [...prev];
+      next[next.length - 1] = {
+        ...next[next.length - 1],
+        content: assistantContent,
+        isStreaming: false,
+      };
+      return next;
+    });
+
+    if (assistantContent) await saveMessage('assistant', assistantContent);
+    return assistantContent;
+  }, [openRouterModel, conversationId]);
 
   // ─── Claude Send ───────────────────────────────
 
@@ -356,14 +435,17 @@ const Chat = () => {
     return assistantContent;
   }, [openClawModel, messages, conversationId]);
 
-  // ─── CrowByte Web AI Send ─────────────────────
+  // ─── CrowByte AI Send (Credits Proxy) ─────────
 
   const sendCrowByte = useCallback(async (userMessage: Message) => {
     let assistantContent = '';
+    const modelId = 'qwen/qwen3.6-plus:free'; // Hardcoded — CrowByte AI engine
+    const cost = getModelCreditCost(modelId);
+    const modelLabel = 'CrowByte AI';
 
     setMessages(prev => [...prev, {
       role: 'assistant', content: '', isStreaming: true,
-      provider: 'crowbyte', model: webAiModel, timestamp: Date.now(),
+      provider: 'crowbyte', model: modelLabel, timestamp: Date.now(),
     }]);
 
     const chatMessages = [...messages, userMessage].map(m => ({
@@ -371,35 +453,99 @@ const Chat = () => {
       content: m.content,
     }));
 
-    for await (const chunk of streamChat(chatMessages, webAiModel)) {
-      if (chunk.type === 'text') assistantContent += chunk.content;
-      else if (chunk.type === 'error') assistantContent += `\n**Error:** ${chunk.content}\n`;
-      else if (chunk.type === 'done') break;
+    try {
+      const res = await sendCreditChat(chatMessages, modelId);
 
-      setMessages(prev => {
-        const next = [...prev];
-        next[next.length - 1] = {
-          role: 'assistant', content: assistantContent, isStreaming: true,
-          provider: 'crowbyte', model: webAiModel,
-        };
-        return next;
-      });
+      // Handle insufficient credits
+      if (res.status === 402) {
+        const errData = await res.json();
+        assistantContent = `**Insufficient credits.** You need ${errData.required} credits but have ${errData.balance}. [Buy credits](/settings/billing)`;
+        setMessages(prev => {
+          const next = [...prev];
+          next[next.length - 1] = {
+            role: 'assistant', content: assistantContent, isStreaming: false,
+            provider: 'crowbyte', model: modelLabel,
+          };
+          return next;
+        });
+        return assistantContent;
+      }
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => 'Unknown error');
+        throw new Error(errText);
+      }
+
+      // Update balance from response headers
+      const creditsRemaining = res.headers.get('X-Credits-Remaining');
+      if (creditsRemaining && creditBalance) {
+        const newBal = parseInt(creditsRemaining);
+        setCreditBalance(prev => prev ? { ...prev, balance: newBal, monthly_used: prev.monthly_used + cost.credits } : prev);
+      }
+
+      // Stream SSE response
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+
+          try {
+            const chunk = JSON.parse(data);
+            const delta = chunk.choices?.[0]?.delta;
+            if (!delta) continue;
+
+            if (delta.reasoning || delta.reasoning_content) {
+              assistantContent += `<think>${delta.reasoning || delta.reasoning_content}</think>`;
+            }
+            if (delta.content) {
+              assistantContent += delta.content;
+            }
+          } catch {}
+        }
+
+        setMessages(prev => {
+          const next = [...prev];
+          next[next.length - 1] = {
+            role: 'assistant', content: assistantContent, isStreaming: true,
+            provider: 'crowbyte', model: modelLabel,
+          };
+          return next;
+        });
+      }
+    } catch (err: any) {
+      if (!assistantContent) {
+        assistantContent = `**Error:** ${err.message || 'Connection failed'}`;
+      }
     }
 
     setMessages(prev => {
       const next = [...prev];
       next[next.length - 1] = {
         role: 'assistant', content: assistantContent, isStreaming: false,
-        provider: 'crowbyte', model: webAiModel, timestamp: Date.now(),
+        provider: 'crowbyte', model: modelLabel, timestamp: Date.now(),
       };
       return next;
     });
 
-    const usage = await getUsage();
-    if (usage) setWebAiUsage({ current: usage.current, limit: usage.limit, tier: usage.tier });
+    // Refresh balance after message
+    refreshBalance().then(b => { if (b) setCreditBalance(b); });
     if (assistantContent) await saveMessage('assistant', assistantContent);
     return assistantContent;
-  }, [webAiModel, messages, conversationId]);
+  }, [webAiModel, messages, conversationId, creditBalance]);
 
   // ─── Send Handler ──────────────────────────────
 
@@ -427,10 +573,11 @@ const Chat = () => {
     }
 
     const chatStartTime = Date.now();
-    const activeModel = provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel;
+    const activeModel = provider === 'openrouter' ? openRouterModel : provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel;
 
     try {
-      if (provider === 'claude') await sendClaude(userMessage);
+      if (provider === 'openrouter') await sendOpenRouter(userMessage);
+      else if (provider === 'claude') await sendClaude(userMessage);
       else if (provider === 'openclaw') await sendOpenClaw(userMessage);
       else await sendCrowByte(userMessage);
 
@@ -460,29 +607,37 @@ const Chat = () => {
   };
 
   const handleStop = async () => {
-    if (provider === 'claude') await claudeProvider.stop();
+    if (provider === 'openrouter') await openRouterProvider.stop();
+    else if (provider === 'claude') await claudeProvider.stop();
     setIsStreaming(false);
   };
 
   // ─── Derived State ─────────────────────────────
 
-  const isConnected = provider === 'claude' ? claudeAvailable
+  const isConnected = provider === 'openrouter' ? openRouterAvailable
+    : provider === 'claude' ? claudeAvailable
     : provider === 'openclaw' ? openClawConnected
-    : webAiAvailable;
+    : true; // CrowByte credits always available (server-side)
 
-  const statusLabel = provider === 'claude'
+  const statusLabel = provider === 'openrouter'
+    ? (openRouterAvailable ? 'Ready' : 'No API UilKeySkeleton')
+    : provider === 'claude'
     ? (claudeAvailable ? 'Ready' : 'Unavailable')
     : provider === 'openclaw'
     ? (openClawConnected ? 'Connected' : 'Offline')
-    : (webAiAvailable ? 'Online' : 'Unavailable');
+    : (creditBalance ? `${creditBalance.balance} credits` : 'Online');
 
-  const currentModelLabel = provider === 'claude'
+  const currentModelLabel = IS_WEB
+    ? 'CrowByte AI'
+    : provider === 'openrouter'
+    ? openRouterProvider.getModels().find(m => m.id === openRouterModel)?.name || openRouterModel
+    : provider === 'claude'
     ? claudeProvider.getModels().find(m => m.id === claudeModel)?.name || claudeModel
     : provider === 'openclaw'
     ? openClaw.getModels().find(m => m.id === openClawModel)?.name || openClawModel
     : webAiModels.find(m => m.id === webAiModel)?.name || webAiModel;
 
-  const providerLabel = provider === 'claude' ? 'Claude' : provider === 'openclaw' ? 'OpenClaw' : 'CrowByte';
+  const providerLabel = provider === 'openrouter' ? 'OpenRouter' : provider === 'claude' ? 'Claude' : provider === 'openclaw' ? 'OpenClaw' : 'CrowByte';
 
   // ─── Render ────────────────────────────────────
 
@@ -510,7 +665,7 @@ const Chat = () => {
               onClick={() => setSidebarOpen(v => !v)}
               aria-label="Toggle sidebar"
             >
-              <SidebarSimple size={18} weight="bold" />
+              <UilLeftArrowFromLeft size={18} />
             </Button>
 
             {/* Provider toggle */}
@@ -523,18 +678,44 @@ const Chat = () => {
             {/* Status */}
             <StatusDot connected={isConnected} label={statusLabel} />
 
-            {/* Session cost */}
-            {sessionCost > 0 && (
+            {/* Session cost (desktop only — Claude CLI) */}
+            {!IS_WEB && sessionCost > 0 && (
               <div className="flex items-center gap-1">
-                <CurrencyDollar size={11} weight="bold" className="text-amber-500/50" />
+                <UilDollarSign size={11} className="text-amber-500/50" />
                 <span className="text-[10px] text-amber-500/70 font-mono">${sessionCost.toFixed(4)}</span>
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Model selector */}
-            {provider === 'claude' ? (
+            {/* Model selector — web shows branded "CrowByte AI", desktop shows model pickers */}
+            {IS_WEB ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-200 font-semibold font-['JetBrains_Mono'] tracking-tight">CrowByte AI</span>
+                {creditBalance && (
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-800/50 text-xs font-mono">
+                    <UilBolt size={11} className="text-cyan-400" />
+                    <span className="text-zinc-300">{creditBalance.balance.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            ) : provider === 'openrouter' ? (
+              <Select value={openRouterModel} onValueChange={setOpenRouterModel}>
+                <SelectTrigger className="w-[220px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {openRouterProvider.getModels().map(m => (
+                    <SelectItem key={m.id} value={m.id}>
+                      <span className="flex items-center gap-1.5">
+                        {m.name}
+                        {m.free && <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 text-emerald-400">FREE</Badge>}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : provider === 'claude' ? (
               <Select value={claudeModel} onValueChange={setClaudeModel}>
                 <SelectTrigger className="w-[180px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
                   <SelectValue />
@@ -556,120 +737,78 @@ const Chat = () => {
                   ))}
                 </SelectContent>
               </Select>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Select value={webAiModel} onValueChange={(v) => {
-                  const model = webAiModels.find(m => m.id === v);
-                  if (model?.locked) {
-                    toast({ title: 'Model Locked', description: `${model.name} requires Pro tier. Upgrade in Settings.`, variant: 'destructive' });
-                    return;
-                  }
-                  setWebAiModel(v);
-                }}>
-                  <SelectTrigger className="w-[220px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {webAiModels.map(m => (
-                      <SelectItem key={m.id} value={m.id} disabled={m.locked}>
-                        <span className="flex items-center gap-1.5">
-                          {m.locked && <Lock size={11} weight="bold" className="text-zinc-500" />}
-                          {m.name}
-                          {m.tier === 'pro' && !m.locked && <Crown size={11} weight="fill" className="text-amber-400" />}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {/* Tier badge + usage */}
-                {webAiUsage && (
-                  <div className="flex items-center gap-1.5">
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-5 border-blue-500/20 text-blue-400 uppercase">
-                      {webAiUsage.tier}
-                    </Badge>
-                    {webAiUsage.limit !== null && (
-                      <span className="text-[10px] text-blue-400/70 font-mono whitespace-nowrap">
-                        {webAiUsage.current}/{webAiUsage.limit}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            ) : null}
 
             {/* Settings */}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-zinc-500 hover:text-zinc-300" aria-label="Settings">
-                  <GearSix size={16} weight="bold" />
+                  <UilCog size={16} />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-zinc-950 border-white/[0.06] overflow-y-auto">
+              <SheetContent className="bg-zinc-900 border-white/[0.06] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle className="text-zinc-200">Configuration</SheetTitle>
-                  <SheetDescription className="text-zinc-500">AI providers and settings</SheetDescription>
+                  <SheetDescription className="text-zinc-500">AI provider settings</SheetDescription>
                 </SheetHeader>
                 <div className="space-y-6 mt-6">
-                  {/* Claude */}
-                  <div>
-                    <Label className="text-zinc-200 flex items-center gap-2">
-                      <Sparkle size={16} weight="bold" className="text-violet-400" />
-                      Claude Code CLI
-                    </Label>
-                    <div className="mt-3 space-y-2">
-                      {([
-                        ['Status', claudeAvailable ? 'Ready' : 'Unavailable', claudeAvailable ? 'text-violet-400' : 'text-red-400'],
-                        ['Environment', '.env-unfiltered', 'text-violet-400'],
-                        ['Tools', '344+ (MCP + Bash + All)', 'text-violet-400'],
-                        ['Permissions', 'Bypass All', 'text-red-400'],
-                        ['Session Cost', `$${sessionCost.toFixed(4)}`, 'text-amber-400'],
-                      ] as const).map(([label, value, cls]) => (
-                        <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-300">{label}</span>
-                            <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                  <Separator className="bg-white/[0.04]" />
-                  {/* OpenClaw */}
-                  <div>
-                    <Label className="text-zinc-200 flex items-center gap-2">
-                      <Robot size={16} weight="bold" className="text-emerald-400" />
-                      OpenClaw (NVIDIA Free)
-                    </Label>
-                    <div className="mt-3 space-y-2">
-                      {([
-                        ['VPS', openClawConnected ? 'Connected' : 'Offline', openClawConnected ? 'text-emerald-400' : 'text-red-400'],
-                        ['Cost', '$0 (Free)', 'text-emerald-400'],
-                        ['Agents', '9 Active', 'text-blue-400'],
-                      ] as const).map(([label, value, cls]) => (
-                        <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-300">{label}</span>
-                            <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                  {webAiAvailable && (
+                  {/* Desktop-only: Claude + OpenClaw */}
+                  {!IS_WEB && (
                     <>
-                      <Separator className="bg-white/[0.04]" />
                       <div>
                         <Label className="text-zinc-200 flex items-center gap-2">
-                          <Lightning size={16} weight="bold" className="text-blue-400" />
-                          CrowByte AI (Web)
+                          <UilStar size={16} className="text-violet-400" />
+                          Claude UilBracketsCurly CLI
                         </Label>
                         <div className="mt-3 space-y-2">
                           {([
-                            ['Status', 'Online', 'text-blue-400'],
-                            ['Tier', webAiUsage?.tier?.toUpperCase() || 'FREE', 'text-blue-400'],
-                            ['Usage', webAiUsage ? (webAiUsage.limit === null ? 'Unlimited' : `${webAiUsage.current}/${webAiUsage.limit}`) : 'N/A', 'text-blue-300'],
-                            ['Models', `${webAiModels.length} available`, 'text-zinc-400'],
-                            ['Cost', '$0 (Included)', 'text-emerald-400'],
+                            ['Status', claudeAvailable ? 'Ready' : 'Unavailable', claudeAvailable ? 'text-violet-400' : 'text-red-400'],
+                            ['Environment', '.env-unfiltered', 'text-violet-400'],
+                            ['Tools', '344+ (MCP + Bash + All)', 'text-violet-400'],
+                            ['Permissions', 'Bypass All', 'text-red-400'],
+                            ['Session Cost', `$${sessionCost.toFixed(4)}`, 'text-amber-400'],
+                          ] as const).map(([label, value, cls]) => (
+                            <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-zinc-300">{label}</span>
+                                <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                      <Separator className="bg-white/[0.04]" />
+                      <div>
+                        <Label className="text-zinc-200 flex items-center gap-2">
+                          <UilRobot size={16} className="text-emerald-400" />
+                          OpenClaw (NVIDIA Free)
+                        </Label>
+                        <div className="mt-3 space-y-2">
+                          {([
+                            ['VPS', openClawConnected ? 'Connected' : 'Offline', openClawConnected ? 'text-emerald-400' : 'text-red-400'],
+                            ['Cost', '$0 (Free)', 'text-emerald-400'],
+                            ['Agents', '9 Active', 'text-blue-400'],
+                          ] as const).map(([label, value, cls]) => (
+                            <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-zinc-300">{label}</span>
+                                <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                      <Separator className="bg-white/[0.04]" />
+                      <div>
+                        <Label className="text-zinc-200 flex items-center gap-2">
+                          <UilBolt size={16} className="text-cyan-400" />
+                          OpenRouter
+                        </Label>
+                        <div className="mt-3 space-y-2">
+                          {([
+                            ['Status', openRouterAvailable ? 'Connected' : 'No API UilKeySkeleton', openRouterAvailable ? 'text-cyan-400' : 'text-red-400'],
+                            ['Models', `${openRouterProvider.getModels().filter(m => m.free).length} Free + ${openRouterProvider.getModels().filter(m => !m.free).length} Paid`, 'text-cyan-400'],
+                            ['Active Model', openRouterProvider.getModels().find(m => m.id === openRouterModel)?.name || openRouterModel, 'text-cyan-300'],
                           ] as const).map(([label, value, cls]) => (
                             <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
                               <div className="flex items-center justify-between">
@@ -682,11 +821,34 @@ const Chat = () => {
                       </div>
                     </>
                   )}
+                  {/* CrowByte AI info */}
+                  <div>
+                    <Label className="text-zinc-200 flex items-center gap-2">
+                      <UilBolt size={16} className="text-blue-400" />
+                      CrowByte AI (Credits)
+                    </Label>
+                    <div className="mt-3 space-y-2">
+                      {([
+                        ['Status', 'Online', 'text-blue-400'],
+                        ['Balance', creditBalance ? `${creditBalance.balance.toLocaleString()} credits` : 'Loading...', 'text-cyan-400'],
+                        ['Tier', creditBalance?.tier?.toUpperCase() || 'FREE', 'text-blue-400'],
+                        ['Used', creditBalance ? `${creditBalance.monthly_used}/${creditBalance.monthly_allowance}` : 'N/A', 'text-blue-300'],
+                        ['Pack Credits', creditBalance ? `${creditBalance.pack_balance.toLocaleString()}` : '0', 'text-emerald-400'],
+                      ] as const).map(([label, value, cls]) => (
+                        <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-zinc-300">{label}</span>
+                            <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                   <Separator className="bg-white/[0.04]" />
                   <Card className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-300">Chat History</span>
-                      <Badge variant="outline" className="text-blue-400 border-transparent">Supabase</Badge>
+                      <Badge variant="outline" className="text-blue-400 border-transparent">Cloud Sync</Badge>
                     </div>
                   </Card>
                 </div>

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock } from "@phosphor-icons/react";
+import { UilLock } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AuthSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={Lock} title="Authentication" description="Supabase Auth flow with credential storage and device fingerprinting" status="ready" />
+      <DocHeader icon={UilLock} title="Authentication" description="Supabase Auth flow with credential storage and device fingerprinting" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -46,7 +46,7 @@ export function AuthSection() {
             <div className="text-zinc-500"># credentialStorage.ts</div>
             <div>&nbsp;</div>
             <div><span className="text-primary">Algorithm</span>:  AES-256-GCM</div>
-            <div><span className="text-primary">Key</span>:        PBKDF2 (100,000 iterations, SHA-256)</div>
+            <div><span className="text-primary">UilKeySkeleton</span>:        PBKDF2 (100,000 iterations, SHA-256)</div>
             <div><span className="text-primary">Salt</span>:       Device fingerprint hash</div>
             <div><span className="text-primary">Storage</span>:    localStorage (encrypted blob)</div>
             <div>&nbsp;</div>

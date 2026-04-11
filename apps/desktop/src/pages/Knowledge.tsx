@@ -17,19 +17,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/
 import { useToast } from"@/hooks/use-toast";
 import { knowledgeService, type KnowledgeEntry, type CreateKnowledgeInput } from"@/services/knowledge";
 import { supabase } from "@/lib/supabase";
-import { BookOpen, MagnifyingGlass, Plus, Star, Eye, ArrowSquareOut, Tag, Clock, Folder, Trash, PencilSimple, Sparkle, BookBookmark, Funnel, TrendUp, X, CheckSquare, Square, MinusSquare, ShieldCheck, Link, CalendarBlank, User, Hash, ArrowLeft, Copy, Check } from "@phosphor-icons/react";
+import { UilBookOpen, UilSearch, UilPlus, UilStar, UilEye, UilExternalLinkAlt, UilTag, UilClock, UilFolder, UilTrashAlt, UilPen, UilBook, UilFilter, UilChartGrowth, UilTimes, UilCheckSquare, UilSquare, UilMinusSquare, UilShieldCheck, UilLink, UilCalendarAlt, UilUser, UilChannel, UilArrowLeft, UilCopy, UilCheck } from "@iconscout/react-unicons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from"framer-motion";
 import { formatDistanceToNow } from"date-fns";
 
 const CATEGORIES = [
- { id: 'all', name: 'All Knowledge', icon: BookOpen, color: 'text-blue-500' },
- { id: 'research', name: 'Research', icon: TrendUp, color: 'text-purple-500' },
- { id: 'vulnerabilities', name: 'Vulnerabilities', icon: BookBookmark, color: 'text-red-500' },
- { id: 'tools', name: 'Tools & Techniques', icon: Sparkle, color: 'text-emerald-500' },
- { id: 'documentation', name: 'Documentation', icon: Folder, color: 'text-yellow-500' },
- { id: 'general', name: 'General', icon: BookOpen, color: 'text-gray-500' },
+ { id: 'all', name: 'All Knowledge', icon: UilBookOpen, color: 'text-blue-500' },
+ { id: 'research', name: 'Research', icon: UilChartGrowth, color: 'text-purple-500' },
+ { id: 'vulnerabilities', name: 'Vulnerabilities', icon: UilBook, color: 'text-red-500' },
+ { id: 'tools', name: 'Tools & Techniques', icon: UilStar, color: 'text-emerald-500' },
+ { id: 'documentation', name: 'Documentation', icon: UilFolder, color: 'text-yellow-500' },
+ { id: 'general', name: 'General', icon: UilBookOpen, color: 'text-gray-500' },
 ];
 
 export default function Knowledge() {
@@ -259,10 +259,10 @@ export default function Knowledge() {
  <div className="sticky top-0 z-50 flex items-center gap-3 bg-zinc-900/95 backdrop-blur ring-1 ring-white/[0.06] rounded-lg px-4 py-2.5">
  <Button size="sm" variant={selectedIds.size === filteredEntries.length ?"secondary" :"outline"} onClick={selectAll} className="gap-2">
  {selectedIds.size === filteredEntries.length
- ? <CheckSquare size={16} weight="bold" className="text-primary" />
+ ? <UilCheckSquare size={16} className="text-primary" />
  : selectedIds.size > 0
- ? <MinusSquare size={16} weight="bold" className="text-primary" />
- : <Square size={16} weight="bold" />
+ ? <UilMinusSquare size={16} className="text-primary" />
+ : <UilSquare size={16} />
  }
  {selectedIds.size === filteredEntries.length ? 'Deselect All' : 'Select All'}
  </Button>
@@ -272,7 +272,7 @@ export default function Knowledge() {
  <div className="flex-1" />
  {selectedIds.size > 0 && (
  <Button size="sm" variant="destructive" onClick={handleBulkDelete} disabled={loading}>
- <Trash size={14} weight="bold" className="mr-1" />
+ <UilTrashAlt size={14} className="mr-1" />
  Delete {selectedIds.size}
  </Button>
  )}
@@ -295,13 +295,13 @@ export default function Knowledge() {
  variant={selectionMode ?"secondary" :"outline"}
  onClick={() => { setSelectionMode(!selectionMode); setSelectedIds(new Set()); }}
  >
- <CheckSquare size={16} weight="bold" className="mr-2" />
+ <UilCheckSquare size={16} className="mr-2" />
  Select
  </Button>
  <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
  <DialogTrigger asChild>
  <Button className="bg-primary hover:bg-primary/90">
- <Plus size={16} weight="bold" className="mr-2" />
+ <UilPlus size={16} className="mr-2" />
  Add Knowledge
  </Button>
  </DialogTrigger>
@@ -369,7 +369,7 @@ export default function Knowledge() {
  className="font-mono text-sm"
  />
  <p className="text-xs text-muted-foreground">
- <Sparkle size={12} weight="bold" className="inline mr-1" />
+ <UilStar size={12} className="inline mr-1" />
  AI will automatically generate summary and extract relevant tags
  </p>
  </div>
@@ -395,7 +395,7 @@ export default function Knowledge() {
  </>
  ) : (
  <>
- <Sparkle size={16} weight="bold" className="mr-2" />
+ <UilStar size={16} className="mr-2" />
  Create with AI
  </>
  )}
@@ -412,7 +412,7 @@ export default function Knowledge() {
  <CardContent className="pt-6">
  <div className="flex gap-2">
  <div className="relative flex-1">
- <MagnifyingGlass size={16} weight="bold" className="absolute left-3 top-3 text-muted-foreground" />
+ <UilSearch size={16} className="absolute left-3 top-3 text-muted-foreground" />
  <Input
  placeholder="Search knowledge base..."
  className="pl-10 terminal-text bg-background border-border"
@@ -424,7 +424,7 @@ export default function Knowledge() {
  variant={showFavoritesOnly ?"default" :"outline"}
  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
  >
- <Star size={16} weight="bold" className={`${showFavoritesOnly ? 'fill-current' : ''}`} />
+ <UilStar size={16} className={`${showFavoritesOnly ? 'fill-current' : ''}`} />
  </Button>
  </div>
  </CardContent>
@@ -438,7 +438,7 @@ export default function Knowledge() {
  const count = cat.id === 'all' ? entries.length : categoryStats.get(cat.id) || 0;
  return (
  <TabsTrigger key={cat.id} value={cat.id} className="relative">
- <Icon size={16} weight="bold" className={`mr-2 ${cat.color}`} />
+ <Icon size={16} className={`mr-2 ${cat.color}`} />
  {cat.name}
  {count > 0 && (
  <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
@@ -460,7 +460,7 @@ export default function Knowledge() {
  ) : filteredEntries.length === 0 ? (
  <Card>
  <CardContent className="flex flex-col items-center justify-center py-12">
- <BookOpen size={64} weight="duotone" className="text-muted-foreground mb-4" />
+ <UilBookOpen size={64} className="text-muted-foreground mb-4" />
  <h3 className="text-lg font-semibold text-white mb-2">
  {searchQuery ? 'No Results Found' : 'No Knowledge Entries'}
  </h3>
@@ -470,7 +470,7 @@ export default function Knowledge() {
  : 'Start building your knowledge base by adding entries'}
  </p>
  <Button variant="outline" onClick={() => setIsAddDialogOpen(true)}>
- <Plus size={16} weight="bold" className="mr-2" />
+ <UilPlus size={16} className="mr-2" />
  Add First Entry
  </Button>
  </CardContent>
@@ -486,12 +486,12 @@ export default function Knowledge() {
  exit={{ opacity: 0, y: -20 }}
  >
  <Card className={`border-border hover:transition-all duration-300 h-full flex flex-col relative group ${selectedIds.has(entry.id) ? 'ring-1 ring-primary bg-primary/5' : ''}`}>
- {/* X delete button — top right corner */}
+ {/* UilTimes delete button — top right corner */}
  <button
  onClick={(e) => { e.stopPropagation(); handleDelete(entry.id); }}
  className="h-6 w-6 absolute top-2 right-2 rounded-full hover:bg-red-500/80 text-zinc-500 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-10"
  >
- <X size={14} weight="bold" />
+ <UilTimes size={14} />
  </button>
  <CardHeader>
  <div className="flex items-start justify-between gap-2">
@@ -502,8 +502,8 @@ export default function Knowledge() {
  className="mt-0.5 shrink-0"
  >
  {selectedIds.has(entry.id)
- ? <CheckSquare size={20} weight="duotone" className="text-primary" />
- : <Square size={20} weight="duotone" className="text-zinc-600 hover:text-zinc-400" />
+ ? <UilCheckSquare size={20} className="text-primary" />
+ : <UilSquare size={20} className="text-zinc-600 hover:text-zinc-400" />
  }
  </button>
  )}
@@ -512,7 +512,7 @@ export default function Knowledge() {
  {entry.title}
  </CardTitle>
  <CardDescription className="text-xs mt-1">
- <Clock size={12} weight="bold" className="inline mr-1" />
+ <UilClock size={12} className="inline mr-1" />
  {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })}
  </CardDescription>
  </div>
@@ -521,7 +521,7 @@ export default function Knowledge() {
  size="sm" className="h-8 w-8 p-0 shrink-0"
  onClick={() => handleToggleFavorite(entry.id, entry.is_favorite)}
  >
- <Star size={16} weight="bold" className={`${entry.is_favorite ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+ <UilStar size={16} className={`${entry.is_favorite ? 'fill-yellow-500 text-yellow-500' : ''}`} />
  </Button>
  </div>
  </CardHeader>
@@ -537,7 +537,7 @@ export default function Knowledge() {
  <div className="flex flex-wrap gap-1">
  {entry.tags.slice(0, 5).map((tag, idx) => (
  <Badge key={idx} variant="secondary" className="text-xs">
- <Tag size={12} weight="bold" className="mr-1" />
+ <UilTag size={12} className="mr-1" />
  {tag}
  </Badge>
  ))}
@@ -550,7 +550,7 @@ export default function Knowledge() {
  {/* Meta info */}
  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-auto pt-2 border-t border-white/[0.04]">
  <span className="flex items-center gap-1">
- <Eye size={12} weight="bold" />
+ <UilEye size={12} />
  {entry.view_count}
  </span>
  {entry.importance && (
@@ -569,7 +569,7 @@ export default function Knowledge() {
  className="flex items-center gap-1 hover:text-primary transition-colors ml-auto"
  onClick={(e) => e.stopPropagation()}
  >
- <ArrowSquareOut size={12} weight="bold" />
+ <UilExternalLinkAlt size={12} />
  Source
  </a>
  )}
@@ -578,7 +578,7 @@ export default function Knowledge() {
  {/* Actions */}
  <div className="flex gap-2 mt-2">
  <Button variant="outline" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); handleView(entry); }}>
- <Eye size={12} weight="bold" className="mr-1" />
+ <UilEye size={12} className="mr-1" />
  View
  </Button>
  </div>
@@ -595,7 +595,7 @@ export default function Knowledge() {
 
  {/* ─── Document Viewer Dialog ──────────────────────────────────────── */}
  <Dialog open={!!viewEntry} onOpenChange={(open) => { if (!open) setViewEntry(null); }}>
-   <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col p-0 gap-0 bg-zinc-950 border-zinc-800">
+   <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col p-0 gap-0 bg-zinc-900 border-zinc-800">
      {viewEntry && (
        <>
          {/* Header */}
@@ -606,18 +606,18 @@ export default function Knowledge() {
              </DialogTitle>
              <DialogDescription className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
                <span className="flex items-center gap-1">
-                 <Clock size={12} weight="bold" />
+                 <UilClock size={12} />
                  {formatDistanceToNow(new Date(viewEntry.created_at), { addSuffix: true })}
                </span>
                {viewEntry.category && (
                  <span className="flex items-center gap-1">
-                   <Folder size={12} weight="bold" />
+                   <UilFolder size={12} />
                    {viewEntry.category}
                  </span>
                )}
                {viewEntry.source_type && (
                  <span className="flex items-center gap-1">
-                   <Hash size={12} weight="bold" />
+                   <UilChannel size={12} />
                    {viewEntry.source_type}
                  </span>
                )}
@@ -627,8 +627,8 @@ export default function Knowledge() {
                  </Badge>
                )}
                {viewEntry.is_verified && (
-                 <Badge variant="outline" className="text-xs h-5 border-emerald-500/30 text-emerald-400">
-                   <ShieldCheck size={10} weight="bold" className="mr-1" />
+                 <Badge variant="outline" className="text-xs h-5 text-emerald-400">
+                   <UilShieldCheck size={10} className="mr-1" />
                    Verified
                  </Badge>
                )}
@@ -641,7 +641,7 @@ export default function Knowledge() {
                className="h-8 w-8 p-0"
                onClick={handleCopyContent}
              >
-               {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+               {copied ? <UilCheck size={14} className="text-emerald-400" /> : <UilCopy size={14} />}
              </Button>
              {viewEntry.source_url && (
                <a
@@ -650,7 +650,7 @@ export default function Knowledge() {
                  rel="noopener noreferrer"
                >
                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                   <ArrowSquareOut size={14} />
+                   <UilExternalLinkAlt size={14} />
                  </Button>
                </a>
              )}
@@ -662,7 +662,7 @@ export default function Knowledge() {
            <div className="flex flex-wrap gap-1.5 px-6 py-3 border-b border-white/[0.04] shrink-0">
              {viewEntry.tags.map((tag, idx) => (
                <Badge key={idx} variant="secondary" className="text-xs">
-                 <Tag size={10} weight="bold" className="mr-1" />
+                 <UilTag size={10} className="mr-1" />
                  {tag}
                </Badge>
              ))}
@@ -714,18 +714,18 @@ export default function Knowledge() {
          {/* Footer metadata */}
          <div className="flex items-center gap-4 px-6 py-3 border-t border-white/[0.06] text-xs text-zinc-600 shrink-0">
            <span className="flex items-center gap-1">
-             <Eye size={12} />
+             <UilEye size={12} />
              {viewEntry.view_count} views
            </span>
            {viewEntry.author && (
              <span className="flex items-center gap-1">
-               <User size={12} />
+               <UilUser size={12} />
                {viewEntry.author}
              </span>
            )}
            {viewEntry.published_date && (
              <span className="flex items-center gap-1">
-               <CalendarBlank size={12} />
+               <UilCalendarAlt size={12} />
                Published {new Date(viewEntry.published_date).toLocaleDateString()}
              </span>
            )}

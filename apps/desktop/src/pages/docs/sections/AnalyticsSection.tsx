@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartBar } from "@phosphor-icons/react";
+import { UilChartBar } from "@iconscout/react-unicons";
 import { DocHeader, FeatureList, CodeBlock } from "../components";
 
 export function AnalyticsSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={ChartBar} title="Analytics" description="Usage metrics, CVE statistics, API health, and Supabase dashboard" status="ready" />
+      <DocHeader icon={UilChartBar} title="Analytics" description="Usage metrics, CVE statistics, API health, and Supabase dashboard" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
