@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { CaretDown } from "@phosphor-icons/react";
-
+import { UilAngleDown } from "@iconscout/react-unicons";
 interface FAQItem {
   question: string;
   answer: string;
@@ -11,22 +10,32 @@ const faqItems: FAQItem[] = [
   {
     question: "Is CrowByte free?",
     answer:
-      "Yes. The community tier is free forever. Pro starts at $29/mo for unlimited scans and custom AI agents.",
+      "Yes. The free tier gives you 50 AI credits per day, 3 AI models, the CVE database, and web-based tools. Pro starts at $19/mo and includes 1,000 AI credits, all model providers, and the full desktop app.",
+  },
+  {
+    question: "What are AI credits?",
+    answer:
+      "Credits are the currency for AI features — chat, recon, report generation. Free users get 50/day. Pro gets 1,000/month. Elite gets 5,000/month. Need more? Buy credit packs anytime — they never expire.",
   },
   {
     question: "What are custom AI agents?",
     answer:
-      "Build your own AI agents with custom instructions, tool access, and personas. Chain them for recon, exploitation, reporting \u2014 or let them run autonomously on your VPS fleet.",
+      "Build your own AI agents with custom instructions, tool access, and personas. Chain them for recon, exploitation, reporting — or deploy them on your VPS fleet to run 24/7.",
   },
   {
     question: "Can I self-host?",
     answer:
-      "Yes. CrowByte runs as an Electron app on Linux (Kali, Ubuntu, Debian) or via Docker. Your data stays on your machine. Supabase backend can be self-hosted too.",
+      "Yes. CrowByte runs as an Electron desktop app on Linux, Windows, and macOS — or via Docker. Your data stays on your machine.",
+  },
+  {
+    question: "What tools are integrated?",
+    answer:
+      "142 security tools via MCP — Nmap, Nuclei, SQLMap, Shodan, Burp Suite, Metasploit, ffuf, subfinder, httpx, and more. Plus browser automation via Chrome DevTools Protocol.",
   },
   {
     question: "Is this legal?",
     answer:
-      "CrowByte is a tool. Like Burp Suite or Metasploit, use it only on targets you have explicit authorization to test. We include dual-use warnings and require EULA acceptance.",
+      "CrowByte is a security tool. Like Burp Suite or Metasploit, use it only on targets you have explicit authorization to test. All bounty programs require signed agreements.",
   },
 ];
 
@@ -45,7 +54,7 @@ function AccordionItem({
         onClick={onToggle}
         className="w-full flex items-center justify-between py-5 text-left group"
       >
-        <span className="font-['JetBrains_Mono'] text-base text-white pr-4 group-hover:text-blue-400 transition-colors">
+        <span className="font-sans text-base text-white pr-4 group-hover:text-blue-400 transition-colors">
           {item.question}
         </span>
         <motion.span
@@ -53,9 +62,8 @@ function AccordionItem({
           transition={{ duration: 0.25, ease: "easeInOut" }}
           className="shrink-0"
         >
-          <CaretDown
+          <UilAngleDown
             size={18}
-            weight="bold"
             className="text-zinc-500 group-hover:text-zinc-300 transition-colors"
           />
         </motion.span>
@@ -70,7 +78,7 @@ function AccordionItem({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <p className="pb-5 font-['JetBrains_Mono'] text-sm text-zinc-400 leading-relaxed pr-8">
+            <p className="pb-5 font-sans text-sm text-zinc-400 leading-relaxed pr-8">
               {item.answer}
             </p>
           </motion.div>
@@ -92,9 +100,9 @@ export default function FAQ() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-bold text-white mb-12"
+          className="font-sans text-3xl md:text-4xl font-bold text-white mb-12 tracking-tight text-center"
         >
-          faq.
+          faq
         </motion.h2>
 
         <motion.div

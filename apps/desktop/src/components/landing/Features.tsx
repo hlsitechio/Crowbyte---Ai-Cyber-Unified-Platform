@@ -1,95 +1,81 @@
 import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import {
   MessageSquare,
+  TerminalSquare,
   Radar,
   ShieldAlert,
-  Network,
   Swords,
-  Globe,
-  TerminalSquare,
   Bot,
-  Radio,
 } from "lucide-react";
+import { FeatureCard } from "@/components/ui/grid-feature-cards";
 
 const features = [
   {
+    title: "AI Chat",
     icon: MessageSquare,
-    name: "AI Chat",
-    desc: "Multi-model conversations with full MCP tool access. Analyze CVEs, write exploits, generate reports.",
-    accent: "blue" as const,
+    description:
+      "Multi-model AI assistant with a growing arsenal of integrated security tools. CVE lookups, payload crafting, report writing — without leaving the chat.",
   },
   {
-    icon: Radar,
-    name: "Recon Pipeline",
-    desc: "Subfinder, httpx, nuclei — chained automatically. From domain to vulns in under 30 seconds.",
-    accent: "blue" as const,
-  },
-  {
-    icon: ShieldAlert,
-    name: "CVE Database",
-    desc: "Real-time NVD tracking with Shodan enrichment. CVSS scoring, exploit status, CISA KEV alerts.",
-    accent: "orange" as const,
-  },
-  {
-    icon: Network,
-    name: "Fleet Management",
-    desc: "Distributed AI agent swarm across your infrastructure. 9 agents. One command.",
-    accent: "blue" as const,
-  },
-  {
-    icon: Swords,
-    name: "Red Team Ops",
-    desc: "Track operations, phases, and findings. Chain vulns for maximum impact. Auto-generate PoCs.",
-    accent: "orange" as const,
-  },
-  {
-    icon: Globe,
-    name: "Browser Automation",
-    desc: "Chrome DevTools Protocol. Hijack sessions, extract cookies, screenshot evidence. All automated.",
-    accent: "blue" as const,
-  },
-  {
+    title: "Integrated Terminal",
     icon: TerminalSquare,
-    name: "Integrated Terminal",
-    desc: "Full xterm.js terminal with tmux. Every Kali tool at your fingertips, no context switching.",
-    accent: "orange" as const,
+    description:
+      "Full shell with AI copilot. It reads your terminal output and suggests next moves. You run the tools, it helps you think.",
   },
   {
+    title: "Recon Pipeline",
+    icon: Radar,
+    description:
+      "Automated recon chains: subdomain discovery → live host check → vulnerability scan. Configure once, run on any target.",
+  },
+  {
+    title: "CVE Database",
+    icon: ShieldAlert,
+    description:
+      "NVD-synced CVE database with Shodan enrichment. CVSS scores, exploit availability, CISA KEV status — searchable and filterable.",
+  },
+  {
+    title: "Red Team Ops",
+    icon: Swords,
+    description:
+      "Plan and track engagements. Log findings, link evidence, chain vulns into attack paths. Export to report format.",
+  },
+  {
+    title: "Agent Builder",
     icon: Bot,
-    name: "Agent Builder",
-    desc: "Create custom AI agents with specific instructions, models, and capabilities. Your rules.",
-    accent: "blue" as const,
-  },
-  {
-    icon: Radio,
-    name: "Threat Intel",
-    desc: "Live feeds from abuse.ch, blocklist.de, emerging threats. IOCs, detection rules, auto-correlation.",
-    accent: "orange" as const,
+    description:
+      "Build custom AI agents with scoped tools and system prompts. Assign to targets or schedule for continuous monitoring.",
   },
 ];
 
-const accentMap = {
-  blue: "text-blue-400",
-  orange: "text-orange-400",
-};
+function AnimatedContainer({
+  className,
+  delay = 0.1,
+  children,
+}: {
+  className?: string;
+  delay?: number;
+  children: React.ReactNode;
+}) {
+  const shouldReduceMotion = useReducedMotion();
 
-const container = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
-  },
-};
+  if (shouldReduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
 
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-  },
-};
+  return (
+    <motion.div
+      initial={{ filter: "blur(4px)", translateY: -8, opacity: 0 }}
+      whileInView={{ filter: "blur(0px)", translateY: 0, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.8 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function Features() {
   const ref = useRef<HTMLDivElement>(null);
@@ -97,50 +83,24 @@ export default function Features() {
 
   return (
     <section id="features" ref={ref} className="py-24 px-6">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="mb-14"
-        >
-          <h2 className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-bold text-white">
-            the toolkit.
+      <div className="mx-auto w-full max-w-5xl space-y-8">
+        <AnimatedContainer className="mx-auto max-w-3xl text-center">
+          <h2 className="font-['JetBrains_Mono'] text-3xl font-bold tracking-wide text-balance text-white md:text-4xl">
+            everything you need.
           </h2>
-          <p className="font-['JetBrains_Mono'] text-zinc-500 text-sm mt-3">
-            everything you need to hunt, exploit, and report
+          <p className="text-zinc-500 mt-4 text-sm tracking-wide text-balance font-['JetBrains_Mono']">
+            offense, defense, and everything in between
           </p>
-        </motion.div>
+        </AnimatedContainer>
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        <AnimatedContainer
+          delay={0.4}
+          className="grid grid-cols-1 divide-x divide-y divide-dashed border border-dashed border-white/[0.08] divide-white/[0.08] sm:grid-cols-2 md:grid-cols-3"
         >
-          {features.map((f) => {
-            const iconColor = accentMap[f.accent];
-            return (
-              <motion.div
-                key={f.name}
-                variants={item}
-                className="group relative p-5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] transition-all duration-300"
-              >
-                <f.icon
-                  size={20}
-                  strokeWidth={1.5}
-                  className={`${iconColor} mb-4`}
-                />
-                <h3 className="font-['JetBrains_Mono'] text-sm font-bold text-white mb-1.5">
-                  {f.name}
-                </h3>
-                <p className="font-['JetBrains_Mono'] text-xs text-zinc-500 leading-relaxed">
-                  {f.desc}
-                </p>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+          {features.map((feature, i) => (
+            <FeatureCard key={i} feature={feature} />
+          ))}
+        </AnimatedContainer>
       </div>
     </section>
   );
