@@ -142,3 +142,8 @@ apps/desktop/.env.production
 apps/desktop/.env.staging
 apps/desktop/.env.local
 
+docs/claude docs/AI.md
+docs/claude docs/VPS.md
+docs/new_docs/INFRASTRUCTURE.md
+docs/new_docs/DEPLOY.md
+docs/new_docs/VPS_FILES.md
