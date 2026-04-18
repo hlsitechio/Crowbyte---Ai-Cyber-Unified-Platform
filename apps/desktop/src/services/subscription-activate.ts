@@ -5,7 +5,7 @@
  * Used by Checkout (web) after payment — desktop reads via license-guard.
  *
  * Flow:
- *   Web Checkout → PayPal → user confirms → activateSubscription() → Supabase row
+ *   Web Checkout → user confirms → activateSubscription() → Supabase row
  *   Desktop → license-guard.ts → reads same row → unlocks app
  */
 
@@ -46,8 +46,6 @@ export async function activateSubscription(opts: {
   tier: ActivateTier;
   period: "monthly" | "annual";
   orderId: string;
-  paypalEmail?: string;
-  paypalTransactionId?: string;
   status?: ActivateStatus;
 }): Promise<ActivationResult> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -63,7 +61,6 @@ export async function activateSubscription(opts: {
     {
       p_tier: opts.tier,
       p_expires_at: expiresAt,
-      p_paypal_email: opts.paypalEmail || null,
     } as any
   );
 
@@ -97,7 +94,6 @@ export async function activateSubscription(opts: {
       .update({
         tier: opts.tier,
         status,
-        paypal_email: opts.paypalEmail || null,
         expires_at: expiresAt,
         updated_at: now,
       } as any)
@@ -112,7 +108,6 @@ export async function activateSubscription(opts: {
         user_id: user.id,
         tier: opts.tier,
         status,
-        paypal_email: opts.paypalEmail || null,
         started_at: now,
         expires_at: expiresAt,
         created_at: now,
@@ -162,14 +157,13 @@ export async function getSubscriptionStatus(): Promise<{
   tier: string;
   status: string;
   expiresAt: string | null;
-  paypalEmail: string | null;
 } | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
   const { data, error } = await supabase
     .from("user_subscriptions" as any)
-    .select("tier, status, expires_at, paypal_email")
+    .select("tier, status, expires_at")
     .eq("user_id", user.id)
     .single();
 
@@ -179,6 +173,5 @@ export async function getSubscriptionStatus(): Promise<{
     tier: s.tier,
     status: s.status,
     expiresAt: s.expires_at,
-    paypalEmail: s.paypal_email,
   };
 }

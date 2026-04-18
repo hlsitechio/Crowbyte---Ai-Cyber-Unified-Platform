@@ -15,7 +15,6 @@ export interface UserSubscription {
   user_id: string;
   tier: Tier;
   status: SubStatus;
-  paypal_email: string | null;
   started_at: string;
   expires_at: string | null;
   cancelled_at: string | null;
@@ -131,7 +130,7 @@ export async function getSubscription(): Promise<UserSubscription | null> {
 }
 
 export async function updateSubscription(
-  updates: Partial<Pick<UserSubscription, "tier" | "status" | "paypal_email" | "expires_at">>
+  updates: Partial<Pick<UserSubscription, "tier" | "status" | "expires_at">>
 ): Promise<UserSubscription | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
