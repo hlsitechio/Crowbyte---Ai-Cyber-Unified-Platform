@@ -38,7 +38,6 @@ export default function AgentTesting() {
  const [agentConfig, setAgentConfig] = useState({
  search: {
  maxResults: 5,
- tavilyApiKey: localStorage.getItem('tavily_api_key') || '',
  },
  openclaw: {
  model: 'llama-3.3-70b',
@@ -416,15 +415,11 @@ export default function AgentTesting() {
  <TabsContent value="search" className="space-y-4 mt-4">
  <div className="grid gap-4 md:grid-cols-2">
  <div className="space-y-2">
- <Label>Tavily API UilKeySkeleton</Label>
  <Input
  type="password"
- value={agentConfig.search.tavilyApiKey}
  onChange={(e) => setAgentConfig({
  ...agentConfig,
- search: { ...agentConfig.search, tavilyApiKey: e.target.value }
  })}
- placeholder="Enter Tavily API key"
  />
  </div>
  <div className="space-y-2">

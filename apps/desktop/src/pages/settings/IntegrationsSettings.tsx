@@ -70,7 +70,6 @@ function loadProviders(): Record<string, ProviderConfig> {
 function loadServiceKeys(): Record<string, string> {
   return {
     shodan: localStorage.getItem("shodan_api_key") || "",
-    tavily: localStorage.getItem("tavily_api_key") || "",
     venice: localStorage.getItem("venice_api_key") || import.meta.env.VITE_VENICE_API_KEY || "",
   };
 }
@@ -213,7 +212,6 @@ export default function IntegrationsSettings() {
   const handleSaveAll = async () => {
     localStorage.setItem("crowbyte_ai_providers", JSON.stringify(providers));
     localStorage.setItem("shodan_api_key", serviceKeys.shodan); // CodeQL: local desktop storage, not a web app
-    localStorage.setItem("tavily_api_key", serviceKeys.tavily); // CodeQL: local desktop storage, not a web app
     localStorage.setItem("venice_api_key", serviceKeys.venice); // CodeQL: local desktop storage, not a web app
 
     // Sync Shodan key to Supabase for cross-device access
@@ -485,17 +483,12 @@ export default function IntegrationsSettings() {
 
           <Separator />
 
-          {/* Tavily */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <UilKeySkeleton size={16} className="text-sky-400" />
-              <Label className="text-sm font-semibold">Tavily Search</Label>
             </div>
             <Input
               type="password"
-              placeholder="Tavily API key"
-              value={serviceKeys.tavily}
-              onChange={(e) => setServiceKeys((p) => ({ ...p, tavily: e.target.value }))}
               className="h-8 text-xs font-mono"
             />
             <p className="text-[11px] text-zinc-500">AI-powered cybersecurity search and threat intelligence</p>

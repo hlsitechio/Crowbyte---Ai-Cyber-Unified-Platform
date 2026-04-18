@@ -1,10 +1,8 @@
 /**
  * CyberSecurity AI Agent
- * An intelligent agent that uses Tavily search for cybersecurity research
  * and Venice.ai for conversational responses
  */
 
-import { tavilyService, TavilySearchResponse } from './tavily';
 import { edgeFunctions } from './supabase-edge-functions';
 
 export interface AgentMessage {
@@ -14,7 +12,7 @@ export interface AgentMessage {
 
 export interface AgentResponse {
   message: string;
-  searchResults?: TavilySearchResponse;
+  searchResults?: any;
   sources?: Array<{ title: string; url: string }>;
   researchPerformed?: boolean;
 }
@@ -141,17 +139,11 @@ Be precise, technical, and security-focused in your responses.`;
   }
 
   /**
-   * Perform Tavily search for cybersecurity information
    */
-  private async performSearch(query: string): Promise<TavilySearchResponse | null> {
+  private async performSearch(query: string): Promise<any | null> {
     try {
       console.log('🔍 Agent performing search for:', query);
-      const response = await tavilyService.search({
-        query,
-        search_depth: 'advanced',
-        max_results: 5,
-        include_answer: true,
-      });
+      const response = null;
 
       return response;
     } catch (error: unknown) {
@@ -163,7 +155,7 @@ Be precise, technical, and security-focused in your responses.`;
   /**
    * Format search results for context
    */
-  private formatSearchContext(searchResults: TavilySearchResponse): string {
+  private formatSearchContext(searchResults: any): string {
     let context = '## Search Results\n\n';
 
     if (searchResults.data.answer) {
@@ -236,13 +228,12 @@ Be precise, technical, and security-focused in your responses.`;
       content: userQuery,
     });
 
-    let searchResults: TavilySearchResponse | null = null;
+    let searchResults: any | null = null;
     let searchContext: string | undefined = undefined;
     let researchPerformed = false;
 
     // Determine if search is needed
     if (this.needsSearch(userQuery)) {
-      console.log('🔍 Search required, performing Tavily search...');
       searchResults = await this.performSearch(userQuery);
 
       if (searchResults && searchResults.success) {

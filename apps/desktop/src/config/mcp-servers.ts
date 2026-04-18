@@ -104,10 +104,7 @@ export const MCP_SERVERS: MCPServerConfig[] = [
     category: 'ai',
   },
   {
-    name: 'tavily',
-    description: 'Tavily AI-powered web search',
     type: 'http',
-    url: `https://mcp.tavily.com/mcp/?tavilyApiKey=${import.meta.env.VITE_TAVILY_API_KEY || ''}`,
     enabled: false, // Enable when API key is configured
     category: 'ai',
   },

@@ -12,7 +12,6 @@ import { chat as aiChat, streamChat as aiStreamChat } from "@/services/ai";
 import { useToast } from"@/hooks/use-toast";
 import { cacheService } from"@/services/cache";
 import { analyticsService } from"@/services/analytics";
-import { tavilyService } from"@/services/tavily";
 
 interface Tool {
  name: string;
@@ -594,12 +593,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  query = `${target} domain security assessment vulnerability report threat intelligence`;
  }
 
- const results = await tavilyService.search({
- query,
- search_depth: 'advanced',
- max_results: 5,
- include_answer: true,
- });
+ const results = null;
 
  let intelReport = `🔍 THREAT INTELLIGENCE REPORT\nTarget: ${target}\n`;
  intelReport += `Type: ${isIP ? 'IP Address' : 'Domain/Hostname'}\n\n`;
@@ -705,12 +699,7 @@ Your role is to help organizations protect their infrastructure, detect threats,
  if (needsSearch) {
  try {
  // Perform Tavily search
- const searchResults = await tavilyService.search({
- query: userQuery,
- search_depth: 'advanced',
- max_results: 5,
- include_answer: true,
- });
+ const searchResults = null;
 
  if (searchResults.data.answer) {
  searchContext = `\n\n## Web Search Results\n\n**Summary**: ${searchResults.data.answer}\n\n`;

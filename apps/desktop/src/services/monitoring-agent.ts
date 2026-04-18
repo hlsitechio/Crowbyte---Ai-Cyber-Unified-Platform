@@ -11,7 +11,6 @@
  */
 
 import { pcMonitor, type SystemMetrics, type ProcessInfo } from './pc-monitor';
-import { tavilyService } from './tavily';
 import { glitchTipService } from './glitchtip';
 import type { ToolFunction } from '@/types/service-types';
 
@@ -82,7 +81,6 @@ YOUR CAPABILITIES:
 - Process behavior monitoring
 - Threat correlation and root cause analysis
 - System health assessment and recommendations
-- Web search for threat intelligence, CVEs, and security advisories (via Tavily)
 - Application error monitoring via GlitchTip (production crashes, exceptions, stack traces)
 
 YOUR PERSONALITY:
@@ -276,7 +274,6 @@ Be thorough and provide a complete response even if some tools fail.`,
   }
 
   /**
-   * Get monitoring tools from Electron MCP + Tavily
    */
   private async getMonitoringTools(): Promise<ToolFunction[]> {
     const tools: ToolFunction[] = [];
@@ -293,11 +290,9 @@ Be thorough and provide a complete response even if some tools fail.`,
       }
     }
 
-    // Add Tavily search tool for threat intelligence
     tools.push({
       type: 'function',
       function: {
-        name: 'tavily_search',
         description: 'Search the web for cybersecurity threat intelligence, CVE details, security advisories, and current attack trends. Use when you need information about specific vulnerabilities, malware, or security best practices.',
         parameters: {
           type: 'object',
@@ -374,7 +369,6 @@ Be thorough and provide a complete response even if some tools fail.`,
       }
     } as ToolFunction);
 
-    console.log(`🔧 Total tools available: ${tools.length} (${tools.filter(t => t.function.name.includes('mcp_monitor')).length} monitoring + ${tools.filter(t => t.function.name === 'tavily_search').length} search + ${tools.filter(t => t.function.name.includes('glitchtip')).length} error tracking)`);
 
     return tools;
   }
@@ -526,15 +520,8 @@ Be thorough and provide a complete response even if some tools fail.`,
               });
               console.log(`  ✅ Error summary: ${summary.total} total, ${summary.critical} critical`);
             }
-            // Handle Tavily search tool
-            else if (toolName === 'tavily_search') {
               console.log(`  🔍 Searching for: "${toolArgs.query}"`);
-              const searchResult = await tavilyService.search({
-                query: toolArgs.query,
-                search_depth: toolArgs.search_depth || 'advanced',
-                max_results: toolArgs.max_results || 5,
-                include_answer: true,
-              });
+              const searchResult = null;
 
               // Format search results for AI
               const formattedResults = {

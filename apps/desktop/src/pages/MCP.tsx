@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/
 import { Textarea } from"@/components/ui/textarea";
 import { UilSitemap, UilLink, UilDesktopAlt, UilHeartRate, UilSync, UilSearch, UilBolt, UilFileAlt, UilExclamationCircle, UilShield, UilBookmark, UilPlay, UilSquare, UilCopy, UilCheck, UilCog } from "@iconscout/react-unicons";
 import { toast } from"sonner";
-import tavilyService, { TavilySearchResult } from"@/services/tavily";
 import { bookmarksService, type BookmarkCategory } from"@/services/bookmarks";
 
 const connectors: Array<{
@@ -125,7 +124,6 @@ const mcpServers: MCPServer[] = [
  command: 'npx',
  args: ['-y', 'tavily-mcp@0.1.3'],
  env: {
- TAVILY_API_KEY: import.meta.env.VITE_TAVILY_API_KEY || 'your-tavily-key'
  }
  }
  }
@@ -196,7 +194,6 @@ const mcpServers: MCPServer[] = [
 
 const MCP = () => {
  const [searchQuery, setSearchQuery] = useState("");
- const [searchResults, setSearchResults] = useState<TavilySearchResult[]>([]);
  const [searchAnswer, setSearchAnswer] = useState("");
  const [isSearching, setIsSearching] = useState(false);
  const [qnaAnswer, setQnaAnswer] = useState("");
@@ -253,12 +250,7 @@ const MCP = () => {
 
  setIsSearching(true);
  try {
- const response = await tavilyService.search({
- query: searchQuery,
- search_depth: 'advanced',
- max_results: 10,
- include_answer: true,
- });
+ const response = null;
 
  setSearchResults(response.data.results);
  setSearchAnswer(response.data.answer ||"");
@@ -279,7 +271,6 @@ const MCP = () => {
 
  setIsAsking(true);
  try {
- const response = await tavilyService.askQuestion({
  query: qnaQuery,
  search_depth: 'advanced',
  });
@@ -298,7 +289,6 @@ const MCP = () => {
  setIsSearching(true);
  setSearchQuery(cveId);
  try {
- const response = await tavilyService.searchCVE(cveId);
  setSearchResults(response.data.results);
  setSearchAnswer(response.data.answer ||"");
  toast.success(`CVE ${cveId} information retrieved`);
@@ -321,7 +311,6 @@ const MCP = () => {
  };
 
  // Handle opening bookmark dialog with pre-filled data
- const handleBookmarkResult = (result: TavilySearchResult) => {
  setNewBookmark({
  title: result.title,
  url: result.url,

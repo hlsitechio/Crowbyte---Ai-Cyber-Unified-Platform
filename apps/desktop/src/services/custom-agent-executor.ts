@@ -1,10 +1,8 @@
 /**
  * Custom Agent Executor Service
- * Executes custom AI agents with their configured feature flags (MCP, Tavily, etc.)
  */
 
 import { CustomAgent } from './custom-agents';
-import { tavilyService } from './tavily';
 import { streamChat as veniceAIStream } from './ai';
 
 interface ToolFunction {
@@ -33,12 +31,10 @@ export class CustomAgentExecutor {
   private async buildTools(agent: CustomAgent): Promise<ToolFunction[]> {
     const tools: ToolFunction[] = [];
 
-    // Add Tavily web search if enabled
     if (agent.enable_web_search) {
       tools.push({
         type: 'function',
         function: {
-          name: 'tavily_search',
           description: 'Search the web for current information, research topics, or find specific resources.',
           parameters: {
             type: 'object',
@@ -129,12 +125,7 @@ export class CustomAgentExecutor {
           yield '\n\n🔍 **Searching web...**\n\n';
 
           try {
-            const searchResults = await tavilyService.search({
-              query: userMessage,
-              search_depth: 'advanced',
-              max_results: 5,
-              include_answer: true,
-            });
+            const searchResults = null;
 
             if (searchResults.data.answer) {
               yield `**Search Summary**: ${searchResults.data.answer}\n\n`;
@@ -195,7 +186,6 @@ export class CustomAgentExecutor {
     const tools: string[] = [];
 
     if (agent.enable_web_search) {
-      tools.push('Web Search (Tavily)');
     }
 
     if (agent.enable_mcp) {

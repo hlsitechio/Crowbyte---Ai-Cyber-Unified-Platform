@@ -29,14 +29,6 @@ export const STATUS_FEEDS: Record<string, StatusFeedConfig> = {
     atomUrl: 'https://status.supabase.com/history.atom',
     enabled: true,
   },
-  tavily: {
-    name: 'Tavily AI',
-    statusPageUrl: 'https://status.tavily.com/',
-    rssUrl: 'https://status.tavily.com/feed.rss',
-    atomUrl: 'https://status.tavily.com/feed.atom',
-    enabled: true,
-  },
-};
 
 /**
  * Get enabled status feeds

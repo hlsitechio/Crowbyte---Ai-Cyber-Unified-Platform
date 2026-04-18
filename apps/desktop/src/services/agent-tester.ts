@@ -5,7 +5,6 @@
 
 import cyberSecAgent from './cybersec-ai-agent';
 import missionPlannerAgent from './mission-planner-agent';
-import searchAgent from './searchAgent';
 import hybridRedTeamAgent from './hybrid-redteam-agent';
 import { chat as aiChat, testConnection as aiTestConnection } from './ai';
 
@@ -76,7 +75,6 @@ class AgentTesterService {
         name: 'Latest Threat Research',
         description: 'Test search trigger for current threats',
         input: { query: 'What are the latest ransomware attacks in 2025?' },
-        expectedBehavior: 'Should trigger Tavily search for current information',
         validationCriteria: [
           'Search was performed (researchPerformed === true)',
           'Sources are provided',
@@ -246,15 +244,9 @@ class AgentTesterService {
 
     // Initialize Search Agent if not already initialized
     try {
-      const tavilyApiKey = typeof window !== 'undefined'
-        ? localStorage.getItem('tavily_api_key')
-        : null;
-
-      if (tavilyApiKey) {
-        console.log('[DEBUG] Initializing Search Agent with Tavily API key');
-        await searchAgent.initialize({ tavilyApiKey });
+      
+        // search removed
       } else {
-        console.warn('[WARNING] Tavily API key not found - Search Agent tests may fail');
       }
     } catch (error) {
       console.warn('[WARNING] Failed to initialize Search Agent:', error);
@@ -310,11 +302,11 @@ class AgentTesterService {
         let response;
 
         if (testCase.input.cveId) {
-          response = await searchAgent.analyzeCVE(testCase.input.cveId);
+          response = // search removed
         } else if (testCase.input.category) {
-          response = await searchAgent.findTools(testCase.input.category);
+          response = // search removed
         } else {
-          response = await searchAgent.search({ query: testCase.input.query });
+          response = // search removed
         }
 
         const duration = Date.now() - startTime;

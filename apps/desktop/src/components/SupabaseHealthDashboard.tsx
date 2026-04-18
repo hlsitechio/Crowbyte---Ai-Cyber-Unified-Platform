@@ -148,11 +148,9 @@ export const SupabaseHealthDashboard = () => {
  );
 
  // Render API usage analytics
- const renderAPIUsageCard = (service: 'openclaw' | 'tavily') => {
  if (!health) return null;
 
  const usage = health.apiUsage[service];
- const title = service === 'openclaw' ? 'OpenClaw VPS' : 'Tavily Search API';
  const icon = service === 'openclaw' ? <UilBolt size={16} className="text-violet-500" /> :
  <UilHeartRate size={16} className="text-cyan-500" />;
 
@@ -299,7 +297,6 @@ export const SupabaseHealthDashboard = () => {
  {renderServiceCard(health.services.database, <UilDatabase size={16} className="text-blue-500" />)}
  {renderServiceCard(health.services.edgeFunctions, <UilBolt size={16} className="text-violet-500" />)}
  {renderServiceCard(health.services.openClaw || { status: 'unknown' }, <UilHeartRate size={16} className="text-emerald-500" />)}
- {renderServiceCard(health.services.tavilyAPI, <UilSearch size={16} className="text-cyan-500" />)}
  </div>
 
  {/* API Usage Analytics */}
@@ -316,8 +313,7 @@ export const SupabaseHealthDashboard = () => {
  <CardContent>
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
  {renderAPIUsageCard('openclaw')}
- {renderAPIUsageCard('tavily')}
- </div>
+  </div>
  </CardContent>
  </Card>
  </motion.div>

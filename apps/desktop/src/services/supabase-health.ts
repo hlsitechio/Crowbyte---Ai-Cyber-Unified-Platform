@@ -22,12 +22,7 @@ export interface ServiceHealthStatus {
 
 export interface SupabaseHealth {
   overall: 'healthy' | 'degraded' | 'down';
-  services: {
-    database: ServiceHealthStatus;
-    edgeFunctions: ServiceHealthStatus;
-    veniceAPI: ServiceHealthStatus;
-    tavilyAPI: ServiceHealthStatus;
-  };
+  services: ;
   apiUsage: {
     venice: {
       count: number;
@@ -42,7 +37,6 @@ export interface SupabaseHealth {
       resetTime: Date;
       percentUsed: number;
     };
-    tavily: {
       count: number;
       limit: number;
       remaining: number;
@@ -273,19 +267,13 @@ class SupabaseHealthMonitor {
   }
 
   /**
-   * Check Tavily API health
    */
-  private async checkTavilyAPI(): Promise<ServiceHealthStatus> {
     try {
       // Get usage stats from database
-      const { data, error } = await supabase.rpc('get_api_usage', {
-        p_service_name: 'tavily',
-      });
+      const { data, error } = await supabase.rpc('get_api_usage', );
 
       if (error) {
-        console.error('Tavily API usage check error:', error);
         return {
-          name: 'Tavily API',
           status: 'healthy',
           lastChecked: new Date(),
           usage: {
@@ -300,7 +288,6 @@ class SupabaseHealthMonitor {
       const usage = data?.[0];
       if (!usage) {
         return {
-          name: 'Tavily API',
           status: 'healthy',
           lastChecked: new Date(),
           usage: {
@@ -322,7 +309,6 @@ class SupabaseHealthMonitor {
       }
 
       return {
-        name: 'Tavily API',
         status,
         lastChecked: new Date(),
         usage: {
@@ -333,9 +319,7 @@ class SupabaseHealthMonitor {
         },
       };
     } catch (error: unknown) {
-      console.error('Tavily API health check error:', error);
       return {
-        name: 'Tavily API',
         status: 'healthy',
         lastChecked: new Date(),
         usage: {
@@ -362,7 +346,7 @@ class SupabaseHealthMonitor {
 
     try {
         supabase.rpc('get_api_usage', { p_service_name: 'venice' }),
-        supabase.rpc('get_api_usage', { p_service_name: 'tavily' }),
+        supabase.rpc('get_api_usage', ),
       ]);
 
       // Log errors if any
@@ -370,12 +354,7 @@ class SupabaseHealthMonitor {
         console.error('Venice usage fetch error:', veniceData.error);
       }
       }
-      if (tavilyData.error) {
-        console.error('Tavily usage fetch error:', tavilyData.error);
-      }
-
       const veniceUsage = veniceData.data?.[0] || defaultUsage;
-      const tavilyUsage = tavilyData.data?.[0] || { ...defaultUsage, daily_limit: 1000 };
 
       return {
         venice: {
@@ -385,14 +364,6 @@ class SupabaseHealthMonitor {
           resetTime: new Date(veniceUsage.reset_time),
           percentUsed: veniceUsage.percent_used || 0,
         },
-        tavily: {
-          count: tavilyUsage.call_count || 0,
-          limit: tavilyUsage.daily_limit || 1000,
-          remaining: tavilyUsage.remaining || 1000,
-          resetTime: new Date(tavilyUsage.reset_time),
-          percentUsed: tavilyUsage.percent_used || 0,
-        },
-      };
     } catch (error) {
       console.error('Failed to get API usage:', error);
       const defaultResetTime = new Date(Date.now() + 86400000);
@@ -404,7 +375,6 @@ class SupabaseHealthMonitor {
           resetTime: defaultResetTime,
           percentUsed: 0,
         },
-        tavily: {
           count: 0,
           limit: 1000,
           remaining: 1000,
@@ -421,16 +391,13 @@ class SupabaseHealthMonitor {
   async checkHealth(): Promise<SupabaseHealth> {
     console.log('🏥 Running Supabase health check...');
 
-    const [database, edgeFunctions, veniceAPI tavilyAPI, apiUsage] = await Promise.all([
       this.checkDatabase(),
       this.checkEdgeFunctions(),
       this.checkVeniceAPI(),
-      this.checkTavilyAPI(),
       this.getAPIUsage(),
     ]);
 
     // Determine overall health
-    const statuses = [database.status, edgeFunctions.status, veniceAPI.status.status, tavilyAPI.status];
     let overall: 'healthy' | 'degraded' | 'down' = 'healthy';
 
     if (statuses.includes('down')) {
@@ -441,13 +408,7 @@ class SupabaseHealthMonitor {
 
     this.healthData = {
       overall,
-      services: {
-        database,
-        edgeFunctions,
-        veniceAPI
-        tavilyAPI,
-      },
-      apiUsage,
+      services:       apiUsage,
       lastUpdate: new Date(),
     };
 
