@@ -147,3 +147,6 @@ docs/claude docs/VPS.md
 docs/new_docs/INFRASTRUCTURE.md
 docs/new_docs/DEPLOY.md
 docs/new_docs/VPS_FILES.md
+
+# npm auth (never commit tokens)
+.npmrc
