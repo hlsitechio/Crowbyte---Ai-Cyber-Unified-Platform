@@ -276,7 +276,7 @@
     "autoprefixer": "^10.4.22",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "39.2.4",
+    "electron": "39.8.5",
     "electron-builder": "^26.0.12",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
