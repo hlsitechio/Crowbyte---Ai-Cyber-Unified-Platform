@@ -50,7 +50,6 @@ export function InstallationSection() {
             <div><span className="text-primary">VITE_OPENCLAW_HOST</span>=your-vps-ip</div>
             <div><span className="text-primary">VITE_OPENCLAW_PORT</span>=18789</div>
             <div>&nbsp;</div>
-            <div className="text-zinc-500"># Venice AI (optional)</div>
             <div><span className="text-primary">VITE_VENICE_API_KEY</span>=...</div>
           </CodeBlock>
         </CardContent></Card>

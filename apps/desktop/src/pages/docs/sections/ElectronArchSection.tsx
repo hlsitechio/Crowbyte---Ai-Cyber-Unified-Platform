@@ -15,7 +15,6 @@ export function ElectronArchSection() {
             <div><span className="text-primary">BrowserWindow</span>    <span className="text-zinc-500">Create app window (frameless, custom titlebar)</span></div>
             <div><span className="text-primary">node-pty</span>         <span className="text-zinc-500">Spawn terminal processes for Terminal page</span></div>
             <div><span className="text-primary">Claude IPC</span>       <span className="text-zinc-500">Spawn claude -p child process, stream JSON</span></div>
-            <div><span className="text-primary">Venice IPC</span>       <span className="text-zinc-500">Proxy Venice API calls (bypass CORS)</span></div>
             <div><span className="text-primary">System Info</span>      <span className="text-zinc-500">CPU, RAM, disk metrics via os/fs modules</span></div>
             <div><span className="text-primary">Cache Manager</span>    <span className="text-zinc-500">SQLite-based cache for scan results</span></div>
           </CodeBlock>
@@ -35,8 +34,6 @@ export function ElectronArchSection() {
             <div><span className="text-emerald-500">claude:chat</span>       <span className="text-zinc-500">Send prompt, receive stream-json events</span></div>
             <div><span className="text-emerald-500">claude:abort</span>      <span className="text-zinc-500">Kill claude process (stop generation)</span></div>
             <div>&nbsp;</div>
-            <div className="text-zinc-500"># Venice IPC</div>
-            <div><span className="text-emerald-500">venice:chat</span>       <span className="text-zinc-500">Proxy Venice API (bypass CORS)</span></div>
             <div>&nbsp;</div>
             <div className="text-zinc-500"># System IPC</div>
             <div><span className="text-emerald-500">system:metrics</span>    <span className="text-zinc-500">CPU, RAM, disk, network stats</span></div>
@@ -73,7 +70,6 @@ export function ElectronArchSection() {
         { text: "Frameless window with custom titlebar (TitleBar.tsx)", status: "done" },
         { text: "node-pty terminal spawning with tmux default", status: "done" },
         { text: "Claude UilBracketsCurly CLI integration via IPC", status: "done" },
-        { text: "Venice AI CORS proxy via IPC", status: "done" },
         { text: "System metrics collection (CPU/RAM/disk/net)", status: "done" },
         { text: "SQLite cache manager with TTL and content hashing", status: "done" },
         { text: "Window controls: minimize, maximize, close", status: "done" },

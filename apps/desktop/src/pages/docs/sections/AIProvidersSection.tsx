@@ -32,34 +32,23 @@ export function AIProvidersSection() {
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-transparent"><CardHeader><CardTitle className="text-blue-500">3. Venice AI (venice-ai.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
             <div className="text-zinc-500"># Privacy-focused AI — standard provider</div>
-            <div><span className="text-primary">API</span>:     https://api.venice.ai/api/v1/chat/completions</div>
             <div><span className="text-primary">Models</span>:  DeepSeek R1 671B, Llama 3.3 70B, Qwen 2.5 Coder</div>
-            <div><span className="text-primary">Auth</span>:    Venice API key (VITE_VENICE_API_KEY)</div>
             <div><span className="text-primary">Features</span>: Streaming, system prompts, privacy-first</div>
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-transparent"><CardHeader><CardTitle className="text-red-500">4. Venice Uncensored (venice-uncensored.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
-            <div className="text-zinc-500"># Venice with prompt engineering to bypass content filters</div>
-            <div><span className="text-primary">Same API</span> as Venice AI but with uncensored system prompt</div>
             <div><span className="text-primary">Purpose</span>:  Security research requiring unrestricted responses</div>
-            <div><span className="text-primary">Models</span>:   Same as Venice AI</div>
           </CodeBlock>
         </CardContent></Card>
 
-      <Card className="border-transparent"><CardHeader><CardTitle className="text-cyan-500">5. Venice Electron (venice-ai-electron.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
-            <div className="text-zinc-500"># Venice routed through Electron main process</div>
             <div><span className="text-primary">Purpose</span>:  Bypass CORS restrictions in Electron renderer</div>
-            <div><span className="text-primary">IPC</span>:      electronAPI.veniceChat(prompt, model)</div>
-            <div><span className="text-primary">Features</span>: Same as Venice AI but via Electron IPC bridge</div>
           </CodeBlock>
         </CardContent></Card>
 

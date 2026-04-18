@@ -14,7 +14,6 @@ export function RoadmapSection() {
         </div>
         <ul className="space-y-2 text-sm text-muted-foreground">
           {[
-            "Venice AI integration (standard + uncensored + Electron IPC)",
             "Memory page for persistent fact storage",
             "Agent Testing Lab with multi-agent benchmarking",
             "Threat Intelligence feeds with IOC tracking",

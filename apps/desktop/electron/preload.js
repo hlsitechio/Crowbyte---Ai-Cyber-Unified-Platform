@@ -20,10 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // OAuth PKCE flow — opens system browser, catches callback on localhost
   startOAuthPKCE: () => ipcRenderer.invoke('start-oauth-pkce'),
 
-  // Initialize Venice.ai with API key
-  initVenice: (apiKey) => ipcRenderer.invoke('init-venice', apiKey),
 
-  // Stream chat with Venice.ai
   streamChat: (request) => ipcRenderer.invoke('stream-chat', request),
 
   // Listen for stream chunks

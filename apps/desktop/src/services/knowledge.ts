@@ -5,7 +5,6 @@
 
 import { supabase } from '@/lib/supabase';
 import { pgOr } from '@/lib/utils';
-import { createChatCompletion as veniceAI_compat } from './ai';
 
 export interface KnowledgeEntry {
   id: string;
@@ -317,11 +316,9 @@ class KnowledgeService {
   }
 
   /**
-   * Generate a summary using Venice AI
    */
   private async generateSummary(content: string): Promise<string> {
     try {
-      const response = await veniceAI_compat({
         messages: [
           {
             role: 'system',
@@ -344,13 +341,10 @@ class KnowledgeService {
   }
 
   /**
-   * Generate tags using Venice AI (with smart fallback)
    */
   async generateTags(title: string, content: string): Promise<string[]> {
     try {
-      console.log('🏷️  Generating tags with Venice AI...');
 
-      const response = await veniceAI_compat({
         messages: [
           {
             role: 'system',
@@ -385,7 +379,6 @@ Return ONLY a comma-separated list of tags, nothing else.`,
       console.log('⚠️ AI returned no tags, using smart extraction...');
       return this.extractSmartTags(title, content);
     } catch (error) {
-      console.error('❌ Venice AI error:', error);
       console.log('📌 Falling back to smart tag extraction...');
       return this.extractSmartTags(title, content);
     }

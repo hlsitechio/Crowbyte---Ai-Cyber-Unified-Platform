@@ -342,7 +342,6 @@ class AgentTesterService {
           prompt: 'Analyze attack vectors for web application',
           requestType: 'attack_vector'
         },
-        expectedBehavior: 'Should select appropriate provider (Venice or Ollama)',
         validationCriteria: [
           'Returns response',
           'Provider is specified',
@@ -370,13 +369,11 @@ class AgentTesterService {
       {
         id: 'hybrid-3',
         name: 'Fallback Mechanism',
-        description: 'Test fallback from Venice to Ollama',
         input: {
           prompt: 'Generate exploit code',
           requestType: 'exploit',
           requiresUncensored: true
         },
-        expectedBehavior: 'Should try Venice first, fallback to Ollama if refused',
         validationCriteria: [
           'Returns response',
           'Success or appropriate error',
@@ -413,14 +410,10 @@ class AgentTesterService {
   }
 
   /**
-   * Test Venice Uncensored Service
    */
-  async testVeniceUncensored(): Promise<AgentTestReport> {
-    console.log('\n🧪 Testing Venice Uncensored Service...\n');
 
     const testCases: TestCase[] = [
       {
-        id: 'venice-1',
         name: 'Prompt Engineering',
         description: 'Test prompt injection techniques',
         input: {
@@ -436,7 +429,6 @@ class AgentTesterService {
         category: 'functionality'
       },
       {
-        id: 'venice-2',
         name: 'Refusal Detection',
         description: 'Test refusal detection and retry',
         input: {
@@ -454,7 +446,6 @@ class AgentTesterService {
       }
     ];
 
-    return await this.runAgentTests('Venice Uncensored', testCases, async (testCase) => {
       const startTime = Date.now();
 
       try {
@@ -888,21 +879,15 @@ class AgentTesterService {
     }
 
     try {
-      console.log('📋 Testing Venice Uncensored (5/6)...');
-      console.log('[DEBUG] Starting Venice Uncensored test suite');
-      const report = await this.testVeniceUncensored();
-      console.log('[DEBUG] Venice Uncensored test completed successfully');
       reports.push(report);
       console.log('[DEBUG] Waiting 2 seconds before next test...');
       await delay(2000);
     } catch (error) {
-      console.error('❌ Venice Uncensored test crashed:', error);
       console.error('[FATAL ERROR] Full error details:', {
         name: error instanceof Error ? error.name : 'Unknown',
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : 'No stack',
       });
-      reports.push(this.createFailedReport('Venice Uncensored Service', error));
     }
 
     try {

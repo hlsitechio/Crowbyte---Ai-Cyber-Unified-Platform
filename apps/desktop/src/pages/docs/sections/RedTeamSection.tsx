@@ -43,7 +43,6 @@ export function RedTeamSection() {
       <Card><CardHeader><CardTitle>AI Integration</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>The <code className="text-primary">hybrid-redteam-agent.ts</code> provides AI-powered analysis for red team operations.
-            It routes between Venice AI (cloud) and Ollama (local) depending on availability. The agent can:</p>
           <FeatureList items={[
             { text: "Analyze findings for severity assessment and CVSS scoring", status: "done" },
             { text: "Suggest attack chains from discovered vulns", status: "done" },
@@ -73,7 +72,6 @@ export function RedTeamSection() {
         { text: "Add findings per operation with severity and category", status: "done" },
         { text: "Stats dashboard: total ops, active ops, critical/high findings", status: "done" },
         { text: "Progress bars per operation", status: "done" },
-        { text: "Hybrid AI agent (Venice cloud + Ollama local) for analysis", status: "done" },
         { text: "All data persisted to Supabase via redTeamService", status: "done" },
       ]} /></CardContent></Card>
     </div>

@@ -24,7 +24,6 @@ export interface SupabaseHealth {
   overall: 'healthy' | 'degraded' | 'down';
   services: ;
   apiUsage: {
-    venice: {
       count: number;
       limit: number;
       remaining: number;
@@ -144,19 +143,14 @@ class SupabaseHealthMonitor {
   }
 
   /**
-   * Check Venice.ai API health
    */
-  private async checkVeniceAPI(): Promise<ServiceHealthStatus> {
     try {
       // Get usage stats from database
       const { data, error } = await supabase.rpc('get_api_usage', {
-        p_service_name: 'venice',
       });
 
       if (error) {
-        console.error('Venice API usage check error:', error);
         return {
-          name: 'Venice.ai API',
           status: 'healthy',
           lastChecked: new Date(),
           usage: {
@@ -171,7 +165,6 @@ class SupabaseHealthMonitor {
       const usage = data?.[0];
       if (!usage) {
         return {
-          name: 'Venice.ai API',
           status: 'healthy',
           lastChecked: new Date(),
           usage: {
@@ -193,7 +186,6 @@ class SupabaseHealthMonitor {
       }
 
       return {
-        name: 'Venice.ai API',
         status,
         lastChecked: new Date(),
         usage: {
@@ -204,9 +196,7 @@ class SupabaseHealthMonitor {
         },
       };
     } catch (error: unknown) {
-      console.error('Venice API health check error:', error);
       return {
-        name: 'Venice.ai API',
         status: 'healthy',
         lastChecked: new Date(),
         usage: {
@@ -345,30 +335,19 @@ class SupabaseHealthMonitor {
     };
 
     try {
-        supabase.rpc('get_api_usage', { p_service_name: 'venice' }),
         supabase.rpc('get_api_usage', ),
       ]);
 
       // Log errors if any
-      if (veniceData.error) {
-        console.error('Venice usage fetch error:', veniceData.error);
       }
       }
-      const veniceUsage = veniceData.data?.[0] || defaultUsage;
 
       return {
-        venice: {
-          count: veniceUsage.call_count || 0,
-          limit: veniceUsage.daily_limit || 5000,
-          remaining: veniceUsage.remaining || 5000,
-          resetTime: new Date(veniceUsage.reset_time),
-          percentUsed: veniceUsage.percent_used || 0,
         },
     } catch (error) {
       console.error('Failed to get API usage:', error);
       const defaultResetTime = new Date(Date.now() + 86400000);
       return {
-        venice: {
           count: 0,
           limit: 5000,
           remaining: 5000,
@@ -393,7 +372,6 @@ class SupabaseHealthMonitor {
 
       this.checkDatabase(),
       this.checkEdgeFunctions(),
-      this.checkVeniceAPI(),
       this.getAPIUsage(),
     ]);
 

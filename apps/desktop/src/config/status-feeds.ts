@@ -15,11 +15,6 @@ export interface StatusFeedConfig {
  * Status feed URLs for all monitored services
  */
 export const STATUS_FEEDS: Record<string, StatusFeedConfig> = {
-  venice: {
-    name: 'Venice.ai',
-    statusPageUrl: 'https://veniceai-status.com/',
-    rssUrl: 'https://veniceai-status.com/history.rss',
-    atomUrl: 'https://veniceai-status.com/history.atom',
     enabled: true,
   },
   supabase: {

@@ -49,7 +49,6 @@ export interface ApiKey {
 export interface UserSettings {
   id: string;
   user_id: string;
-  venice_api_key?: string;
   openrouter_api_key?: string;
   profile_picture_url?: string;
   theme?: string;

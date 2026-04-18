@@ -1,7 +1,6 @@
 /**
  * Ollama Hermes-2-Pro Service
  * Local uncensored AI with function calling support
- * Fallback when Venice refuses requests
  */
 
 interface OllamaMessage {

@@ -1,7 +1,6 @@
 /**
  * Supabase MCP Server
  * Exposes Supabase database operations as MCP tools
- * This server allows Venice.ai to interact with the Ghost AI Terminal's Supabase backend
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -181,13 +180,11 @@ class SupabaseMCPServer {
       },
       {
         name: 'get_api_key_by_service',
-        description: 'Get API key for a specific service (e.g., venice, openai)',
         inputSchema: {
           type: 'object',
           properties: {
             serviceName: {
               type: 'string',
-              description: 'Service name (e.g., venice, openai)',
             },
           },
           required: ['serviceName'],
@@ -291,7 +288,6 @@ class SupabaseMCPServer {
           properties: {
             serviceName: {
               type: 'string',
-              description: 'Service name (e.g., venice, openai)',
             },
           },
           required: ['serviceName'],

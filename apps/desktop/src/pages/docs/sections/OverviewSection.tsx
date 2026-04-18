@@ -105,7 +105,6 @@ export function OverviewSection() {
             <li>- <strong className="text-foreground">34 sections</strong> covering every page, service, and integration</li>
             <li>- <strong className="text-foreground">Supabase schemas</strong> for all database tables</li>
             <li>- <strong className="text-foreground">CLI tool references</strong> for cve-db and kb</li>
-            <li>- <strong className="text-foreground">AI provider configs</strong> for Claude, OpenClaw, Venice, Ollama</li>
             <li>- <strong className="text-foreground">Electron architecture</strong> including IPC, node-pty, cache manager</li>
             <li>- <strong className="text-foreground">Security layer</strong> — AES-256-GCM encryption, credential vault, device fingerprinting</li>
           </ul>

@@ -70,7 +70,6 @@ function loadProviders(): Record<string, ProviderConfig> {
 function loadServiceKeys(): Record<string, string> {
   return {
     shodan: localStorage.getItem("shodan_api_key") || "",
-    venice: localStorage.getItem("venice_api_key") || import.meta.env.VITE_VENICE_API_KEY || "",
   };
 }
 
@@ -189,21 +188,13 @@ export default function IntegrationsSettings() {
     }
   };
 
-  const testVenice = async () => {
-    const key = serviceKeys.venice;
     if (!key) return;
-    setTestingService("venice");
-    setServiceStatus((prev) => ({ ...prev, venice: "testing" }));
     try {
-      const res = await fetch("https://api.venice.ai/api/v1/models", {
         headers: { Authorization: `Bearer ${key}` },
         signal: AbortSignal.timeout(8000),
       });
       const ok = res.ok;
-      setServiceStatus((prev) => ({ ...prev, venice: ok ? "connected" : "error" }));
-      toast({ title: ok ? "Venice.ai Connected" : "Invalid Key", variant: ok ? "default" : "destructive" });
     } catch {
-      setServiceStatus((prev) => ({ ...prev, venice: "error" }));
     } finally {
       setTestingService(null);
     }
@@ -212,7 +203,6 @@ export default function IntegrationsSettings() {
   const handleSaveAll = async () => {
     localStorage.setItem("crowbyte_ai_providers", JSON.stringify(providers));
     localStorage.setItem("shodan_api_key", serviceKeys.shodan); // CodeQL: local desktop storage, not a web app
-    localStorage.setItem("venice_api_key", serviceKeys.venice); // CodeQL: local desktop storage, not a web app
 
     // Sync Shodan key to Supabase for cross-device access
     try {
@@ -446,31 +436,22 @@ export default function IntegrationsSettings() {
 
           <Separator />
 
-          {/* Venice.ai */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <UilShieldCheck size={16} className="text-amber-400" />
-                <Label className="text-sm font-semibold">Venice.ai</Label>
               </div>
-              <StatusBadge status={serviceStatus.venice} />
             </div>
             <div className="flex gap-2">
               <Input
                 type="password"
-                placeholder="Venice API key"
-                value={serviceKeys.venice}
-                onChange={(e) => setServiceKeys((p) => ({ ...p, venice: e.target.value }))}
                 className="h-8 text-xs font-mono flex-1"
               />
               <Button
                 variant="outline"
                 size="sm"
-                onClick={testVenice}
-                disabled={testingService === "venice" || !serviceKeys.venice}
                 className="h-8 text-xs gap-1.5"
               >
-                {testingService === "venice" ? (
                   <UilSpinner size={12} className="animate-spin" />
                 ) : (
                   <UilSync size={12} />

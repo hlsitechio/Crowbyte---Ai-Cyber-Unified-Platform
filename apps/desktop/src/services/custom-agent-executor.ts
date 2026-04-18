@@ -3,7 +3,6 @@
  */
 
 import { CustomAgent } from './custom-agents';
-import { streamChat as veniceAIStream } from './ai';
 
 interface ToolFunction {
   type: string;
@@ -113,8 +112,6 @@ export class CustomAgentExecutor {
 
       // Check if we should use MCP (enables all MCP tools automatically)
       if (agent.enable_mcp) {
-        // Use Venice AI Electron with MCP enabled
-        for await (const chunk of veniceAIStream(messages.map(m => ({ role: m.role, content: m.content })), agent.model, agent.temperature)) {
           yield chunk;
         }
       } else if (agent.enable_web_search) {
@@ -148,11 +145,9 @@ export class CustomAgentExecutor {
           }
         }
 
-        for await (const chunk of veniceAIStream(messages.map(m => ({ role: m.role, content: m.content })), agent.model, agent.temperature)) {
           yield chunk;
         }
       } else {
-        for await (const chunk of veniceAIStream(messages.map(m => ({ role: m.role, content: m.content })), agent.model, agent.temperature)) {
           yield chunk;
         }
       }

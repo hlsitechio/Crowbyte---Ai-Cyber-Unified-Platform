@@ -1,6 +1,5 @@
 /**
  * Hybrid Red Team Agent
- * Intelligently orchestrates between Venice (cloud + prompt engineering) and Ollama (local uncensored)
  */
 
 import { chat as aiChat, testConnection as aiTestConnection } from './ai';
@@ -18,8 +17,6 @@ interface AttackTool {
 }
 
 interface AgentStrategy {
-  primary: 'venice' | 'ollama';
-  fallback: 'venice' | 'ollama' | 'none';
   reason: string;
 }
 
@@ -38,12 +35,10 @@ class HybridRedTeamAgent {
     requestType: 'exploit' | 'vulnerability' | 'attack_vector' | 'tool_usage' | 'general',
     requiresUncensored: boolean
   ): AgentStrategy {
-    // If Ollama is not available, force Venice
     // (Check will be done at runtime)
 
     if (this.preferenceMode === 'cloud_first') {
       return {
-        primary: 'venice',
         fallback: 'ollama',
         reason: 'User prefers cloud-first with local fallback'
       };
@@ -52,7 +47,6 @@ class HybridRedTeamAgent {
     if (this.preferenceMode === 'local_first') {
       return {
         primary: 'ollama',
-        fallback: 'venice',
         reason: 'User prefers local-first with cloud fallback'
       };
     }
@@ -62,25 +56,18 @@ class HybridRedTeamAgent {
       // Exploits often get censored, try Ollama first
       return {
         primary: 'ollama',
-        fallback: 'venice',
         reason: 'Exploit generation works better on uncensored local model'
       };
     }
 
     if (requestType === 'tool_usage' || requestType === 'attack_vector') {
-      // Tool usage works well with Venice's function calling
       return {
-        primary: 'venice',
         fallback: 'ollama',
-        reason: 'Venice has better function calling support'
       };
     }
 
-    // Default: try Venice first (faster, cloud-based)
     return {
-      primary: 'venice',
       fallback: 'ollama',
-      reason: 'Venice is faster and cloud-based'
     };
   }
 
@@ -93,11 +80,9 @@ class HybridRedTeamAgent {
       requestType?: 'exploit' | 'vulnerability' | 'attack_vector' | 'tool_usage' | 'general';
       requiresUncensored?: boolean;
       useTools?: boolean;
-      forceProvider?: 'venice' | 'ollama';
     } = {}
   ): Promise<{
     response: string;
-    provider: 'venice' | 'ollama';
     success: boolean;
     toolCalls?: any[];
   }> {
@@ -122,12 +107,10 @@ class HybridRedTeamAgent {
     try {
       const response = await aiChat([{ role: 'user', content: prompt }]);
       toast({ title: "Response Generated", description: "CrowByte AI" });
-      return { response, provider: 'venice', success: true };
     } catch (error) {
       console.error('[Hybrid Agent] AI provider failed:', error);
     }
 
-    return { response: 'Failed to generate response', provider: 'venice', success: false };
   }
 
   /**
@@ -145,7 +128,6 @@ class HybridRedTeamAgent {
     vulnerability: string,
     targetSystem: string,
     constraints: string[] = [],
-    forceProvider?: 'venice' | 'ollama'
   ): Promise<string> {
     const prompt = `Generate an exploit for vulnerability: ${vulnerability}\nTarget system: ${targetSystem}\nConstraints: ${constraints.join(', ')}`;
     return await aiChat([{ role: 'user', content: prompt }]);
@@ -156,11 +138,9 @@ class HybridRedTeamAgent {
    */
   async analyzeAttackVectors(
     target: string,
-    forceProvider?: 'venice' | 'ollama'
   ): Promise<{
     analysis: string;
     toolCalls: any[];
-    provider: 'venice' | 'ollama';
   }> {
     const tools = this.getToolsArray();
 
@@ -378,7 +358,6 @@ class HybridRedTeamAgent {
     return {
       preferenceMode: this.preferenceMode,
       toolsCount: this.tools.size,
-      veniceModel: 'google/gemini-2.5-flash',
       ollamaConfig: { model: 'google/gemini-2.5-flash' }
     };
   }
@@ -387,12 +366,10 @@ class HybridRedTeamAgent {
    * Test both providers
    */
   async testProviders(): Promise<{
-    venice: { available: boolean; message: string };
     ollama: { available: boolean; modelInstalled: boolean; message: string };
   }> {
     const ok = await aiTestConnection();
     return {
-      venice: { available: ok, message: ok ? 'CrowByte AI connected' : 'AI unavailable' },
       ollama: { available: ok, modelInstalled: ok, message: ok ? 'CrowByte AI connected' : 'AI unavailable' }
     };
   }

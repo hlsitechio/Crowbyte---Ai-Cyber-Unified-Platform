@@ -1,6 +1,5 @@
 /**
  * CyberSecurity AI Agent
- * and Venice.ai for conversational responses
  */
 
 import { edgeFunctions } from './supabase-edge-functions';
@@ -172,7 +171,6 @@ Be precise, technical, and security-focused in your responses.`;
   }
 
   /**
-   * Generate AI response using Venice.ai
    */
   private async generateResponse(
     userQuery: string,
@@ -196,8 +194,6 @@ Be precise, technical, and security-focused in your responses.`;
     }
 
     try {
-      // Call Venice.ai through edge function
-      const response = await edgeFunctions.venice.chat({
         model: 'llama-3.3-70b',
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         temperature: 0.7,
@@ -211,7 +207,6 @@ Be precise, technical, and security-focused in your responses.`;
 
       return assistantMessage;
     } catch (error: unknown) {
-      console.error('Venice.ai error:', error);
       throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -341,8 +336,6 @@ Be precise, technical, and security-focused in your responses.`;
     }
 
     try {
-      // Stream from Venice.ai
-      const stream = edgeFunctions.venice.chatStream({
         model: 'llama-3.3-70b',
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         temperature: 0.7,

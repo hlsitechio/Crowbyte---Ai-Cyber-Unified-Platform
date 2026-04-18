@@ -6,7 +6,6 @@ import { DocHeader, FeatureList, CodeBlock } from "../components";
 export function LLMSection() {
   return (
     <div className="space-y-6">
-      <DocHeader icon={UilStar} title="LLM Models" description="All available AI models across Claude, OpenClaw, Venice, and Ollama providers" status="ready" />
 
       <Card><CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -28,8 +27,6 @@ export function LLMSection() {
               <p className="text-xs text-muted-foreground">DeepSeek V3.2, Qwen3 Coder 480B, Qwen 3.5 397B, Mistral Large 675B, Kimi K2, Devstral 123B, GLM5 — Free tier via VPS proxy.</p>
             </div>
             <div className="p-3 rounded-lg border border-transparent bg-transparent">
-              <div className="font-medium text-sm text-blue-500 mb-1">Venice AI</div>
-              <p className="text-xs text-muted-foreground">Privacy-focused AI. Two providers: venice-ai (standard) and venice-uncensored (bypasses content filters). Supports DeepSeek, Llama, Qwen.</p>
             </div>
             <div className="p-3 rounded-lg border border-transparent bg-transparent">
               <div className="font-medium text-sm text-orange-500 mb-1">Ollama (Local)</div>
@@ -55,9 +52,6 @@ export function LLMSection() {
             <div><span className="text-emerald-500">devstral-123b</span>       <span className="text-zinc-500">Fast coding</span></div>
             <div><span className="text-emerald-500">glm5</span>                <span className="text-zinc-500">Z-AI general</span></div>
             <div>&nbsp;</div>
-            <div className="text-zinc-500"># Venice AI models (venice-ai.ts)</div>
-            <div><span className="text-blue-500">deepseek-r1-671b</span>    <span className="text-zinc-500">Venice wrapper</span></div>
-            <div><span className="text-blue-500">llama-3.3-70b</span>       <span className="text-zinc-500">Venice wrapper</span></div>
           </CodeBlock>
         </CardContent></Card>
 

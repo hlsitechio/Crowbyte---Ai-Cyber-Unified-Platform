@@ -2,7 +2,6 @@
  * Global TypeScript declarations for Electron API
  */
 
-interface VeniceInitResponse {
   success: boolean;
   error?: string;
 }
@@ -85,7 +84,6 @@ interface SystemMetricsResponse {
 }
 
 interface ElectronAPI {
-  initVenice: (apiKey: string) => Promise<VeniceInitResponse>;
   streamChat: (request: StreamChatRequest) => Promise<StreamChatResponse>;
   onStreamChunk: (callback: (chunk: string) => void) => void;
   onStreamEnd: (callback: () => void) => void;

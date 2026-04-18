@@ -37,7 +37,6 @@ export function TechStackSection() {
               ["Storage", "Supabase Storage (50MB)"],
               ["AI (Local)", "Claude UilBracketsCurly CLI via IPC"],
               ["AI (Remote)", "OpenClaw + NVIDIA Cloud"],
-              ["AI (Privacy)", "Venice AI + Ollama"],
               ["VPS", "Hostinger (Ubuntu, Docker)"],
               ["Proxy", "NVIDIA Proxy (port 19990)"],
               ["MCP Bridge", "mcporter (stdio)"],

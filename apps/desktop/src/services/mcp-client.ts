@@ -1,6 +1,5 @@
 /**
  * MCP Client Service
- * Manages connections to MCP servers and exposes their tools for Venice.ai function calling
  */
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -117,9 +116,7 @@ class MCPClientService {
   }
 
   /**
-   * Get all available tools from all MCP servers in Venice.ai function calling format
    */
-  getVeniceTools(): any[] {
     const tools: any[] = [];
 
     for (const [serverName, server] of this.servers.entries()) {

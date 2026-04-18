@@ -148,9 +148,7 @@ class SupabaseEdgeFunctionsService {
   };
 
   /**
-   * Venice.ai Chat Proxy
    */
-  venice = {
     /**
      * Create chat completion through Supabase proxy
      */
@@ -168,7 +166,6 @@ class SupabaseEdgeFunctionsService {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${this.baseUrl}/venice-chat-proxy`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -185,8 +182,6 @@ class SupabaseEdgeFunctionsService {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('Venice chat proxy error:', data);
-        throw new Error(data.error || 'Venice chat request failed');
       }
 
       return data;
@@ -208,7 +203,6 @@ class SupabaseEdgeFunctionsService {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${this.baseUrl}/venice-chat-proxy`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -219,7 +213,6 @@ class SupabaseEdgeFunctionsService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Venice chat stream failed');
       }
 
       if (!response.body) {
