@@ -3,8 +3,7 @@
  * Intelligently orchestrates between Venice (cloud + prompt engineering) and Ollama (local uncensored)
  */
 
-import veniceUncensored from './venice-uncensored';
-import ollamaHermes from './ollama-hermes';
+import { chat as aiChat, testConnection as aiTestConnection } from './ai';
 import { toast } from '@/hooks/use-toast';
 
 interface AttackTool {
@@ -121,119 +120,22 @@ class HybridRedTeamAgent {
 
     // Try primary provider
     try {
-      if (strategy.primary === 'venice') {
-        const result = await veniceUncensored.requestUncensored(prompt, {
-          requestType,
-          tools,
-          preferLowRisk: !requiresUncensored,
-          maxRetries: 3
-        });
-
-        if (result.success) {
-          toast({
-            title: "Response Generated",
-            description: `Venice (cloud) - ${result.templateUsed}`,
-          });
-
-          return {
-            response: result.response,
-            provider: 'venice',
-            success: true,
-            toolCalls: result.toolCalls
-          };
-        }
-
-        // Venice refused, try fallback
-        if (strategy.fallback === 'ollama') {
-          console.log('[Hybrid Agent] Venice refused, falling back to Ollama');
-          toast({
-            title: "Switching to Local AI",
-            description: "Venice refused request, trying Ollama Hermes...",
-            variant: "default"
-          });
-
-          return this.executeWithOllama(prompt, tools);
-        }
-
-      } else {
-        // Primary is Ollama
-        return this.executeWithOllama(prompt, tools);
-      }
-
+      const response = await aiChat([{ role: 'user', content: prompt }]);
+      toast({ title: "Response Generated", description: "CrowByte AI" });
+      return { response, provider: 'venice', success: true };
     } catch (error) {
-      console.error('[Hybrid Agent] Primary provider failed:', error);
-
-      // Try fallback
-      if (strategy.fallback !== 'none') {
-        if (strategy.fallback === 'venice') {
-          const result = await veniceUncensored.requestUncensored(prompt, {
-            requestType,
-            tools,
-            maxRetries: 2
-          });
-
-          return {
-            response: result.response,
-            provider: 'venice',
-            success: result.success,
-            toolCalls: result.toolCalls
-          };
-        } else {
-          return this.executeWithOllama(prompt, tools);
-        }
-      }
+      console.error('[Hybrid Agent] AI provider failed:', error);
     }
 
-    // All attempts failed
-    return {
-      response: 'Failed to generate response from both Venice and Ollama',
-      provider: 'venice',
-      success: false
-    };
+    return { response: 'Failed to generate response', provider: 'venice', success: false };
   }
 
   /**
    * Execute with Ollama
    */
-  private async executeWithOllama(
-    prompt: string,
-    tools?: any[]
-  ): Promise<{
-    response: string;
-    provider: 'ollama';
-    success: boolean;
-    toolCalls?: any[];
-  }> {
-    try {
-      // Check if Ollama is available
-      const status = await ollamaHermes.testConnection();
-
-      if (!status.available) {
-        throw new Error('Ollama is not running. Please start Ollama service.');
-      }
-
-      if (!status.modelInstalled) {
-        throw new Error(`Model not installed. Run: ollama pull adrienbrault/nous-hermes2pro:Q4_K_S`);
-      }
-
-      const result = await ollamaHermes.generate(prompt, tools);
-
-      toast({
-        title: "Response Generated",
-        description: "Ollama Hermes (local uncensored)",
-      });
-
-      return {
-        response: result.response,
-        provider: 'ollama',
-        success: true,
-        toolCalls: result.toolCalls
-      };
-
-    } catch (error) {
-      console.error('[Hybrid Agent] Ollama execution failed:', error);
-      throw error;
-    }
+  private async executeWithOllama(prompt: string): Promise<{ response: string; provider: 'ollama'; success: boolean; toolCalls?: any[] }> {
+    const response = await aiChat([{ role: 'user', content: prompt }]);
+    return { response, provider: 'ollama', success: true };
   }
 
   /**
@@ -245,17 +147,8 @@ class HybridRedTeamAgent {
     constraints: string[] = [],
     forceProvider?: 'venice' | 'ollama'
   ): Promise<string> {
-    if (forceProvider === 'ollama' || this.preferenceMode === 'local_first') {
-      // Try Ollama first
-      try {
-        return await ollamaHermes.generateExploit(vulnerability, targetSystem, constraints);
-      } catch (error) {
-        console.log('[Hybrid Agent] Ollama failed, trying Venice');
-      }
-    }
-
-    // Try Venice with aggressive prompts
-    return await veniceUncensored.generateExploit(vulnerability, targetSystem, constraints);
+    const prompt = `Generate an exploit for vulnerability: ${vulnerability}\nTarget system: ${targetSystem}\nConstraints: ${constraints.join(', ')}`;
+    return await aiChat([{ role: 'user', content: prompt }]);
   }
 
   /**
@@ -305,12 +198,24 @@ class HybridRedTeamAgent {
       },
       execute: async (args) => {
         console.log('[Tool] Port scan:', args);
-        // Placeholder - implement actual port scanning
-        return {
-          target: args.target,
-          open_ports: [22, 80, 443, 8080],
-          services: { '22': 'ssh', '80': 'http', '443': 'https', '8080': 'http-proxy' }
-        };
+        const ipc = (window as any).electronAPI;
+        if (!ipc?.executeCommand) {
+          return { error: 'executeCommand not available (web mode)' };
+        }
+        const ports = args.ports || '1-1000';
+        const raw: string = await ipc.executeCommand(
+          `nmap -sV --open -p ${ports} --host-timeout 60s ${args.target} 2>&1`
+        );
+        const open_ports: number[] = [];
+        const services: Record<string, string> = {};
+        for (const line of raw.split('\n')) {
+          const m = line.match(/^(\d+)\/(tcp|udp)\s+open\s+(\S+)/);
+          if (m) {
+            open_ports.push(parseInt(m[1], 10));
+            services[m[1]] = m[3];
+          }
+        }
+        return { target: args.target, open_ports, services, raw };
       }
     });
 
@@ -326,10 +231,18 @@ class HybridRedTeamAgent {
       },
       execute: async (args) => {
         console.log('[Tool] Subdomain enumeration:', args);
-        return {
-          domain: args.domain,
-          subdomains: ['www', 'mail', 'api', 'admin', 'dev']
-        };
+        const ipc = (window as any).electronAPI;
+        if (!ipc?.executeCommand) {
+          return { error: 'executeCommand not available (web mode)' };
+        }
+        const raw: string = await ipc.executeCommand(
+          `subfinder -d ${args.domain} -silent 2>&1`
+        );
+        const subdomains = raw
+          .split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 0 && l.includes('.'));
+        return { domain: args.domain, subdomains, raw };
       }
     });
 
@@ -346,13 +259,29 @@ class HybridRedTeamAgent {
       },
       execute: async (args) => {
         console.log('[Tool] Vulnerability scan:', args);
-        return {
-          target: args.target,
-          vulnerabilities: [
-            { cve: 'CVE-2024-1234', severity: 'high', description: 'SQL Injection' },
-            { cve: 'CVE-2024-5678', severity: 'medium', description: 'XSS' }
-          ]
-        };
+        const ipc = (window as any).electronAPI;
+        if (!ipc?.executeCommand) {
+          return { error: 'executeCommand not available (web mode)' };
+        }
+        const severity = args.scan_type === 'network' ? 'critical,high' : 'critical,high,medium';
+        const raw: string = await ipc.executeCommand(
+          `nuclei -u ${args.target} -severity ${severity} -silent -json 2>&1`
+        );
+        const vulnerabilities: any[] = [];
+        for (const line of raw.split('\n')) {
+          try {
+            const obj = JSON.parse(line);
+            if (obj['template-id']) {
+              vulnerabilities.push({
+                cve: obj.info?.classification?.['cve-id']?.[0] || obj['template-id'],
+                severity: obj.info?.severity || 'unknown',
+                description: obj.info?.name || obj['template-id'],
+                matched: obj['matched-at'] || args.target
+              });
+            }
+          } catch { /* skip non-JSON lines */ }
+        }
+        return { target: args.target, vulnerabilities, raw };
       }
     });
 
@@ -368,13 +297,33 @@ class HybridRedTeamAgent {
       },
       execute: async (args) => {
         console.log('[Tool] Exploit search:', args);
-        return {
-          cve: args.cve_id,
-          exploits: [
-            { name: 'Metasploit module', url: 'https://example.com/exploit1' },
-            { name: 'Public PoC', url: 'https://github.com/example/poc' }
-          ]
-        };
+        const ipc = (window as any).electronAPI;
+        if (!ipc?.executeCommand) {
+          return { error: 'executeCommand not available (web mode)' };
+        }
+        const raw: string = await ipc.executeCommand(
+          `searchsploit ${args.cve_id} --json 2>&1`
+        );
+        let exploits: any[] = [];
+        try {
+          const parsed = JSON.parse(raw);
+          exploits = (parsed.RESULTS_EXPLOIT || []).map((e: any) => ({
+            name: e.Title,
+            path: e.Path,
+            type: e.Type,
+            platform: e.Platform,
+            edb_id: e.EDB_ID
+          }));
+        } catch {
+          // fallback: parse plain text output
+          for (const line of raw.split('\n')) {
+            if (line.includes('|')) {
+              const parts = line.split('|').map(p => p.trim());
+              if (parts[0] && parts[1]) exploits.push({ name: parts[0], path: parts[1] });
+            }
+          }
+        }
+        return { cve: args.cve_id, exploits, raw };
       }
     });
   }
@@ -429,8 +378,8 @@ class HybridRedTeamAgent {
     return {
       preferenceMode: this.preferenceMode,
       toolsCount: this.tools.size,
-      veniceModel: veniceUncensored.getModel(),
-      ollamaConfig: ollamaHermes.getConfig()
+      veniceModel: 'google/gemini-2.5-flash',
+      ollamaConfig: { model: 'google/gemini-2.5-flash' }
     };
   }
 
@@ -441,15 +390,10 @@ class HybridRedTeamAgent {
     venice: { available: boolean; message: string };
     ollama: { available: boolean; modelInstalled: boolean; message: string };
   }> {
-    const veniceTest = await veniceUncensored.testConnection();
-    const ollamaTest = await ollamaHermes.testConnection();
-
+    const ok = await aiTestConnection();
     return {
-      venice: {
-        available: veniceTest,
-        message: veniceTest ? 'Venice API connected' : 'Venice API unavailable'
-      },
-      ollama: ollamaTest
+      venice: { available: ok, message: ok ? 'CrowByte AI connected' : 'AI unavailable' },
+      ollama: { available: ok, modelInstalled: ok, message: ok ? 'CrowByte AI connected' : 'AI unavailable' }
     };
   }
 }

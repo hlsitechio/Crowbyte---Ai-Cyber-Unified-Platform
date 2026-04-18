@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from"react";
+import { useLocation } from "react-router-dom";
 import { IS_WEB } from "@/lib/platform";
 import { Card } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
@@ -643,9 +644,9 @@ const Terminal = () => {
 
 const TERM_WS_URL = 'wss://crowbyte.io/terminal/ws';
 const TERM_TOKEN = 'cb-term-2026-r41n';
-const TERM_MODE = 'cb'; // 'cb' for CrowByte CLI, 'shell' for plain zsh
+const TERM_MODE = 'shell'; // 'shell' for zsh, 'cb' for CrowByte CLI (requires crowbyte-cli installed)
 
-const WebTerminalPage = () => {
+const WebTerminalInner = ({ connectKey }: { connectKey: number }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -746,17 +747,26 @@ const WebTerminalPage = () => {
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
+    // Heartbeat: send text-based ping every 15s to keep WS alive
+    let pingInterval: ReturnType<typeof setInterval> | null = null;
+
     ws.onopen = () => {
       setConnected(true);
       setError(null);
       xterm.focus();
+      pingInterval = setInterval(() => {
+        if (ws.readyState === 1) ws.send('{"type":"ping"}');
+      }, 15000);
     };
 
     ws.onmessage = (event) => {
+      // Filter out server pong responses
+      if (event.data === '{"type":"pong"}') return;
       xterm.write(event.data);
     };
 
     ws.onclose = (event) => {
+      if (pingInterval) clearInterval(pingInterval);
       setConnected(false);
       if (event.code !== 1000) {
         setError(event.code === 4001 ? 'Authentication failed' : `Disconnected (${event.code})`);
@@ -765,6 +775,7 @@ const WebTerminalPage = () => {
     };
 
     ws.onerror = () => {
+      if (pingInterval) clearInterval(pingInterval);
       setError('Connection failed');
       setConnected(false);
     };
@@ -793,6 +804,7 @@ const WebTerminalPage = () => {
     if (termContainerRef.current) resizeObserver.observe(termContainerRef.current);
 
     return () => {
+      if (pingInterval) clearInterval(pingInterval);
       window.removeEventListener('resize', handleResize);
       resizeObserver.disconnect();
       ws.close();
@@ -821,16 +833,21 @@ const WebTerminalPage = () => {
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
-    ws.onopen = () => { setConnected(true); setError(null); xterm.focus(); };
-    ws.onmessage = (event) => { xterm.write(event.data); };
+    let rPing: ReturnType<typeof setInterval> | null = null;
+    ws.onopen = () => {
+      setConnected(true); setError(null); xterm.focus();
+      rPing = setInterval(() => { if (ws.readyState === 1) ws.send('{"type":"ping"}'); }, 15000);
+    };
+    ws.onmessage = (event) => { if (event.data === '{"type":"pong"}') return; xterm.write(event.data); };
     ws.onclose = (event) => {
+      if (rPing) clearInterval(rPing);
       setConnected(false);
       if (event.code !== 1000) {
         setError(`Disconnected (${event.code})`);
         xterm.writeln('\r\n\x1b[90m[connection closed]\x1b[0m');
       }
     };
-    ws.onerror = () => { setError('Connection failed'); setConnected(false); };
+    ws.onerror = () => { if (rPing) clearInterval(rPing); setError('Connection failed'); setConnected(false); };
     xterm.onData((data) => { if (ws.readyState === 1) ws.send(data); });
     xterm.onBinary((data) => { if (ws.readyState === 1) ws.send(data); });
     xterm.onResize(({ cols, rows }) => {
@@ -929,6 +946,12 @@ const WebTerminalPage = () => {
       </div>
     </div>
   );
+};
+
+// Wrapper that remounts the terminal on every sidebar click (location.key changes)
+const WebTerminalPage = () => {
+  const location = useLocation();
+  return <WebTerminalInner key={location.key} connectKey={0} />;
 };
 
 export default IS_WEB ? WebTerminalPage : Terminal;

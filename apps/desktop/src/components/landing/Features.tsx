@@ -86,7 +86,7 @@ export default function Features() {
       <div className="mx-auto w-full max-w-5xl space-y-8">
         <AnimatedContainer className="mx-auto max-w-3xl text-center">
           <h2 className="font-['JetBrains_Mono'] text-3xl font-bold tracking-wide text-balance text-white md:text-4xl">
-            everything you need.
+            everything you need
           </h2>
           <p className="text-zinc-500 mt-4 text-sm tracking-wide text-balance font-['JetBrains_Mono']">
             offense, defense, and everything in between

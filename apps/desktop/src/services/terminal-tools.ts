@@ -643,7 +643,7 @@ function toolSubnetCalc(cidr: string): string {
 // ─── Port Scan (via VPS) ─────────────────────────────────────────────────────
 
 async function toolPortScan(target: string, ports?: string): Promise<string> {
-  const VPS = 'https://srv1459982.hstgr.cloud';
+  const VPS = 'https://crowbyte.io';
   try {
     const res = await fetch(`${VPS}/api/nmap/quick`, {
       method: 'POST',

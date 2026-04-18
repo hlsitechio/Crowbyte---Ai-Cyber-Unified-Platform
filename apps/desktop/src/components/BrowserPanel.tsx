@@ -52,7 +52,7 @@ function proxyUrl(url: string): string {
 }
 
 function WebBrowserPanel() {
-  const { isOpen, panelWidth, close, setPanelWidth } = useBrowserPanel();
+  const { isOpen, panelWidth, close, setPanelWidth, side, setSide } = useBrowserPanel();
   const [tabs, setTabs] = useState<WebTab[]>([{ id: createWebTabId(), url: "https://www.google.com", title: "New Tab", isLoading: false }]);
   const [activeTabId, setActiveTabId] = useState(tabs[0].id);
   const [addressBar, setAddressBar] = useState("https://www.google.com");
@@ -129,7 +129,11 @@ function WebBrowserPanel() {
     const onMouseMove = (ev: MouseEvent) => {
       if (!isDraggingRef.current) return;
       ev.preventDefault();
-      setPanelWidth(startWidth + ((startX - ev.clientX) / totalWidth) * 100);
+      // Right panel: drag left = bigger. Left panel: drag right = bigger.
+      const delta = side === 'left'
+        ? ((ev.clientX - startX) / totalWidth) * 100
+        : ((startX - ev.clientX) / totalWidth) * 100;
+      setPanelWidth(startWidth + delta);
     };
     const onMouseUp = () => {
       isDraggingRef.current = false;
@@ -143,7 +147,7 @@ function WebBrowserPanel() {
     document.body.style.userSelect = "none";
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
-  }, [panelWidth, setPanelWidth]);
+  }, [panelWidth, setPanelWidth, side]);
 
   const toggleMaximize = () => {
     setPanelWidth(isMaximized ? 45 : 80);
@@ -171,15 +175,17 @@ function WebBrowserPanel() {
           animate={{ width: `${panelWidth}%`, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative flex flex-row border-l border-zinc-800 bg-background overflow-hidden isolate"
+          className={cn("relative flex flex-row bg-background overflow-hidden isolate", side === 'left' ? "border-r border-zinc-800" : "border-l border-zinc-800")}
           style={{ minWidth: "300px", height: "100%", maxHeight: "100%" }}
         >
-          {/* Resize handle */}
-          <div onMouseDown={handleResizeStart} className={cn("shrink-0 w-[6px] cursor-col-resize z-50 group transition-colors flex items-center justify-center", isDragging ? "bg-primary/40" : "hover:bg-primary/20")}>
-            <div className={cn("transition-opacity", isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
-              <UilDraggabledots size={12} className="text-zinc-500" />
+          {/* Resize handle — left edge when panel is on right, right edge when on left */}
+          {side === 'right' && (
+            <div onMouseDown={handleResizeStart} className={cn("shrink-0 w-[6px] cursor-col-resize z-50 group transition-colors flex items-center justify-center", isDragging ? "bg-primary/40" : "hover:bg-primary/20")}>
+              <div className={cn("transition-opacity", isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
+                <UilDraggabledots size={12} className="text-zinc-500" />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex-1 flex flex-col min-w-0 min-h-0">
             {/* Tab bar */}
@@ -208,8 +214,11 @@ function WebBrowserPanel() {
               <button onClick={() => createTab()} className="shrink-0 p-1.5 mx-0.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors" title="New Tab (Ctrl+T)">
                 <UilPlus size={14} />
               </button>
+              <button onClick={() => setSide(side === 'left' ? 'right' : 'left')} className="shrink-0 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors" title={side === 'left' ? 'Move to right' : 'Move to left'}>
+                <UilLeftArrowFromLeft size={14} className={cn("transition-transform", side === 'left' && "rotate-180")} />
+              </button>
               <button onClick={close} className="shrink-0 p-1.5 mr-1 rounded-md hover:bg-transparent text-zinc-500 hover:text-red-500 transition-colors" title="Close panel (Ctrl+B)">
-                <UilLeftArrowFromLeft size={14} />
+                <UilTimes size={14} />
               </button>
             </div>
 
@@ -261,6 +270,15 @@ function WebBrowserPanel() {
               ))}
             </div>
           </div>
+
+          {/* Resize handle — right edge when panel is on left */}
+          {side === 'left' && (
+            <div onMouseDown={handleResizeStart} className={cn("shrink-0 w-[6px] cursor-col-resize z-50 group transition-colors flex items-center justify-center", isDragging ? "bg-primary/40" : "hover:bg-primary/20")}>
+              <div className={cn("transition-opacity", isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
+                <UilDraggabledots size={12} className="text-zinc-500" />
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
@@ -271,7 +289,7 @@ function WebBrowserPanel() {
 
 function DesktopBrowserPanel() {
  const {
- isOpen, panelWidth, close, setPanelWidth
+ isOpen, panelWidth, close, setPanelWidth, side, setSide
  } = useBrowserPanel();
 
  const [tabs, setTabs] = useState<TabState[]>([]);
@@ -392,7 +410,7 @@ function DesktopBrowserPanel() {
 
  useEffect(() => {
  if (isOpen) debouncedBounds();
- }, [panelWidth, isOpen, debouncedBounds]);
+ }, [panelWidth, isOpen, side, debouncedBounds]);
 
  const createTab = useCallback(async (url?: string) => {
  const result = await api()?.createTab({ url, makeActive: true });
@@ -472,7 +490,10 @@ function DesktopBrowserPanel() {
  const onMouseMove = (ev: MouseEvent) => {
  if (!isDraggingRef.current) return;
  ev.preventDefault();
- const deltaPercent = ((startX - ev.clientX) / totalWidth) * 100;
+ // Right panel: drag left = bigger. Left panel: drag right = bigger.
+ const deltaPercent = side === 'left'
+   ? ((ev.clientX - startX) / totalWidth) * 100
+   : ((startX - ev.clientX) / totalWidth) * 100;
  setPanelWidth(startWidth + deltaPercent);
  };
  const onMouseUp = () => {
@@ -488,7 +509,7 @@ function DesktopBrowserPanel() {
  document.body.style.userSelect = "none";
  document.addEventListener("mousemove", onMouseMove);
  document.addEventListener("mouseup", onMouseUp);
- }, [panelWidth, setPanelWidth, reportBounds]);
+ }, [panelWidth, setPanelWidth, reportBounds, side]);
 
  const toggleMaximize = () => {
  setPanelWidth(isMaximized ? 45 : 80);
@@ -511,11 +532,12 @@ function DesktopBrowserPanel() {
  animate={{ width: `${panelWidth}%`, opacity: 1 }}
  exit={{ width: 0, opacity: 0 }}
  transition={{ type: "spring", stiffness: 300, damping: 30 }}
- className="relative flex flex-row border-l border-zinc-800 bg-background overflow-hidden isolate"
+ className={cn("relative flex flex-row bg-background overflow-hidden isolate", side === 'left' ? "border-r border-zinc-800" : "border-l border-zinc-800")}
  style={{ minWidth: "300px", height: "100%", maxHeight: "100%", overscrollBehavior: "contain" }}
  onWheel={(e) => e.stopPropagation()}
  >
- {/* Resize handle */}
+ {/* Resize handle — left edge for right panel */}
+ {side === 'right' && (
  <div
  onMouseDown={handleResizeStart}
  className={cn(
@@ -523,13 +545,11 @@ function DesktopBrowserPanel() {
  isDragging ? "bg-primary/40" : "hover:bg-primary/20"
  )}
  >
- <div className={cn(
- "transition-opacity",
- isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
- )}>
+ <div className={cn("transition-opacity", isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
  <UilDraggabledots size={12} className="text-zinc-500" />
  </div>
  </div>
+ )}
 
  <div className="flex-1 flex flex-col min-w-0 min-h-0">
  {/* Tab bar */}
@@ -583,8 +603,11 @@ function DesktopBrowserPanel() {
  <button onClick={() => createTab()} className="shrink-0 p-1.5 mx-0.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors" title="New Tab (Ctrl+T)">
  <UilPlus size={14} />
  </button>
+ <button onClick={() => setSide(side === 'left' ? 'right' : 'left')} className="shrink-0 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors" title={side === 'left' ? 'Move to right' : 'Move to left'}>
+ <UilLeftArrowFromLeft size={14} className={cn("transition-transform", side === 'left' && "rotate-180")} />
+ </button>
  <button onClick={close} className="shrink-0 p-1.5 mr-1 rounded-md hover:bg-transparent text-zinc-500 hover:text-red-500 transition-colors" title="Close panel (Ctrl+B)">
- <UilLeftArrowFromLeft size={14} />
+ <UilTimes size={14} />
  </button>
  </div>
 
@@ -669,6 +692,21 @@ function DesktopBrowserPanel() {
  )}
  </div>
  </div>
+
+ {/* Resize handle — right edge for left panel */}
+ {side === 'left' && (
+ <div
+ onMouseDown={handleResizeStart}
+ className={cn(
+ "shrink-0 w-[6px] cursor-col-resize z-50 group transition-colors flex items-center justify-center",
+ isDragging ? "bg-primary/40" : "hover:bg-primary/20"
+ )}
+ >
+ <div className={cn("transition-opacity", isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
+ <UilDraggabledots size={12} className="text-zinc-500" />
+ </div>
+ </div>
+ )}
  </motion.div>
  )}
  </AnimatePresence>

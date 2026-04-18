@@ -113,7 +113,8 @@ export async function getTierInfo(): Promise<TierInfo | null> {
  */
 export async function* streamChat(
   messages: ChatMessage[],
-  model?: string
+  model?: string,
+  signal?: AbortSignal
 ): AsyncGenerator<{ type: 'text' | 'error' | 'done'; content: string }> {
   const token = await getAuthToken();
   if (!token) {
@@ -128,6 +129,7 @@ export async function* streamChat(
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ messages, model }),
+    signal,
   });
 
   if (res.status === 429) {

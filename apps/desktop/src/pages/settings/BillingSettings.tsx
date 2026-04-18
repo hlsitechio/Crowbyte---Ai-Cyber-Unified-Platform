@@ -3,6 +3,7 @@
  * Shows credit balance, purchase packs, manage subscription, transaction history.
  */
 
+import { safeRedirect } from '@/lib/safe-redirect';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -83,7 +84,7 @@ export default function BillingSettings() {
         body: JSON.stringify({ userId: user.id }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) safeRedirect(data.url);
       else toast.error('Could not open billing portal');
     } catch {
       toast.error('Failed to open billing portal');
@@ -282,7 +283,7 @@ export default function BillingSettings() {
                     <Button
                       size="sm"
                       className="w-full text-xs bg-blue-600 hover:bg-blue-500"
-                      onClick={() => window.location.href = `/checkout?plan=${plan.key}-monthly`}
+                      onClick={() => safeRedirect(`/checkout?plan=${plan.key}-monthly`)}
                     >
                       Upgrade <UilArrowRight size={12} className="ml-1" />
                     </Button>

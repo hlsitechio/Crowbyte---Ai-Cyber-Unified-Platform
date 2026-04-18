@@ -29,7 +29,10 @@ function isFirstRun(): boolean {
   if (process.argv.includes('--squirrel-firstrun')) return true;
   try {
     const config = JSON.parse(fs.readFileSync(getConfigPath(), 'utf-8'));
-    return !config.onboardingComplete;
+    if (!config.onboardingComplete) return true;
+    // Re-run onboarding if version changed or config has no version (old install)
+    if (!config.version || config.version !== app.getVersion()) return true;
+    return false;
   } catch {
     // In dev mode, app.getPath('userData') may differ from packaged app
     // Check the real CrowByte config path as fallback
@@ -66,9 +69,8 @@ function createOnboardingWindow(): void {
   mainWindow = new BrowserWindow({
     width: 660,
     height: 500,
-    frame: false,
+    frame: process.platform !== 'win32',
     resizable: false,
-    transparent: true,
     center: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -77,12 +79,12 @@ function createOnboardingWindow(): void {
       sandbox: false,
     },
     icon: appIcon,
-    backgroundColor: '#00000000',
-    titleBarStyle: 'hidden',
+    backgroundColor: '#0a0a0a',
+    titleBarStyle: process.platform === 'darwin' ? 'hidden' : 'default',
     skipTaskbar: false,
   });
 
-  const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
+  const isDev = !app.isPackaged && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev'));
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:8081/#/onboarding');
@@ -106,11 +108,12 @@ function createMainWindow(): void {
       nodeIntegration: false,
       sandbox: false,
     },
-    autoHideMenuBar: false,
+    frame: process.platform === 'win32',
+    autoHideMenuBar: true,
     icon: appIcon,
   });
 
-  const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged;
+  const isDev = !app.isPackaged && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev'));
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:8081');
@@ -144,6 +147,51 @@ ipcMain.handle('onboarding:skip', () => {
   }
   createMainWindow();
   return { success: true };
+});
+
+// ─── IPC: HTTP Proxy (bypasses renderer CORS/null-origin restrictions) ────────
+
+import { net } from 'electron';
+
+ipcMain.handle('http:fetch', async (_event, url: string, options: { method?: string; headers?: Record<string, string>; timeout?: number } = {}) => {
+  return new Promise((resolve) => {
+    const request = net.request({
+      url,
+      method: options.method || 'GET',
+    });
+
+    if (options.headers) {
+      for (const [key, value] of Object.entries(options.headers)) {
+        request.setHeader(key, value);
+      }
+    }
+
+    const timer = setTimeout(() => {
+      request.abort();
+      resolve({ ok: false, status: 0, statusText: 'timeout', body: '' });
+    }, options.timeout || 10000);
+
+    request.on('response', (response) => {
+      clearTimeout(timer);
+      let body = '';
+      response.on('data', (chunk) => { body += chunk.toString(); });
+      response.on('end', () => {
+        resolve({
+          ok: response.statusCode >= 200 && response.statusCode < 300,
+          status: response.statusCode,
+          statusText: response.statusMessage || '',
+          body,
+        });
+      });
+    });
+
+    request.on('error', (err) => {
+      clearTimeout(timer);
+      resolve({ ok: false, status: 0, statusText: err.message, body: '' });
+    });
+
+    request.end();
+  });
 });
 
 // ─── App Lifecycle ──────────────────────────────────────────────────────────

@@ -57,6 +57,7 @@ interface LiveSession {
   frames: SessionFrame[];
   logs: SessionFrame[];
   latestState: Record<string, unknown> | null;
+  latestScreenshot: string | null;
   analysis: DebugAnalysis | null;
   connected: boolean;
 }
@@ -579,7 +580,7 @@ export default function Support() {
   const [sessions, setSessions] = useState<SupportSession[]>([]);
   const [history, setHistory] = useState<SupportSession[]>([]);
   const [activeSession, setActiveSession] = useState<LiveSession | null>(null);
-  const [debugTab, setDebugTab] = useState<"logs" | "state" | "analysis">("logs");
+  const [debugTab, setDebugTab] = useState<"screen" | "logs" | "state" | "analysis">("screen");
   const [loading, setLoading] = useState(true);
   const [commandInput, setCommandInput] = useState("");
 
@@ -659,6 +660,7 @@ export default function Support() {
       frames: [],
       logs: [],
       latestState: null,
+      latestScreenshot: null,
       analysis: null,
       connected: false,
     };
@@ -671,6 +673,10 @@ export default function Support() {
           updated.frames = [...updated.frames.slice(-100), frame];
           if (frame.type === "state") {
             updated.latestState = frame.data as Record<string, unknown>;
+          }
+          if (frame.type === "action") {
+            const d = frame.data as any;
+            if (d?.screenshot) updated.latestScreenshot = d.screenshot;
           }
           if (frame.type === "error") {
             updated.logs = [...updated.logs.slice(-200), frame];
@@ -941,6 +947,7 @@ export default function Support() {
                 {/* Tab bar */}
                 <div className="flex gap-1 mb-2">
                   {[
+                    { id: "screen" as const, label: "Screen", icon: UilMonitor },
                     { id: "logs" as const, label: "Logs", icon: UilWindow },
                     { id: "state" as const, label: "State", icon: UilEye },
                     { id: "analysis" as const, label: "AI Analysis", icon: UilRobot },
@@ -961,6 +968,15 @@ export default function Support() {
 
                 {/* Content */}
                 <div className="flex-1 border border-white/[0.06] rounded-xl bg-black/30 overflow-hidden">
+                  {debugTab === "screen" && (
+                    <div className="flex flex-col items-center justify-center h-full bg-black/40 rounded-lg overflow-hidden">
+                      {activeSession.latestScreenshot ? (
+                        <img src={activeSession.latestScreenshot} alt="Live screen" className="max-w-full max-h-full object-contain" />
+                      ) : (
+                        <div className="text-zinc-600 text-xs">Waiting for screenshot stream...</div>
+                      )}
+                    </div>
+                  )}
                   {debugTab === "logs" && <LogViewer logs={activeSession.logs} />}
                   {debugTab === "state" && <StateInspector state={activeSession.latestState} />}
                   {debugTab === "analysis" && <AnalysisPanel analysis={activeSession.analysis} />}

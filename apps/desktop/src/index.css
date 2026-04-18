@@ -1,3 +1,5 @@
+@import "./fonts.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -75,20 +77,30 @@ All colors MUST be HSL.
 
     --radius: 0.125rem;
 
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-primary: 0 0% 80%;
-    --sidebar-primary-foreground: 0 0% 4%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 0 0% 70%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Silver gradient colors */
     --silver-light: 0 0% 85%;
     --silver: 0 0% 75%;
     --silver-muted: 0 0% 55%;
     --silver-dark: 0 0% 35%;
+  }
+  .dark {
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -329,4 +341,43 @@ All colors MUST be HSL.
 @keyframes gradient-shift {
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
+}
+
+/* Terminal Demo — RGB border spin */
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rgb-spin {
+  to { --glow-angle: 360deg; }
+}
+
+.animate-rgb-spin {
+  animation: rgb-spin 3s linear infinite;
+}
+
+/* Terminal glow effect on important lines */
+.terminal-glow {
+  text-shadow: 0 0 6px rgba(52, 211, 153, 0.3);
+}
+
+/* Terminal flash on critical findings */
+.terminal-flash {
+  animation: terminal-flash-pulse 0.6s ease-out;
+}
+
+@keyframes terminal-flash-pulse {
+  0% { background-color: rgba(239, 68, 68, 0.1); }
+  100% { background-color: transparent; }
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { UilProcessor, UilHeartRate, UilServer, UilClock, UilGlobe, UilArrowRight, UilRobot } from "@iconscout/react-unicons";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { BorderBeam } from "@/components/ui/border-beam";
-import { openClaw } from "@/services/openclaw";
+import { testConnection as aiTestConnection } from "@/services/ai";
 import type { WidgetProps } from "../types";
 
 interface VPSMetrics {
@@ -23,24 +23,9 @@ export default function VPSHealthWidget(_props: WidgetProps) {
   useEffect(() => {
     const check = async () => {
       // Health check
-      let vpsOk = false, vpsLatency = 0;
-      try {
-        const result = await openClaw.healthCheck();
-        vpsOk = result.ok; vpsLatency = result.latencyMs;
-      } catch {}
-
-      const host = import.meta.env.VITE_OPENCLAW_HOSTNAME;
-      if (!vpsOk && host && host !== "localhost" && (window as any).electronAPI?.executeCommand) {
-        try {
-          const start = Date.now();
-          const output = await (window as any).electronAPI.executeCommand(
-            `curl -sk -o /dev/null -w %{http_code} https://${host}/nvidia/v1/models --connect-timeout 5`
-          );
-          vpsLatency = Date.now() - start;
-          vpsOk = output.includes("200");
-        } catch {}
-      }
-      setStatus({ ok: vpsOk, latencyMs: vpsLatency });
+      const start = Date.now();
+      const vpsOk = await aiTestConnection().catch(() => false);
+      setStatus({ ok: vpsOk, latencyMs: Date.now() - start });
 
       // Supabase check
       try {

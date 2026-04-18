@@ -6,6 +6,7 @@ interface BrowserPanelState {
   panelWidth: number; // percentage 20-80
   history: string[];
   historyIndex: number;
+  side: 'left' | 'right';
 }
 
 interface BrowserPanelContextType extends BrowserPanelState {
@@ -16,6 +17,7 @@ interface BrowserPanelContextType extends BrowserPanelState {
   goBack: () => void;
   goForward: () => void;
   setPanelWidth: (width: number) => void;
+  setSide: (side: 'left' | 'right') => void;
   canGoBack: boolean;
   canGoForward: boolean;
 }
@@ -50,6 +52,7 @@ function saveState(state: Partial<BrowserPanelState>) {
       url: state.url,
       panelWidth: state.panelWidth,
       isOpen: state.isOpen,
+      side: state.side,
     }));
   } catch {}
 }
@@ -61,11 +64,12 @@ export function BrowserPanelProvider({ children }: { children: ReactNode }) {
   const [panelWidth, setPanelWidthState] = useState(saved.panelWidth ?? 45);
   const [history, setHistory] = useState<string[]>([saved.url ?? DEFAULT_URL]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [side, setSideState] = useState<'left' | 'right'>(saved.side ?? 'right');
 
   // Persist state
   useEffect(() => {
-    saveState({ url, panelWidth, isOpen });
-  }, [url, panelWidth, isOpen]);
+    saveState({ url, panelWidth, isOpen, side });
+  }, [url, panelWidth, isOpen, side]);
 
   // Global keyboard shortcut: Ctrl+B
   useEffect(() => {
@@ -125,10 +129,14 @@ export function BrowserPanelProvider({ children }: { children: ReactNode }) {
     setPanelWidthState(Math.max(20, Math.min(80, width)));
   }, []);
 
+  const setSide = useCallback((s: 'left' | 'right') => {
+    setSideState(s);
+  }, []);
+
   return (
     <BrowserPanelContext.Provider value={{
-      isOpen, url, panelWidth, history, historyIndex,
-      toggle, open, close, navigate, goBack, goForward, setPanelWidth,
+      isOpen, url, panelWidth, history, historyIndex, side,
+      toggle, open, close, navigate, goBack, goForward, setPanelWidth, setSide,
       canGoBack: historyIndex > 0,
       canGoForward: historyIndex < history.length - 1,
     }}>

@@ -809,9 +809,16 @@ class AgentOrchestrator {
 
       return result;
     } catch (err) {
-      console.warn('[orchestrator] Server relay failed, trying Electron IPC fallback:', (err as Error).message);
+      console.warn('[orchestrator] Server relay failed, trying NVIDIA Cloud fallback:', (err as Error).message);
 
-      // Fallback: Electron IPC → SSH (desktop only)
+      // Fallback 1: NVIDIA Cloud direct (works in both web and desktop)
+      try {
+        return await this.dispatchViaNvidiaCloud(agentType, command);
+      } catch (nvidiaErr) {
+        console.warn('[orchestrator] NVIDIA Cloud fallback failed, trying Electron IPC SSH:', (nvidiaErr as Error).message);
+      }
+
+      // Fallback 2: Electron IPC → SSH (desktop only)
       return await this.dispatchViaElectronSSH(agentType, command);
     }
   }
@@ -849,6 +856,69 @@ class AgentOrchestrator {
   }
 
   /**
+   * Direct NVIDIA Cloud API fallback — works in both web and desktop mode.
+   * Uses deepseek-v3-2 to run the agent command when server relay is down.
+   */
+  private async dispatchViaNvidiaCloud(agentType: string, command: string): Promise<Record<string, unknown>> {
+    const agentPersonas: Record<string, string> = {
+      recon: 'You are a recon agent specializing in OSINT, subdomain enumeration, and attack surface mapping.',
+      hunter: 'You are a vulnerability hunter focused on finding and exploiting security flaws in web applications.',
+      triage: 'You are a security analyst triaging findings, assessing severity, and prioritizing remediation.',
+      sentinel: 'You are a sentinel agent monitoring infrastructure for threats and anomalies.',
+      intel: 'You are a threat intelligence agent tracking CVEs, threat actors, and IOCs.',
+      'bug-watcher': 'You are an automated bug watcher monitoring for new vulnerabilities affecting tracked assets.',
+      coder: 'You are a senior software engineer specializing in security-aware code.',
+      reviewer: 'You are a code reviewer focusing on security vulnerabilities and code quality.',
+      tester: 'You are a QA engineer writing and running security-focused tests.',
+      debugger: 'You are an expert debugger analyzing errors and finding root causes.',
+      docs: 'You are a technical writer creating clear, accurate documentation.',
+      cicd: 'You are a DevOps engineer managing CI/CD pipelines and deployments.',
+      deployer: 'You are a deployment specialist managing infrastructure and releases.',
+      monitor: 'You are an infrastructure monitoring agent tracking system health and performance.',
+      incident: 'You are an incident response commander coordinating security incidents.',
+      support: 'You are a technical support specialist helping users resolve issues.',
+      onboard: 'You are an onboarding specialist helping new users get started.',
+      escalation: 'You are an escalation commander handling high-priority incidents.',
+    };
+
+    const persona = agentPersonas[agentType] || 'You are CrowByte AI, an expert security operations agent.';
+
+    const { supabase } = await import('@/lib/supabase');
+    const { data: { session } } = await supabase.auth.getSession();
+    const response = await fetch('https://crowbyte.io/api/ai/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({
+        model: 'deepseek-ai/deepseek-v3.2',
+        messages: [
+          { role: 'system', content: persona },
+          { role: 'user', content: command },
+        ],
+      }),
+      signal: AbortSignal.timeout(120000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const output = data.choices?.[0]?.message?.content || '';
+
+    return {
+      success: true,
+      agent: agentType,
+      agent_type: agentType,
+      output,
+      method: 'nvidia-cloud',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
    * SSH fallback via Electron IPC (desktop only).
    */
   private async dispatchViaElectronSSH(agentType: string, command: string): Promise<Record<string, unknown>> {
@@ -875,7 +945,8 @@ class AgentOrchestrator {
 
     const openclawAgent = agentMap[agentType] || 'main';
     const escapedCommand = command.replace(/'/g, "'\\''");
-    const sshCmd = `ssh -o ConnectTimeout=10 root@187.124.85.249 "openclaw agent --agent ${openclawAgent} --local --json -m '${escapedCommand}'"`;
+    const vpsHost = (import.meta as any).env?.VITE_VPS_HOST || 'vps.crowbyte.io';
+    const sshCmd = `ssh -o ConnectTimeout=10 root@${vpsHost} "openclaw agent --agent ${openclawAgent} --local --json -m '${escapedCommand}'"`;
 
     const result = await electronAPI.executeCommand(sshCmd);
     return {

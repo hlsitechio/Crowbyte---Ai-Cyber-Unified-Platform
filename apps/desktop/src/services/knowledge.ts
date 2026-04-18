@@ -5,7 +5,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { pgOr } from '@/lib/utils';
-import { veniceAI } from './veniceai';
+import { createChatCompletion as veniceAI_compat } from './ai';
 
 export interface KnowledgeEntry {
   id: string;
@@ -321,7 +321,7 @@ class KnowledgeService {
    */
   private async generateSummary(content: string): Promise<string> {
     try {
-      const response = await veniceAI.createChatCompletion({
+      const response = await veniceAI_compat({
         messages: [
           {
             role: 'system',
@@ -336,7 +336,7 @@ class KnowledgeService {
         temperature: 0.3,
       });
 
-      return response.content || content.substring(0, 200);
+      return response.choices[0]?.message?.content || content.substring(0, 200);
     } catch (error) {
       console.error('Failed to generate summary:', error);
       return content.substring(0, 200);
@@ -350,7 +350,7 @@ class KnowledgeService {
     try {
       console.log('🏷️  Generating tags with Venice AI...');
 
-      const response = await veniceAI.createChatCompletion({
+      const response = await veniceAI_compat({
         messages: [
           {
             role: 'system',
@@ -367,7 +367,7 @@ Return ONLY a comma-separated list of tags, nothing else.`,
         temperature: 0.3,
       });
 
-      const tagsText = response.content?.trim() || '';
+      const tagsText = response.choices[0]?.message?.content?.trim() || '';
       console.log('📝 AI response:', tagsText);
 
       const tags = tagsText

@@ -63,7 +63,7 @@ export const MCP_SERVERS: MCPServerConfig[] = [
     name: 'make',
     description: 'Make.com automation scenarios',
     type: 'sse',
-    url: 'https://us1.make.com/mcp/api/v1/u/99079726-b0dd-4d85-92da-027b2f4a52a4/sse',
+    url: import.meta.env.VITE_MAKE_MCP_URL || '',
     enabled: true,
     category: 'productivity',
   },

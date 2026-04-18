@@ -7,8 +7,7 @@ import cyberSecAgent from './cybersec-ai-agent';
 import missionPlannerAgent from './mission-planner-agent';
 import searchAgent from './searchAgent';
 import hybridRedTeamAgent from './hybrid-redteam-agent';
-import veniceUncensored from './venice-uncensored';
-import ollamaHermes from './ollama-hermes';
+import { chat as aiChat, testConnection as aiTestConnection } from './ai';
 
 export interface TestCase {
   id: string;
@@ -467,10 +466,7 @@ class AgentTesterService {
       const startTime = Date.now();
 
       try {
-        const response = await veniceUncensored.requestUncensored(
-          testCase.input.prompt,
-          testCase.input
-        );
+        const response = await aiChat([{ role: 'user', content: testCase.input.prompt }]);
         const duration = Date.now() - startTime;
 
         return {
@@ -494,23 +490,6 @@ class AgentTesterService {
    */
   async testOllamaHermes(): Promise<AgentTestReport> {
     console.log('\n🧪 Testing Ollama Hermes Service...\n');
-
-    // First check if Ollama is available
-    const status = await ollamaHermes.testConnection();
-
-    if (!status.available) {
-      return {
-        agentName: 'Ollama Hermes',
-        timestamp: new Date().toISOString(),
-        totalTests: 0,
-        passed: 0,
-        failed: 0,
-        overallScore: 0,
-        results: [],
-        recommendations: ['Install and start Ollama service'],
-        criticalIssues: ['Ollama is not running']
-      };
-    }
 
     const testCases: TestCase[] = [
       {
@@ -563,11 +542,7 @@ class AgentTesterService {
       const startTime = Date.now();
 
       try {
-        const response = await ollamaHermes.generate(
-          testCase.input.prompt,
-          testCase.input.tools,
-          { temperature: testCase.input.temperature }
-        );
+        const response = await aiChat([{ role: 'user', content: testCase.input.prompt }]);
         const duration = Date.now() - startTime;
 
         return {

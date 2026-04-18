@@ -152,7 +152,7 @@ export function ConversationsSidebar({
  } else {
  toast({
  title: "Success",
- description: `${type === "conversation" ? "Chat" : "UilFolder"} renamed successfully`,
+ description: `${type === "conversation" ? "Chat" : "Folder"} renamed successfully`,
  });
  setEditingId(null);
  fetchData();
@@ -178,7 +178,7 @@ export function ConversationsSidebar({
  } else {
  toast({
  title: "Success",
- description: `${deleteType === "conversation" ? "Chat" : "UilFolder"} deleted successfully`,
+ description: `${deleteType === "conversation" ? "Chat" : "Folder"} deleted successfully`,
  });
  fetchData();
  }
@@ -204,7 +204,7 @@ export function ConversationsSidebar({
  } else {
  toast({
  title: "Success",
- description: "UilFolder created successfully",
+ description: "Folder created successfully",
  });
  setIsCreatingFolder(false);
  setNewFolderName("");
@@ -430,7 +430,7 @@ export function ConversationsSidebar({
  </DropdownMenuTrigger>
  <DropdownMenuContent>
  <DropdownMenuItem onClick={() => handleMoveToFolder(conversation.id, null)}>
- No UilFolder
+ No Folder
  </DropdownMenuItem>
  {folders.map(folder => (
  <DropdownMenuItem key={folder.id} onClick={() => handleMoveToFolder(conversation.id, folder.id)}>
@@ -494,7 +494,7 @@ export function ConversationsSidebar({
  className="flex-1"
  >
  <UilFolderPlus size={16} className="mr-2" />
- New UilFolder
+ New Folder
  </Button>
  <Button
  onClick={() => setSelectionMode(true)}
@@ -555,7 +555,7 @@ export function ConversationsSidebar({
  </DropdownMenuTrigger>
  <DropdownMenuContent>
  <DropdownMenuItem onClick={() => handleBulkMoveToFolder(null)}>
- No UilFolder
+ No Folder
  </DropdownMenuItem>
  {folders.map(folder => (
  <DropdownMenuItem key={folder.id} onClick={() => handleBulkMoveToFolder(folder.id)}>
@@ -584,7 +584,7 @@ export function ConversationsSidebar({
  <Input
  value={newFolderName}
  onChange={(e) => setNewFolderName(e.target.value)}
- placeholder="UilFolder name"
+ placeholder="Folder name"
  className="flex-1"
  autoFocus
  onKeyDown={(e) => {
@@ -699,7 +699,7 @@ export function ConversationsSidebar({
  <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
  <AlertDialogContent>
  <AlertDialogHeader>
- <AlertDialogTitle>Delete {deleteType === "conversation" ? "Chat" : "UilFolder"}?</AlertDialogTitle>
+ <AlertDialogTitle>Delete {deleteType === "conversation" ? "Chat" : "Folder"}?</AlertDialogTitle>
  <AlertDialogDescription>
  {deleteType === "conversation"
  ? "This will permanently delete this conversation and all its messages."

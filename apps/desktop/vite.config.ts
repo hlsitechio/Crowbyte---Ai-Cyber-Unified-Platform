@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: isWeb ? "dist/web" : "dist",
     chunkSizeWarningLimit: 1000,
-    sourcemap: 'hidden', // Generate .map files for debugging but don't reference them in bundles
+    sourcemap: false, // No source maps in production — prevents full source code exposure
     rollupOptions: {
       external: (id: string) => {
         if (id === 'electron' || id.startsWith('@modelcontextprotocol/')) {

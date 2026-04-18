@@ -78,12 +78,12 @@ class OllamaHermesService {
     fullPrompt += `User Request: ${prompt}`;
 
     try {
-      const response = await fetch(`${this.baseURL}/api/generate`, {
+      const response = await fetch(`${this.baseURL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: this.model,
-          prompt: fullPrompt,
+          messages: [{ role: 'user', content: fullPrompt }],
           stream: false,
           options: {
             temperature,
@@ -97,7 +97,7 @@ class OllamaHermesService {
       }
 
       const data = await response.json();
-      const responseText = data.response;
+      const responseText = data.message?.content ?? data.response ?? '';
 
       // Parse tool calls
       const toolCalls = this.parseToolCalls(responseText);
@@ -181,22 +181,20 @@ Use available tools to execute the strategy. Be specific and actionable.`;
     messages: OllamaMessage[],
     tools?: OllamaTool[]
   ): AsyncGenerator<string> {
-    // Build conversation prompt
-    let prompt = messages.map(m =>
-      `${m.role.toUpperCase()}: ${m.content}`
-    ).join('\n\n');
+    // Build messages array for /api/chat
+    let chatMessages = [...messages];
 
     if (tools && tools.length > 0) {
-      const toolsInfo = `\n\nAvailable Tools:\n${JSON.stringify(tools, null, 2)}\n\nUse <tool_call>{"name": "...", "arguments": {...}}</tool_call> to call tools.`;
-      prompt = toolsInfo + '\n\n' + prompt;
+      const toolsInfo = `Available Tools:\n${JSON.stringify(tools, null, 2)}\n\nUse <tool_call>{"name": "...", "arguments": {...}}</tool_call> to call tools.`;
+      chatMessages = [{ role: 'system', content: toolsInfo }, ...chatMessages];
     }
 
-    const response = await fetch(`${this.baseURL}/api/generate`, {
+    const response = await fetch(`${this.baseURL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: this.model,
-        prompt,
+        messages: chatMessages,
         stream: true
       })
     });
@@ -220,8 +218,8 @@ Use available tools to execute the strategy. Be specific and actionable.`;
       for (const line of lines) {
         try {
           const json = JSON.parse(line);
-          if (json.response) {
-            yield json.response;
+          if (json.message?.content) {
+            yield json.message.content;
           }
         } catch (e) {
           // Skip malformed JSON

@@ -11,7 +11,9 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*",
+    "packages/types",
+    "packages/ui",
+    "packages/utils",
     "mcp-servers/*"
   ],
   "scripts": {

@@ -41,6 +41,7 @@ import {
 } from "@/services/red-team";
 import { motion, AnimatePresence } from "framer-motion";
 import { UilShield, UilFocusTarget, UilHeartRate, UilExclamationTriangle, UilPlus, UilTrashAlt, UilPlay, UilCheckCircle, UilAngleDown, UilAngleUp, UilPen, UilBug, UilTimesCircle, UilPause } from "@iconscout/react-unicons";
+import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 // --- Status / Severity helpers ---
 
 const STATUS_CONFIG: Record<
@@ -251,7 +252,7 @@ function DetailPanel({
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">UilFocusTarget</Label>
+            <Label className="text-xs text-muted-foreground">Target</Label>
             <Input
               value={editTarget}
               onChange={(e) => setEditTarget(e.target.value)}
@@ -654,6 +655,9 @@ const RedTeam = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Section AI Bar */}
+      <SectionAIBar path="/redteam" onSendToChat={(prompt) => { localStorage.setItem("cb_chat_prefill", prompt); window.location.hash = "#/chat"; }} />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -688,7 +692,7 @@ const RedTeam = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="op-target">UilFocusTarget</Label>
+                <Label htmlFor="op-target">Target</Label>
                 <Input
                   id="op-target"
                   value={newOperation.target}
@@ -1006,7 +1010,8 @@ const RedTeam = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1 shrink-0 pt-1">
+                      <div className="flex items-center gap-1 shrink-0 pt-1" onClick={e => e.stopPropagation()}>
+                        <InlineAIMenu section="redteam" data={op as Record<string, unknown>} />
                         <Button
                           size="sm"
                           variant="ghost"

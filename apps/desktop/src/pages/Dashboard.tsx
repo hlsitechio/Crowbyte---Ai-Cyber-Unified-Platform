@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [saved, setSaved] = useState(false);
   const [dragSourceId, setDragSourceId] = useState<string | null>(null);
 
+
   // Flash "Saved" indicator then fade
   useEffect(() => {
     if (saved) {
@@ -80,6 +81,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-4 p-6">
+
       {/* Dashboard edit toolbar — only visible in edit mode */}
       {editMode && (
         <div className="flex items-center justify-between">

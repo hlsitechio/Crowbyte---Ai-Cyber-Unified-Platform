@@ -1,5 +1,5 @@
-import { useRef, useEffect, useCallback, memo } from 'react';
-import { UilPlaneFly, UilSquare, UilKeyboard } from "@iconscout/react-unicons";
+import { useRef, useEffect, useCallback, memo, useState } from 'react';
+import { UilPlaneFly, UilSquare, UilBrain, UilCrosshair, UilPaperclip, UilMicrophone, UilBolt } from "@iconscout/react-unicons";
 type Provider = 'openrouter' | 'claude' | 'openclaw' | 'crowbyte';
 
 interface ChatInputProps {
@@ -18,6 +18,15 @@ export const ChatInput = memo(({
   value, onChange, onSend, onStop, isStreaming, disabled, provider, modelLabel, providerLabel,
 }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [activeChip, setActiveChip] = useState<string | null>(null);
+
+  const chips = [
+    { id: 'attach', icon: UilPaperclip, label: 'Attach' },
+    { id: 'think',  icon: UilBrain,     label: 'Think'  },
+    { id: 'fusion', icon: UilBolt,      label: 'Fusion' },
+    { id: 'recon',  icon: UilCrosshair, label: 'Recon'  },
+    { id: 'voice',  icon: UilMicrophone,label: 'Voice'  },
+  ];
 
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
@@ -110,24 +119,23 @@ export const ChatInput = memo(({
           </div>
         </div>
 
-        {/* Footer info */}
-        <div className="flex items-center justify-between px-2">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] text-zinc-600 font-mono">
-              {modelLabel}
-            </span>
-            {charCount > 0 && (
-              <span className="text-[10px] text-zinc-700 font-mono">
-                {wordCount}w / {charCount}c
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-zinc-700">
-            <UilKeyboard size={10} />
-            <span>Enter to send</span>
-            <span className="text-zinc-800 mx-1">|</span>
-            <span>Shift+Enter for newline</span>
-          </div>
+        {/* Action chips */}
+        <div className="flex items-center gap-1 px-1">
+          {chips.map(({ id, icon: Icon, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveChip(activeChip === id ? null : id)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                activeChip === id
+                  ? 'bg-white/[0.1] text-zinc-200 ring-1 ring-white/[0.15]'
+                  : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.04]'
+              }`}
+            >
+              <Icon size={11} />
+              {label}
+            </button>
+          ))}
+          <span className="ml-auto text-[10px] text-zinc-700 font-mono">{modelLabel}</span>
         </div>
       </div>
     </div>

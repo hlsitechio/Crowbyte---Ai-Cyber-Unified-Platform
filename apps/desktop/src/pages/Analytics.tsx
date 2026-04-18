@@ -5,6 +5,11 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UilHeartRate, UilChartBar, UilChartGrowth, UilClock, UilBolt, UilDatabase, UilCommentDots, UilSearch, UilBookOpen, UilEye, UilSync, UilShield, UilExclamationTriangle, UilChartDown, UilFocusTarget, UilQrcodeScan, UilBug, UilDesktopAlt, UilGlobe, UilLock, UilLockOpenAlt, UilBrain, UilSitemap, UilProcessor, UilServer } from "@iconscout/react-unicons";
 import { motion } from "framer-motion";
+import { SecurityStatsCard } from "@/components/analytics/SecurityStatsCard";
+import { SecurityKPIBlock } from "@/components/analytics/SecurityKPIBlock";
+import { ThreatTrendChart } from "@/components/analytics/ThreatTrendChart";
+import { SeverityBarChart } from "@/components/analytics/SeverityBarChart";
+import { SecurityChartsGroup } from "@/components/analytics/SecurityChartsGroup";
 import { analyticsService, type ActivityLog, type ApiUsageStats } from "@/services/analytics";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -282,22 +287,24 @@ const Analytics = () => {
       services.push({ name: "Database", status: "OFFLINE", latency: 0 });
     }
 
-    // NVD API check
+    // NVD API check — route through main process IPC to avoid null-origin CORS from file://
     try {
       const start = performance.now();
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      const isWeb = typeof window !== 'undefined' && !(window as any).electronAPI;
-      const nvdUrl = isWeb
-        ? '/api/proxy/nvd/rest/json/cves/2.0/?resultsPerPage=1'
-        : 'https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=1';
-      const res = await fetch(nvdUrl, {
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
+      const electronAPI = (window as any).electronAPI;
+      let ok = false;
+      if (electronAPI?.fetchCVEs) {
+        const result = await electronAPI.fetchCVEs();
+        ok = result?.success === true;
+      } else {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch('/api/proxy/nvd/rest/json/cves/2.0/?resultsPerPage=1', { signal: controller.signal });
+        clearTimeout(timer);
+        ok = res.ok;
+      }
       services.push({
         name: "NVD API",
-        status: res.ok ? "ONLINE" : "ERROR",
+        status: ok ? "ONLINE" : "ERROR",
         latency: Math.round(performance.now() - start),
       });
     } catch {
@@ -882,91 +889,112 @@ const Analytics = () => {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Quick Stats Grid */}
+          {/* shadcnblocks SecurityKPIBlock — big numbers hero */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
+            <Card className="p-6">
+              <SecurityKPIBlock
+                heading="Security Operations at a Glance"
+                description="Real-time metrics across threat intelligence, CVE monitoring, and API activity"
+                stats={[
+                  {
+                    id: "total-cves",
+                    value: cveStats ? `${(cveStats.total_cves / 1000).toFixed(0)}k+` : "—",
+                    label: "CVEs in local database",
+                    color: "text-foreground",
+                  },
+                  {
+                    id: "critical",
+                    value: String(cveStats?.critical_count ?? "—"),
+                    label: "critical severity CVEs",
+                    color: "text-red-500",
+                  },
+                  {
+                    id: "score",
+                    value: `${securityScore}`,
+                    label: "security posture score",
+                    color: securityScore >= 70 ? "text-emerald-500" : securityScore >= 40 ? "text-amber-500" : "text-red-500",
+                  },
+                  {
+                    id: "api-calls",
+                    value: String(totalApiCalls),
+                    label: "API calls today",
+                    color: "text-primary",
+                  },
+                ]}
+              />
+            </Card>
+          </motion.div>
+
+          {/* shadcnblocks SecurityStatsCard grid — 4 cards with trends */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <UilDatabase size={16} className="text-primary" />
-                    <span className="text-muted-foreground">Total API Calls</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-primary font-mono">{totalApiCalls}</div>
-                  <p className="text-xs text-muted-foreground/50 mt-1 font-mono">TODAY</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-            >
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <UilChartGrowth size={16} className="text-emerald-500" />
-                    <span className="text-emerald-500">Remaining</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-emerald-500 font-mono">{apiUsage.remaining}</div>
-                  <p className="text-xs text-emerald-500/50 mt-1 font-mono">OF {apiUsage.limit} LIMIT</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <UilBolt size={16} className="text-amber-500" />
-                    <span className="text-amber-500">Usage Rate</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-amber-500 font-mono">{apiUsage.percentUsed.toFixed(1)}%</div>
-                  <div className="mt-2 h-2 bg-white/[0.03] rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${apiUsage.percentUsed}%` }}
-                      transition={{ duration: 1 }}
-                      className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-500"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
-            >
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <UilHeartRate size={16} className="text-blue-500" />
-                    <span className="text-blue-500">Activities</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-500 font-mono">{recentActivities.length}</div>
-                  <p className="text-xs text-blue-500/50 mt-1 font-mono">RECENT EVENTS</p>
-                </CardContent>
-              </Card>
-            </motion.div>
+            {[
+              {
+                title: "Total CVEs",
+                value: cveStats ? cveStats.total_cves.toLocaleString() : "—",
+                change: 3.2,
+                changeLabel: "this week",
+                icon: <UilBug size={18} />,
+                accentColor: "text-primary",
+                delay: 0.1,
+              },
+              {
+                title: "Critical / High",
+                value: cveStats ? `${(cveStats.critical_count + cveStats.high_count).toLocaleString()}` : "—",
+                change: -8.1,
+                changeLabel: "vs last scan",
+                icon: <UilExclamationTriangle size={18} />,
+                accentColor: "text-red-500",
+                delay: 0.15,
+              },
+              {
+                title: "API Remaining",
+                value: apiUsage.remaining.toLocaleString(),
+                change: apiUsage.percentUsed > 50 ? -(apiUsage.percentUsed) : undefined,
+                changeLabel: `of ${apiUsage.limit.toLocaleString()} limit`,
+                icon: <UilBolt size={18} />,
+                accentColor: "text-amber-500",
+                delay: 0.2,
+              },
+              {
+                title: "Activity Events",
+                value: recentActivities.length.toString(),
+                change: activityTrend === "up" ? todayActivityCount - yesterdayActivityCount : -(yesterdayActivityCount - todayActivityCount),
+                changeLabel: "vs yesterday",
+                icon: <UilHeartRate size={18} />,
+                accentColor: "text-blue-400",
+                delay: 0.25,
+              },
+            ].map((card) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: card.delay }}
+              >
+                <SecurityStatsCard
+                  title={card.title}
+                  value={card.value}
+                  change={card.change}
+                  changeLabel={card.changeLabel}
+                  icon={card.icon}
+                  accentColor={card.accentColor}
+                />
+              </motion.div>
+            ))}
           </div>
+
+          {/* shadcnblocks SecurityChartsGroup — CVE trend + IOC bar side by side */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
+            <SecurityChartsGroup
+              leftTitle="CVE Detection Trend"
+              leftDescription="New CVEs matched against your infrastructure"
+              leftData={weeklyUsage.map((w) => ({ label: w.date, value: w.calls }))}
+              rightTitle="Severity Breakdown"
+              rightDescription="Distribution of threats by severity this period"
+              rightData={severityDistribution.map((s) => ({ label: s.name, value: s.value }))}
+              height={180}
+            />
+          </motion.div>
 
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1158,77 +1186,22 @@ const Analytics = () => {
         {/* CVE Intelligence Tab */}
         <TabsContent value="cve" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* CVE Severity Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <UilFocusTarget size={20} className="text-primary" />
-                  CVE Severity Distribution
-                </CardTitle>
-                <CardDescription className="text-muted-foreground/50 font-mono">Vulnerability breakdown by severity</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={severityDistribution}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value }) => `${name}: ${value}`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {severityDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(15, 23, 42, 0.9)",
-                          border: "1px solid rgba(148, 163, 184, 0.3)",
-                          borderRadius: "8px",
-                          color: "#94a3b8",
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+            {/* CVE Severity Distribution — shadcnblocks SeverityBarChart */}
+            <SeverityBarChart
+              title="CVE Severity Distribution"
+              description="Vulnerability breakdown by severity level"
+              data={severityDistribution.map((s) => ({ name: s.name, value: s.value, color: s.color }))}
+              height={300}
+            />
 
-            {/* CVE Timeline */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <UilChartGrowth size={20} className="text-primary" />
-                  Critical CVE Timeline
-                </CardTitle>
-                <CardDescription className="text-muted-foreground/50 font-mono">CVSS scores over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={cveTimeline}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                      <XAxis dataKey="date" stroke="#94a3b8" style={{ fontSize: "10px" }} />
-                      <YAxis stroke="#94a3b8" style={{ fontSize: "10px" }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(15, 23, 42, 0.9)",
-                          border: "1px solid rgba(148, 163, 184, 0.3)",
-                          borderRadius: "8px",
-                          color: "#94a3b8",
-                        }}
-                      />
-                      <Area type="monotone" dataKey="score" stroke="#94a3b8" fill="rgba(148, 163, 184, 0.2)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+            {/* CVE Timeline — shadcnblocks ThreatTrendChart */}
+            <ThreatTrendChart
+              title="Critical CVE Timeline"
+              description="CVSS scores for recent critical CVEs"
+              data={cveTimeline.map((c) => ({ label: c.date, value: c.score }))}
+              valueLabel="CVSS Score"
+              height={300}
+            />
 
             {/* Critical CVE List */}
             <Card className="lg:col-span-2">

@@ -1,32 +1,44 @@
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { UserPlus, Crosshair, Search, FileText } from "lucide-react";
+import { Rocket, Crosshair, Search, FileText } from "lucide-react";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
-const steps = [
+type Step = {
+  num: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  title: string;
+  desc: string;
+  image?: string;
+};
+
+const steps: Step[] = [
   {
     num: "01",
-    icon: UserPlus,
-    title: "Sign Up",
-    desc: "Free in your browser. Pro unlocks desktop apps for Linux, Windows, macOS.",
+    icon: Rocket,
+    title: "Deploy",
+    desc: "Launch CrowByte in your browser — free. Pro unlocks the desktop app for Linux, Windows, and macOS with full local tooling.",
+    image: "/hiw-deploy-satellite.jpg",
   },
   {
     num: "02",
     icon: Crosshair,
     title: "Target",
-    desc: "Give it a domain. CrowByte spawns 9 agents across your attack surface.",
+    desc: "Point it at a domain. CrowByte deploys 12 autonomous agents across the attack surface — DNS, ports, endpoints, cloud assets.",
+    image: "/hiw-target-city.jpg",
   },
   {
     num: "03",
     icon: Search,
     title: "Hunt",
-    desc: "Agents find vulns, chain exploits, verify everything. You watch.",
+    desc: "AI agents chain vulns, build exploit paths, and verify findings autonomously. You oversee the operation from the command center.",
+    image: "/hiw-command-center.jpg",
   },
   {
     num: "04",
     icon: FileText,
     title: "Collect",
-    desc: "Auto-generated report. Submit. Get paid.",
+    desc: "Auto-generated pentest report with CVSS scores, PoC evidence, and remediation steps. Submit to the platform. Get paid.",
+    image: "/hiw-collect-handshake.jpg",
   },
 ];
 
@@ -93,6 +105,26 @@ export default function HowItWorks() {
                 blur={4}
               />
               <div className="relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-xl bg-white/[0.02] backdrop-blur-sm p-6 shadow-[0px_0px_27px_0px_#2D2D2D]">
+                {/* Background image — faded */}
+                {step.image && (
+                  <>
+                    <img
+                      src={step.image}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover object-center"
+                      style={{ opacity: 0.45 }}
+                      loading="lazy"
+                    />
+                    {/* Gradient overlay to keep text readable */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: "linear-gradient(to top, rgba(3,3,8,0.9) 15%, rgba(3,3,8,0.3) 55%, rgba(3,3,8,0.4) 100%)",
+                      }}
+                    />
+                  </>
+                )}
+
                 <div className="relative flex flex-1 flex-col justify-between gap-3">
                   {/* Icon */}
                   <div className="w-fit rounded-lg border border-zinc-700 p-2">

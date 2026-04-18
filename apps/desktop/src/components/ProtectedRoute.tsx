@@ -23,7 +23,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
  useEffect(() => {
  if (!loading && !isAuthenticated) {
- navigate('/auth');
+ navigate(IS_ELECTRON ? '/welcome' : '/landing');
  return;
  }
  // Redirect to preferences wizard for new web users who haven't completed setup

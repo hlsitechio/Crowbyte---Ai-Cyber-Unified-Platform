@@ -4,7 +4,7 @@
  * Powered by Venice.ai & Ollama Cloud
  */
 
-import veniceAI from './veniceai';
+import { createChatCompletion as veniceAI_compat } from './ai';
 
 export interface PlanningRequest {
   objective: string;
@@ -149,7 +149,7 @@ ${this.getTypeSpecificGuidance(request.type)}
 Output JSON only.`;
 
     try {
-      const response = await veniceAI.createChatCompletion({
+      const response = await veniceAI_compat({
         model: 'llama-3.3-70b',
         messages: [
           { role: 'system', content: this.systemPrompt },
@@ -201,7 +201,7 @@ ${modificationGuidance}
 Output the complete modified plan as JSON only.`;
 
     try {
-      const response = await veniceAI.createChatCompletion({
+      const response = await veniceAI_compat({
         model: 'llama-3.3-70b',
         messages: [
           { role: 'system', content: this.systemPrompt },
@@ -257,7 +257,7 @@ Output as JSON:
 }`;
 
     try {
-      const response = await veniceAI.createChatCompletion({
+      const response = await veniceAI_compat({
         model: 'llama-3.3-70b',
         messages: [
           { role: 'system', content: this.systemPrompt },

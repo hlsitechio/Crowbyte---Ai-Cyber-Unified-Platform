@@ -26,7 +26,6 @@ export interface SupabaseHealth {
     database: ServiceHealthStatus;
     edgeFunctions: ServiceHealthStatus;
     veniceAPI: ServiceHealthStatus;
-    inoreaderAPI: ServiceHealthStatus;
     tavilyAPI: ServiceHealthStatus;
   };
   apiUsage: {
@@ -37,7 +36,6 @@ export interface SupabaseHealth {
       resetTime: Date;
       percentUsed: number;
     };
-    inoreader: {
       count: number;
       limit: number;
       remaining: number;
@@ -227,35 +225,9 @@ class SupabaseHealthMonitor {
     }
   }
 
-  /**
-   * Check Inoreader API health
-   */
-  private async checkInoreaderAPI(): Promise<ServiceHealthStatus> {
-    try {
-      // Get usage stats from database
-      const { data, error } = await supabase.rpc('get_api_usage', {
-        p_service_name: 'inoreader',
-      });
-
-      if (error) {
-        console.error('Inoreader API usage check error:', error);
-        return {
-          name: 'Inoreader API',
-          status: 'healthy',
-          lastChecked: new Date(),
-          usage: {
-            current: 0,
-            limit: 5000,
-            remaining: 5000,
-            percentUsed: 0,
-          },
-        };
-      }
-
       const usage = data?.[0];
       if (!usage) {
         return {
-          name: 'Inoreader API',
           status: 'healthy',
           lastChecked: new Date(),
           usage: {
@@ -277,7 +249,6 @@ class SupabaseHealthMonitor {
       }
 
       return {
-        name: 'Inoreader API',
         status,
         lastChecked: new Date(),
         usage: {
@@ -288,9 +259,7 @@ class SupabaseHealthMonitor {
         },
       };
     } catch (error: unknown) {
-      console.error('Inoreader API health check error:', error);
       return {
-        name: 'Inoreader API',
         status: 'healthy',
         lastChecked: new Date(),
         usage: {
@@ -392,9 +361,7 @@ class SupabaseHealthMonitor {
     };
 
     try {
-      const [veniceData, inoreaderData, tavilyData] = await Promise.all([
         supabase.rpc('get_api_usage', { p_service_name: 'venice' }),
-        supabase.rpc('get_api_usage', { p_service_name: 'inoreader' }),
         supabase.rpc('get_api_usage', { p_service_name: 'tavily' }),
       ]);
 
@@ -402,15 +369,12 @@ class SupabaseHealthMonitor {
       if (veniceData.error) {
         console.error('Venice usage fetch error:', veniceData.error);
       }
-      if (inoreaderData.error) {
-        console.error('Inoreader usage fetch error:', inoreaderData.error);
       }
       if (tavilyData.error) {
         console.error('Tavily usage fetch error:', tavilyData.error);
       }
 
       const veniceUsage = veniceData.data?.[0] || defaultUsage;
-      const inoreaderUsage = inoreaderData.data?.[0] || defaultUsage;
       const tavilyUsage = tavilyData.data?.[0] || { ...defaultUsage, daily_limit: 1000 };
 
       return {
@@ -420,13 +384,6 @@ class SupabaseHealthMonitor {
           remaining: veniceUsage.remaining || 5000,
           resetTime: new Date(veniceUsage.reset_time),
           percentUsed: veniceUsage.percent_used || 0,
-        },
-        inoreader: {
-          count: inoreaderUsage.call_count || 0,
-          limit: inoreaderUsage.daily_limit || 5000,
-          remaining: inoreaderUsage.remaining || 5000,
-          resetTime: new Date(inoreaderUsage.reset_time),
-          percentUsed: inoreaderUsage.percent_used || 0,
         },
         tavily: {
           count: tavilyUsage.call_count || 0,
@@ -441,13 +398,6 @@ class SupabaseHealthMonitor {
       const defaultResetTime = new Date(Date.now() + 86400000);
       return {
         venice: {
-          count: 0,
-          limit: 5000,
-          remaining: 5000,
-          resetTime: defaultResetTime,
-          percentUsed: 0,
-        },
-        inoreader: {
           count: 0,
           limit: 5000,
           remaining: 5000,
@@ -471,17 +421,16 @@ class SupabaseHealthMonitor {
   async checkHealth(): Promise<SupabaseHealth> {
     console.log('🏥 Running Supabase health check...');
 
-    const [database, edgeFunctions, veniceAPI, inoreaderAPI, tavilyAPI, apiUsage] = await Promise.all([
+    const [database, edgeFunctions, veniceAPI tavilyAPI, apiUsage] = await Promise.all([
       this.checkDatabase(),
       this.checkEdgeFunctions(),
       this.checkVeniceAPI(),
-      this.checkInoreaderAPI(),
       this.checkTavilyAPI(),
       this.getAPIUsage(),
     ]);
 
     // Determine overall health
-    const statuses = [database.status, edgeFunctions.status, veniceAPI.status, inoreaderAPI.status, tavilyAPI.status];
+    const statuses = [database.status, edgeFunctions.status, veniceAPI.status.status, tavilyAPI.status];
     let overall: 'healthy' | 'degraded' | 'down' = 'healthy';
 
     if (statuses.includes('down')) {
@@ -495,8 +444,7 @@ class SupabaseHealthMonitor {
       services: {
         database,
         edgeFunctions,
-        veniceAPI,
-        inoreaderAPI,
+        veniceAPI
         tavilyAPI,
       },
       apiUsage,

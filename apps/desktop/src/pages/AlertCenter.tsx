@@ -5,7 +5,7 @@
  * "87% of incidents require 2+ data sources. We unify them all."
  */
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { UilBell, UilSearch, UilPlus, UilTimes, UilAngleRight, UilAngleDown, UilCheckCircle, UilShieldCheck, UilShieldSlash, UilBolt, UilClock, UilEye, UilSitemap, UilExternalLinkAlt, UilCopy, UilPlug, UilFocusTarget, UilCodeBranch, UilSync, UilPen, UilUsersAlt, UilDesktop, UilListUl, UilLink, UilArchive, UilExclamationTriangle } from "@iconscout/react-unicons";
+import { UilBell, UilSearch, UilPlus, UilTimes, UilAngleRight, UilAngleDown, UilCheckCircle, UilShieldCheck, UilShieldSlash, UilBolt, UilClock, UilEye, UilSitemap, UilExternalLinkAlt, UilCopy, UilPlug, UilFocusTarget, UilCodeBranch, UilSync, UilPen, UilUsersAlt, UilDesktop, UilListUl, UilLink, UilArchive, UilExclamationTriangle, UilRobot, UilTimesCircle } from "@iconscout/react-unicons";
+import { sentinelCentral, type Escalation } from "@/services/sentinel-central";
+import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -175,6 +177,9 @@ export default function AlertCenter() {
   // ─── State ──────────────────────────────────────────────────────────────────
 
   const [activeTab, setActiveTab] = useState("feed");
+  const [escalations, setEscalations] = useState<Escalation[]>([]);
+  const [escalationAnswers, setEscalationAnswers] = useState<Record<string, string>>({});
+  const pendingCount = escalations.filter(e => e.status === 'pending').length;
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [sources, setSources] = useState<AlertSource[]>([]);
   const [investigations, setInvestigations] = useState<InvestigationTimeline[]>([]);
@@ -207,7 +212,15 @@ export default function AlertCenter() {
     }
     loadData();
     const interval = setInterval(loadData, 60000);
-    return () => clearInterval(interval);
+
+    // Load Sentinel escalations + subscribe to new ones
+    sentinelCentral.getEscalations('pending').then(setEscalations).catch(() => {});
+    const unsubEsc = sentinelCentral.subscribeToEscalations(e => {
+      setEscalations(prev => [e, ...prev]);
+      toast({ title: '🤖 Agent needs your input', description: e.question?.slice(0, 80) });
+    });
+
+    return () => { clearInterval(interval); unsubEsc(); };
   }, []);
 
   // Feed filters
@@ -393,6 +406,9 @@ export default function AlertCenter() {
           </div>
         </motion.div>
 
+        {/* Section AI Bar */}
+        <SectionAIBar path="/alert-center" onSendToChat={(prompt) => { localStorage.setItem("cb_chat_prefill", prompt); window.location.hash = "#/chat"; }} />
+
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
           <div className="flex-none px-6 pt-3 border-b border-zinc-800/50">
@@ -424,6 +440,15 @@ export default function AlertCenter() {
                 <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 bg-zinc-700/50 text-zinc-400">
                   {correlationGroups.length}
                 </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="agent-escalations" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 gap-1.5 text-xs">
+                <UilRobot className="w-3.5 h-3.5" />
+                Agent
+                {pendingCount > 0 && (
+                  <Badge className="ml-1 text-[10px] px-1.5 py-0 bg-amber-500/20 text-amber-400 border-amber-500/30 animate-pulse">
+                    {pendingCount}
+                  </Badge>
+                )}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -651,9 +676,12 @@ export default function AlertCenter() {
                                       </div>
                                     )}
                                   </div>
-                                  <span className="text-[10px] text-zinc-600 whitespace-nowrap flex-none">
-                                    {formatDistanceToNow(new Date(alert.alert_time), { addSuffix: true })}
-                                  </span>
+                                  <div className="flex items-center gap-1 flex-none" onClick={e => e.stopPropagation()}>
+                                    <span className="text-[10px] text-zinc-600 whitespace-nowrap">
+                                      {formatDistanceToNow(new Date(alert.alert_time), { addSuffix: true })}
+                                    </span>
+                                    <InlineAIMenu section="alerts" data={alert as Record<string, unknown>} />
+                                  </div>
                                 </div>
                               </div>
                             </motion.div>
@@ -1437,6 +1465,149 @@ export default function AlertCenter() {
               </div>
             </ScrollArea>
           </TabsContent>
+
+          {/* ═══════════════════════════════════════════════════════════════════════
+              TAB: Agent Escalations — questions the agent can't answer alone
+              ═══════════════════════════════════════════════════════════════════════ */}
+          <TabsContent value="agent-escalations" className="flex-1 min-h-0 mt-0 p-0">
+            <ScrollArea className="h-full">
+              <div className="p-6 space-y-4 max-w-3xl">
+
+                {/* Header */}
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10">
+                    <UilRobot size={18} className="text-amber-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-zinc-100">Agent Escalations</h2>
+                    <p className="text-[11px] text-zinc-500">
+                      The agent's confidence dropped below 90% — it's asking you to decide
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="ml-auto border-amber-500/30 text-amber-400 text-[10px]">
+                    {pendingCount} pending
+                  </Badge>
+                </div>
+
+                {escalations.filter(e => e.status === 'pending').length === 0 ? (
+                  <Card className="bg-zinc-900/40 border-zinc-800">
+                    <CardContent className="py-12 text-center space-y-2">
+                      <UilCheckCircle size={28} className="text-emerald-500 mx-auto" />
+                      <p className="text-sm text-zinc-400">No pending escalations</p>
+                      <p className="text-[11px] text-zinc-600">Agent is operating autonomously — all decisions above threshold</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-3">
+                    {escalations.filter(e => e.status === 'pending').map(esc => (
+                      <Card key={esc.id} className="bg-zinc-900/60 border-amber-500/25">
+                        <CardContent className="p-4 space-y-3">
+                          {/* Question */}
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-500/15 shrink-0 mt-0.5">
+                              <UilRobot size={14} className="text-amber-400" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-zinc-100 font-medium leading-snug">{esc.question}</p>
+                              <div className="flex items-center gap-3 mt-1 text-[10px] text-zinc-500">
+                                <span>{esc.org_name || 'Unknown org'}</span>
+                                <span>·</span>
+                                <span className="text-amber-400">confidence: {((esc.confidence || 0) * 100).toFixed(0)}%</span>
+                                <span>·</span>
+                                <span>{formatDistanceToNow(new Date(esc.timestamp), { addSuffix: true })}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Agent reasoning */}
+                          {esc.reasoning && (
+                            <div className="bg-zinc-950/60 rounded-md p-3 border border-zinc-800/50">
+                              <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Agent reasoning</p>
+                              <p className="text-[11px] text-zinc-400 font-mono leading-relaxed">
+                                {esc.reasoning.slice(0, 300)}{esc.reasoning.length > 300 ? '…' : ''}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Signals that triggered this */}
+                          {esc.signals?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {esc.signals.map((s, i) => (
+                                <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full font-mono border ${
+                                  s.severity >= 7 ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                  : s.severity >= 5 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                  : 'bg-zinc-800 text-zinc-500 border-zinc-700'
+                                }`}>
+                                  {s.type} · sev {s.severity.toFixed(1)}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Answer input */}
+                          <div className="flex gap-2 items-end pt-1">
+                            <Textarea
+                              value={escalationAnswers[esc.id] || ''}
+                              onChange={e => setEscalationAnswers(prev => ({ ...prev, [esc.id]: e.target.value }))}
+                              placeholder="Tell the agent what it needs to know..."
+                              className="text-xs bg-zinc-950 border-zinc-700 resize-none h-16 flex-1"
+                            />
+                            <div className="flex flex-col gap-1.5 shrink-0">
+                              <Button
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white h-7 px-3 text-xs gap-1.5"
+                                onClick={async () => {
+                                  const ans = escalationAnswers[esc.id]?.trim();
+                                  if (!ans) return;
+                                  await sentinelCentral.answerEscalation(esc.id, ans);
+                                  setEscalations(prev => prev.map(e => e.id === esc.id
+                                    ? { ...e, status: 'answered', answer: ans } : e));
+                                  toast({ title: 'Answer sent', description: 'Agent will use this context on the next cycle.' });
+                                }}
+                              >
+                                <UilCheckCircle size={12} /> Answer
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-3 text-xs gap-1.5 border-zinc-700"
+                                onClick={async () => {
+                                  await sentinelCentral.dismissEscalation(esc.id);
+                                  setEscalations(prev => prev.map(e => e.id === esc.id
+                                    ? { ...e, status: 'dismissed' } : e));
+                                }}
+                              >
+                                <UilTimesCircle size={12} /> Dismiss
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Answered / Dismissed history */}
+                {escalations.filter(e => e.status !== 'pending').length > 0 && (
+                  <div className="mt-6 space-y-2">
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-wider px-1">History</p>
+                    {escalations.filter(e => e.status !== 'pending').map(esc => (
+                      <div key={esc.id} className="flex items-center gap-3 p-2.5 rounded-md bg-zinc-900/40 border border-zinc-800/30 text-[11px]">
+                        <span className={esc.status === 'answered' ? 'text-emerald-400' : 'text-zinc-600'}>
+                          {esc.status === 'answered' ? '✓' : '×'}
+                        </span>
+                        <span className="text-zinc-500 flex-1 truncate">{esc.question}</span>
+                        {esc.answer && <span className="text-zinc-400 truncate max-w-[200px]">→ "{esc.answer}"</span>}
+                        <span className="text-zinc-700 shrink-0">{formatDistanceToNow(new Date(esc.timestamp), { addSuffix: true })}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
         </Tabs>
 
         {/* ═══════════════════════════════════════════════════════════════════════

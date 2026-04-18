@@ -622,7 +622,14 @@ function isFirstRun() {
   if (process.argv.includes('--squirrel-firstrun')) return true;
   try {
     const config = JSON.parse(fs.readFileSync(getConfigPath(), 'utf-8'));
-    return !config.onboardingComplete;
+    if (!config.onboardingComplete) return true;
+    // Re-run onboarding if the user never actually logged in (no stored session)
+    // or if they installed on top of a broken build (version changed without a session)
+    // Re-run onboarding if version changed or config has no version (old install)
+    if (!config.version || config.version !== app.getVersion()) {
+      return true;
+    }
+    return false;
   } catch {
     // Dev mode: userData path differs from packaged app — check real CrowByte config
     try {
@@ -653,9 +660,10 @@ function createOnboardingWindow() {
   mainWindow = new BrowserWindow({
     width: 660,
     height: 500,
-    frame: false,
+    frame: process.platform !== 'win32',
     resizable: false,
     center: true,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -663,11 +671,14 @@ function createOnboardingWindow() {
     },
     icon: path.join(__dirname, '../public/icon.png'),
     backgroundColor: '#0a0a0a',
-    titleBarStyle: 'hidden',
+    titleBarStyle: process.platform === 'darwin' ? 'hidden' : 'default',
+    autoHideMenuBar: true,
   });
 
-  const isForceProduction = process.env.NODE_ENV === 'production';
-  const isDev = !isForceProduction && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged);
+  // Packaged app ALWAYS loads from files — NODE_ENV is irrelevant for installed builds
+  const isDev = !app.isPackaged && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev'));
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+
   if (isDev) {
     mainWindow.loadURL('http://localhost:8081/#/onboarding');
   } else {
@@ -694,7 +705,74 @@ ipcMain.handle('onboarding:skip', () => {
   return { success: true };
 });
 
+// HTTP proxy — bypasses renderer null-origin CORS from file://
+const { net } = require('electron');
+ipcMain.handle('http:fetch', async (_event, url, options = {}) => {
+  return new Promise((resolve) => {
+    const request = net.request({ url, method: options.method || 'GET' });
+    if (options.headers) {
+      for (const [k, v] of Object.entries(options.headers)) request.setHeader(k, v);
+    }
+    const timer = setTimeout(() => { request.abort(); resolve({ ok: false, status: 0, statusText: 'timeout', body: '' }); }, options.timeout || 10000);
+    request.on('response', (res) => {
+      clearTimeout(timer);
+      let body = '';
+      res.on('data', (chunk) => { body += chunk.toString(); });
+      res.on('end', () => resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode, statusText: res.statusMessage || '', body }));
+    });
+    request.on('error', (err) => { clearTimeout(timer); resolve({ ok: false, status: 0, statusText: err.message, body: '' }); });
+    request.end();
+  });
+});
+
 // Open URL in system browser
+// ─── Update Checker ─────────────────────────────────────────────────────────
+
+async function checkForUpdate() {
+  try {
+    const https = require('https');
+    const currentVersion = app.getVersion();
+    const manifestUrl = 'https://crowbyte.io/version.json';
+    const data = await new Promise((resolve, reject) => {
+      https.get(manifestUrl, (res) => {
+        let body = '';
+        res.on('data', (chunk) => body += chunk);
+        res.on('end', () => {
+          try { resolve(JSON.parse(body)); } catch (e) { reject(e); }
+        });
+      }).on('error', reject).setTimeout(8000, function() { this.destroy(); reject(new Error('timeout')); });
+    });
+    const latestVersion = data.version;
+    if (latestVersion && latestVersion !== currentVersion) {
+      console.log(`[update] New version available: ${latestVersion} (current: ${currentVersion})`);
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win) win.webContents.send('update-available', { current: currentVersion, latest: latestVersion });
+    }
+  } catch (e) {
+    console.log('[update] Version check failed:', e.message);
+  }
+}
+
+ipcMain.handle('apply-update', async () => {
+  try {
+    const { exec } = require('child_process');
+    const platform = process.platform;
+    if (platform === 'win32') {
+      // Run update.ps1 which downloads installer, stops app, installs, relaunches
+      const ps = 'Start-Process powershell -ArgumentList \"-NoProfile -ExecutionPolicy Bypass -Command (irm https://crowbyte.io/update.ps1 | iex)\" -WindowStyle Hidden';
+      exec(`powershell -NoProfile -NonInteractive -WindowStyle Hidden -Command "${ps}"`);
+    } else {
+      // Linux/macOS: run install.sh
+      exec('bash -c "curl -fsSL https://crowbyte.io/update.sh | bash" &');
+    }
+    // Quit after 1s to let the update process start
+    setTimeout(() => app.quit(), 1000);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
 ipcMain.handle('open-external', async (event, url) => {
   const { shell } = require('electron');
   if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
@@ -797,6 +875,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -808,8 +887,9 @@ function createWindow() {
     },
     backgroundColor: '#0a0a0a',
     icon: path.join(__dirname, '../public/icon.png'),
-    frame: false, // Remove window decorations
-    titleBarStyle: 'hidden',
+    frame: process.platform !== 'win32', // Frameless on Linux/Mac, framed on Windows (DWM issues)
+    titleBarStyle: process.platform === 'darwin' ? 'hidden' : 'default',
+    autoHideMenuBar: true,
   });
 
   // Browser panel session is now managed by BrowserManager (see bottom of file)
@@ -820,8 +900,8 @@ function createWindow() {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          true // Always use permissive CSP — we're a security tool, not a web app
-            ? // Development/Runtime: Allow localhost + all IP services + AI services + VNC
+          !app.isPackaged // Dev: permissive; Production: strict
+            ? // Development: Allow localhost + all IP services + AI services + VNC
               "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* data: blob:; " +
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; " +
               "style-src 'self' 'unsafe-inline' http://localhost:* https://fonts.googleapis.com; " +
@@ -833,6 +913,7 @@ function createWindow() {
               "https://ifconfig.me https://ident.me https://wtfismyip.com " +
               "https://ipapi.co " +
               "https://api.venice.ai https://ollama.ai https://*.supabase.co wss://*.supabase.co " +
+              "https://crowbyte.io https://*.crowbyte.io " +
               "https://*.hstgr.cloud " +
               "wss://*.hstgr.cloud:* " +
               "https://openrouter.ai https://*.openrouter.ai " +
@@ -849,6 +930,7 @@ function createWindow() {
               "https://ifconfig.me https://ident.me https://wtfismyip.com " +
               "https://ipapi.co " +
               "https://api.venice.ai https://ollama.ai https://*.supabase.co " +
+              "https://crowbyte.io https://*.crowbyte.io " +
               "https://*.hstgr.cloud " +
               "https://openrouter.ai https://*.openrouter.ai " +
               "https://integrate.api.nvidia.com http://" + (process.env.VITE_VPS_IP || '127.0.0.1') + ":*; " +
@@ -859,19 +941,21 @@ function createWindow() {
   });
 
   // Load the app — dev server in development, built files in production
-  // NODE_ENV=production overrides !app.isPackaged (Docker runs from source but needs prod mode)
-  const isForceProduction = process.env.NODE_ENV === 'production';
-  const isDev = !isForceProduction && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || !app.isPackaged);
+  // Packaged app ALWAYS loads from files — NODE_ENV on user's machine is irrelevant
+  // Docker (unpackaged + NODE_ENV=production) also loads from files via !app.isPackaged = false
+  const isDev = !app.isPackaged && (process.env.NODE_ENV === 'development' || process.argv.includes('--dev'));
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+
   if (isDev) {
     mainWindow.loadURL('http://localhost:8081');
     console.log('[*] Loading from dev server: http://localhost:8081');
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: '/' });
     console.log('[*] Loading from built files: dist/index.html');
   }
 
-  // Auto-fullscreen in Docker/headless environments (Xvfb + Fluxbox ignores maximize/setBounds)
-  if (isForceProduction && !app.isPackaged) {
+  // Auto-fullscreen in Docker/headless environments (Xvfb + Fluxbox, unpackaged)
+  if (!app.isPackaged && process.env.NODE_ENV === 'production') {
     mainWindow.setFullScreen(true);
   }
 
@@ -884,13 +968,12 @@ function createWindow() {
           mainWindow.webContents.inspectElement(params.x, params.y);
         }
       },
-      {
+      ...(!app.isPackaged ? [] : []), // guard below item to dev only
+      ...(app.isPackaged ? [] : [{
         label: 'Open DevTools',
         accelerator: 'Ctrl+Shift+I',
-        click: () => {
-          mainWindow.webContents.toggleDevTools();
-        }
-      },
+        click: () => { mainWindow.webContents.toggleDevTools(); }
+      }]),
       { type: 'separator' },
       {
         label: 'Reload',
@@ -911,18 +994,20 @@ function createWindow() {
     contextMenu.popup();
   });
 
-  // Keyboard shortcuts for DevTools
-  mainWindow.webContents.on('before-input-event', (event, input) => {
-    // Ctrl+Shift+I or F12 to toggle DevTools
-    if ((input.control && input.shift && input.key.toLowerCase() === 'i') || input.key === 'F12') {
-      mainWindow.webContents.toggleDevTools();
-    }
-    // Ctrl+Shift+C for inspect element mode
-    else if (input.control && input.shift && input.key.toLowerCase() === 'c') {
-      mainWindow.webContents.toggleDevTools();
-      mainWindow.webContents.devToolsWebContents?.executeJavaScript('DevToolsAPI.enterInspectElementMode()');
-    }
-  });
+  // Keyboard shortcuts for DevTools — dev only, disabled in production builds
+  if (!app.isPackaged) {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      // Ctrl+Shift+I or F12 to toggle DevTools
+      if ((input.control && input.shift && input.key.toLowerCase() === 'i') || input.key === 'F12') {
+        mainWindow.webContents.toggleDevTools();
+      }
+      // Ctrl+Shift+C for inspect element mode
+      else if (input.control && input.shift && input.key.toLowerCase() === 'c') {
+        mainWindow.webContents.toggleDevTools();
+        mainWindow.webContents.devToolsWebContents?.executeJavaScript('DevToolsAPI.enterInspectElementMode()');
+      }
+    });
+  }
 
   // Handle OAuth redirects (GitHub, etc.)
   mainWindow.webContents.on('will-navigate', (event, url) => {
@@ -1040,13 +1125,24 @@ function handleDeepLink(url) {
 
 // App lifecycle
 app.whenReady().then(async () => {
+  Menu.setApplicationMenu(null);
   // Disable GPU cache to prevent cache errors
   app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
   app.commandLine.appendSwitch('disable-gpu-program-cache');
 
-  // Accept self-signed certs for VPS remote control (noVNC over WSS)
-  session.defaultSession.setCertificateVerifyProc((_request, callback) => {
-    callback(0); // 0 = accept
+  // Accept self-signed certs ONLY for known VPS/noVNC hosts — not globally
+  const VPS_HOSTS = [
+    '187.124.85.249',
+    'srv1459982.hstgr.cloud',
+    '147.93.44.58',
+    'crowbyte-vps',
+  ];
+  session.defaultSession.setCertificateVerifyProc((request, callback) => {
+    if (VPS_HOSTS.includes(request.hostname)) {
+      callback(0); // accept self-signed for known VPS hosts
+    } else {
+      callback(-3); // use Chromium default verification for all others
+    }
   });
 
   console.log('\n' + '='.repeat(70));
@@ -1064,6 +1160,8 @@ app.whenReady().then(async () => {
     createWindow();
     browserMgr.init();
     console.log('[+] Browser manager initialized');
+    // Check for updates 30s after startup (non-blocking)
+    setTimeout(checkForUpdate, 30000);
   }
 
   app.on('activate', () => {
@@ -1085,6 +1183,74 @@ app.on('before-quit', async () => {
 });
 
 // IPC Handlers
+
+// ─── Desktop Auth Flow (Browser login → localhost token handoff) ─────────────
+ipcMain.handle('start-oauth-pkce', async () => {
+  const { shell } = require('electron');
+  const http = require('http');
+
+  return new Promise((resolve) => {
+    let resolved = false;
+    const done = (result) => {
+      if (resolved) return;
+      resolved = true;
+      if (server) try { server.close(); } catch {}
+      resolve(result);
+    };
+
+    // Timeout after 5 minutes
+    const timeout = setTimeout(() => done({ success: false, error: 'Auth timeout — no response from browser' }), 300000);
+
+    // Start temporary localhost server to catch the token callback
+    const server = http.createServer(async (req, res) => {
+      const url = new URL(req.url, 'http://localhost:19876');
+      if (!url.pathname.startsWith('/auth/callback')) {
+        res.writeHead(404);
+        res.end('Not found');
+        return;
+      }
+
+      const access_token = url.searchParams.get('access_token');
+      const refresh_token = url.searchParams.get('refresh_token');
+      const error = url.searchParams.get('error');
+
+      if (error) {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end('<html><body style="background:#030308;color:#ef4444;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0"><h2>Authentication failed. You can close this tab.</h2></body></html>');
+        clearTimeout(timeout);
+        done({ success: false, error });
+        return;
+      }
+
+      if (!access_token) {
+        res.writeHead(400, { 'Content-Type': 'text/html' });
+        res.end('<html><body style="background:#030308;color:#f59e0b;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0"><h2>No tokens received. Try again.</h2></body></html>');
+        return;
+      }
+
+      // Success — tokens received directly from the login page
+      console.log('[+] Auth tokens received from browser login');
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end('<html><body style="background:#030308;color:#22c55e;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0"><h2>Signed in! You can close this tab.</h2></body></html>');
+      clearTimeout(timeout);
+      done({ success: true, access_token, refresh_token: refresh_token || '' });
+    });
+
+    server.listen(19876, '127.0.0.1', () => {
+      console.log('[*] Auth callback server listening on http://localhost:19876');
+      // Open the CrowByte login page in system browser
+      const loginUrl = 'https://crowbyte.io/oauth/consent/';
+      console.log('[*] Opening login page in system browser');
+      shell.openExternal(loginUrl);
+    });
+
+    server.on('error', (err) => {
+      console.error('[!] Auth callback server error:', err.message);
+      clearTimeout(timeout);
+      done({ success: false, error: `Server error: ${err.message}` });
+    });
+  });
+});
 
 // Initialize Venice.ai with API key
 ipcMain.handle('init-venice', async (event, apiKey) => {
@@ -1185,6 +1351,17 @@ ipcMain.handle('maximize-window', async () => {
     } else {
       mainWindow.maximize();
     }
+  }
+});
+
+ipcMain.handle('support:screenshot', async () => {
+  if (!mainWindow) return null;
+  try {
+    const image = await mainWindow.webContents.capturePage();
+    const resized = image.resize({ width: 1280 });
+    return resized.toDataURL();
+  } catch (e) {
+    return null;
   }
 });
 
@@ -1541,7 +1718,7 @@ ipcMain.handle('execute-command', async (event, command) => {
       const cleanArgs = args.map(arg => arg.replace(/^"|"$/g, ''));
 
       const childProcess = spawn(program, cleanArgs, {
-        shell: true,
+        shell: false, // no shell — prevents metacharacter injection via IPC
         windowsHide: true,
         env: {
           ...process.env,
@@ -1752,7 +1929,7 @@ ipcMain.handle('run-command', async (event, command, args = []) => {
       console.log(`🔧 Running command: ${command} ${args.join(' ')}`);
 
       const childProcess = spawn(command, args, {
-        shell: true,
+        shell: false, // no shell — prevents metacharacter injection
         windowsHide: true,
         env: {
           ...process.env,
@@ -1906,6 +2083,8 @@ ipcMain.handle('fetch-cves', async (event, year) => {
 
 // Store encrypted credentials for a device
 ipcMain.handle('store-credentials', async (event, { deviceId, email, encryptedPassword }) => {
+  try { if (!encryptedPassword || typeof encryptedPassword !== 'string') return { success: false, error: 'Invalid credentials payload' }; } catch {}
+  const _origTry = true;
   try {
     if (!safeStorage.isEncryptionAvailable()) {
       console.warn('⚠️  Encryption not available on this system');
@@ -2108,18 +2287,20 @@ ipcMain.handle('get-system-metrics', async () => {
     try {
       const { execSync } = require('child_process');
       if (process.platform === 'win32') {
-        const output = execSync('wmic logicaldisk where "DeviceID=\'C:\'" get Size,FreeSpace /format:csv', {
-          encoding: 'utf8', windowsHide: true,
-        });
-        const lines = output.trim().split('\n').filter(l => l.includes(','));
+        // PowerShell Get-PSDrive (works on Win10/11, returns MB used/free)
+        const output = execSync(
+          'powershell -NoProfile -NonInteractive -Command "Get-PSDrive C | Select-Object Used,Free | ConvertTo-Csv -NoTypeInformation"',
+          { encoding: 'utf8', windowsHide: true, timeout: 5000 }
+        );
+        const lines = output.trim().split('\n').filter(l => l.match(/^\d/));
         if (lines.length > 0) {
-          const parts = lines[lines.length - 1].split(',');
-          if (parts.length >= 3) {
-            const freeSpace = parseInt(parts[1]) || 0;
-            const totalSize = parseInt(parts[2]) || 0;
-            diskTotal = totalSize / (1024 * 1024 * 1024);
-            diskUsed = (totalSize - freeSpace) / (1024 * 1024 * 1024);
-            diskUsage = Math.round((diskUsed / diskTotal) * 100);
+          const parts = lines[0].split(',').map(p => p.replace(/"/g, '').trim());
+          if (parts.length >= 2) {
+            const usedBytes = parseFloat(parts[0]) || 0;
+            const freeBytes = parseFloat(parts[1]) || 0;
+            diskTotal = (usedBytes + freeBytes) / (1024 * 1024 * 1024);
+            diskUsed = usedBytes / (1024 * 1024 * 1024);
+            diskUsage = diskTotal > 0 ? Math.round((diskUsed / diskTotal) * 100) : 0;
           }
         }
       } else {
@@ -2240,6 +2421,13 @@ app.on('before-quit', () => {
 // ══════════════════════════════════════════════════════════════════
 
 const http = require('http');
+const crypto = require('crypto');
+
+// Secret token for the browser-ctl HTTP server — generated fresh on each launch.
+// browser-ctl CLI reads it from /tmp/.crowbyte-browser-token (mode 600).
+const BROWSER_CTL_TOKEN = crypto.randomBytes(24).toString('hex');
+const BROWSER_TOKEN_FILE = path.join(require('os').tmpdir(), '.crowbyte-browser-token');
+require('fs').writeFileSync(BROWSER_TOKEN_FILE, BROWSER_CTL_TOKEN, { mode: 0o600 });
 
 class BrowserManager {
   constructor() {
@@ -2279,9 +2467,15 @@ class BrowserManager {
   async _loadExtensions() {
     const fs = require('fs');
     const extDir = path.join(__dirname, '..', 'extensions');
-    if (!fs.existsSync(extDir)) {
-      fs.mkdirSync(extDir, { recursive: true });
-      console.log('📁 Created extensions directory:', extDir);
+    try {
+      if (!fs.existsSync(extDir)) {
+        fs.mkdirSync(extDir, { recursive: true });
+        console.log('[+] Created extensions directory:', extDir);
+        return;
+      }
+    } catch (err) {
+      // Inside asar archive, __dirname/../extensions is not a real filesystem path
+      console.warn('[i] Extensions directory not available (asar):', err.message);
       return;
     }
     try {
@@ -2642,11 +2836,28 @@ ipcMain.handle('browser-mgr:get-title', (e, { tabId } = {}) => {
 
 const browserServer = http.createServer(async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Only allow requests from the local machine (CLI tools, no web pages)
+  const origin = req.headers['origin'];
+  if (origin) {
+    // Any cross-origin request (from a web page) is rejected
+    res.writeHead(403);
+    return res.end(JSON.stringify({ error: 'Forbidden: cross-origin requests not allowed' }));
+  }
+
+  // Require auth token for all state-mutating POST requests
+  if (req.method === 'POST') {
+    const authHeader = req.headers['x-crowbyte-token'] || req.headers['authorization'];
+    const token = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null;
+    if (token !== BROWSER_CTL_TOKEN) {
+      res.writeHead(401);
+      return res.end(JSON.stringify({ error: 'Unauthorized: missing or invalid token' }));
+    }
+  }
 
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CrowByte-Token');
     res.writeHead(200);
     return res.end();
   }

@@ -30,11 +30,13 @@ interface Manifest {
 const STORAGE_BUCKET = "releases";
 
 const FILE_SIZES: Record<string, string> = {
+  "CrowByte-Setup-2.2.0.exe": "168 MB",
+  "CrowByte-2.2.0-x64.msi": "178 MB",
+  "CrowByte-2.2.0.AppImage": "136 MB",
+  "CrowByte-2.2.0-amd64.deb": "101 MB",
+  "CrowByte-2.2.0-arm64.dmg": "130 MB",
   "CrowByte-Setup-2.1.0.exe": "109 MB",
   "CrowByte-2.1.0-x64.msi": "122 MB",
-  "CrowByte-2.1.0.AppImage": "136 MB",
-  "CrowByte-2.1.0-amd64.deb": "101 MB",
-  "CrowByte-2.1.0-arm64.dmg": "130 MB",
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -76,7 +78,7 @@ export default function Downloads() {
         // Use service-level download for the manifest (small JSON, no auth needed)
         const { data, error } = await supabase.storage
           .from(STORAGE_BUCKET)
-          .download("2.1.0/manifest.json");
+          .download("2.2.0/manifest.json");
         if (data && !error) {
           const text = await data.text();
           setManifest(JSON.parse(text));
@@ -90,8 +92,8 @@ export default function Downloads() {
     loadManifest();
   }, []);
 
-  const version = manifest?.version || "2.1.0";
-  const releaseDate = manifest?.release_date || "2026-03-27";
+  const version = manifest?.version || "2.2.0";
+  const releaseDate = manifest?.release_date || "2026-04-13";
 
   // Build package list from manifest
   const packages: PackageInfo[] = [

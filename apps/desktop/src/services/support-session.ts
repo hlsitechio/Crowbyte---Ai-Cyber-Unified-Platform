@@ -120,14 +120,33 @@ export function startStreaming(
     if (status === "SUBSCRIBED") {
       console.log("[support] Streaming started on channel:", sessionId);
       // Send initial state
-      sendFrame({ type: "state", timestamp: Date.now(), data: collectState() });
+      collectState().then((state) => {
+        sendFrame({ type: "state", timestamp: Date.now(), data: state });
+      });
     }
   });
 
   // Periodic state snapshots
-  _frameInterval = setInterval(() => {
-    sendFrame({ type: "state", timestamp: Date.now(), data: collectState() });
+  _frameInterval = setInterval(async () => {
+    const state = await collectState();
+    sendFrame({ type: "state", timestamp: Date.now(), data: state });
     flushLogs();
+    // Persist snapshot to DB so AI can read it
+    if (_sessionId) {
+      supabase
+        .from(TABLE as any)
+        .update({ last_snapshot: state } as any)
+        .eq("id", _sessionId)
+        .then(() => {});
+    }
+    // Capture screenshot if running in Electron
+    const api = (window as any).electronAPI;
+    if (api?.invoke) {
+      const dataUrl: string | null = await api.invoke('support:screenshot').catch(() => null);
+      if (dataUrl) {
+        sendFrame({ type: "action", timestamp: Date.now(), data: { screenshot: dataUrl } });
+      }
+    }
   }, FRAME_INTERVAL_MS);
 
   // Hook into error monitor
@@ -204,10 +223,10 @@ function flushLogs(): void {
 
 // ─── State Collection ───────────────────────────────────────────────────────
 
-function collectState(): Record<string, unknown> {
+async function collectState(): Promise<Record<string, unknown>> {
   const errors = errorMonitor.getErrors();
   const network = errorMonitor.getNetworkLog();
-  const perf = errorMonitor.getPerformance();
+  const perf = errorMonitor.getPerformanceMetrics();
   const nav = errorMonitor.getNavigationLog();
 
   return {
@@ -218,7 +237,7 @@ function collectState(): Record<string, unknown> {
     performance: perf,
     navigation: nav.slice(-10),
     localStorage: collectLocalStorage(),
-    session: collectSessionInfo(),
+    session: await collectSessionInfo(),
     viewport: {
       width: window.innerWidth,
       height: window.innerHeight,
@@ -293,20 +312,30 @@ function unhookErrorMonitor(): void {
   window.removeEventListener("unhandledrejection", _onUnhandledRejection);
 }
 
+function _persistError(entry: object): void {
+  if (!_sessionId) return;
+  // Append to error_log array in DB (keep last 50)
+  supabase.rpc('append_support_error' as any, { session_id: _sessionId, entry }).then(() => {});
+}
+
 function _onGlobalError(e: ErrorEvent): void {
-  sendFrame({
+  const frame = {
     type: "error",
     timestamp: Date.now(),
     data: { message: e.message, filename: e.filename, line: e.lineno, col: e.colno },
-  });
+  };
+  sendFrame(frame);
+  _persistError(frame.data);
 }
 
 function _onUnhandledRejection(e: PromiseRejectionEvent): void {
-  sendFrame({
+  const frame = {
     type: "error",
     timestamp: Date.now(),
     data: { message: String(e.reason), type: "unhandled_rejection" },
-  });
+  };
+  sendFrame(frame);
+  _persistError(frame.data);
 }
 
 // ─── Support Side — Subscribe to user's stream ──────────────────────────────
@@ -441,7 +470,7 @@ export async function getMyPendingSession(): Promise<SupportSession | null> {
     .in("status", ["pending", "active"])
     .order("created_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error || !data) return null;
   const s = data as any;

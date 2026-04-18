@@ -130,11 +130,7 @@ function saveTicket(status: LicenseStatus): void {
       // Silent fail
     }
   }).catch(() => {});
-  // Also try Electron safeStorage if available
-  window.electronAPI?.storeCredentials?.({
-    deviceId: CACHE_KEY,
-    data: JSON.stringify(status),
-  });
+  // localStorage is sufficient for the license ticket — safeStorage is for user credentials only
 }
 
 function loadTicket(): LicenseStatus | null {

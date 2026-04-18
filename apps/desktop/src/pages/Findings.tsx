@@ -44,6 +44,7 @@ import {
 import { triageEngine } from "@/services/triage-engine";
 import { UilCrosshair, UilSearch, UilPlus, UilDownloadAlt, UilSitemap, UilDatabase, UilBug, UilEye, UilPen, UilWindow, UilFilter, UilTimes, UilAngleDown, UilAngleRight, UilAngleLeft, UilCheckSquare, UilSquare, UilMinusSquare, UilTrashAlt, UilShieldCheck, UilShieldSlash, UilShieldExclamation, UilCheckCircle, UilLink, UilClock, UilTag, UilArrowsV, UilSortAmountUp, UilSortAmountDown, UilCopy, UilFileAlt, UilExclamationTriangle, UilExternalLinkAlt, UilEllipsisV, UilFocusTarget, UilBolt } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
+import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 import { formatDistanceToNow } from "date-fns";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -840,6 +841,7 @@ export default function Findings() {
           </div>
         </motion.div>
 
+        <SectionAIBar path="/findings" onSendToChat={(prompt) => { localStorage.setItem("cb_chat_prefill", prompt); window.location.hash = "#/chat"; }} />
         {/* Bulk Actions Bar */}
         <AnimatePresence>
           {selectedIds.size > 0 && (
@@ -887,7 +889,7 @@ export default function Findings() {
             className="h-full flex flex-col rounded-lg border border-zinc-800/50 bg-zinc-900/30 overflow-hidden"
           >
             {/* Table Header */}
-            <div className="flex-none grid grid-cols-[32px_80px_1fr_180px_100px_70px_90px_80px_120px] items-center gap-2 px-3 py-2 bg-zinc-900/80 border-b border-zinc-800/50 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+            <div className="flex-none grid grid-cols-[32px_80px_1fr_180px_100px_70px_90px_80px_80px_80px] items-center gap-2 px-3 py-2 bg-zinc-900/80 border-b border-zinc-800/50 text-xs font-medium text-zinc-500 uppercase tracking-wider">
               <div className="flex items-center justify-center">
                 <Checkbox
                   checked={allOnPageSelected}
@@ -918,6 +920,7 @@ export default function Findings() {
               <button onClick={() => handleSort("created_at")} className="flex items-center gap-1 hover:text-zinc-300 transition-colors">
                 Created <SortIcon field="created_at" />
               </button>
+              <div>AI</div>
             </div>
 
             {/* Table Body */}
@@ -925,7 +928,7 @@ export default function Findings() {
               {loading ? (
                 <div className="p-4 space-y-3">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="grid grid-cols-[32px_80px_1fr_180px_100px_70px_90px_80px_120px] gap-2 px-3 py-2">
+                    <div key={i} className="grid grid-cols-[32px_80px_1fr_180px_100px_70px_90px_80px_80px_80px] gap-2 px-3 py-2">
                       <Skeleton className="h-4 w-4" />
                       <Skeleton className="h-5 w-16" />
                       <Skeleton className="h-4 w-full" />
@@ -950,7 +953,7 @@ export default function Findings() {
                     <div key={finding.id}>
                       {/* Row */}
                       <div
-                        className={`grid grid-cols-[32px_80px_1fr_180px_100px_70px_90px_80px_120px] items-center gap-2 px-3 py-2.5 border-b border-zinc-800/30 hover:bg-zinc-800/30 transition-colors cursor-pointer text-sm ${
+                        className={`grid grid-cols-[32px_80px_1fr_180px_100px_70px_90px_80px_80px_80px] items-center gap-2 px-3 py-2.5 border-b border-zinc-800/30 hover:bg-zinc-800/30 transition-colors cursor-pointer text-sm ${
                           expandedId === finding.id ? "bg-zinc-800/40" : ""
                         } ${selectedIds.has(finding.id) ? "bg-blue-500/5" : ""}`}
                         onClick={() => handleExpand(finding)}
@@ -1031,6 +1034,11 @@ export default function Findings() {
                         {/* Created */}
                         <div className="text-xs text-zinc-600">
                           {formatDistanceToNow(new Date(finding.created_at), { addSuffix: true })}
+                        </div>
+
+                        {/* AI Actions */}
+                        <div className="flex items-center justify-end" onClick={e => e.stopPropagation()}>
+                          <InlineAIMenu section="findings" data={finding as Record<string, unknown>} />
                         </div>
                       </div>
 

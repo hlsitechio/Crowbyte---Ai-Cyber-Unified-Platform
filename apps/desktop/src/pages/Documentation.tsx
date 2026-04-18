@@ -68,7 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
  items: [
  { id:"security-monitor", label:"Security Monitor", icon: UilShield, badge:"AI" },
  { id:"fleet", label:"Fleet Management", icon: UilMonitor },
- { id:"cve", label:"CVE UilDatabase", icon: UilBug },
+ { id:"cve", label:"CVE Database", icon: UilBug },
  { id:"threat-intel", label:"Threat Intelligence", icon: UilShieldExclamation },
  ],
  },
@@ -89,7 +89,7 @@ const NAV_GROUPS: NavGroup[] = [
  color:"text-muted-foreground",
  icon: UilWindow,
  items: [
- { id:"terminal", label:"UilWindow", icon: UilWindow },
+ { id:"terminal", label:"Terminal", icon: UilWindow },
  { id:"logs", label:"Logs", icon: UilScroll },
  { id:"settings", label:"Settings", icon: UilCog },
  ],
@@ -227,7 +227,7 @@ export default function Documentation() {
  {/* Footer */}
  <div className="p-3 border-t border-white/[0.04]">
  <div className="text-[10px] text-zinc-600 text-center">
- CrowByte UilWindow v1.0 | 34 sections | {new Date().toLocaleDateString()}
+ CrowByte Terminal v1.0 | 34 sections | {new Date().toLocaleDateString()}
  </div>
  </div>
  </div>

@@ -19,6 +19,7 @@ import { useAuth } from"@/contexts/auth";
 import { useToast } from"@/hooks/use-toast";
 import { motion, AnimatePresence } from"framer-motion";
 import { formatDistanceToNow } from"date-fns";
+import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 
 interface CVE {
  id: string;
@@ -382,14 +383,17 @@ const CVEPage = () => {
  </div>
  </div>
 
- <div className="flex items-center gap-1 shrink-0">
+ <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+ <InlineAIMenu section="cves" data={cve as Record<string, unknown>} />
  <button onClick={e => { e.stopPropagation(); toggleBookmark(cve.id, cve.is_bookmarked); }} className="p-1 rounded hover:bg-white/[0.05] transition-colors">
  {cve.is_bookmarked
  ? <UilBookmark size={14} className="fill-yellow-500 text-yellow-500" />
  : <UilBookmark size={14} className="text-zinc-600 hover:text-zinc-400" />
  }
  </button>
- <UilAngleDown size={14} className={`text-zinc-500 transition-transform ${isExpanded ?"rotate-180" :""}`} />
+ <div onClick={e => { e.stopPropagation(); setExpandedId(isExpanded ? null : cve.id); }}>
+   <UilAngleDown size={14} className={`text-zinc-500 transition-transform cursor-pointer ${isExpanded ?"rotate-180" :""}`} />
+ </div>
  </div>
  </div>
  </div>
@@ -510,6 +514,9 @@ const CVEPage = () => {
  <Button size="sm" variant="ghost" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}>Cancel</Button>
  </div>
  )}
+
+ {/* Section AI Bar */}
+ <SectionAIBar path="/cve" onSendToChat={(prompt) => { localStorage.setItem("cb_chat_prefill", prompt); window.location.hash = "#/chat"; }} />
 
  {/* Header */}
  <div className="flex items-center justify-between">

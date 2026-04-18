@@ -48,6 +48,7 @@ const AgentBuilder = () => {
  const [saving, setSaving] = useState(false);
  const [agents, setAgents] = useState<CustomAgent[]>([]);
  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+ const [generatePrompt, setGeneratePrompt] = useState("");
 
  useEffect(() => {
  loadAgents();
@@ -175,6 +176,31 @@ const AgentBuilder = () => {
 
  const removeTool = (id: string) => {
  setTools(tools.filter((tool) => tool.id !== id));
+ };
+
+ const handleGenerateConfig = () => {
+   const prompt = generatePrompt.trim();
+   if (!prompt) {
+     toast({ title: "Enter a description", description: "Describe your agent to generate a configuration.", variant: "destructive" });
+     return;
+   }
+   // Derive a name from the first few meaningful words
+   const words = prompt.replace(/[^a-zA-Z0-9 ]/g, "").split(/\s+/).filter(Boolean);
+   const name = words.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") + " Agent";
+   const isSecurity = /security|pentest|hack|vuln|exploit|recon|scan|ctf|bug bounty/i.test(prompt);
+   const isAnalyst = /analyz|research|intel|threat|investigat|report/i.test(prompt);
+   setAgentName(name);
+   setDescription(prompt);
+   setCategory(isSecurity ? "security" : isAnalyst ? "intelligence" : "general");
+   setInstructions(`You are ${name}. ${prompt}\n\nBe concise, accurate, and actionable. Always explain your reasoning.`);
+   setConversationStarters([
+     `Help me get started with ${words[0] || "this task"}`,
+     "What can you do?",
+     "Show me an example",
+   ]);
+   setActiveTab("configure");
+   toast({ title: "Configuration generated", description: "Review and customize the fields, then save." });
+   setGeneratePrompt("");
  };
 
  const sendPreviewMessage = async () => {
@@ -317,8 +343,11 @@ const AgentBuilder = () => {
   <Input
   placeholder="Describe your AI agent..."
   className="bg-background border-border terminal-text"
+  value={generatePrompt}
+  onChange={(e) => setGeneratePrompt(e.target.value)}
+  onKeyDown={(e) => e.key === "Enter" && handleGenerateConfig()}
  />
-  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleGenerateConfig}>
   Generate Configuration
   </Button>
   </div>

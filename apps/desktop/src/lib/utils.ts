@@ -1,19 +1,11 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
-/**
- * Sanitize a string for use in PostgREST .or() filters.
- * Escapes characters that break or() syntax: commas, parentheses, periods (in value position).
- * Use: query.or(`title.ilike.%${pgOr(search)}%,desc.ilike.%${pgOr(search)}%`)
- */
+// Escape special characters for Supabase PostgREST .or() filter strings
 export function pgOr(value: string): string {
-  return value
-    .replace(/\\/g, '\\\\')
-    .replace(/,/g, '\\,')
-    .replace(/\(/g, '\\(')
-    .replace(/\)/g, '\\)');
+  return value.replace(/[%_\\()|,]/g, '\\$&')
 }

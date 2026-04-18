@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { UilShield, UilPlus, UilTrashAlt, UilPen, UilDesktop, UilGlobe, UilCloud, UilCog, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilBolt, UilEye, UilSync, UilAngleDown, UilAngleRight, UilCopy, UilCrosshair, UilHeartRate, UilRobot, UilFocusTarget, UilHistory, UilPlay, UilQrcodeScan, UilWindow } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from 'framer-motion';
+import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 import { useToast } from '@/hooks/use-toast';
 import {
   sentinelService,
@@ -23,6 +25,17 @@ import {
 } from '@/services/sentinel';
 import { sentinelEngine, type SentinelEvent } from '@/services/sentinel-engine';
 import { sentinelAI, type SentinelChatMessage } from '@/services/sentinel-ai';
+import {
+  sentinelCentral,
+  onAgentActivity,
+  type ConnectedOrg,
+  type AgentDecision,
+  type Escalation,
+  type AgentActivity,
+  type AgentStep,
+} from '@/services/sentinel-central';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 
 // ── Asset Type Icons ─────────────────────────────────────────────────────
 
@@ -415,15 +428,20 @@ function ThreatCard({ threat, onExecuteAction, onStatusChange }: {
               </div>
             )}
           </div>
-          <div className="text-right shrink-0">
-            {threat.urgency && (
-              <span className="text-[10px] text-zinc-500 block">
-                {threat.urgency === 'immediate' ? 'ACT NOW' : threat.urgency.toUpperCase()}
-              </span>
-            )}
-            {threat.time_to_act && (
-              <span className="text-[10px] font-mono text-amber-400">{threat.time_to_act}</span>
-            )}
+          <div className="flex items-start gap-2 shrink-0">
+            <div className="text-right">
+              {threat.urgency && (
+                <span className="text-[10px] text-zinc-500 block">
+                  {threat.urgency === 'immediate' ? 'ACT NOW' : threat.urgency.toUpperCase()}
+                </span>
+              )}
+              {threat.time_to_act && (
+                <span className="text-[10px] font-mono text-amber-400">{threat.time_to_act}</span>
+              )}
+            </div>
+            <div onClick={e => e.stopPropagation()}>
+              <InlineAIMenu section="sentinel" data={threat as unknown as Record<string, unknown>} />
+            </div>
           </div>
         </div>
       </button>
@@ -518,6 +536,9 @@ function ThreatCard({ threat, onExecuteAction, onStatusChange }: {
 // ── Main Sentinel Page ───────────────────────────────────────────────────
 
 export default function Sentinel() {
+  const { user } = useAuth();
+  // Derive workspace token from user ID (deterministic, no extra API call)
+  const workspaceToken = user?.id ? `CB-${user.id.replace(/-/g, '').slice(0, 4).toUpperCase()}-${user.id.replace(/-/g, '').slice(4, 8).toUpperCase()}-${user.id.replace(/-/g, '').slice(8, 12).toUpperCase()}-${user.id.replace(/-/g, '').slice(12, 16).toUpperCase()}` : 'CB-XXXX-XXXX-XXXX-XXXX';
   const { toast } = useToast();
   const [assets, setAssets] = useState<InfrastructureAsset[]>([]);
   const [threats, setThreats] = useState<ThreatAction[]>([]);
@@ -526,7 +547,14 @@ export default function Sentinel() {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedAsset, setExpandedAsset] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'infrastructure' | 'threats' | 'scans' | 'chat'>('infrastructure');
+  const [activeTab, setActiveTab] = useState<'infrastructure' | 'threats' | 'scans' | 'chat' | 'live' | 'onboard'>('live');
+
+  // Live Feed state
+  const [orgs, setOrgs] = useState<ConnectedOrg[]>([]);
+  const [decisions, setDecisions] = useState<AgentDecision[]>([]);
+  const [escalations, setEscalations] = useState<Escalation[]>([]);
+  const [agentActivity, setAgentActivity] = useState<AgentActivity | null>(null);
+  const [escalationAnswer, setEscalationAnswer] = useState<Record<string, string>>({});
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineResult, setPipelineResult] = useState<{ matchesFound: number; threatsCreated: number; assetsScanned: number } | null>(null);
   const [scanRunning, setScanRunning] = useState(false);
@@ -569,6 +597,26 @@ export default function Sentinel() {
       setEventLog(prev => [event, ...prev].slice(0, 50));
     });
     return unsub;
+  }, []);
+
+  // Live Feed — load orgs, decisions, escalations + subscribe to real-time updates
+  useEffect(() => {
+    sentinelCentral.getOrgs().then(setOrgs).catch(() => {});
+    sentinelCentral.getDecisions(30).then(setDecisions).catch(() => {});
+    sentinelCentral.getEscalations('pending').then(setEscalations).catch(() => {});
+
+    const unsubDecisions = sentinelCentral.subscribeToDecisions(d => {
+      setDecisions(prev => [d, ...prev].slice(0, 30));
+    });
+    const unsubEscalations = sentinelCentral.subscribeToEscalations(e => {
+      setEscalations(prev => [e, ...prev]);
+    });
+    const unsubHeartbeats = sentinelCentral.subscribeToHeartbeats(() => {
+      sentinelCentral.getOrgs().then(setOrgs).catch(() => {});
+    });
+    const unsubActivity = onAgentActivity(setAgentActivity);
+
+    return () => { unsubDecisions(); unsubEscalations(); unsubHeartbeats(); unsubActivity(); };
   }, []);
 
   // Run full pipeline
@@ -718,6 +766,9 @@ export default function Sentinel() {
   return (
     <ScrollArea className="h-full">
       <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Section AI Bar */}
+        <SectionAIBar path="/sentinel" onSendToChat={(prompt) => { localStorage.setItem("cb_chat_prefill", prompt); window.location.hash = "#/chat"; }} />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -832,6 +883,8 @@ export default function Sentinel() {
         {/* Tab Navigation */}
         <div className="flex items-center gap-1 bg-zinc-900/40 rounded-lg p-1 w-fit">
           {[
+            { key: 'live' as const, label: 'Live Feed', icon: UilHeartRate, count: escalations.filter(e => e.status === 'pending').length },
+            { key: 'onboard' as const, label: 'Connect', icon: UilBolt, count: 0 },
             { key: 'infrastructure' as const, label: 'Infrastructure', icon: UilDesktop, count: stats.totalAssets },
             { key: 'threats' as const, label: 'Threat Actions', icon: UilExclamationTriangle, count: stats.activeThreats },
             { key: 'scans' as const, label: 'UilQrcodeScan History', icon: UilHistory, count: stats.recentScans },
@@ -1120,6 +1173,327 @@ export default function Sentinel() {
             </Card>
           </div>
         )}
+        {/* ── Connect / Onboarding Tab ─────────────────────────────── */}
+        {activeTab === 'onboard' && (
+          <div className="max-w-2xl space-y-4">
+            <Card className="bg-zinc-900/60 border-zinc-800">
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <UilBolt size={16} className="text-amber-400" />
+                  Install CrowByte Sentinel
+                </CardTitle>
+                <CardDescription className="text-[11px]">
+                  One command. No config. Discovers your infra, sends heartbeat, executes actions — all managed from here.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Linux/Ubuntu */}
+                <div className="space-y-2">
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">Linux / Ubuntu VPS</p>
+                  <div className="bg-zinc-950 rounded-lg p-3 font-mono text-[11px] text-emerald-400 relative group border border-zinc-800">
+                    <span className="text-zinc-600">$</span> curl -fsSL https://sentinel.crowbyte.io/install | CROWBYTE_TOKEN=<span className="text-amber-400">YOUR_TOKEN</span> bash
+                    <button
+                      className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => navigator.clipboard.writeText(`curl -fsSL https://sentinel.crowbyte.io/install | CROWBYTE_TOKEN=${workspaceToken} bash`)}
+                    >
+                      <UilCopy size={12} className="text-zinc-500 hover:text-zinc-300" />
+                    </button>
+                  </div>
+                </div>
+                {/* Windows */}
+                <div className="space-y-2">
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">Windows Server</p>
+                  <div className="bg-zinc-950 rounded-lg p-3 font-mono text-[11px] text-blue-400 relative group border border-zinc-800">
+                    <span className="text-zinc-600">PS&gt;</span> $env:CROWBYTE_TOKEN="<span className="text-amber-400">YOUR_TOKEN</span>"; .\crowbyte-sentinel.exe
+                  </div>
+                </div>
+                {/* Token display */}
+                <div className="rounded-lg border border-zinc-700/50 bg-zinc-900/40 p-3 space-y-2">
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Your workspace token</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs text-amber-400 font-mono flex-1">{workspaceToken}</code>
+                    <button onClick={() => navigator.clipboard.writeText(workspaceToken)}>
+                      <UilCopy size={14} className="text-zinc-600 hover:text-zinc-300" />
+                    </button>
+                  </div>
+                </div>
+                {/* What happens next */}
+                <div className="space-y-2 pt-1">
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider">What happens</p>
+                  {[
+                    ['1', 'Sentinel discovers your local infra (IPs, open ports, cloud hints)'],
+                    ['2', 'Heartbeat sent to CrowByte Central every 30s'],
+                    ['3', 'Agent wakes when signals exceed your confidence threshold'],
+                    ['4', 'Decisions appear in Live Feed — actions executed automatically'],
+                    ['5', 'Below threshold → escalation appears in Alert Center for your input'],
+                  ].map(([n, text]) => (
+                    <div key={n} className="flex items-start gap-2.5 text-[11px] text-zinc-400">
+                      <span className="text-[9px] font-bold text-zinc-600 bg-zinc-800 rounded-full w-4 h-4 flex items-center justify-center shrink-0 mt-0.5">{n}</span>
+                      {text}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Connected orgs quick status */}
+            {orgs.length > 0 && (
+              <Card className="bg-zinc-900/60 border-zinc-800">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs text-zinc-400 uppercase tracking-wider">Connected — {orgs.length} org{orgs.length !== 1 ? 's' : ''}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {orgs.map(org => (
+                    <div key={org.id} className="flex items-center gap-3 text-[11px]">
+                      <div className={`w-1.5 h-1.5 rounded-full ${org.status === 'active' ? 'bg-emerald-500 animate-pulse' : org.status === 'stale' ? 'bg-amber-500' : 'bg-zinc-600'}`} />
+                      <span className="text-zinc-300 flex-1">{org.name}</span>
+                      <span className="text-zinc-600">{org.status}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* ── Live Feed Tab ─────────────────────────────────────────── */}
+        {activeTab === 'live' && (
+          <div className="space-y-4">
+
+            {/* Agent Lifecycle Pipeline */}
+            <Card className="bg-zinc-900/60 border-zinc-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <UilRobot size={16} className="text-red-400" />
+                  Agent Activity
+                  <span className={`ml-auto w-2 h-2 rounded-full ${agentActivity ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-700'}`} />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const STEPS: { key: AgentStep; label: string }[] = [
+                    { key: 'wake', label: 'Wake' },
+                    { key: 'load_context', label: 'Load Context' },
+                    { key: 'inference', label: 'NVIDIA Inference' },
+                    { key: 'decide', label: 'Decide' },
+                    { key: 'act', label: 'Act' },
+                    { key: 'report', label: 'Report' },
+                  ];
+                  const activeIdx = agentActivity ? STEPS.findIndex(s => s.key === agentActivity.step) : -1;
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-1">
+                        {STEPS.map((step, i) => (
+                          <div key={step.key} className="flex items-center gap-1 flex-1">
+                            <div className={`flex-1 h-7 rounded flex items-center justify-center text-[9px] font-mono font-medium transition-all duration-500 ${
+                              i < activeIdx ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : i === activeIdx ? 'bg-red-500/25 text-red-300 border border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.3)]'
+                              : 'bg-zinc-800/60 text-zinc-600 border border-zinc-700/40'
+                            }`}>
+                              {i === activeIdx && <UilSync size={8} className="animate-spin mr-1" />}
+                              {step.label}
+                            </div>
+                            {i < STEPS.length - 1 && (
+                              <div className={`w-2 h-px ${i < activeIdx ? 'bg-emerald-500/50' : 'bg-zinc-700'}`} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {agentActivity ? (
+                        <div className="text-[10px] text-zinc-400 font-mono flex items-center gap-3">
+                          <span className="text-red-400">{agentActivity.orgName}</span>
+                          <span>→</span>
+                          <span>{agentActivity.step.replace('_', ' ')}</span>
+                          {agentActivity.confidence !== undefined && (
+                            <span className="text-amber-400">confidence: {(agentActivity.confidence * 100).toFixed(0)}%</span>
+                          )}
+                          {agentActivity.actionsCount !== undefined && (
+                            <span className="text-emerald-400">{agentActivity.actionsCount} action(s)</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-zinc-600 font-mono">Agent dormant — waiting for signals above threshold</div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Connected Orgs */}
+            <Card className="bg-zinc-900/60 border-zinc-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <UilGlobe size={16} className="text-blue-400" />
+                  Connected Sentinels
+                  <Badge variant="outline" className="ml-auto text-[10px]">{orgs.length} org{orgs.length !== 1 ? 's' : ''}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {orgs.length === 0 ? (
+                  <div className="text-[11px] text-zinc-600 py-4 text-center">No orgs connected. Install Sentinel with your org token to start.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {orgs.map(org => (
+                      <div key={org.id} className="flex items-center gap-3 p-2 rounded-md bg-zinc-800/40 border border-zinc-700/30">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${
+                          org.status === 'active' ? 'bg-emerald-500 animate-pulse'
+                          : org.status === 'stale' ? 'bg-amber-500'
+                          : 'bg-zinc-600'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium text-zinc-200">{org.name}</div>
+                          <div className="text-[10px] text-zinc-500">
+                            {org.lastHeartbeat
+                              ? `Last beat: ${new Date(org.lastHeartbeat).toLocaleTimeString()}`
+                              : 'Never connected'}
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={`text-[9px] ${
+                          org.tier === 'elite' ? 'border-amber-500/50 text-amber-400'
+                          : org.tier === 'pro' ? 'border-blue-500/50 text-blue-400'
+                          : 'border-zinc-600 text-zinc-500'
+                        }`}>{org.tier}</Badge>
+                        <div className="text-[10px] font-mono text-zinc-500">
+                          {org.policy?.threshold ? `>${(org.policy.threshold * 100).toFixed(0)}%` : '—'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Escalations — Agent asking human */}
+            {escalations.some(e => e.status === 'pending') && (
+              <Card className="bg-zinc-900/60 border-amber-500/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <UilExclamationTriangle size={16} className="text-amber-400" />
+                    Agent Needs Your Input
+                    <Badge className="ml-auto bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                      {escalations.filter(e => e.status === 'pending').length} pending
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription className="text-[11px]">
+                    Agent confidence below 90% — precise questions requiring human decision
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {escalations.filter(e => e.status === 'pending').map(esc => (
+                    <div key={esc.id} className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <UilRobot size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                        <div className="flex-1">
+                          <div className="text-xs text-zinc-200 font-medium">{esc.question}</div>
+                          <div className="text-[10px] text-zinc-500 mt-0.5">
+                            {esc.org_name} · confidence: {((esc.confidence || 0) * 100).toFixed(0)}% · {new Date(esc.timestamp).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </div>
+                      {/* Agent reasoning */}
+                      {esc.reasoning && (
+                        <div className="text-[10px] text-zinc-500 font-mono bg-zinc-900/60 rounded p-2 leading-relaxed">
+                          {esc.reasoning.slice(0, 200)}{esc.reasoning.length > 200 ? '…' : ''}
+                        </div>
+                      )}
+                      {/* Signals that triggered this */}
+                      {esc.signals?.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {esc.signals.map((s, i) => (
+                            <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono">
+                              {s.type} sev:{s.severity.toFixed(1)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {/* Human answer */}
+                      <div className="flex gap-2 items-end">
+                        <Textarea
+                          value={escalationAnswer[esc.id] || ''}
+                          onChange={e => setEscalationAnswer(prev => ({ ...prev, [esc.id]: e.target.value }))}
+                          placeholder="Your answer to the agent..."
+                          className="text-xs bg-zinc-900 border-zinc-700 resize-none h-16"
+                        />
+                        <div className="flex flex-col gap-1.5 shrink-0">
+                          <Button
+                            size="sm"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-7 px-3"
+                            onClick={() => {
+                              const ans = escalationAnswer[esc.id] || 'yes';
+                              sentinelCentral.answerEscalation(esc.id, ans);
+                              setEscalations(prev => prev.map(e => e.id === esc.id ? { ...e, status: 'answered', answer: ans } : e));
+                            }}
+                          >
+                            <UilCheckCircle size={12} className="mr-1" /> Answer
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs h-7 px-3 border-zinc-700"
+                            onClick={() => {
+                              sentinelCentral.dismissEscalation(esc.id);
+                              setEscalations(prev => prev.map(e => e.id === esc.id ? { ...e, status: 'dismissed' } : e));
+                            }}
+                          >
+                            <UilTimesCircle size={12} className="mr-1" /> Dismiss
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recent Agent Decisions */}
+            <Card className="bg-zinc-900/60 border-zinc-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <UilHistory size={16} className="text-cyan-400" />
+                  Agent Decision Log
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {decisions.length === 0 ? (
+                  <div className="text-[11px] text-zinc-600 py-4 text-center">No decisions yet. Agent is dormant.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {decisions.slice(0, 10).map(d => (
+                      <div key={d.id} className="flex items-start gap-3 p-2.5 rounded-md bg-zinc-800/40 border border-zinc-700/30 text-[11px]">
+                        <div className={`mt-0.5 shrink-0 font-mono font-bold ${
+                          d.confidence >= 0.9 ? 'text-emerald-400'
+                          : d.confidence >= 0.7 ? 'text-amber-400'
+                          : 'text-red-400'
+                        }`}>
+                          {(d.confidence * 100).toFixed(0)}%
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="text-zinc-300 leading-snug">{d.reasoning?.slice(0, 120)}{d.reasoning?.length > 120 ? '…' : ''}</div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {(d.actions || []).map((a, i) => (
+                              <span key={i} className={`px-1.5 py-0.5 rounded font-mono text-[9px] ${
+                                a.type === 'block_ip' ? 'bg-red-500/15 text-red-400'
+                                : a.type === 'quarantine_file' ? 'bg-orange-500/15 text-orange-400'
+                                : 'bg-zinc-700 text-zinc-400'
+                              }`}>
+                                {a.type} → {a.target}
+                              </span>
+                            ))}
+                            {d.actions?.length === 0 && <span className="text-zinc-600">no actions taken</span>}
+                          </div>
+                        </div>
+                        <div className="text-[10px] text-zinc-600 shrink-0">{new Date(d.timestamp).toLocaleTimeString()}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+          </div>
+        )}
+
       </div>
     </ScrollArea>
   );

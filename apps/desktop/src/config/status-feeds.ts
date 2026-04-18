@@ -36,14 +36,6 @@ export const STATUS_FEEDS: Record<string, StatusFeedConfig> = {
     atomUrl: 'https://status.tavily.com/feed.atom',
     enabled: true,
   },
-  inoreader: {
-    name: 'Inoreader',
-    statusPageUrl: 'https://status.inoreader.com/',
-    // Note: RSS feed not explicitly available, fallback to status page
-    rssUrl: 'https://status.inoreader.com/history.rss', // Try common pattern
-    atomUrl: 'https://status.inoreader.com/history.atom', // Try common pattern
-    enabled: false, // Disabled until RSS feed confirmed
-  },
 };
 
 /**

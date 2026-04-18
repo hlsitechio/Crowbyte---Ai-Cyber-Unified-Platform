@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,26 +7,64 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { UilArrowLeft, UilSpinner, UilGithub } from "@iconscout/react-unicons";
+import { UilArrowLeft, UilSpinner } from "@iconscout/react-unicons";
 import { credentialStorage } from "@/services/credentialStorage";
 import { deviceFingerprint } from "@/services/deviceFingerprint";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { IS_ELECTRON } from "@/lib/platform";
+
+const TURNSTILE_SITE_KEY = '0x4AAAAAAC-p18A-h6fMkB8R';
+
+// Lazy-load Turnstile script once
+function loadTurnstile() {
+  if (typeof window === 'undefined' || document.getElementById('cf-turnstile-script')) return;
+  const s = document.createElement('script');
+  s.id = 'cf-turnstile-script';
+  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+  s.async = true;
+  document.head.appendChild(s);
+}
 
 export default function Auth() {
  const navigate = useNavigate();
+ const location = useLocation();
  const { isAuthenticated, signIn, signUp } = useAuth();
- const [isLogin, setIsLogin] = useState(true);
+ // Derive mode from URL path — /auth/signup → signup, everything else → signin
+ const isLogin = !location.pathname.includes('signup');
  const [email, setEmail] = useState("");
  const [password, setPassword] = useState("");
  const [loading, setLoading] = useState(false);
  const [rememberMe, setRememberMe] = useState(false);
  const [isCheckingCredentials, setIsCheckingCredentials] = useState(true);
+ // Reset form when switching between signin/signup routes
+ useEffect(() => { setPassword(""); setRememberMe(false); }, [isLogin]);
  const [deviceRecognized, setDeviceRecognized] = useState(false);
  const [showResetPassword, setShowResetPassword] = useState(false);
  const [resetEmail, setResetEmail] = useState("");
  const [resetSent, setResetSent] = useState(false);
  const [resetLoading, setResetLoading] = useState(false);
+ const [turnstileToken, setTurnstileToken] = useState<string>('');
+ const turnstileRef = React.useRef<HTMLDivElement>(null);
+
+ // Load Turnstile on mount (web only)
+ React.useEffect(() => {
+   if (IS_ELECTRON) return;
+   loadTurnstile();
+   // Render widget once script loads
+   const interval = setInterval(() => {
+     if ((window as any).turnstile && turnstileRef.current && !turnstileRef.current.hasChildNodes()) {
+       clearInterval(interval);
+       (window as any).turnstile.render(turnstileRef.current, {
+         sitekey: TURNSTILE_SITE_KEY,
+         callback: (token: string) => setTurnstileToken(token),
+         'expired-callback': () => setTurnstileToken(''),
+         size: 'invisible',
+       });
+     }
+   }, 300);
+   return () => clearInterval(interval);
+ }, [IS_ELECTRON]);
 
  useEffect(() => {
  // Redirect if already authenticated
@@ -43,60 +81,9 @@ export default function Auth() {
  handleOAuthCallback();
  }, []);
 
- const handleOAuthCallback = async () => {
- // Check if we're returning from OAuth
- const hash = window.location.hash;
- const hasOAuthParams = hash.includes('access_token=');
- console.log('🔍 Checking for OAuth callback:', hasOAuthParams ? 'tokens detected' : 'no tokens');
-
- // With BrowserRouter, URL is /auth#access_token=...
- const oauthHash = hash.startsWith('#') ? hash.substring(1) : '';
-
- if (!oauthHash) return;
-
- const hashParams = new URLSearchParams(oauthHash);
- const accessToken = hashParams.get('access_token');
- const refreshToken = hashParams.get('refresh_token');
- const errorParam = hashParams.get('error');
- const errorDescription = hashParams.get('error_description');
-
- if (errorParam) {
- console.error('❌ OAuth error:', errorParam, errorDescription);
- toast.error('Authentication failed', {
- description: errorDescription || errorParam,
- });
- return;
- }
-
- if (accessToken && refreshToken) {
- console.log('✅ OAuth callback detected, setting session manually');
- toast.info('Completing authentication...', {
- description: 'Processing GitHub login',
- });
-
- try {
- // Manually set the session with extracted tokens
- const { data, error } = await supabase.auth.setSession({
- access_token: accessToken,
- refresh_token: refreshToken,
- });
-
- if (error) throw error;
-
- console.log('✅ OAuth session established');
- toast.success('Logged in successfully!');
-
- // Clean the hash and navigate to dashboard
- window.history.replaceState(null, '', '/auth');
- navigate('/dashboard');
- } catch (err) {
- console.error('❌ Failed to set session:', err);
- toast.error('Authentication failed', {
- description: err instanceof Error ? err.message : 'Failed to process OAuth tokens',
- });
- }
- }
- };
+ // OAuth callback is handled globally in App.tsx via supabase.auth.onAuthStateChange
+ // Nothing to do here — session will be set automatically and isAuthenticated will flip
+ const handleOAuthCallback = async () => {};
 
  const checkStoredCredentials = async () => {
  try {
@@ -138,9 +125,53 @@ export default function Auth() {
  }
  };
 
+ // Strict input validation — reject XSS payloads before they reach Supabase
+ const sanitizeInput = (value: string): boolean => {
+   // Reject any HTML tags, JS protocol, or event handlers (Blind XSS vectors)
+   const xssPatterns = [/<[^>]*>/i, /javascript:/i, /on\w+\s*=/i, /script/i, /&lt;|&gt;|&#/i, /\0/];
+   return !xssPatterns.some(p => p.test(value));
+ };
+
+ const isValidEmail = (e: string): boolean => /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(e) && e.length <= 254;
+
+ const isStrongPassword = (p: string): { ok: boolean; reason?: string } => {
+   if (p.length < 8) return { ok: false, reason: 'Password must be at least 8 characters' };
+   if (!/[A-Z]/.test(p)) return { ok: false, reason: 'Password must contain an uppercase letter' };
+   if (!/[a-z]/.test(p)) return { ok: false, reason: 'Password must contain a lowercase letter' };
+   if (!/[0-9]/.test(p)) return { ok: false, reason: 'Password must contain a number' };
+   return { ok: true };
+ };
+
  const handleAuth = async (e: React.FormEvent) => {
  e.preventDefault();
  setLoading(true);
+
+ // Validate inputs — block XSS payloads at the client gate
+ if (!isValidEmail(email)) {
+   toast.error('Invalid email address');
+   setLoading(false);
+   return;
+ }
+ if (!sanitizeInput(email) || !sanitizeInput(password)) {
+   toast.error('Invalid characters detected in input');
+   setLoading(false);
+   return;
+ }
+ // Enforce password policy on signup
+ if (!isLogin) {
+   const strength = isStrongPassword(password);
+   if (!strength.ok) {
+     toast.error(strength.reason);
+     setLoading(false);
+     return;
+   }
+ }
+ if (!IS_ELECTRON && !turnstileToken) {
+   toast.error('Security check required — please wait a moment');
+   setLoading(false);
+   (window as any).turnstile?.execute?.();
+   return;
+ }
 
  try {
  if (isLogin) {
@@ -169,6 +200,12 @@ export default function Auth() {
  }
  } else {
  await signUp(email, password);
+ // Auto-save credentials for new accounts so next login is seamless
+ try {
+ await credentialStorage.storeCredentials(email, password);
+ } catch (error) {
+ console.error('Failed to store credentials after signup:', error);
+ }
  }
  } catch (error: unknown) {
  // Error handling is done in AuthContext
@@ -183,7 +220,7 @@ export default function Auth() {
  try {
  const redirectUrl = IS_ELECTRON
    ? 'https://crowbyte.io/auth'
-   : `${window.location.origin}/auth`;
+   : `${window.location.origin}/`;
 
  const { data, error } = await supabase.auth.signInWithOAuth({
  provider,
@@ -272,8 +309,9 @@ export default function Auth() {
  // Show loading spinner while checking for stored credentials
  if (isCheckingCredentials) {
  return (
- <div className="min-h-screen flex items-center justify-center bg-[#030308]">
- <div className="flex flex-col items-center gap-4">
+ <div className="min-h-screen flex items-center justify-center bg-[#030308] relative overflow-hidden">
+ <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: 'url(/auth-bg.png)' }} />
+ <div className="relative flex flex-col items-center gap-4">
  <UilSpinner size={48} className="animate-spin text-blue-500" />
  <p className="text-sm text-muted-foreground">Checking device credentials...</p>
  </div>
@@ -282,8 +320,9 @@ export default function Auth() {
  }
 
  return (
- <div className="min-h-screen flex items-center justify-center bg-[#030308] p-4">
- <div className="w-full max-w-md space-y-6">
+ <div className="min-h-screen flex items-center justify-center bg-[#030308] p-4 relative overflow-hidden">
+ <div className="absolute inset-0 bg-cover bg-center opacity-[0.12]" style={{ backgroundImage: 'url(/auth-bg.png)' }} />
+ <div className="relative w-full max-w-lg space-y-6">
  <button
  onClick={() => { window.location.href = '/'; }}
  className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-blue-500 transition-colors font-['JetBrains_Mono'] cursor-pointer"
@@ -312,15 +351,16 @@ export default function Auth() {
  </div>
  )}
  </div>
- <Card className="w-full border-blue-500/20 bg-zinc-900/50">
- <CardHeader className="text-center">
- <CardTitle className="text-2xl">{isLogin ? "Operator Login" : "New Operator Registration"}</CardTitle>
- <CardDescription>
+ <Card className="w-full border-blue-500/20 bg-zinc-900/60 shadow-2xl">
+ <CardHeader className="text-center pb-6 pt-8 px-8">
+ <CardTitle className="text-3xl font-bold">{isLogin ? "Operator Login" : "New Operator"}</CardTitle>
+ <CardDescription className="text-sm mt-1.5">
  {isLogin ? "Enter your credentials to access the system" : "Create your CrowByte operator account"}
  </CardDescription>
  </CardHeader>
- <CardContent>
- <form onSubmit={handleAuth} className="space-y-4">
+ <CardContent className="px-8 pb-8">
+ <form onSubmit={handleAuth} className="space-y-5">
+       {!IS_ELECTRON && <div ref={turnstileRef} className="hidden" />}
  <div className="space-y-2">
  <Label htmlFor="email">Email</Label>
  <Input
@@ -342,9 +382,14 @@ export default function Auth() {
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  required
- minLength={6}
+ minLength={8}
  disabled={loading}
  />
+ {!isLogin && (
+ <p className="text-[11px] text-zinc-500">
+ Min 8 characters · uppercase · lowercase · number · symbol
+ </p>
+ )}
  </div>
 
  {/* Remember Me + Forgot Password (only show for login) */}
@@ -400,31 +445,42 @@ export default function Auth() {
  </div>
 
  {/* OAuth Providers */}
- <div className="grid grid-cols-1 gap-2">
+ <div className="grid grid-cols-2 gap-3">
  <Button
  type="button"
  variant="outline"
- className="w-full bg-[#24292e] hover:bg-[#1a1e22] text-white border-[#24292e] hover:border-[#1a1e22]"
+ className="w-full h-11 bg-[#24292e] hover:bg-[#1a1e22] text-white border-[#30363d] hover:border-[#1a1e22] font-medium"
  onClick={() => handleOAuthLogin('github', 'GitHub', 'read:user user:email')}
  disabled={loading}
  >
- <UilGithub size={18} className="mr-1.5" />
+ <svg className="mr-2 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
  GitHub
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ className="w-full h-11 bg-white hover:bg-gray-50 text-gray-800 border-gray-300 hover:border-gray-400 font-medium"
+ onClick={() => handleOAuthLogin('google', 'Google')}
+ disabled={loading}
+ >
+ <svg className="mr-2 shrink-0" width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+ Google
  </Button>
  </div>
 
- <Button
- type="button"
- variant="ghost"
- className="w-full"
- onClick={() => {
- setIsLogin(!isLogin);
- setRememberMe(false); // Reset remember me when switching modes
- }}
- disabled={loading}
- >
- {isLogin ? "Need an account? Sign up" : "Already have an account? Login"}
- </Button>
+ <p className="text-center text-sm text-zinc-500">
+ {isLogin ? (
+ <>Don't have an account?{" "}
+ <Link to="/auth/signup" className="text-blue-400 hover:text-blue-300 transition-colors">
+ Create one
+ </Link></>
+ ) : (
+ <>Already have an account?{" "}
+ <Link to="/auth/signin" className="text-blue-400 hover:text-blue-300 transition-colors">
+ Sign in
+ </Link></>
+ )}
+ </p>
  </form>
  </CardContent>
  </Card>

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { UilUser, UilCog, UilSitemap, UilWrench, UilDatabase, UilFlask, UilShieldCheck, UilPlug, UilSliderH, UilCreditCard, UilRocket, UilHeartRate } from "@iconscout/react-unicons";
+import { UilUser, UilCog, UilSitemap, UilWrench, UilDatabase, UilFlask, UilShieldCheck, UilPlug, UilSliderH, UilCreditCard, UilRocket, UilHeartRate, UilDownloadAlt } from "@iconscout/react-unicons";
 import { useAuth } from "@/contexts/auth";
 import { isAdmin } from "@/lib/admin";
 import { IS_WEB } from "@/lib/platform";
@@ -17,6 +17,7 @@ const settingsNav = [
   { label: "Integrations", path: "/settings/integrations", icon: UilPlug, adminOnly: true },
   { label: "Advanced", path: "/settings/advanced", icon: UilSliderH, adminOnly: true },
   { label: "Setup Wizard", path: "/settings/onboarding", icon: UilRocket },
+  { label: "Download App", path: "/settings/download", icon: UilDownloadAlt },
 ];
 
 export default function SettingsLayout() {

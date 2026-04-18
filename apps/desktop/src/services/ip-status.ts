@@ -537,7 +537,8 @@ class IPStatusService {
     // ========================================
     // PRIMARY: Use Linux commands via Electron IPC
     // ========================================
-    if (typeof window !== 'undefined' && window.electronAPI?.executeCommand) {
+    const isWindows = typeof navigator !== 'undefined' && navigator.userAgent.includes('Windows');
+    if (!isWindows && typeof window !== 'undefined' && window.electronAPI?.executeCommand) {
       try {
         debugLog('🐧 PRIMARY: Detecting network via Linux commands...');
 
@@ -644,7 +645,8 @@ class IPStatusService {
    * Uses Linux commands (resolvectl / resolv.conf) via Electron IPC
    */
   private async getDNSInfo(isVPN: boolean, isp?: string): Promise<DNSInfo> {
-    if (typeof window !== 'undefined' && window.electronAPI?.executeCommand) {
+    const isWindowsDNS = typeof navigator !== 'undefined' && navigator.userAgent.includes('Windows');
+    if (!isWindowsDNS && typeof window !== 'undefined' && window.electronAPI?.executeCommand) {
       try {
         debugLog('🐧 Fetching DNS info via Linux commands...');
 
@@ -907,7 +909,8 @@ class IPStatusService {
         // Get local/WiFi IP
         let localIP: string | undefined;
         try {
-          if (window.electronAPI?.executeCommand) {
+          const isWinLocal = typeof navigator !== 'undefined' && navigator.userAgent.includes('Windows');
+          if (!isWinLocal && window.electronAPI?.executeCommand) {
             const out = await window.electronAPI.executeCommand(
               "ip -4 route get 1.1.1.1 2>/dev/null | grep -oP 'src \\K[0-9.]+' || hostname -I 2>/dev/null | awk '{print $1}'"
             );

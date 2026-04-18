@@ -181,13 +181,13 @@ class SupabaseMCPServer {
       },
       {
         name: 'get_api_key_by_service',
-        description: 'Get API key for a specific service (e.g., venice, inoreader)',
+        description: 'Get API key for a specific service (e.g., venice, openai)',
         inputSchema: {
           type: 'object',
           properties: {
             serviceName: {
               type: 'string',
-              description: 'Service name (e.g., venice, inoreader, openai)',
+              description: 'Service name (e.g., venice, openai)',
             },
           },
           required: ['serviceName'],

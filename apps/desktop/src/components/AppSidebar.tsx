@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { UilBrain, UilSitemap, UilBookOpen, UilShield, UilShieldCheck, UilCog, UilWindow, UilProcessor, UilHeartRate, UilRobot, UilCommentDots, UilSignout, UilBoltAlt, UilUser, UilBookmark, UilFileAlt, UilChartBar, UilCrosshair, UilShieldExclamation, UilMonitor, UilScroll, UilFocusTarget, UilLeftArrowFromLeft, UilPlug, UilFilter, UilNotebooks, UilBolt, UilRocket, UilBell, UilCloud, UilDownloadAlt, UilHeadphones, UilFlask, UilTicket, UilListOlAlt, UilClipboard, UilFavorite } from "@iconscout/react-unicons";
+import { UilBrain, UilSitemap, UilBookOpen, UilShield, UilShieldCheck, UilCog, UilWindow, UilProcessor, UilHeartRate, UilRobot, UilCommentDots, UilSignout, UilBoltAlt, UilUser, UilBookmark, UilFileAlt, UilChartBar, UilCrosshair, UilShieldExclamation, UilMonitor, UilScroll, UilFocusTarget, UilLeftArrowFromLeft, UilPlug, UilFilter, UilNotebooks, UilBolt, UilRocket, UilBell, UilCloud, UilDownloadAlt, UilHeadphones, UilFlask, UilTicket, UilListOlAlt, UilClipboard, UilFavorite, UilAngleDown, UilBug, UilDatabase, UilLock, UilSearch, UilExclamationTriangle, UilAnalysis } from "@iconscout/react-unicons";
 import { getPinnedUrls, togglePin, initPins } from "@/services/sidebar-pins";
-import { IS_WEB } from "@/lib/platform";
+import { IS_WEB, IS_ELECTRON } from "@/lib/platform";
 import { isAdmin } from "@/lib/admin";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -22,11 +22,15 @@ import {
  SidebarMenu,
  SidebarMenuButton,
  SidebarMenuItem,
+ SidebarMenuSub,
+ SidebarMenuSubItem,
+ SidebarMenuSubButton,
  SidebarHeader,
  SidebarFooter,
  SidebarTrigger,
  useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
  Tooltip,
  TooltipContent,
@@ -142,6 +146,7 @@ const ismItems: NavItem[] = [
 ];
 
 const aiOperationsItems: NavItem[] = [
+ { title: "AI Chat", url: "/chat", icon: UilCommentDots },
  { title: "Terminal", url: "/terminal", icon: UilWindow },
  { title: "Agent Builder", url: "/agent-builder", icon: UilRobot, adminOnly: true },
  { title: "Agent Teams", url: "/agent-teams", icon: UilBolt, adminOnly: true },
@@ -151,6 +156,16 @@ const redTeamItems: NavItem[] = [
  { title: "Red Team", url: "/redteam", icon: UilCrosshair, beta: true },
  { title: "Cyber Ops", url: "/cyber-ops", icon: UilBoltAlt, beta: true },
  { title: "Network Map", url: "/network-scanner", icon: UilSitemap, beta: true },
+];
+
+const defenderSubItems: NavItem[] = [
+ { title: "Overview", url: "/defender", icon: UilHeartRate },
+ { title: "Threats", url: "/defender/threats", icon: UilBug },
+ { title: "Sandbox", url: "/defender/sandbox", icon: UilFlask },
+ { title: "Rules", url: "/defender/rules", icon: UilFileAlt },
+ { title: "IOCs", url: "/defender/iocs", icon: UilDatabase },
+ { title: "Quarantine", url: "/defender/quarantine", icon: UilLock },
+ { title: "Forensics", url: "/defender/forensics", icon: UilSearch },
 ];
 
 const blueTeamItems: NavItem[] = [
@@ -186,6 +201,7 @@ const webCommandItems: NavItem[] = [
 ];
 
 const webAiItems: NavItem[] = [
+ { title: "AI Chat", url: "/chat", icon: UilCommentDots },
  { title: "Terminal", url: "/terminal", icon: UilWindow },
  { title: "Agent Builder", url: "/agent-builder", icon: UilRobot, adminOnly: true },
  { title: "Agent Teams", url: "/agent-teams", icon: UilBolt, adminOnly: true },
@@ -221,6 +237,12 @@ export function AppSidebar() {
  const { unreadErrorCount } = useLogs();
  const browserPanel = useBrowserPanelSafe();
  const currentPath = location.pathname;
+
+ // Track last visited page for Chat context badge
+ const CHAT_CONTEXT_PAGES = ['/dashboard', '/alert-center', '/findings', '/sentinel', '/terminal', '/redteam', '/cyber-ops', '/network-scanner'];
+ if (currentPath !== '/chat' && CHAT_CONTEXT_PAGES.includes(currentPath)) {
+   try { localStorage.setItem('cb_last_page', currentPath); } catch {}
+ }
  const [workspaceName, setWorkspaceName] = useState(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
  const [feedUnread, setFeedUnread] = useState(0);
@@ -397,6 +419,9 @@ export function AppSidebar() {
         onClick={isBetaLocked ? (e: React.MouseEvent) => {
          e.preventDefault();
          navigate('/settings/billing');
+        } : isItemActive && item.url === '/terminal' ? (e: React.MouseEvent) => {
+         e.preventDefault();
+         window.location.reload();
         } : undefined}
         className={`group/navitem relative hover:bg-white/[0.03] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 ${isCollapsed ? "gap-0 justify-center" : "gap-3"} ${isBetaLocked ? "opacity-70" : ""}`}
        >
@@ -467,7 +492,7 @@ export function AppSidebar() {
   return (
    <TooltipProvider>
     <Sidebar collapsible="icon" className="border-r border-white/[0.06]">
-     <SidebarHeader className={`border-b border-white/[0.04] ${state === "collapsed" ? "p-2 space-y-2" : "p-4 space-y-3"}`}>
+     <SidebarHeader className={`border-b border-white/[0.04] ${state === "collapsed" ? "p-2 space-y-1" : IS_ELECTRON ? "px-3 py-2 space-y-1.5" : "p-4 space-y-3"}`}>
       <div className={`flex items-center ${state === "collapsed" ? "flex-col gap-1.5" : "gap-2.5 justify-between"}`}>
        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-800/80 flex-shrink-0">
         <UilProcessor size={16} className="text-zinc-300" />
@@ -513,6 +538,52 @@ export function AppSidebar() {
        <SidebarGroupContent>
         <SidebarMenu>
          {renderNavItems(webISMItems, "green", 6)}
+        </SidebarMenu>
+       </SidebarGroupContent>
+      </SidebarGroup>
+
+      {/* Defender */}
+      <SidebarGroup>
+       <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : sectionLabelClass}>
+        Defender
+       </SidebarGroupLabel>
+       <SidebarGroupContent>
+        <SidebarMenu>
+         <Collapsible defaultOpen={location.pathname.startsWith("/defender")} className="group/collapsible">
+          <SidebarMenuItem>
+           <CollapsibleTrigger asChild>
+            <SidebarMenuButton className={`group/navitem hover:bg-white/[0.03] transition-colors duration-150 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}>
+             {state !== "collapsed" && <GlowDot color="cyan" active={location.pathname.startsWith("/defender")} />}
+             <UilShieldCheck size={16} className={location.pathname.startsWith("/defender") ? "text-zinc-100" : "text-zinc-400"} />
+             {state !== "collapsed" && (
+              <>
+               <span className={`text-[13px] flex-1 ${location.pathname.startsWith("/defender") ? "text-zinc-100 font-medium" : "text-zinc-300"}`}>
+                CrowByte Shield
+               </span>
+               <UilAngleDown size={14} className="text-zinc-500 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+              </>
+             )}
+            </SidebarMenuButton>
+           </CollapsibleTrigger>
+           <CollapsibleContent>
+            <SidebarMenuSub className="ml-3.5 border-l border-white/[0.06] pl-0">
+             {defenderSubItems.map((item) => {
+              const isSubActive = location.pathname === item.url;
+              return (
+               <SidebarMenuSubItem key={item.url}>
+                <SidebarMenuSubButton asChild className={isSubActive ? "bg-white/[0.04]" : ""}>
+                 <NavLink to={item.url} end className="group/subitem flex items-center gap-2.5 hover:bg-white/[0.03] transition-colors">
+                  <item.icon size={13} className={isSubActive ? "text-zinc-100" : "text-zinc-500"} />
+                  <span className={`text-[12px] ${isSubActive ? "text-zinc-100 font-medium" : "text-zinc-400"}`}>{item.title}</span>
+                 </NavLink>
+                </SidebarMenuSubButton>
+               </SidebarMenuSubItem>
+              );
+             })}
+            </SidebarMenuSub>
+           </CollapsibleContent>
+          </SidebarMenuItem>
+         </Collapsible>
         </SidebarMenu>
        </SidebarGroupContent>
       </SidebarGroup>
@@ -632,7 +703,7 @@ export function AppSidebar() {
  return (
   <TooltipProvider>
    <Sidebar collapsible="icon" className="border-r border-white/[0.06]">
-    <SidebarHeader className={`border-b border-white/[0.04] ${state === "collapsed" ? "p-2 space-y-2" : "p-4 space-y-3"}`}>
+    <SidebarHeader className={`border-b border-white/[0.04] ${state === "collapsed" ? "p-2 space-y-1" : IS_ELECTRON ? "px-3 py-2 space-y-1.5" : "p-4 space-y-3"}`}>
      <div className={`flex items-center ${state === "collapsed" ? "flex-col gap-1.5" : "gap-2.5 justify-between"}`}>
       <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-800/80 flex-shrink-0">
        <UilProcessor size={16} className="text-zinc-300" />
@@ -782,6 +853,52 @@ export function AppSidebar() {
       <SidebarGroupContent>
        <SidebarMenu>
         {renderNavItems(redTeamItems, "red", 6)}
+       </SidebarMenu>
+      </SidebarGroupContent>
+     </SidebarGroup>
+
+     {/* Defender (Collapsible with sub-tabs) */}
+     <SidebarGroup>
+      <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : "text-zinc-500 uppercase text-[10px] font-medium tracking-widest pl-1"}>
+       Defender
+      </SidebarGroupLabel>
+      <SidebarGroupContent>
+       <SidebarMenu>
+        <Collapsible defaultOpen={location.pathname.startsWith("/defender")} className="group/collapsible">
+         <SidebarMenuItem>
+          <CollapsibleTrigger asChild>
+           <SidebarMenuButton className={`group/navitem hover:bg-white/[0.03] transition-colors duration-150 ${state === "collapsed" ? "gap-0 justify-center" : "gap-3"}`}>
+            {state !== "collapsed" && <GlowDot color="cyan" active={location.pathname.startsWith("/defender")} />}
+            <UilShieldCheck size={16} className={location.pathname.startsWith("/defender") ? "text-zinc-100" : "text-zinc-400"} />
+            {state !== "collapsed" && (
+             <>
+              <span className={`text-[13px] flex-1 ${location.pathname.startsWith("/defender") ? "text-zinc-100 font-medium" : "text-zinc-300"}`}>
+               CrowByte Shield
+              </span>
+              <UilAngleDown size={14} className="text-zinc-500 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+             </>
+            )}
+           </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+           <SidebarMenuSub className="ml-3.5 border-l border-white/[0.06] pl-0">
+            {defenderSubItems.map((item) => {
+             const isSubActive = location.pathname === item.url;
+             return (
+              <SidebarMenuSubItem key={item.url}>
+               <SidebarMenuSubButton asChild className={isSubActive ? "bg-white/[0.04]" : ""}>
+                <NavLink to={item.url} end className="group/subitem flex items-center gap-2.5 hover:bg-white/[0.03] transition-colors">
+                 <item.icon size={13} className={isSubActive ? "text-zinc-100" : "text-zinc-500"} />
+                 <span className={`text-[12px] ${isSubActive ? "text-zinc-100 font-medium" : "text-zinc-400"}`}>{item.title}</span>
+                </NavLink>
+               </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+             );
+            })}
+           </SidebarMenuSub>
+          </CollapsibleContent>
+         </SidebarMenuItem>
+        </Collapsible>
        </SidebarMenu>
       </SidebarGroupContent>
      </SidebarGroup>

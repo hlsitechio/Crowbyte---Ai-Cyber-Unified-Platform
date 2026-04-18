@@ -1,140 +1,160 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { UilCog, UilStar, UilRobot, UilBolt, UilLeftArrowFromLeft, UilDollarSign, UilLock, UilAward } from "@iconscout/react-unicons";
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import {
+  UilRobot, UilBolt, UilStar, UilCog, UilTimes, UilPlus, UilSearch,
+  UilTrashAlt, UilPen, UilShield, UilFilter, UilHeartRate, UilBell,
+  UilWindow, UilFlask, UilCrosshair, UilBoltAlt, UilAngleRight,
+} from "@iconscout/react-unicons";
 import { useToast } from '@/hooks/use-toast';
-import { ConversationsSidebar } from '@/components/ConversationsSidebar';
-import openClaw from '@/services/openclaw';
-import claudeProvider, { type ClaudeStreamEvent } from '@/services/claude-provider';
-import openRouterProvider, { type StreamEvent, type AIModel } from '@/services/openrouter-provider';
 import { IS_WEB } from '@/lib/platform';
 import { analyticsService } from '@/services/analytics';
 import { memoryEngine } from '@/services/memory-engine';
-import { isWebAiAvailable, streamChat, getModels as getWebModels, getUsage, getTierInfo, type AiModel } from '@/services/web-ai-chat';
-import { sendCreditChat, getBalance, refreshBalance, getModelCreditCost, onBalanceChange, type CreditBalance } from '@/services/credits';
-
-// Chat sub-components
+import { streamChat, DEFAULT_MODEL } from '@/services/ai';
 import { AssistantMessage, UserMessage, TypingIndicator, type Message } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { EmptyState } from '@/components/chat/EmptyState';
 
-// ─── Types ───────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type Provider = 'openrouter' | 'claude' | 'openclaw' | 'crowbyte';
+type Provider = 'crowbyte';
 
-// ─── Provider Toggle ─────────────────────────────────
+interface Conversation {
+  id: string;
+  title: string;
+  updated_at: string;
+}
 
-// Static style maps — TW v4 needs statically-analyzable classes (no dynamic interpolation)
-const PROVIDERS: { id: Provider; icon: typeof UilStar; label: string; active: string; }[] = [
-  { id: 'openrouter', icon: UilBolt, label: 'OpenRouter', active: 'bg-cyan-500/10 text-cyan-400 ring-1 ring-cyan-500/20' },
-  { id: 'claude', icon: UilStar, label: 'Claude', active: 'bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20' },
-  { id: 'openclaw', icon: UilRobot, label: 'OpenClaw', active: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20' },
-  { id: 'crowbyte', icon: UilBolt, label: 'CrowByte', active: 'bg-zinc-800 text-zinc-200 ring-1 ring-zinc-700' },
-];
+// ─── Context badge ────────────────────────────────────────────────────────────
 
-const ProviderToggle = ({
-  provider, setProvider, showCrowByte,
-}: { provider: Provider; setProvider: (p: Provider) => void; showCrowByte: boolean }) => (
-  <div className="flex items-center bg-zinc-900/50 rounded-xl p-1 ring-1 ring-white/[0.06]">
-    {PROVIDERS.filter(p => IS_WEB ? p.id === 'crowbyte' : (p.id !== 'crowbyte' || showCrowByte)).map(p => {
-      const active = provider === p.id;
-      return (
-        <button
-          key={p.id}
-          onClick={() => setProvider(p.id)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-            active ? p.active : 'text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          <p.icon size={13} />
-          {p.label}
-        </button>
-      );
-    })}
-  </div>
-);
+const PAGE_CONTEXT: Record<string, { label: string; icon: typeof UilHeartRate; color: string; accent: string }> = {
+  '/dashboard':       { label: 'Dashboard',    icon: UilHeartRate, color: 'text-blue-400',    accent: 'bg-blue-500/10 border-blue-500/20' },
+  '/alert-center':    { label: 'Alerts',       icon: UilBell,      color: 'text-amber-400',   accent: 'bg-amber-500/10 border-amber-500/20' },
+  '/findings':        { label: 'Findings',     icon: UilFilter,    color: 'text-violet-400',  accent: 'bg-violet-500/10 border-violet-500/20' },
+  '/sentinel':        { label: 'Sentinel',     icon: UilShield,    color: 'text-red-400',     accent: 'bg-red-500/10 border-red-500/20' },
+  '/terminal':        { label: 'Terminal',     icon: UilWindow,    color: 'text-emerald-400', accent: 'bg-emerald-500/10 border-emerald-500/20' },
+  '/redteam':         { label: 'Red Team',     icon: UilCrosshair, color: 'text-rose-400',    accent: 'bg-rose-500/10 border-rose-500/20' },
+  '/cyber-ops':       { label: 'Cyber Ops',    icon: UilBoltAlt,  color: 'text-orange-400',  accent: 'bg-orange-500/10 border-orange-500/20' },
+  '/network-scanner': { label: 'Network Map',  icon: UilFlask,     color: 'text-cyan-400',    accent: 'bg-cyan-500/10 border-cyan-500/20' },
+};
 
-// ─── Status Dot ──────────────────────────────────────
+function getLastPageContext() {
+  try {
+    const last = localStorage.getItem('cb_last_page');
+    if (last && PAGE_CONTEXT[last]) return { path: last, ...PAGE_CONTEXT[last] };
+  } catch {}
+  return null;
+}
 
-const StatusDot = ({ connected, label }: { connected: boolean; label: string }) => (
-  <div className="flex items-center gap-1.5">
-    <div className={`w-2 h-2 rounded-full transition-colors ${
-      connected ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-red-400'
-    }`} />
-    <span className="text-[10px] text-zinc-500 font-medium">{label}</span>
-  </div>
-);
+// ─── Date grouping ────────────────────────────────────────────────────────────
 
-// ─── Main Chat Component ─────────────────────────────
+function groupConversationsByDate(convs: Conversation[]): { label: string; items: Conversation[] }[] {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+  const lastWeek = new Date(today); lastWeek.setDate(lastWeek.getDate() - 7);
+  const lastMonth = new Date(today); lastMonth.setDate(lastMonth.getDate() - 30);
 
-const Chat = () => {
+  const groups: { label: string; items: Conversation[] }[] = [
+    { label: 'Today', items: [] },
+    { label: 'Yesterday', items: [] },
+    { label: 'Last 7 days', items: [] },
+    { label: 'Last 30 days', items: [] },
+    { label: 'Older', items: [] },
+  ];
+
+  for (const c of convs) {
+    const d = new Date(c.updated_at);
+    if (d >= today) groups[0].items.push(c);
+    else if (d >= yesterday) groups[1].items.push(c);
+    else if (d >= lastWeek) groups[2].items.push(c);
+    else if (d >= lastMonth) groups[3].items.push(c);
+    else groups[4].items.push(c);
+  }
+
+  return groups.filter(g => g.items.length > 0);
+}
+
+function timeAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+
+// ─── Provider colors ──────────────────────────────────────────────────────────
+
+const PROVIDER_STYLES: Record<Provider, { label: string; color: string; dot: string }> = {
+  crowbyte:   { label: 'CrowByte AI', color: 'text-blue-400',    dot: 'bg-blue-400' },
+};
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+export default function Chat() {
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Core
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [search, setSearch] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
-  const [provider, setProvider] = useState<Provider>(IS_WEB ? 'crowbyte' : 'openrouter');
-  const [claudeModel, setClaudeModel] = useState('sonnet');
-  const [openClawModel, setOpenClawModel] = useState('z-ai/glm5');
-  const [openRouterModel, setOpenRouterModel] = useState('qwen/qwen3.6-plus:free');
-  const [openClawConnected, setOpenClawConnected] = useState(false);
-  const [claudeAvailable, setClaudeAvailable] = useState(false);
-  const [openRouterAvailable, setOpenRouterAvailable] = useState(false);
-  const [sessionCost, setSessionCost] = useState(0);
+  // Panels
+  const [rightOpen, setRightOpen] = useState(false);
 
-  // Web AI
-  const [webAiAvailable, setWebAiAvailable] = useState(false);
-  const [webAiModel, setWebAiModel] = useState('qwen/qwen3.6-plus:free');
-  const [webAiModels, setWebAiModels] = useState<AiModel[]>([]);
-  const [webAiUsage, setWebAiUsage] = useState<{ current: number; limit: number | null; tier: string } | null>(null);
+  // Provider
+  const [provider] = useState<Provider>('crowbyte');
 
-  // Credits
-  const [creditBalance, setCreditBalance] = useState<CreditBalance | null>(null);
+  // Connection
+
+  // Right panel settings
+  const [temperature, setTemperature] = useState(0.7);
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [agentPersona, setAgentPersona] = useState('default');
+
+  // Context
+  const [pageContext, setPageContext] = useState(getLastPageContext());
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // ─── Init ────────────────────────────────────────
+  // ─── Context badge polling ────────────────────────────────────────────────
+
+  useEffect(() => {
+    const handler = () => setPageContext(getLastPageContext());
+    window.addEventListener('storage', handler);
+    const iv = setInterval(handler, 3000);
+    return () => { window.removeEventListener('storage', handler); clearInterval(iv); };
+  }, []);
+
+  // ─── Init ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate('/auth'); return; }
-      if (window.electronAPI?.claudeChat) setClaudeAvailable(true);
-      // Init OpenRouter
-      const hasKey = await openRouterProvider.loadApiKey();
-      if (hasKey) setOpenRouterAvailable(true);
-      try {
-        const health = await openClaw.healthCheck();
-        setOpenClawConnected(health.ok);
-      } catch { setOpenClawConnected(false); }
 
-      // Load credits balance
-      const bal = await getBalance();
-      if (bal) setCreditBalance(bal);
-
-      if (IS_WEB || isWebAiAvailable()) {
-        setWebAiAvailable(true);
-        if (!window.electronAPI?.claudeChat) setProvider('crowbyte');
-      }
-
-      if (!conversationId) await createNewConversation();
+      await loadConversations();
+      await createNewConversation();
     };
     init();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!session) navigate('/auth');
-    });
-    return () => subscription.unsubscribe();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => { if (!s) navigate('/auth'); });
+    return () => { subscription.unsubscribe(); abortRef.current?.abort(); };
   }, [navigate]);
 
   useEffect(() => {
@@ -145,17 +165,33 @@ const Chat = () => {
     if (conversationId) loadMessages(conversationId);
   }, [conversationId]);
 
-  // Health check polling
+
+
+  // ─── Chat prefill from other pages (InlineAI → Chat) ───────────────────
   useEffect(() => {
-    const check = async () => {
-      try { const h = await openClaw.healthCheck(); setOpenClawConnected(h.ok); }
-      catch { setOpenClawConnected(false); }
-    };
-    const interval = setInterval(check, 30000);
-    return () => clearInterval(interval);
+    const prefill = localStorage.getItem('cb_chat_prefill');
+    if (!prefill) return;
+    localStorage.removeItem('cb_chat_prefill');
+    setInput(prefill);
+    // Auto-send if it's not a template with placeholders
+    if (!prefill.includes('XXXXX') && !prefill.includes('// paste')) {
+      setTimeout(() => handleSend(prefill), 150);
+    }
   }, []);
 
-  // ─── Supabase ──────────────────────────────────
+  // ─── Supabase ────────────────────────────────────────────────────────────
+
+  const loadConversations = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from('conversations')
+      .select('id, title, updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(100);
+    if (data) setConversations(data);
+  };
 
   const loadMessages = async (convId: string) => {
     const { data } = await supabase
@@ -171,11 +207,8 @@ const Chat = () => {
         timestamp: m.created_at ? new Date(m.created_at).getTime() : undefined,
       }));
       setMessages(mapped);
-      // Sync OpenRouter provider's in-memory history so it has context
-      openRouterProvider.setHistory(mapped.map(m => ({ role: m.role, content: m.content })));
     } else {
       setMessages([]);
-      openRouterProvider.clearHistory();
     }
   };
 
@@ -184,721 +217,309 @@ const Chat = () => {
     if (!user) return;
     const { data, error } = await supabase
       .from('conversations')
-      .insert({ user_id: user.id, title: 'New Conversation' })
+      .insert({ user_id: user.id, title: 'New conversation' })
       .select('id, title, updated_at').single();
-    if (error) {
-      console.warn('[Chat] Failed to create conversation:', error.message);
-      toast({ title: 'Error', description: 'Failed to create chat', variant: 'destructive' });
-      return;
-    }
+    if (error) { toast({ title: 'Error', description: 'Failed to create chat', variant: 'destructive' }); return; }
     setConversationId(data.id);
     setMessages([]);
-    setSessionCost(0);
+    setConversations(prev => [data, ...prev]);
   };
 
-  const handleSelectConversation = (convId: string) => {
-    setConversationId(convId);
-    setSessionCost(0);
-    // Clear in-memory provider history — will be rebuilt from loaded messages
-    openRouterProvider.clearHistory();
+  const deleteConversation = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await supabase.from('conversations').delete().eq('id', id);
+    setConversations(prev => prev.filter(c => c.id !== id));
+    if (conversationId === id) await createNewConversation();
+  };
+
+  const renameConversation = async (id: string, title: string) => {
+    await supabase.from('conversations').update({ title }).eq('id', id);
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, title } : c));
+    setEditingId(null);
   };
 
   const saveMessage = async (role: string, content: string) => {
     if (!conversationId) return;
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from('messages').insert({
-      conversation_id: conversationId,
-      user_id: user?.id,
-      role,
-      content,
-      provider,
-      model: provider === 'openrouter' ? openRouterModel : provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel,
+    await supabase.from('messages').insert({
+      conversation_id: conversationId, user_id: user?.id, role, content, provider,
+      model: 'gemini-2.5-flash',
     });
-    if (error) console.warn('[Chat] Failed to save message:', error.message);
-    memoryEngine.saveChat({ content, role: role as 'user' | 'assistant', session_id: conversationId, source: 'chat' });
+    memoryEngine.saveChat({ content, role: role as 'user' | 'assistant', session_id: conversationId!, source: 'chat' });
   };
 
-  // ─── Delete Message ────────────────────────────
-
-  const handleDeleteMessage = async (index: number) => {
-    setMessages(prev => prev.filter((_, i) => i !== index));
-    // Could also delete from DB but messages table doesn't have individual IDs exposed in our current flow
-  };
-
-  // ─── Regenerate ────────────────────────────────
+  const handleDeleteMessage = (index: number) => setMessages(prev => prev.filter((_, i) => i !== index));
 
   const handleRegenerate = async (index: number) => {
-    // Find the last user message before this assistant message
-    const userMsgIdx = messages.slice(0, index).findLastIndex(m => m.role === 'user');
-    if (userMsgIdx < 0) return;
-
-    // Remove all messages after the user message
-    const trimmed = messages.slice(0, userMsgIdx + 1);
+    const i = messages.slice(0, index).findLastIndex(m => m.role === 'user');
+    if (i < 0) return;
+    const trimmed = messages.slice(0, i + 1);
     setMessages(trimmed);
-
-    const userMessage = trimmed[userMsgIdx];
     setIsStreaming(true);
-
     try {
-      if (provider === 'openrouter') await sendOpenRouter(userMessage);
-      else if (provider === 'claude') await sendClaude(userMessage);
-      else if (provider === 'openclaw') await sendOpenClaw(userMessage);
-      else await sendCrowByte(userMessage);
-    } catch (err) {
-      toast({ title: 'Error', description: 'Regeneration failed', variant: 'destructive' });
-    } finally {
-      setIsStreaming(false);
-    }
+      await sendCrowByte(trimmed[i]);
+    } catch { toast({ title: 'Error', description: 'Regeneration failed', variant: 'destructive' }); }
+    finally { setIsStreaming(false); }
   };
 
-  // ─── OpenRouter Send ───────────────────────────
+  // ─── Send methods ─────────────────────────────────────────────────────────
 
-  const sendOpenRouter = useCallback(async (userMessage: Message) => {
-    openRouterProvider.setModel(openRouterModel);
-    openRouterProvider.clearListeners();
-
-    let assistantContent = '';
-    const modelName = openRouterProvider.getModels().find(m => m.id === openRouterModel)?.name || openRouterModel;
-
-    setMessages(prev => [...prev, {
-      role: 'assistant', content: '', isStreaming: true,
-      provider: 'openrouter', model: modelName, timestamp: Date.now(),
-    }]);
-
-    const removeListener = openRouterProvider.onEvent((event: StreamEvent) => {
-      switch (event.type) {
-        case 'text':
-          assistantContent += event.content;
-          break;
-        case 'thinking':
-          assistantContent += `<think>${event.content}</think>`;
-          break;
-        case 'tool_call':
-          assistantContent += `\n\`\`\`\n${event.content}\n\`\`\`\n`;
-          break;
-        case 'error':
-          assistantContent += `\n**Error:** ${event.content}\n`;
-          break;
-        case 'system':
-          break;
-      }
-
-      setMessages(prev => {
-        const next = [...prev];
-        next[next.length - 1] = {
-          role: 'assistant', content: assistantContent, isStreaming: true,
-          provider: 'openrouter', model: modelName,
-        };
-        return next;
-      });
-    });
-
-    try { await openRouterProvider.send(userMessage.content); }
-    finally { removeListener(); }
-
-    setMessages(prev => {
-      const next = [...prev];
-      next[next.length - 1] = {
-        ...next[next.length - 1],
-        content: assistantContent,
-        isStreaming: false,
-      };
-      return next;
-    });
-
-    if (assistantContent) await saveMessage('assistant', assistantContent);
-    return assistantContent;
-  }, [openRouterModel, conversationId]);
-
-  // ─── Claude Send ───────────────────────────────
-
-  const sendClaude = useCallback(async (userMessage: Message) => {
-    claudeProvider.setModel(claudeModel);
-    claudeProvider.clearListeners();
-
-    let assistantContent = '';
-    let totalCost = 0;
-    let modelUsed = claudeModel;
-
-    setMessages(prev => [...prev, {
-      role: 'assistant', content: '', isStreaming: true,
-      provider: 'claude', model: claudeModel, timestamp: Date.now(),
-    }]);
-
-    const removeListener = claudeProvider.onEvent((event: ClaudeStreamEvent) => {
-      switch (event.type) {
-        case 'text':
-          assistantContent += event.content;
-          if (event.model) modelUsed = event.model;
-          break;
-        case 'thinking':
-          assistantContent += `<think>${event.content}</think>`;
-          break;
-        case 'tool_call':
-          assistantContent += `\n\`\`\`bash\n$ ${event.content}\n\`\`\`\n`;
-          break;
-        case 'tool_result': {
-          const truncated = event.content.length > 3000
-            ? event.content.slice(0, 3000) + '\n[... truncated ...]'
-            : event.content;
-          assistantContent += `\`\`\`\n${truncated}\n\`\`\`\n`;
-          break;
-        }
-        case 'cost':
-          totalCost = event.costUsd || 0;
-          setSessionCost(prev => prev + totalCost);
-          break;
-        case 'system':
-          break;
-        case 'error':
-          assistantContent += `\n**Error:** ${event.content}\n`;
-          break;
-      }
-
-      setMessages(prev => {
-        const next = [...prev];
-        next[next.length - 1] = {
-          role: 'assistant', content: assistantContent, isStreaming: true,
-          provider: 'claude', model: modelUsed,
-        };
-        return next;
-      });
-    });
-
-    try { await claudeProvider.send(userMessage.content); }
-    finally { removeListener(); }
-
-    setMessages(prev => {
-      const next = [...prev];
-      next[next.length - 1] = {
-        role: 'assistant', content: assistantContent, isStreaming: false,
-        provider: 'claude', model: modelUsed, cost: totalCost || undefined, timestamp: Date.now(),
-      };
-      return next;
-    });
-
-    if (assistantContent) await saveMessage('assistant', assistantContent);
-    return assistantContent;
-  }, [claudeModel, conversationId]);
-
-  // ─── OpenClaw Send ─────────────────────────────
-
-  const sendOpenClaw = useCallback(async (userMessage: Message) => {
-    let assistantContent = '';
-
-    setMessages(prev => [...prev, {
-      role: 'assistant', content: '', isStreaming: true,
-      provider: 'openclaw', model: openClawModel, timestamp: Date.now(),
-    }]);
-
-    const executeCommand = async (cmd: string): Promise<string> => {
-      if (window.electronAPI?.executeCommand) return await window.electronAPI.executeCommand(cmd);
-      return 'Error: Not running in Electron';
-    };
-
-    openClaw.setModel(openClawModel);
-    const stream = openClaw.agenticChat(
-      [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
-      executeCommand, openClawModel, 0.7,
-    );
-
-    for await (const event of stream) {
-      if (event.type === 'text') assistantContent += event.content;
-      else if (event.type === 'tool_call') assistantContent += `\n\`\`\`bash\n$ ${event.content}\n\`\`\`\n`;
-      else if (event.type === 'tool_result') {
-        const truncated = event.content.length > 2000
-          ? event.content.slice(0, 2000) + '\n[... truncated ...]'
-          : event.content;
-        assistantContent += `\`\`\`\n${truncated}\n\`\`\`\n`;
-      }
-
-      setMessages(prev => {
-        const next = [...prev];
-        next[next.length - 1] = {
-          role: 'assistant', content: assistantContent, isStreaming: true,
-          provider: 'openclaw', model: openClawModel,
-        };
-        return next;
-      });
-    }
-
-    setMessages(prev => {
-      const next = [...prev];
-      next[next.length - 1] = {
-        role: 'assistant', content: assistantContent, isStreaming: false,
-        provider: 'openclaw', model: openClawModel, timestamp: Date.now(),
-      };
-      return next;
-    });
-
-    if (assistantContent) await saveMessage('assistant', assistantContent);
-    return assistantContent;
-  }, [openClawModel, messages, conversationId]);
-
-  // ─── CrowByte AI Send (Credits Proxy) ─────────
-
-  const sendCrowByte = useCallback(async (userMessage: Message) => {
-    let assistantContent = '';
-    const modelId = 'qwen/qwen3.6-plus:free'; // Hardcoded — CrowByte AI engine
-    const cost = getModelCreditCost(modelId);
-    const modelLabel = 'CrowByte AI';
-
-    setMessages(prev => [...prev, {
-      role: 'assistant', content: '', isStreaming: true,
-      provider: 'crowbyte', model: modelLabel, timestamp: Date.now(),
-    }]);
-
-    const chatMessages = [...messages, userMessage].map(m => ({
-      role: m.role as 'user' | 'assistant' | 'system',
-      content: m.content,
-    }));
-
+  const sendCrowByte = useCallback(async (userMessage: Message, signal?: AbortSignal) => {
+    let content = '';
+    setMessages(prev => [...prev, { role: 'assistant', content: '', isStreaming: true, provider: 'crowbyte', model: 'DeepSeek V3', timestamp: Date.now() }]);
     try {
-      const res = await sendCreditChat(chatMessages, modelId);
-
-      // Handle insufficient credits
-      if (res.status === 402) {
-        const errData = await res.json();
-        assistantContent = `**Insufficient credits.** You need ${errData.required} credits but have ${errData.balance}. [Buy credits](/settings/billing)`;
-        setMessages(prev => {
-          const next = [...prev];
-          next[next.length - 1] = {
-            role: 'assistant', content: assistantContent, isStreaming: false,
-            provider: 'crowbyte', model: modelLabel,
-          };
-          return next;
-        });
-        return assistantContent;
-      }
-
-      if (!res.ok) {
-        const errText = await res.text().catch(() => 'Unknown error');
-        throw new Error(errText);
-      }
-
-      // Update balance from response headers
-      const creditsRemaining = res.headers.get('X-Credits-Remaining');
-      if (creditsRemaining && creditBalance) {
-        const newBal = parseInt(creditsRemaining);
-        setCreditBalance(prev => prev ? { ...prev, balance: newBal, monthly_used: prev.monthly_used + cost.credits } : prev);
-      }
-
-      // Stream SSE response
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta;
-            if (!delta) continue;
-
-            if (delta.reasoning || delta.reasoning_content) {
-              assistantContent += `<think>${delta.reasoning || delta.reasoning_content}</think>`;
-            }
-            if (delta.content) {
-              assistantContent += delta.content;
-            }
-          } catch {}
-        }
-
-        setMessages(prev => {
-          const next = [...prev];
-          next[next.length - 1] = {
-            role: 'assistant', content: assistantContent, isStreaming: true,
-            provider: 'crowbyte', model: modelLabel,
-          };
-          return next;
-        });
+      const history = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
+      for await (const delta of streamChat(history, DEFAULT_MODEL, 0.7, signal)) {
+        content += delta;
+        setMessages(prev => { const n = [...prev]; n[n.length - 1] = { ...n[n.length - 1], content, isStreaming: true }; return n; });
       }
     } catch (err: any) {
-      if (!assistantContent) {
-        assistantContent = `**Error:** ${err.message || 'Connection failed'}`;
-      }
+      if (!content) content = `**Error:** ${err.message || 'Connection failed'}`;
     }
+    setMessages(prev => { const n = [...prev]; n[n.length - 1] = { ...n[n.length - 1], content, isStreaming: false, timestamp: Date.now() }; return n; });
+    if (content) await saveMessage('assistant', content);
+    return content;
+  }, [messages, conversationId]);
 
-    setMessages(prev => {
-      const next = [...prev];
-      next[next.length - 1] = {
-        role: 'assistant', content: assistantContent, isStreaming: false,
-        provider: 'crowbyte', model: modelLabel, timestamp: Date.now(),
-      };
-      return next;
-    });
-
-    // Refresh balance after message
-    refreshBalance().then(b => { if (b) setCreditBalance(b); });
-    if (assistantContent) await saveMessage('assistant', assistantContent);
-    return assistantContent;
-  }, [webAiModel, messages, conversationId, creditBalance]);
-
-  // ─── Send Handler ──────────────────────────────
+  // ─── Send handler ─────────────────────────────────────────────────────────
 
   const handleSend = async (overrideInput?: string) => {
     const text = overrideInput || input;
     if (!text.trim() || isStreaming || !conversationId) return;
-
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({ title: 'Auth Required', description: 'Please sign in', variant: 'destructive' });
-      return;
-    }
-
+    if (!session) { toast({ title: 'Auth Required', description: 'Please sign in', variant: 'destructive' }); return; }
     const userMessage: Message = { role: 'user', content: text, timestamp: Date.now() };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsStreaming(true);
-
-    await saveMessage('user', userMessage.content);
-
-    const isFirst = messages.filter(m => m.role === 'user').length === 0;
-    if (isFirst) {
-      const title = userMessage.content.slice(0, 50) + (userMessage.content.length > 50 ? '...' : '');
+    await saveMessage('user', text);
+    if (messages.filter(m => m.role === 'user').length === 0) {
+      const title = text.slice(0, 60) + (text.length > 60 ? '...' : '');
       await supabase.from('conversations').update({ title }).eq('id', conversationId);
+      setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, title, updated_at: new Date().toISOString() } : c));
     }
-
-    const chatStartTime = Date.now();
-    const activeModel = provider === 'openrouter' ? openRouterModel : provider === 'claude' ? claudeModel : provider === 'openclaw' ? openClawModel : webAiModel;
-
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     try {
-      if (provider === 'openrouter') await sendOpenRouter(userMessage);
-      else if (provider === 'claude') await sendClaude(userMessage);
-      else if (provider === 'openclaw') await sendOpenClaw(userMessage);
-      else await sendCrowByte(userMessage);
-
-      await analyticsService.logChat({
-        model: activeModel,
-        messageLength: messages.length,
-        responseTimeMs: Date.now() - chatStartTime,
-        status: 'success',
-      });
+      await sendCrowByte(userMessage, abortRef.current.signal);
     } catch (error) {
-      console.error('Chat error:', error);
-      await analyticsService.logChat({
-        model: activeModel,
-        messageLength: 0,
-        responseTimeMs: Date.now() - chatStartTime,
-        status: 'error',
-      });
-      toast({
-        title: 'Connection Error',
-        description: error instanceof Error ? error.message : `Failed to connect to ${provider}`,
-        variant: 'destructive',
-      });
-      setMessages(prev => prev.filter((m, i) => i !== prev.length - 1 || m.content !== ''));
-    } finally {
-      setIsStreaming(false);
-    }
+      toast({ title: 'Connection Error', description: error instanceof Error ? error.message : 'Failed', variant: 'destructive' });
+    } finally { setIsStreaming(false); }
   };
 
-  const handleStop = async () => {
-    if (provider === 'openrouter') await openRouterProvider.stop();
-    else if (provider === 'claude') await claudeProvider.stop();
+  const handleStop = () => {
+    abortRef.current?.abort(); abortRef.current = null;
     setIsStreaming(false);
   };
 
-  // ─── Derived State ─────────────────────────────
+  // ─── Derived ──────────────────────────────────────────────────────────────
 
-  const isConnected = provider === 'openrouter' ? openRouterAvailable
-    : provider === 'claude' ? claudeAvailable
-    : provider === 'openclaw' ? openClawConnected
-    : true; // CrowByte credits always available (server-side)
+  const filteredConversations = useMemo(() =>
+    search.trim() ? conversations.filter(c => c.title.toLowerCase().includes(search.toLowerCase())) : conversations,
+    [conversations, search]
+  );
 
-  const statusLabel = provider === 'openrouter'
-    ? (openRouterAvailable ? 'Ready' : 'No API UilKeySkeleton')
-    : provider === 'claude'
-    ? (claudeAvailable ? 'Ready' : 'Unavailable')
-    : provider === 'openclaw'
-    ? (openClawConnected ? 'Connected' : 'Offline')
-    : (creditBalance ? `${creditBalance.balance} credits` : 'Online');
+  const grouped = useMemo(() => groupConversationsByDate(filteredConversations), [filteredConversations]);
 
-  const currentModelLabel = IS_WEB
-    ? 'CrowByte AI'
-    : provider === 'openrouter'
-    ? openRouterProvider.getModels().find(m => m.id === openRouterModel)?.name || openRouterModel
-    : provider === 'claude'
-    ? claudeProvider.getModels().find(m => m.id === claudeModel)?.name || claudeModel
-    : provider === 'openclaw'
-    ? openClaw.getModels().find(m => m.id === openClawModel)?.name || openClawModel
-    : webAiModels.find(m => m.id === webAiModel)?.name || webAiModel;
+  const currentConv = conversations.find(c => c.id === conversationId);
 
-  const providerLabel = provider === 'openrouter' ? 'OpenRouter' : provider === 'claude' ? 'Claude' : provider === 'openclaw' ? 'OpenClaw' : 'CrowByte';
+  const isConnected = true;
 
-  // ─── Render ────────────────────────────────────
+  const modelLabel = 'DeepSeek V3';
+
+  const providerStyle = PROVIDER_STYLES[provider];
+
+  // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
-      {/* Sidebar */}
-      {sidebarOpen && (
-        <ConversationsSidebar
-          currentConversationId={conversationId}
-          onSelectConversation={handleSelectConversation}
-          onNewConversation={createNewConversation}
-        />
-      )}
+    <div className="flex h-[calc(100vh-3.5rem)] bg-[#111113] overflow-hidden">
 
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* ─── Header ──────────────────────────── */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-black/20 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            {/* Toggle sidebar */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-zinc-500 hover:text-zinc-300"
-              onClick={() => setSidebarOpen(v => !v)}
-              aria-label="Toggle sidebar"
-            >
-              <UilLeftArrowFromLeft size={18} />
-            </Button>
+      {/* ══ LEFT SIDEBAR ═══════════════════════════════════════════════════════ */}
+      <div className="w-[240px] shrink-0 flex flex-col border-r border-white/[0.05] bg-[#0e0e10]">
 
-            {/* Provider toggle */}
-            <ProviderToggle
-              provider={provider}
-              setProvider={setProvider}
-              showCrowByte={webAiAvailable}
+        {/* Search + New */}
+        <div className="p-3 space-y-2 border-b border-white/[0.04]">
+          <button
+            onClick={createNewConversation}
+            className="w-full flex items-center justify-center gap-2 h-8 rounded-lg bg-white/[0.07] hover:bg-white/[0.1] text-zinc-300 text-xs font-medium transition-colors"
+          >
+            <UilPlus size={13} />
+            New chat
+          </button>
+          <div className="relative">
+            <UilSearch size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search chats..."
+              className="w-full h-7 pl-7 pr-3 rounded-md bg-white/[0.04] border border-white/[0.05] text-[11px] text-zinc-300 placeholder:text-zinc-600 outline-none focus:border-white/[0.1] focus:bg-white/[0.06] transition-all"
             />
-
-            {/* Status */}
-            <StatusDot connected={isConnected} label={statusLabel} />
-
-            {/* Session cost (desktop only — Claude CLI) */}
-            {!IS_WEB && sessionCost > 0 && (
-              <div className="flex items-center gap-1">
-                <UilDollarSign size={11} className="text-amber-500/50" />
-                <span className="text-[10px] text-amber-500/70 font-mono">${sessionCost.toFixed(4)}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Model selector — web shows branded "CrowByte AI", desktop shows model pickers */}
-            {IS_WEB ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-200 font-semibold font-['JetBrains_Mono'] tracking-tight">CrowByte AI</span>
-                {creditBalance && (
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-800/50 text-xs font-mono">
-                    <UilBolt size={11} className="text-cyan-400" />
-                    <span className="text-zinc-300">{creditBalance.balance.toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
-            ) : provider === 'openrouter' ? (
-              <Select value={openRouterModel} onValueChange={setOpenRouterModel}>
-                <SelectTrigger className="w-[220px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {openRouterProvider.getModels().map(m => (
-                    <SelectItem key={m.id} value={m.id}>
-                      <span className="flex items-center gap-1.5">
-                        {m.name}
-                        {m.free && <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 text-emerald-400">FREE</Badge>}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : provider === 'claude' ? (
-              <Select value={claudeModel} onValueChange={setClaudeModel}>
-                <SelectTrigger className="w-[180px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {claudeProvider.getModels().map(m => (
-                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : provider === 'openclaw' ? (
-              <Select value={openClawModel} onValueChange={setOpenClawModel}>
-                <SelectTrigger className="w-[220px] h-8 bg-zinc-900/50 border-white/[0.06] text-zinc-300 text-xs rounded-lg">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {openClaw.getModels().map(m => (
-                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : null}
-
-            {/* Settings */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-zinc-500 hover:text-zinc-300" aria-label="Settings">
-                  <UilCog size={16} />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="bg-zinc-900 border-white/[0.06] overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle className="text-zinc-200">Configuration</SheetTitle>
-                  <SheetDescription className="text-zinc-500">AI provider settings</SheetDescription>
-                </SheetHeader>
-                <div className="space-y-6 mt-6">
-                  {/* Desktop-only: Claude + OpenClaw */}
-                  {!IS_WEB && (
-                    <>
-                      <div>
-                        <Label className="text-zinc-200 flex items-center gap-2">
-                          <UilStar size={16} className="text-violet-400" />
-                          Claude UilBracketsCurly CLI
-                        </Label>
-                        <div className="mt-3 space-y-2">
-                          {([
-                            ['Status', claudeAvailable ? 'Ready' : 'Unavailable', claudeAvailable ? 'text-violet-400' : 'text-red-400'],
-                            ['Environment', '.env-unfiltered', 'text-violet-400'],
-                            ['Tools', '344+ (MCP + Bash + All)', 'text-violet-400'],
-                            ['Permissions', 'Bypass All', 'text-red-400'],
-                            ['Session Cost', `$${sessionCost.toFixed(4)}`, 'text-amber-400'],
-                          ] as const).map(([label, value, cls]) => (
-                            <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-zinc-300">{label}</span>
-                                <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                      <Separator className="bg-white/[0.04]" />
-                      <div>
-                        <Label className="text-zinc-200 flex items-center gap-2">
-                          <UilRobot size={16} className="text-emerald-400" />
-                          OpenClaw (NVIDIA Free)
-                        </Label>
-                        <div className="mt-3 space-y-2">
-                          {([
-                            ['VPS', openClawConnected ? 'Connected' : 'Offline', openClawConnected ? 'text-emerald-400' : 'text-red-400'],
-                            ['Cost', '$0 (Free)', 'text-emerald-400'],
-                            ['Agents', '9 Active', 'text-blue-400'],
-                          ] as const).map(([label, value, cls]) => (
-                            <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-zinc-300">{label}</span>
-                                <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                      <Separator className="bg-white/[0.04]" />
-                      <div>
-                        <Label className="text-zinc-200 flex items-center gap-2">
-                          <UilBolt size={16} className="text-cyan-400" />
-                          OpenRouter
-                        </Label>
-                        <div className="mt-3 space-y-2">
-                          {([
-                            ['Status', openRouterAvailable ? 'Connected' : 'No API UilKeySkeleton', openRouterAvailable ? 'text-cyan-400' : 'text-red-400'],
-                            ['Models', `${openRouterProvider.getModels().filter(m => m.free).length} Free + ${openRouterProvider.getModels().filter(m => !m.free).length} Paid`, 'text-cyan-400'],
-                            ['Active Model', openRouterProvider.getModels().find(m => m.id === openRouterModel)?.name || openRouterModel, 'text-cyan-300'],
-                          ] as const).map(([label, value, cls]) => (
-                            <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-zinc-300">{label}</span>
-                                <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  {/* CrowByte AI info */}
-                  <div>
-                    <Label className="text-zinc-200 flex items-center gap-2">
-                      <UilBolt size={16} className="text-blue-400" />
-                      CrowByte AI (Credits)
-                    </Label>
-                    <div className="mt-3 space-y-2">
-                      {([
-                        ['Status', 'Online', 'text-blue-400'],
-                        ['Balance', creditBalance ? `${creditBalance.balance.toLocaleString()} credits` : 'Loading...', 'text-cyan-400'],
-                        ['Tier', creditBalance?.tier?.toUpperCase() || 'FREE', 'text-blue-400'],
-                        ['Used', creditBalance ? `${creditBalance.monthly_used}/${creditBalance.monthly_allowance}` : 'N/A', 'text-blue-300'],
-                        ['Pack Credits', creditBalance ? `${creditBalance.pack_balance.toLocaleString()}` : '0', 'text-emerald-400'],
-                      ] as const).map(([label, value, cls]) => (
-                        <Card key={label} className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-300">{label}</span>
-                            <Badge variant="outline" className={`${cls} border-transparent`}>{value}</Badge>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                  <Separator className="bg-white/[0.04]" />
-                  <Card className="p-3 bg-zinc-900/50 ring-1 ring-white/[0.06]">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-zinc-300">Chat History</span>
-                      <Badge variant="outline" className="text-blue-400 border-transparent">Cloud Sync</Badge>
-                    </div>
-                  </Card>
-                </div>
-              </SheetContent>
-            </Sheet>
           </div>
         </div>
 
-        {/* ─── Messages Area ───────────────────── */}
+        {/* Tools */}
+        <div className="px-3 py-2 border-b border-white/[0.04]">
+          <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-600 px-1 pb-1">Tools</p>
+          <div className="space-y-0.5">
+            {[
+              { icon: UilFlask,     label: 'Think',   hint: 'Deep reasoning' },
+              { icon: UilBoltAlt,  label: 'Fusion',  hint: 'Multi-model' },
+              { icon: UilCrosshair,label: 'Recon',   hint: 'Target recon' },
+              { icon: UilRobot,    label: 'Report',  hint: 'Bug report' },
+            ].map(({ icon: Icon, label, hint }) => (
+              <button key={label} className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04] transition-colors group">
+                <Icon size={13} />
+                <span className="text-[11px] font-medium">{label}</span>
+                <span className="text-[10px] text-zinc-700 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">{hint}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Conversation list */}
         <ScrollArea className="flex-1">
-          <div className="space-y-6 max-w-3xl mx-auto px-6 py-6">
+          <div className="px-2 py-2">
+            {grouped.length === 0 && (
+              <p className="text-[11px] text-zinc-600 text-center py-6">No conversations yet</p>
+            )}
+            {grouped.map(group => (
+              <div key={group.label} className="mb-3">
+                <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-600 px-2 py-1">{group.label}</p>
+                {group.items.map(conv => (
+                  <div
+                    key={conv.id}
+                    onClick={() => { setConversationId(conv.id); setSearch(''); }}
+                    className={`group relative flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors ${
+                      conversationId === conv.id
+                        ? 'bg-white/[0.08] text-zinc-100'
+                        : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'
+                    }`}
+                  >
+                    {editingId === conv.id ? (
+                      <input
+                        autoFocus
+                        value={editingTitle}
+                        onChange={e => setEditingTitle(e.target.value)}
+                        onBlur={() => renameConversation(conv.id, editingTitle)}
+                        onKeyDown={e => { if (e.key === 'Enter') renameConversation(conv.id, editingTitle); if (e.key === 'Escape') setEditingId(null); }}
+                        onClick={e => e.stopPropagation()}
+                        className="flex-1 bg-transparent text-[11px] outline-none border-b border-zinc-500 text-zinc-100"
+                      />
+                    ) : (
+                      <>
+                        <span className="flex-1 text-[11px] truncate">{conv.title}</span>
+                        <span className="text-[9px] text-zinc-600 shrink-0 group-hover:hidden">{timeAgo(conv.updated_at)}</span>
+                        <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
+                          <button
+                            onClick={e => { e.stopPropagation(); setEditingId(conv.id); setEditingTitle(conv.title); }}
+                            className="p-0.5 rounded text-zinc-600 hover:text-zinc-300 transition-colors"
+                          >
+                            <UilPen size={10} />
+                          </button>
+                          <button
+                            onClick={e => deleteConversation(conv.id, e)}
+                            className="p-0.5 rounded text-zinc-600 hover:text-red-400 transition-colors"
+                          >
+                            <UilTrashAlt size={10} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        {/* Account footer */}
+        <div className="px-3 py-2.5 border-t border-white/[0.04] flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shrink-0">
+            <UilBolt size={11} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-zinc-300 font-medium truncate">CrowByte</p>
+            <p className="text-[9px] text-zinc-600 truncate">Pro</p>
+          </div>
+          <button onClick={() => navigate('/settings')} className="text-zinc-600 hover:text-zinc-400 transition-colors">
+            <UilCog size={13} />
+          </button>
+        </div>
+
+      </div>
+
+      {/* ══ MAIN ════════════════════════════════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col min-w-0">
+
+        {/* Header */}
+        <div className="flex items-center justify-between h-11 px-4 border-b border-white/[0.04] bg-[#111113]/80 backdrop-blur-sm shrink-0">
+          {/* Left: current chat title */}
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-[12px] text-zinc-500 truncate max-w-[220px]">
+              {currentConv?.title || 'New chat'}
+            </span>
+          </div>
+
+          {/* Center: model badge */}
+          <button
+            onClick={() => setRightOpen(v => !v)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.07] transition-colors absolute left-1/2 -translate-x-1/2"
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? providerStyle.dot : 'bg-red-400'}`} />
+            <span className="text-[11px] text-zinc-300 font-medium">{modelLabel}</span>
+          </button>
+
+          {/* Right: context + settings */}
+          <div className="flex items-center gap-2 flex-1 justify-end">
+            {/* Context badge */}
+            <AnimatePresence>
+              {pageContext && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={{ duration: 0.15 }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-medium transition-opacity hover:opacity-80 ${pageContext.accent}`}
+                  onClick={() => navigate(pageContext.path)}
+                  title={`Go to ${pageContext.label}`}
+                >
+                  <pageContext.icon size={10} className={pageContext.color} />
+                  <span className={pageContext.color}>{pageContext.label}</span>
+                </motion.button>
+              )}
+            </AnimatePresence>
+
+          </div>
+        </div>
+
+        {/* Messages */}
+        <ScrollArea className="flex-1">
+          <div className="max-w-2xl mx-auto px-5 py-6 space-y-5">
             {messages.length === 0 ? (
               <EmptyState
                 provider={provider}
                 onSendPrompt={(prompt) => {
                   setInput(prompt);
-                  // Auto-send if it's a complete prompt (no placeholder markers)
-                  if (!prompt.includes('// paste') && !prompt.includes('XXXXX')) {
-                    setTimeout(() => handleSend(prompt), 100);
-                  }
+                  if (!prompt.includes('// paste') && !prompt.includes('XXXXX')) setTimeout(() => handleSend(prompt), 100);
                 }}
               />
             ) : (
-              messages.map((message, index) => (
-                <div key={index}>
-                  {message.role === 'user' ? (
-                    <UserMessage
-                      message={message}
-                      onDelete={() => handleDeleteMessage(index)}
-                    />
-                  ) : (
-                    <AssistantMessage
-                      message={message}
-                      onRegenerate={() => handleRegenerate(index)}
-                      onDelete={() => handleDeleteMessage(index)}
-                    />
-                  )}
+              messages.map((msg, i) => (
+                <div key={i}>
+                  {msg.role === 'user'
+                    ? <UserMessage message={msg} onDelete={() => handleDeleteMessage(i)} />
+                    : <AssistantMessage message={msg} onRegenerate={() => handleRegenerate(i)} onDelete={() => handleDeleteMessage(i)} />
+                  }
                 </div>
               ))
             )}
-
-            {isStreaming && messages[messages.length - 1]?.content === '' && (
-              <TypingIndicator provider={provider} />
-            )}
-
+            {isStreaming && messages[messages.length - 1]?.content === '' && <TypingIndicator provider={provider} />}
             <div ref={scrollRef} />
           </div>
         </ScrollArea>
 
-        {/* ─── Input ───────────────────────────── */}
+        {/* Input */}
         <ChatInput
           value={input}
           onChange={setInput}
@@ -906,12 +527,106 @@ const Chat = () => {
           onStop={handleStop}
           isStreaming={isStreaming}
           provider={provider}
-          modelLabel={currentModelLabel}
-          providerLabel={providerLabel}
+          modelLabel={modelLabel}
+          providerLabel={providerStyle.label}
         />
       </div>
+
+      {/* ══ RIGHT PANEL ═════════════════════════════════════════════════════════ */}
+      <AnimatePresence initial={false}>
+        {rightOpen && (
+          <motion.div
+            key="right"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 264, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden shrink-0 border-l border-white/[0.05]"
+          >
+            <div className="w-[264px] h-full bg-[#0e0e10] flex flex-col">
+              <div className="flex items-center justify-between h-11 px-4 border-b border-white/[0.04] shrink-0">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Settings</span>
+                <button onClick={() => setRightOpen(false)} className="text-zinc-600 hover:text-zinc-400 transition-colors">
+                  <UilTimes size={14} />
+                </button>
+              </div>
+
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-5">
+
+                                    {/* Temperature */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Temperature</p>
+                      <span className="text-[10px] font-mono text-zinc-400">{temperature.toFixed(2)}</span>
+                    </div>
+                    <Slider value={[temperature]} onValueChange={([v]) => setTemperature(v)} min={0} max={2} step={0.05} className="w-full" />
+                    <div className="flex justify-between text-[9px] text-zinc-600">
+                      <span>Precise</span>
+                      <span>Creative</span>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-white/[0.04]" />
+
+                  {/* Persona */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Agent Persona</p>
+                    <Select value={agentPersona} onValueChange={setAgentPersona}>
+                      <SelectTrigger className="h-8 bg-white/[0.04] border-white/[0.06] text-zinc-300 text-[11px] rounded-lg w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          { id: 'default',  label: '🤖 Default' },
+                          { id: 'hacker',   label: '💻 Hacker / Pentester' },
+                          { id: 'analyst',  label: '🔍 Threat Analyst' },
+                          { id: 'defender', label: '🛡️ SOC Defender' },
+                          { id: 'coder',    label: '⚙️ Security Coder' },
+                          { id: 'reporter', label: '📋 Report Writer' },
+                        ].map(p => <SelectItem key={p.id} value={p.id} className="text-xs">{p.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="h-px bg-white/[0.04]" />
+
+                  {/* System prompt */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">System Prompt</p>
+                    <Textarea
+                      value={systemPrompt}
+                      onChange={e => setSystemPrompt(e.target.value)}
+                      placeholder="Override system prompt..."
+                      className="min-h-[90px] text-[11px] bg-white/[0.04] border-white/[0.05] text-zinc-300 resize-none placeholder:text-zinc-600 rounded-lg leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Active context */}
+                  {pageContext && (
+                    <>
+                      <div className="h-px bg-white/[0.04]" />
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Active Context</p>
+                        <button
+                          onClick={() => navigate(pageContext.path)}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-[11px] hover:opacity-80 transition-opacity ${pageContext.accent}`}
+                        >
+                          <pageContext.icon size={12} className={pageContext.color} />
+                          <span className={pageContext.color}>{pageContext.label}</span>
+                          <span className="text-zinc-600 ml-auto text-[9px]">click to go back</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                </div>
+              </ScrollArea>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
-};
-
-export default Chat;
+}

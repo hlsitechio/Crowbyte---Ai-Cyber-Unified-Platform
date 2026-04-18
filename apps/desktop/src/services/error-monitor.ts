@@ -1216,7 +1216,8 @@ class ErrorMonitor {
     // Use the original fetch to avoid self-interception
     const fetchFn = this.originalFetch ?? window.fetch;
 
-    fetchFn('/api/errors', {
+    const _apiBase = window.location.protocol === 'file:' ? 'https://crowbyte.io' : '';
+    fetchFn(`${_apiBase}/api/errors`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

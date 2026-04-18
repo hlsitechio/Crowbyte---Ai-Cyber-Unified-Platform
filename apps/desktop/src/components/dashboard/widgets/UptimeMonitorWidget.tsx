@@ -16,7 +16,7 @@ const STORAGE_KEY = "crowbyte-uptime-targets";
 
 const DEFAULT_TARGETS = [
   { url: "https://crowbyte.io", label: "CrowByte" },
-  { url: "https://srv1459982.hstgr.cloud", label: "OpenClaw VPS" },
+  { url: "https://crowbyte.io/api/health", label: "CrowByte API" },
 ];
 
 function loadTargets(): { url: string; label: string }[] {

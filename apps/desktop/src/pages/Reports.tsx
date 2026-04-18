@@ -1233,7 +1233,7 @@ export default function Reports() {
                               className="h-8 gap-1.5 border-zinc-700 text-zinc-300"
                             >
                               <UilCopy size={14} />
-                              UilCopy to Clipboard
+                              Copy to Clipboard
                             </Button>
                             <Button
                               variant="outline"
@@ -1310,7 +1310,7 @@ export default function Reports() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs text-zinc-400">UilFocusTarget</Label>
+              <Label className="text-xs text-zinc-400">Target</Label>
               <Input
                 value={createData.target || ""}
                 onChange={(e) => setCreateData(prev => ({ ...prev, target: e.target.value }))}

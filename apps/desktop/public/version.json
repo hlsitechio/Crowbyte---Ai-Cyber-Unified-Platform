@@ -1,0 +1,15 @@
+{
+  "version": "2.2.0",
+  "released": "2026-04-15",
+  "changelog": "Google OAuth, satellite auth background, Linux builds, CLI installer",
+  "windows": "https://crowbyte.io/downloads/CrowByte-Setup-2.2.0.exe",
+  "linux_appimage": "https://crowbyte.io/downloads/CrowByte-2.2.0.AppImage",
+  "linux": "https://crowbyte.io/downloads/CrowByte-2.2.0.AppImage",
+  "mac": null,
+  "downloads": {
+    "windows_exe": "https://crowbyte.io/downloads/CrowByte-Setup-2.2.0.exe",
+    "windows_msi": "https://crowbyte.io/downloads/CrowByte-2.2.0-x64.msi",
+    "linux_appimage": "https://crowbyte.io/downloads/CrowByte-2.2.0.AppImage",
+    "linux_deb": "https://crowbyte.io/downloads/crowbyte_2.2.0_amd64.deb"
+  }
+}

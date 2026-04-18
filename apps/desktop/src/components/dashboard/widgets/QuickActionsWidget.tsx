@@ -6,10 +6,10 @@ import type { WidgetProps } from "../types";
 
 const actions = [
   { icon: UilCommentDots, label: "CrowByte AI", path: "/chat", color: "text-violet-500", web: true },
-  { icon: UilWindow, label: "UilWindow", path: "/terminal", color: "text-emerald-500", web: false },
+  { icon: UilWindow, label: "Terminal", path: "/terminal", color: "text-emerald-500", web: false },
   { icon: UilBoltAlt, label: "Red Team", path: "/redteam", color: "text-red-500", web: false },
   { icon: UilWifi, label: "Network Scan", path: "/network-scanner", color: "text-blue-500", web: false },
-  { icon: UilDatabase, label: "CVE UilDatabase", path: "/cve", color: "text-red-500", web: true },
+  { icon: UilDatabase, label: "CVE Database", path: "/cve", color: "text-red-500", web: true },
   { icon: UilDatabase, label: "Knowledge Base", path: "/knowledge", color: "text-blue-500", web: true },
 ];
 

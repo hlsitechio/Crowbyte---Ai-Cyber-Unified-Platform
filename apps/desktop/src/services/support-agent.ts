@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { openClaw } from './openclaw';
+import openClaw from './ai';
 import { IS_ELECTRON, hasElectronAPI } from '@/lib/platform';
 
 // ── Types ────────────────────────────────────────────────────────────────────

@@ -330,7 +330,7 @@ function buildFullReport(
  }
  }
  if (warnings.length > 0) {
- lines.push(`### UilExclamationTriangle (${warnings.length})`);
+ lines.push(`### Warnings (${warnings.length})`);
  for (const w of warnings) {
  lines.push(`- [${cleanPageName(w.page)}] ${w.message} (${formatTime(w.timestamp)})`);
  }
@@ -668,7 +668,7 @@ const ErrorsTab = ({
  const filters: { key: ErrorFilter; label: string; count?: number }[] = [
  { key: "all", label: "All" },
  { key: "critical", label: "Critical", count: counts.critical },
- { key: "warning", label: "UilExclamationTriangle", count: counts.warning },
+ { key: "warning", label: "Warnings", count: counts.warning },
  { key: "network", label: "Network", count: counts.network },
  ];
 
@@ -1557,7 +1557,7 @@ export function QAAgent() {
 
  const tabContentHeight = panelSize.h - 120; // header (~56) + tabs (~40) + padding
 
- const isAuthPage = location.pathname === "/auth";
+ const isAuthPage = location.pathname.startsWith("/auth");
 
  // Poll all monitors every 2 seconds
  useEffect(() => {
@@ -1710,13 +1710,13 @@ export function QAAgent() {
  )}
  </Button>
 
- {/* UilCopy Report */}
+ {/* Copy Report */}
  <Button
  variant="ghost"
  size="icon"
  className="h-6 w-6 text-zinc-500 hover:text-zinc-300"
  onClick={handleCopyReport}
- title="UilCopy full report"
+ title="Copy full report"
  >
  {copiedReport ? (
  <UilCheckCircle size={12} className="text-emerald-500" />
@@ -1725,13 +1725,13 @@ export function QAAgent() {
  )}
  </Button>
 
- {/* UilCopy GitHub Issue */}
+ {/* Copy GitHub Issue */}
  <Button
  variant="ghost"
  size="icon"
  className="h-6 w-6 text-zinc-500 hover:text-zinc-300"
  onClick={handleCopyGitHubIssue}
- title="UilCopy as GitHub issue"
+ title="Copy as GitHub issue"
  >
  {copiedIssue ? (
  <UilCheckCircle size={12} className="text-emerald-500" />

@@ -8,7 +8,7 @@ import { Badge } from"@/components/ui/badge";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { UilBoltAlt, UilShield, UilSearch, UilWindow, UilBolt, UilLock, UilLockOpenAlt, UilEye, UilSitemap, UilDatabase, UilWifi, UilGlobe, UilDesktopAlt, UilKeySkeleton, UilFileAlt, UilHeartRate, UilExclamationTriangle, UilCheckCircle, UilPlaneFly, UilSpinner, UilClock, UilStar, UilTrashAlt, UilCopy, UilQrcodeScan } from "@iconscout/react-unicons";
 import { motion } from"framer-motion";
-import openClaw from"@/services/openclaw";
+import { chat as aiChat, streamChat as aiStreamChat } from "@/services/ai";
 import { useToast } from"@/hooks/use-toast";
 import { cacheService } from"@/services/cache";
 import { analyticsService } from"@/services/analytics";
@@ -751,22 +751,10 @@ Your role is to help organizations protect their infrastructure, detect threats,
  return 'Error: Not running in Electron';
  };
 
- const stream = openClaw.agenticChat(
+ for await (const chunk of aiStreamChat(
  conversationMessages.map(m => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
- executeCommand,
- 'z-ai/glm5',
- 0.7,
- );
-
- for await (const event of stream) {
- if (event.type === 'text') {
- assistantContent += event.content;
- } else if (event.type === 'tool_call') {
- assistantContent += `\n\`\`\`bash\n$ ${event.content}\n\`\`\`\n`;
- } else if (event.type === 'tool_result') {
- const truncated = event.content.length > 2000 ? event.content.slice(0, 2000) + '\n[...]' : event.content;
- assistantContent += `\`\`\`\n${truncated}\n\`\`\`\n`;
- }
+ )) {
+ assistantContent += chunk;
 
  setChatMessages(prev => {
  const newMessages = [...prev];

@@ -6,7 +6,7 @@
 
 import { analyticsService } from './analytics';
 import { tavilyService } from './tavily';
-import { openClaw } from './openclaw';
+import openClaw from './ai';
 
 export interface SearchAgentConfig {
   tavilyApiKey: string;

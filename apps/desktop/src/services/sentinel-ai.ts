@@ -508,26 +508,29 @@ RESOLVED: ${threats.filter(t => t.status === 'resolved').length} | FALSE POSITIV
       }
     } catch { /* try next strategy */ }
 
-    // Strategy 2: OpenClaw VPS (if available)
+    // Strategy 2: CrowByte API proxy (server-side key)
     try {
-      const openclawUrl = 'https://srv1459982.hstgr.cloud';
-      const response = await fetch(`${openclawUrl}/v1/chat/completions`, {
+      const { supabase } = await import('@/lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch('https://crowbyte.io/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({
-          model: 'deepseek-ai/DeepSeek-V3',
+          model: 'deepseek-ai/deepseek-v3.2',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: prompt },
           ],
-          max_tokens: 2000,
-          temperature: 0.3,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        return data.choices?.[0]?.message?.content || '';
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return content;
       }
     } catch { /* try next strategy */ }
 

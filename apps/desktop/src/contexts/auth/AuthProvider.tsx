@@ -6,6 +6,7 @@
 import { createContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { IS_ELECTRON } from '@/lib/platform';
 import { useNavigate } from 'react-router-dom';
 import { loggingService } from '@/services/logging';
 import orchestrator from '@/services/agent-orchestrator';
@@ -74,7 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/#/dashboard`,
+          emailRedirectTo: IS_ELECTRON
+            ? `${window.location.origin}/#/dashboard`
+            : `${window.location.origin}/auth`,
         },
       });
 
@@ -120,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) throw error;
       loggingService.addLog('info', 'auth', 'User logout initiated');
     } catch (error: unknown) {

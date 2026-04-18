@@ -1,3 +1,4 @@
+import { safeRedirect } from '@/lib/safe-redirect';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -26,6 +27,23 @@ interface Plan {
 }
 
 const PLANS: Plan[] = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: 0,
+    period: 'monthly',
+    monthlyEquiv: 0,
+    color: 'blue',
+    features: [
+      '50 AI credits/day',
+      '3 models included',
+      'Unlimited messages',
+      'CVE Database: Full access',
+      'Knowledge Base: 50 entries',
+      'Mission Planner: 3 missions',
+      'Bookmarks: Unlimited',
+    ],
+  },
   {
     id: 'pro-monthly',
     name: 'Pro',
@@ -127,15 +145,22 @@ export default function Checkout() {
   const handleBuyPack = async (pack: CreditPack) => {
     setPurchasingPack(pack.id);
     const url = await purchasePack(pack.id);
-    if (url) window.location.href = url;
+    if (url) safeRedirect(url);
     else { setError('Failed to create checkout'); setPurchasingPack(null); }
   };
 
-  const filteredPlans = PLANS.filter(p => p.period === billing);
+  const filteredPlans = PLANS.filter(p => p.id === 'free' || p.period === billing);
   const activePlan = PLANS.find(p => p.id === selectedPlan);
 
   const handleCheckout = async () => {
     if (!activePlan) return;
+
+    // Free plan → redirect to auth (no Stripe)
+    if (activePlan.id === 'free') {
+      window.location.href = '/auth';
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -156,7 +181,7 @@ export default function Checkout() {
       if (!data.url) throw new Error(data.error || 'Failed to create checkout session');
 
       // Redirect to Stripe Checkout
-      window.location.href = data.url;
+      safeRedirect(data.url);
     } catch (e: any) {
       setError(e.message || 'Checkout failed');
       setLoading(false);
@@ -264,7 +289,7 @@ export default function Checkout() {
         {/* Billing toggle */}
         <div className="flex items-center gap-3 mb-8">
           {(['monthly', 'annual'] as const).map(b => (
-            <button key={b} onClick={() => { setBilling(b); setSelectedPlan(selectedPlan.replace(b === 'monthly' ? 'annual' : 'monthly', b)); }}
+            <button key={b} onClick={() => { setBilling(b); if (selectedPlan !== 'free') setSelectedPlan(selectedPlan.replace(b === 'monthly' ? 'annual' : 'monthly', b)); }}
               className={`font-['JetBrains_Mono'] text-sm px-4 py-2 rounded-lg transition-all cursor-pointer flex items-center gap-2 ${billing === b ? 'bg-white/[0.06] text-white border border-white/[0.12]' : 'text-zinc-500 hover:text-zinc-400'}`}>
               {b.charAt(0).toUpperCase() + b.slice(1)}
               {b === 'annual' && <span className="text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded-full">-17%</span>}
@@ -273,7 +298,7 @@ export default function Checkout() {
         </div>
 
         {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           {filteredPlans.map((plan) => (
             <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
               className={`relative text-left p-6 rounded-xl border transition-all cursor-pointer ${selectedPlan === plan.id
@@ -285,9 +310,15 @@ export default function Checkout() {
                 <h3 className="font-['JetBrains_Mono'] text-lg font-bold text-white">{plan.name}</h3>
               </div>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold text-white font-['JetBrains_Mono']">${plan.price}</span>
-                <span className="text-xs text-zinc-500 font-['JetBrains_Mono']">/{plan.period === 'annual' ? 'yr' : 'mo'}</span>
-                {plan.period === 'annual' && <span className="text-xs text-zinc-600 font-['JetBrains_Mono'] ml-2">(${plan.monthlyEquiv.toFixed(2)}/mo)</span>}
+                {plan.id === 'free' ? (
+                  <span className="text-3xl font-bold text-white font-['JetBrains_Mono']">Free</span>
+                ) : (
+                  <>
+                    <span className="text-3xl font-bold text-white font-['JetBrains_Mono']">${plan.price}</span>
+                    <span className="text-xs text-zinc-500 font-['JetBrains_Mono']">/{plan.period === 'annual' ? 'yr' : 'mo'}</span>
+                    {plan.period === 'annual' && <span className="text-xs text-zinc-600 font-['JetBrains_Mono'] ml-2">(${plan.monthlyEquiv.toFixed(2)}/mo)</span>}
+                  </>
+                )}
               </div>
               <ul className="space-y-2">
                 {plan.features.map(f => (
@@ -309,12 +340,12 @@ export default function Checkout() {
           {loading ? (
             <UilSync className="w-4 h-4 animate-spin" />
           ) : (
-            <span>Subscribe — ${activePlan?.price || 0}/{activePlan?.period === 'annual' ? 'yr' : 'mo'}</span>
+            <span>{activePlan?.id === 'free' ? 'Subscribe — Free' : `Subscribe — $${activePlan?.price || 0}/${activePlan?.period === 'annual' ? 'yr' : 'mo'}`}</span>
           )}
         </button>
 
         <p className="text-center font-['JetBrains_Mono'] text-[10px] text-zinc-600 mt-4">
-          You'll be redirected to Stripe's secure checkout page.
+          {activePlan?.id === 'free' ? 'Create your free account to get started.' : "You'll be redirected to Stripe's secure checkout page."}
         </p>
 
         {/* ── Credit Packs ── */}
@@ -382,7 +413,7 @@ export default function Checkout() {
         <div className="flex items-center justify-center gap-4 mt-6">
           {[['Refund Policy', '/refund'], ['Terms of Service', '/terms'], ['Privacy Policy', '/privacy']].map(([label, href], i) => (
             <span key={label as string}>
-              <button onClick={() => { window.location.href = href as string; }} className="font-['JetBrains_Mono'] text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer">{label}</button>
+              <button onClick={() => { safeRedirect(href as string); }} className="font-['JetBrains_Mono'] text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer">{label}</button>
               {i < 2 && <span className="text-zinc-800 ml-4">&middot;</span>}
             </span>
           ))}

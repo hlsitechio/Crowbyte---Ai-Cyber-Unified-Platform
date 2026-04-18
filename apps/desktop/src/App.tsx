@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import '@/services/error-monitor';
 import { glitchTipService } from '@/services/glitchtip';
 import { initTheme } from '@/services/themes';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { HashRouter, BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TitleBar } from "@/components/TitleBar";
@@ -37,6 +38,7 @@ import {
   ConnectorsSettings,
   AdvancedSettings,
   OnboardingSettings,
+  DownloadSettings,
 } from "./pages/settings";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
@@ -68,6 +70,7 @@ import CloudSecurity from "./pages/CloudSecurity";
 import Logs from "./pages/Logs";
 import SecurityMonitor from "./pages/SecurityMonitor";
 import Sentinel from "./pages/Sentinel";
+import Defender from "./pages/Defender";
 import Support from "./pages/Support";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
@@ -83,6 +86,8 @@ import Contact from "./pages/Contact";
 import Checkout from "./pages/Checkout";
 import PreferencesWizard from "./pages/PreferencesWizard";
 import SubscriptionGate from "./pages/SubscriptionGate";
+import Welcome from "./pages/Welcome";
+import OAuthConsent from "./pages/OAuthConsent";
 import { verifyLicense, needsRecheck, CHECK_INTERVAL_MS, type LicenseStatus } from "@/services/license-guard";
 import { needsPreferencesSetup } from "@/services/subscription";
 import { IS_ELECTRON } from "@/lib/platform";
@@ -90,8 +95,38 @@ import { useOrchestrator } from "@/hooks/useOrchestrator";
 import { SplitScreenProvider } from "@/contexts/split-screen";
 import { TabController } from "@/components/TabController";
 import { SplitScreenLayout } from "@/components/SplitScreenLayout";
+import { useBrowserPanel } from "@/contexts/browser";
+import { useZoom } from "@/hooks/use-zoom";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1, staleTime: 30_000 },
+  },
+});
+
+// Capture OAuth hash fragment BEFORE React Router's <Navigate> wipes it.
+// When Supabase redirects back with #access_token=... the BrowserRouter's
+// <Navigate to="/landing" replace /> fires synchronously during first render,
+// calling history.replaceState('/landing') which clears window.location.hash.
+// We must snapshot it at module-load time, before any rendering happens.
+const _oauthHash = typeof window !== 'undefined' ? window.location.hash : '';
+
+/** Flex-row wrapper that places the browser panel left or right of main content */
+function MainAreaWithBrowser({ children }: { children: React.ReactNode }) {
+  const { side } = useBrowserPanel();
+  const panel = (
+    <BrowserPanelErrorBoundary><BrowserPanel /></BrowserPanelErrorBoundary>
+  );
+  return (
+    <div className="flex-1 min-w-0 flex flex-row h-full overflow-hidden">
+      {side === 'left' && panel}
+      <div className="flex-1 min-w-0 flex flex-col h-full bg-background overflow-hidden">
+        {children}
+      </div>
+      {side === 'right' && panel}
+    </div>
+  );
+}
 
 /** Wrapper that provides SplitScreen context with reactive path */
 const SplitScreenWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -107,26 +142,68 @@ const SplitScreenWrapper = ({ children }: { children: React.ReactNode }) => {
 const AppWithTitleBar = () => {
   // Start agent orchestrator queue when authenticated
   useOrchestrator();
+  const location = useLocation();
+  const isFullScreenPage = location.pathname === '/chat';
+  const isAuthPage = location.pathname.startsWith('/auth');
+
+  const [updateInfo, setUpdateInfo] = useState<{ current: string; latest: string } | null>(null);
+  useEffect(() => {
+    if (!IS_ELECTRON) return;
+    window.electronAPI?.onUpdateAvailable?.((data: { current: string; latest: string }) => {
+      setUpdateInfo(data);
+    });
+  }, []);
 
   return (
   <>
-    <TitleBar />
+    {!isFullScreenPage && <TitleBar />}
+    {/* Update banner — fixed below titlebar, above all content */}
+    {updateInfo && !isAuthPage && (
+      <div
+        className="fixed left-0 right-0 z-50 flex items-center justify-between gap-3 px-5 py-2 bg-red-950/95 border-b border-red-500/40 backdrop-blur-sm text-sm shadow-lg"
+        style={{ top: IS_ELECTRON ? '32px' : '0' }}
+      >
+        <div className="flex items-center gap-2.5 text-red-200">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-red-400"><path d="M12 2v10m0 4v2"/><circle cx="12" cy="12" r="10"/></svg>
+          <span>Update available — <span className="font-mono font-semibold text-white">v{updateInfo.latest}</span> is ready</span>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => setUpdateInfo(null)}
+            className="text-xs text-red-400/70 hover:text-red-300 transition-colors"
+          >
+            Later
+          </button>
+          <button
+            onClick={async () => { await window.electronAPI?.applyUpdate?.(); }}
+            className="text-xs px-3.5 py-1 bg-red-500 hover:bg-red-400 text-white rounded font-semibold transition-colors"
+          >
+            Relaunch &amp; Update
+          </button>
+        </div>
+      </div>
+    )}
     <Routes>
       {/* Auth routes without sidebar */}
-      <Route path="/auth" element={<div className={IS_ELECTRON ? "pt-8" : ""}><Auth /></div>} />
+      <Route path="/welcome" element={<Welcome />} />
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
+      <Route path="/auth" element={<Navigate to="/auth/signin" replace />} />
+      <Route path="/auth/signin" element={<div className={IS_ELECTRON ? "pt-8" : ""}><Auth /></div>} />
+      <Route path="/auth/signup" element={<div className={IS_ELECTRON ? "pt-8" : ""}><Auth /></div>} />
       <Route path="/passwordreset" element={<div className={IS_ELECTRON ? "pt-8" : ""}><PasswordReset /></div>} />
 
       {/* Documentation - own layout, no main sidebar */}
       <Route path="/documentation/*" element={
         <ProtectedRoute>
-          <div className={`flex h-screen w-full bg-background ${IS_ELECTRON ? 'pt-8' : ''} overflow-hidden`}>
-            <GlobalContextMenu>
-              <div className="flex-1 min-w-0 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
-                <Documentation />
-              </div>
-            </GlobalContextMenu>
-            <BrowserPanelErrorBoundary><BrowserPanel /></BrowserPanelErrorBoundary>
-          </div>
+          <MainAreaWithBrowser>
+            <div className={`h-full w-full bg-background ${IS_ELECTRON ? 'pt-8' : ''} overflow-hidden`}>
+              <GlobalContextMenu>
+                <div className="flex-1 min-w-0 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
+                  <Documentation />
+                </div>
+              </GlobalContextMenu>
+            </div>
+          </MainAreaWithBrowser>
         </ProtectedRoute>
       } />
 
@@ -134,17 +211,18 @@ const AppWithTitleBar = () => {
       <Route path="/*" element={
         <ProtectedRoute>
           <SidebarProvider defaultOpen={IS_ELECTRON}>
+            <div className={`flex h-screen w-full ${IS_ELECTRON && !isFullScreenPage ? 'pt-8' : ''}`}>
             <AppSidebar />
-            <div className={`flex-1 min-w-0 flex flex-col h-screen bg-background ${IS_ELECTRON ? 'pt-8' : ''} overflow-hidden`}>
+            <MainAreaWithBrowser>
               <GlobalContextMenu>
                 <SplitScreenWrapper>
                   <div className="flex flex-col flex-1 min-w-0 relative overflow-hidden">
-                    {/* TabController: top-right floating controls */}
-                    <TabController />
+                    {/* TabController: top-right floating controls — hidden on full-screen pages */}
+                    {!isFullScreenPage && <TabController />}
                     <main className="relative flex-1 min-w-0 overflow-hidden main-content-container">
                       <SplitScreenLayout>
                         {/* Normal single-pane routes */}
-                        <div className="h-full overflow-y-auto overflow-x-hidden p-6" style={{ overscrollBehavior: "contain" }}>
+                        <div className={`h-full overflow-y-auto overflow-x-hidden ${isFullScreenPage ? '' : 'p-6'}`} style={{ overscrollBehavior: "contain" }}>
                           <Routes>
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/analytics" element={<Analytics />} />
@@ -159,8 +237,8 @@ const AppWithTitleBar = () => {
                             <Route path="/alert-center" element={<AlertCenter />} />
                             <Route path="/cloud-security" element={<CloudSecurity />} />
                             <Route path="/connectors" element={<Connectors />} />
-                            {/* Chat page removed — Terminal is the primary AI interface */}
-                            <Route path="/chat" element={<Navigate to="/terminal" replace />} />
+                            
+                            <Route path="/chat" element={<Chat />} />
                             <Route path="/ai-agent" element={<AdminRoute><AIAgent /></AdminRoute>} />
                             {/* Redirect /llm to /settings/integrations */}
                             <Route path="/llm" element={<Navigate to="/settings/integrations" replace />} />
@@ -175,6 +253,13 @@ const AppWithTitleBar = () => {
                             <Route path="/threat-intelligence" element={<ThreatIntelligence />} />
                             <Route path="/security-monitor" element={<SecurityMonitor />} />
                             <Route path="/sentinel" element={<Sentinel />} />
+                            <Route path="/defender" element={<Defender />} />
+                            <Route path="/defender/threats" element={<Defender />} />
+                            <Route path="/defender/sandbox" element={<Defender />} />
+                            <Route path="/defender/rules" element={<Defender />} />
+                            <Route path="/defender/iocs" element={<Defender />} />
+                            <Route path="/defender/quarantine" element={<Defender />} />
+                            <Route path="/defender/forensics" element={<Defender />} />
                             <Route path="/redteam" element={<RedTeam />} />
                             <Route path="/network-scanner" element={<NetworkScanner />} />
                             <Route path="/cyber-ops" element={<CyberOps />} />
@@ -200,6 +285,7 @@ const AppWithTitleBar = () => {
                               <Route path="integrations" element={<AdminRoute><IntegrationsSettings /></AdminRoute>} />
                               <Route path="advanced" element={<AdminRoute><AdvancedSettings /></AdminRoute>} />
                               <Route path="onboarding" element={<OnboardingSettings />} />
+                              <Route path="download" element={<DownloadSettings />} />
                             </Route>
                             <Route path="*" element={<NotFound />} />
                           </Routes>
@@ -209,7 +295,7 @@ const AppWithTitleBar = () => {
                   </div>
                 </SplitScreenWrapper>
               </GlobalContextMenu>
-              <BrowserPanelErrorBoundary><BrowserPanel /></BrowserPanelErrorBoundary>
+            </MainAreaWithBrowser>
             </div>
           </SidebarProvider>
         </ProtectedRoute>
@@ -219,7 +305,15 @@ const AppWithTitleBar = () => {
   );
 };
 
+const AppRouter = ({ children }: { children?: React.ReactNode }) =>
+  IS_ELECTRON
+    ? <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{children}</HashRouter>
+    : <BrowserRouter>{children}</BrowserRouter>;
+
 const App = () => {
+  // ─── Ctrl+Wheel zoom (all platforms) ──────────────────────────────────
+  useZoom();
+
   // ─── License Gate (Electron only) ─────────────────────────────────────
   const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
   const [licenseChecked, setLicenseChecked] = useState(!IS_ELECTRON); // Skip for web
@@ -268,7 +362,7 @@ const App = () => {
 
   // Initialize saved theme on startup (skip on landing page — it uses its own palette)
   useEffect(() => {
-    const publicPage = ['/', '/landing', '/auth', '/passwordreset', '/beta', '/privacy', '/terms', '/refund', '/contact'].includes(window.location.pathname);
+    const publicPage = ['/', '/landing', '/auth', '/auth/signin', '/auth/signup', '/passwordreset', '/beta', '/privacy', '/terms', '/refund', '/contact'].includes(window.location.pathname);
     if (!publicPage || IS_ELECTRON) {
       initTheme();
     }
@@ -287,28 +381,80 @@ const App = () => {
     },
   });
 
+  // ─── OAuth callback handlers ──────────────────────────────────────────
+  // Handle both PKCE (?code=) and implicit (#access_token=) flows before
+  // the router renders (AuthProvider isn't mounted on the root "/" route).
+  useEffect(() => {
+    // PKCE flow: ?code=xxx
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      supabase.auth.exchangeCodeForSession(window.location.href).then(({ error }) => {
+        if (!error) {
+          window.history.replaceState(null, '', window.location.pathname);
+          if (IS_ELECTRON) {
+            window.location.hash = '#/dashboard';
+          } else {
+            window.location.replace('/dashboard');
+          }
+        }
+      }).catch(() => {});
+      return;
+    }
+
+    // Implicit flow: #access_token=xxx (Supabase returns this for social OAuth)
+    // Use module-level snapshot — window.location.hash is cleared by <Navigate> before this effect runs
+    const hash = _oauthHash;
+    if (hash && hash.includes('access_token=')) {
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const access_token = hashParams.get('access_token');
+      const refresh_token = hashParams.get('refresh_token') || '';
+      if (access_token) {
+        supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
+          if (!error) {
+            if (IS_ELECTRON) {
+              window.history.replaceState(null, '', window.location.pathname);
+              window.location.hash = '#/dashboard';
+            } else {
+              window.location.replace('/dashboard');
+            }
+          }
+        }).catch(() => {});
+      }
+    }
+  }, []);
+
   // License gate — Electron only, blocks EVERYTHING until valid
   if (IS_ELECTRON && !licenseChecked) {
-    return null; // Loading — checking license
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span className="text-sm">Verifying license…</span>
+        </div>
+      </div>
+    );
   }
   if (IS_ELECTRON && licenseStatus && !licenseStatus.valid) {
     // Allow onboarding + auth routes through (new installs need to sign up/login first)
     const hash = window.location.hash || '';
-    const isPassthrough = hash.includes('/onboarding') || hash.includes('/auth') || hash.includes('/payments');
+    const isPassthrough = hash.includes('/onboarding') || hash.includes('/auth/signin') || hash.includes('/auth/signup') || hash.includes('/auth') || hash.includes('/payments') || hash.includes('/welcome');
     if (!isPassthrough) {
       return (
-        <SubscriptionGate
-          status={licenseStatus}
-          onRetry={async () => {
-            const status = await verifyLicense();
-            setLicenseStatus(status);
-            // If they just upgraded and license is now valid, check prefs
-            if (status.valid) {
-              const needsSetup = await needsPreferencesSetup();
-              setNeedsPrefsWizard(needsSetup);
-            }
-          }}
-        />
+        <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <SubscriptionGate
+            status={licenseStatus}
+            onRetry={async () => {
+              const status = await verifyLicense();
+              setLicenseStatus(status);
+              // If they just upgraded and license is now valid, check prefs
+              if (status.valid) {
+                const needsSetup = await needsPreferencesSetup();
+                setNeedsPrefsWizard(needsSetup);
+              }
+            }}
+          />
+        </HashRouter>
       );
     }
   }
@@ -321,14 +467,14 @@ const App = () => {
       // Render a minimal router that redirects to preferences wizard
       return (
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <AuthProvider>
               <Routes>
                 <Route path="/setup-preferences" element={<PreferencesWizard />} />
                 <Route path="*" element={<Navigate to="/setup-preferences" replace />} />
               </Routes>
             </AuthProvider>
-          </BrowserRouter>
+          </HashRouter>
         </QueryClientProvider>
       );
     }
@@ -337,12 +483,7 @@ const App = () => {
   return (
     <GlobalErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
+      <AppRouter>
         <Routes>
           {/* Onboarding — Discord-style first-run, frameless window */}
           <Route path="/onboarding" element={<Onboarding />} />
@@ -370,7 +511,9 @@ const App = () => {
           <Route path="/" element={
             IS_ELECTRON
               ? <Navigate to="/dashboard" replace />
-              : <LandingPage />
+              : _oauthHash.includes('access_token=')
+                ? <div className="h-screen bg-background" />  // blank while setSession + redirect runs
+                : <Navigate to="/landing" replace />
           } />
 
           {/* All other routes need auth context */}
@@ -382,16 +525,22 @@ const App = () => {
                   <Sonner />
                   <AppWithTitleBar />
                   <QAAgent />
-                  {/* SupportBanner moved to Settings — no longer floating */}
+                  <SupportBannerWrapper />
                 </BrowserPanelProvider>
               </LogsProvider>
             </AuthProvider>
           } />
         </Routes>
-      </BrowserRouter>
+      </AppRouter>
     </QueryClientProvider>
     </GlobalErrorBoundary>
   );
 };
+
+function SupportBannerWrapper() {
+  const location = useLocation();
+  if (location.pathname.startsWith("/auth")) return null;
+  return <SupportBanner />;
+}
 
 export default App;

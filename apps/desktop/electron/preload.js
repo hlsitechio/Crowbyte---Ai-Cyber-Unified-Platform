@@ -3,15 +3,22 @@
  * Secure IPC bridge between main process and renderer (React)
  */
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 // Expose protected methods to renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
+  // Update checker
+  applyUpdate: () => ipcRenderer.invoke('apply-update'),
+  onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, data) => callback(data)),
+
   // Open URL in system browser (for OAuth, passkeys, etc.)
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
   // Open OAuth popup window (no CSP, proper CSS rendering, captures tokens)
   openOAuthPopup: (url, redirectOrigin) => ipcRenderer.invoke('open-oauth-popup', url, redirectOrigin),
+
+  // OAuth PKCE flow — opens system browser, catches callback on localhost
+  startOAuthPKCE: () => ipcRenderer.invoke('start-oauth-pkce'),
 
   // Initialize Venice.ai with API key
   initVenice: (apiKey) => ipcRenderer.invoke('init-venice', apiKey),
@@ -208,6 +215,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
   on: (channel, callback) => {
     ipcRenderer.on(channel, (event, ...args) => callback(event, ...args));
+  },
+
+  // App zoom (Ctrl+Wheel) — uses webFrame directly, no IPC round-trip
+  zoom: {
+    getFactor: () => webFrame.getZoomFactor(),
+    setFactor: (factor) => webFrame.setZoomFactor(factor),
+    getLevel: () => webFrame.getZoomLevel(),
+    setLevel: (level) => webFrame.setZoomLevel(level),
   },
 });
 

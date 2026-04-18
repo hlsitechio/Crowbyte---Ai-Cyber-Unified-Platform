@@ -4,8 +4,7 @@ import { Badge } from"@/components/ui/badge";
 import { Button } from"@/components/ui/button";
 import { UilBrain, UilChartGrowth, UilBolt, UilSync, UilStar, UilRobot, UilCheckCircle, UilTimesCircle } from "@iconscout/react-unicons";
 import { useToast } from"@/hooks/use-toast";
-import openClaw from"@/services/openclaw";
-import claudeProvider from"@/services/claude-provider";
+import { testConnection as aiTestConnection } from "@/services/ai";
 
 const LLM = () => {
  const [openClawConnected, setOpenClawConnected] = useState(false);
@@ -15,8 +14,8 @@ const LLM = () => {
  const checkConnections = async () => {
  setLoading(true);
  try {
- const health = await openClaw.healthCheck();
- setOpenClawConnected(health.ok);
+ const ok = await aiTestConnection();
+ setOpenClawConnected(ok);
  } catch {
  setOpenClawConnected(false);
  }
@@ -25,9 +24,8 @@ const LLM = () => {
 
  useEffect(() => { checkConnections(); }, []);
 
- const openClawModels = openClaw.getModels();
- const claudeModels = claudeProvider.getModels();
- const totalModels = openClawModels.length + claudeModels.length;
+ const allModels = [{ id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'CrowByte AI' }];
+ const totalModels = allModels.length;
 
  return (
  <div className="space-y-6 animate-fade-in">

@@ -51,10 +51,6 @@ export interface UserSettings {
   user_id: string;
   venice_api_key?: string;
   openrouter_api_key?: string;
-  inoreader_client_id?: string;
-  inoreader_client_secret?: string;
-  inoreader_access_token?: string;
-  inoreader_refresh_token?: string;
   profile_picture_url?: string;
   theme?: string;
   pinned_pages?: string;

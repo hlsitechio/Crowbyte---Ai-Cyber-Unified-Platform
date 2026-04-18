@@ -36,6 +36,11 @@ export default function ProfileSettings() {
       }
       if (data?.license_key) {
         setLicenseKey(data.license_key);
+      } else {
+        // No key yet — auto-generate one (happens for users created before trigger was added)
+        const { data: newKey } = await supabase.rpc('regenerate_license_key', { p_user_id: user.id });
+        const key = (newKey as any)?.[0]?.new_key;
+        if (key) setLicenseKey(key);
       }
     } catch (error) {
       console.error('Failed to load license key:', error);

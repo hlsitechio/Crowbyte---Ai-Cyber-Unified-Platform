@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrowByte — Platform Overview</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#a855f7;--c:#06b6d4;--g:#22c55e;--r:#ef4444;--y:#f59e0b;--o:#f97316;
+  --bg:#05050f;--bg1:#0c0c1e;--bg2:#111128;
+  --t:#e2e8f0;--m:#475569;--s:#94a3b8;--b:rgba(255,255,255,0.07)
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+
+.deck{display:flex;height:100vh;will-change:transform;
+  transition:transform 0.7s cubic-bezier(0.77,0,0.175,1)}
+.slide{flex:0 0 100vw;height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:56px 96px;
+  position:relative;overflow:hidden}
+.slide::before{content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(168,85,247,0.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(168,85,247,0.018) 1px,transparent 1px);
+  background-size:80px 80px;pointer-events:none;z-index:0}
+.slide>*{position:relative;z-index:1}
+
+/* CHROME */
+.brand{position:fixed;top:24px;left:30px;z-index:300;
+  display:flex;align-items:center;gap:9px;
+  font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--m)}
+.bdot{width:7px;height:7px;border-radius:50%;background:var(--p);
+  box-shadow:0 0 12px rgba(168,85,247,.8);animation:pulse 3s infinite}
+.pbar{position:fixed;top:0;left:0;height:2px;z-index:300;
+  background:linear-gradient(90deg,var(--p),var(--c));
+  transition:width 0.7s cubic-bezier(0.77,0,0.175,1)}
+.dots{position:fixed;right:22px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:7px;z-index:300}
+.dot{width:5px;height:5px;border-radius:3px;background:var(--m);
+  cursor:pointer;transition:all 0.35s}
+.dot.on{background:var(--p);height:22px;box-shadow:0 0 10px rgba(168,85,247,.5)}
+.ctr{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  color:var(--m);font-size:10px;letter-spacing:3px;
+  font-family:monospace;z-index:300}
+.nav{position:fixed;bottom:18px;z-index:300;width:42px;height:42px;
+  border:1px solid var(--b);border-radius:10px;background:transparent;
+  color:var(--m);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s}
+.nav:hover{border-color:var(--p);color:var(--p);background:rgba(168,85,247,.08)}
+.nl{left:calc(50% - 54px)}.nr{left:calc(50% + 12px)}
+.hint{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);
+  color:var(--m);font-size:10px;letter-spacing:3px;opacity:0;
+  white-space:nowrap;animation:hint 4s 1.5s forwards;z-index:300}
+
+/* ANIMATIONS */
+@keyframes hint{0%{opacity:0}20%{opacity:1;transform:translateX(-50%) translateY(-4px)}
+80%{opacity:1;transform:translateX(-50%) translateY(-4px)}
+100%{opacity:0;transform:translateX(-50%) translateY(-8px)}}
+@keyframes up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+.au{animation:up .65s cubic-bezier(.22,1,.36,1) both;opacity:0}
+.d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.25s}
+.d4{animation-delay:.34s}.d5{animation-delay:.43s}.d6{animation-delay:.52s}.d7{animation-delay:.6s}
+
+/* GLOW */
+.glow{position:absolute;border-radius:50%;pointer-events:none;z-index:0;animation:pulse 5s ease-in-out infinite}
+
+/* TYPOGRAPHY */
+.kicker{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--p);
+  font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.kicker::before{content:'';width:24px;height:1px;background:var(--p);display:block}
+.big{font-size:clamp(2.8rem,5.5vw,5.2rem);font-weight:900;line-height:1.04;letter-spacing:-.04em}
+.med{font-size:clamp(2rem,3.4vw,3rem);font-weight:800;line-height:1.1;letter-spacing:-.03em}
+.sub{font-size:clamp(.9rem,1.4vw,1.1rem);color:var(--s);line-height:1.8;max-width:560px}
+.grad{background:linear-gradient(135deg,#fff 0%,var(--p) 42%,var(--c) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.grad2{background:linear-gradient(135deg,var(--p),var(--c));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.grad3{background:linear-gradient(135deg,var(--c),var(--g));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
+  border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.bp{background:rgba(168,85,247,.1);color:var(--p);border:1px solid rgba(168,85,247,.2)}
+.bc{background:rgba(6,182,212,.1);color:var(--c);border:1px solid rgba(6,182,212,.2)}
+.bg{background:rgba(34,197,94,.1);color:var(--g);border:1px solid rgba(34,197,94,.2)}
+.by{background:rgba(245,158,11,.1);color:var(--y);border:1px solid rgba(245,158,11,.2)}
+.br{background:rgba(239,68,68,.1);color:var(--r);border:1px solid rgba(239,68,68,.2)}
+
+/* BTNS */
+.btn-p{padding:14px 34px;background:linear-gradient(135deg,var(--p),#7c3aed);
+  color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(168,85,247,.35);
+  letter-spacing:.2px}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(168,85,247,.5)}
+.btn-g{padding:14px 34px;background:transparent;color:var(--s);
+  border:1px solid var(--b);border-radius:12px;font-size:15px;
+  cursor:pointer;transition:all .2s}
+.btn-g:hover{border-color:var(--p);color:var(--p)}
+
+/* ═══════════════════════════════
+   S1 — HOOK
+═══════════════════════════════ */
+#s1 .glow{width:1000px;height:1000px;
+  background:radial-gradient(circle,rgba(168,85,247,.13) 0%,transparent 65%);
+  top:50%;left:50%;transform:translate(-50%,-50%)}
+.hero-pill{display:inline-flex;align-items:center;gap:9px;padding:7px 20px;
+  border-radius:100px;font-size:11px;border:1px solid rgba(168,85,247,.3);
+  color:var(--p);background:rgba(168,85,247,.07);letter-spacing:1.5px;
+  margin-bottom:36px;font-weight:600}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--p);animation:pulse 2s infinite}
+
+/* ═══════════════════════════════
+   S2 — PAIN
+═══════════════════════════════ */
+.pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  width:100%;max-width:960px;margin-top:40px}
+.pain-card{background:var(--bg1);border:1px solid var(--b);border-radius:20px;
+  padding:36px 28px;position:relative;overflow:hidden}
+.pain-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.pain-card:nth-child(1)::before{background:var(--r)}
+.pain-card:nth-child(2)::before{background:var(--y)}
+.pain-card:nth-child(3)::before{background:var(--o)}
+.pain-ico{font-size:2.2rem;margin-bottom:16px;display:block}
+.pain-title{font-size:.95rem;font-weight:800;margin-bottom:10px;color:var(--t)}
+.pain-sub{font-size:.8rem;color:var(--m);line-height:1.8}
+.pain-stat{font-size:1.4rem;font-weight:900;margin-top:16px}
+
+/* ═══════════════════════════════
+   S3 — SOLUTION
+═══════════════════════════════ */
+#s3 .glow{width:700px;height:700px;
+  background:radial-gradient(circle,rgba(6,182,212,.09) 0%,transparent 65%);
+  top:50%;left:40%;transform:translate(-50%,-50%)}
+.sol-layout{display:grid;grid-template-columns:1fr 1fr;
+  gap:48px;width:100%;max-width:980px;align-items:center;margin-top:10px}
+.sol-nums{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.snum{background:var(--bg1);border:1px solid var(--b);border-radius:16px;
+  padding:24px 20px;text-align:center}
+.sn{font-size:clamp(1.6rem,3vw,2.6rem);font-weight:900;line-height:1;
+  background:linear-gradient(135deg,var(--p),var(--c));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sl{font-size:.72rem;color:var(--m);margin-top:7px;letter-spacing:1px;text-transform:uppercase}
+
+/* ═══════════════════════════════
+   S4 — HOW IT WORKS
+═══════════════════════════════ */
+#s4 .glow{width:700px;height:700px;
+  background:radial-gradient(circle,rgba(168,85,247,.08) 0%,transparent 65%);
+  top:60%;left:50%;transform:translate(-50%,-50%)}
+.hiw{display:flex;align-items:flex-start;width:100%;max-width:1060px;margin-top:48px}
+.step{display:flex;flex-direction:column;align-items:center;width:176px;flex-shrink:0}
+.hline{flex:1;height:1px;margin-top:32px;
+  background:linear-gradient(90deg,rgba(168,85,247,.35),rgba(6,182,212,.35))}
+.ring{width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--p),var(--c));
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;position:relative;flex-shrink:0}
+.rinner{width:58px;height:58px;border-radius:50%;background:var(--bg1);
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem}
+.rnum{position:absolute;top:-3px;right:-3px;width:20px;height:20px;
+  border-radius:50%;background:var(--p);color:#fff;
+  font-size:8px;font-weight:900;display:flex;align-items:center;
+  justify-content:center;border:2px solid var(--bg)}
+.stitle{font-size:.82rem;font-weight:800;text-align:center;margin-bottom:8px}
+.sdesc{font-size:.73rem;color:var(--m);text-align:center;line-height:1.75}
+
+/* ═══════════════════════════════
+   S5 — BENEFITS
+═══════════════════════════════ */
+.ben-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  width:100%;max-width:980px;margin-top:36px}
+.ben{background:var(--bg1);border:1px solid var(--b);border-radius:16px;
+  padding:26px 22px;transition:all .2s}
+.ben:hover{border-color:rgba(168,85,247,.3);transform:translateY(-2px)}
+.ben-ico{width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;margin-bottom:16px}
+.ben h3{font-size:.88rem;font-weight:800;margin-bottom:8px}
+.ben p{font-size:.77rem;color:var(--m);line-height:1.75}
+
+/* ═══════════════════════════════
+   S6 — FOR WHO
+═══════════════════════════════ */
+#s6 .glow{width:800px;height:800px;
+  background:radial-gradient(circle,rgba(34,197,94,.07) 0%,transparent 65%);
+  top:50%;left:50%;transform:translate(-50%,-50%)}
+.who-grid{display:grid;grid-template-columns:repeat(3,1fr);
+  gap:20px;width:100%;max-width:960px;margin-top:40px}
+.who{background:var(--bg1);border:1px solid var(--b);border-radius:20px;
+  padding:36px 28px;text-align:center;position:relative;overflow:hidden}
+.who::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;
+  background:linear-gradient(0deg,var(--bg1),transparent);pointer-events:none}
+.who-ico{font-size:2.8rem;margin-bottom:18px;display:block;animation:float 4s ease-in-out infinite}
+.who:nth-child(2) .who-ico{animation-delay:-1.3s}
+.who:nth-child(3) .who-ico{animation-delay:-2.6s}
+.who-title{font-size:1.05rem;font-weight:800;margin-bottom:6px}
+.who-role{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--p);margin-bottom:14px;font-weight:700}
+.who-desc{font-size:.8rem;color:var(--m);line-height:1.8;margin-bottom:18px}
+.who-wins{display:flex;flex-direction:column;gap:7px;text-align:left}
+.wwin{display:flex;align-items:flex-start;gap:8px;font-size:.74rem;color:var(--s)}
+.wwin-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+
+/* ═══════════════════════════════
+   S7 — NUMBERS THAT MATTER
+═══════════════════════════════ */
+#s7 .glow{width:900px;height:900px;
+  background:radial-gradient(circle,rgba(168,85,247,.1) 0%,transparent 65%);
+  top:50%;left:50%;transform:translate(-50%,-50%)}
+.big-nums{display:grid;grid-template-columns:repeat(2,1fr);
+  gap:20px;width:100%;max-width:860px;margin-top:44px}
+.bnum{background:var(--bg1);border:1px solid var(--b);border-radius:20px;
+  padding:36px 32px;display:flex;align-items:center;gap:28px}
+.bnum-val{font-size:clamp(2.2rem,4vw,3.6rem);font-weight:900;line-height:1;
+  white-space:nowrap}
+.bnum-text{}
+.bnum-label{font-size:.92rem;font-weight:700;margin-bottom:4px}
+.bnum-desc{font-size:.78rem;color:var(--m);line-height:1.6}
+
+/* ═══════════════════════════════
+   S8 — PRICING
+═══════════════════════════════ */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);
+  gap:18px;width:100%;max-width:920px;margin-top:36px;align-items:center}
+.pc{background:var(--bg1);border:1px solid var(--b);
+  border-radius:20px;padding:32px 26px;position:relative}
+.pc.hot{border-color:var(--p);
+  background:linear-gradient(145deg,rgba(168,85,247,.1),rgba(6,182,212,.04));
+  transform:scale(1.05)}
+.pop{position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--p),var(--c));color:#fff;
+  font-size:9px;font-weight:800;padding:4px 16px;
+  border-radius:100px;letter-spacing:1.5px;white-space:nowrap}
+.ptier{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--m);margin-bottom:8px}
+.pprice{font-size:2.8rem;font-weight:900;line-height:1;margin-bottom:4px}
+.pper{font-size:.75rem;color:var(--m);margin-bottom:22px}
+.pf{display:flex;align-items:flex-start;gap:10px;font-size:.8rem;
+  color:var(--s);margin-bottom:10px}
+.ck{color:var(--g);font-size:.75rem;flex-shrink:0;margin-top:1px}
+.px{opacity:.28}
+.pc-cta{width:100%;margin-top:24px;padding:11px;border-radius:10px;
+  font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;border:none}
+.cta-outline{background:transparent;color:var(--m);border:1px solid var(--b)}
+.cta-outline:hover{border-color:var(--p);color:var(--p)}
+.cta-filled{background:linear-gradient(135deg,var(--p),#7c3aed);color:#fff;
+  box-shadow:0 4px 20px rgba(168,85,247,.3)}
+.cta-filled:hover{box-shadow:0 6px 28px rgba(168,85,247,.45)}
+
+/* ═══════════════════════════════
+   S9 — CLOSE
+═══════════════════════════════ */
+#s9 .glow{width:900px;height:900px;
+  background:radial-gradient(circle,rgba(6,182,212,.11) 0%,transparent 65%);
+  top:50%;left:50%;transform:translate(-50%,-50%)}
+.close-logos{display:flex;gap:14px;justify-content:center;
+  flex-wrap:wrap;margin-top:44px}
+
+</style>
+</head>
+<body>
+
+<div class="brand"><div class="bdot"></div>CROWBYTE</div>
+<div class="pbar" id="pbar"></div>
+<nav class="dots" id="dots"></nav>
+<div class="hint">PRESS &nbsp;&rarr;&nbsp; TO BEGIN</div>
+<button class="nav nl" onclick="go(cur-1)">&#8592;</button>
+<button class="nav nr" onclick="go(cur+1)">&#8594;</button>
+<div class="ctr" id="ctr">01 / 09</div>
+
+<div class="deck" id="deck">
+
+
+<!-- ══════════════════════════════════════════════════
+     S1 — THE HOOK
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s1">
+  <div class="glow"></div>
+  <div style="text-align:center;max-width:760px">
+    <div class="hero-pill au"><div class="ldot"></div>THE UNFAIR ADVANTAGE FOR SECURITY PROFESSIONALS</div>
+    <h1 class="big au d1">
+      <span class="grad">Stop hunting blind.</span>
+    </h1>
+    <p class="sub au d2" style="text-align:center;margin:20px auto 44px;font-size:1.15rem">
+      CrowByte gives you AI, real-time threat intel, and 142 security tools
+      in one command center &mdash; so you find more, report faster, and earn more.
+    </p>
+    <div style="display:flex;gap:14px;justify-content:center" class="au d3">
+      <button class="btn-p" onclick="go(1)">See How It Works &nbsp;&rarr;</button>
+      <button class="btn-g">crowbyte.io</button>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:32px" class="au d4">
+      <span class="badge bp">Bug Bounty</span>
+      <span class="badge bc">Penetration Testing</span>
+      <span class="badge bg">SOC / Security Teams</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S2 — THE PAIN
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s2">
+  <div style="width:100%;max-width:960px">
+    <div class="kicker au">The problem</div>
+    <h2 class="med au d1">Every hour switching tools<br>is an hour your competitor<br><span class="grad2">finds your bug.</span></h2>
+    <div class="pain-grid">
+      <div class="pain-card au d2">
+        <span class="pain-ico">&#128721;</span>
+        <div class="pain-title">You're missing critical CVEs</div>
+        <div class="pain-sub">New vulnerabilities drop daily. Manually checking NVD, feeds, and advisories is impossible to keep up with at scale.</div>
+        <div class="pain-stat" style="color:var(--r)">~200 CVEs<br><span style="font-size:.8rem;font-weight:400;color:var(--m)">published per day</span></div>
+      </div>
+      <div class="pain-card au d3">
+        <span class="pain-ico">&#128197;</span>
+        <div class="pain-title">Hours lost on recon &amp; setup</div>
+        <div class="pain-sub">Installing tools, configuring environments, switching between 12 apps. All before you even start the real work.</div>
+        <div class="pain-stat" style="color:var(--y)">3&ndash;5 hrs<br><span style="font-size:.8rem;font-weight:400;color:var(--m)">wasted per engagement</span></div>
+      </div>
+      <div class="pain-card au d4">
+        <span class="pain-ico">&#128451;</span>
+        <div class="pain-title">Findings get lost, reports get slow</div>
+        <div class="pain-sub">Notes scattered across tabs, screenshots in random folders, reports built by hand. Evidence disappears. Payouts get delayed.</div>
+        <div class="pain-stat" style="color:var(--o)">$0<br><span style="font-size:.8rem;font-weight:400;color:var(--m)">for duplicate or incomplete reports</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S3 — THE SOLUTION
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s3">
+  <div class="glow"></div>
+  <div class="sol-layout">
+    <div>
+      <div class="kicker au">Meet CrowByte</div>
+      <h2 class="med au d1">One platform.<br><span class="grad2">Every attack surface.</span></h2>
+      <p class="sub au d2" style="margin-top:16px;margin-bottom:28px">
+        CrowByte replaces 12 fragmented tools with a single AI-powered command center.
+        Intelligence comes to you. Reports write themselves. Your AI knows your targets.
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" class="au d3">
+        <span class="badge bp">Windows App</span>
+        <span class="badge bc">Web Platform</span>
+        <span class="badge bg">Always on</span>
+      </div>
+    </div>
+    <div class="sol-nums au d3">
+      <div class="snum"><div class="sn">142</div><div class="sl">Tools &mdash; Zero Setup</div></div>
+      <div class="snum"><div class="sn">262K+</div><div class="sl">Threats Monitored</div></div>
+      <div class="snum"><div class="sn">7</div><div class="sl">AI Models Built-in</div></div>
+      <div class="snum"><div class="sn">30m</div><div class="sl">Intel Refresh Rate</div></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S4 — HOW IT WORKS
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s4">
+  <div class="glow"></div>
+  <div style="width:100%;max-width:1060px">
+    <div class="kicker au">How it works</div>
+    <h2 class="med au d1">From target to payout &mdash;<br><span class="grad2">in one place.</span></h2>
+    <div class="hiw">
+
+      <div class="step au d2">
+        <div class="ring"><div class="rinner">&#127919;</div><div class="rnum">1</div></div>
+        <div class="stitle">Add Your Target</div>
+        <div class="sdesc">Drop in a domain, IP range, or program scope. CrowByte maps the attack surface automatically.</div>
+      </div>
+      <div class="hline au d2"></div>
+
+      <div class="step au d3">
+        <div class="ring"><div class="rinner">&#129302;</div><div class="rnum">2</div></div>
+        <div class="stitle">AI Does the Intel</div>
+        <div class="sdesc">CVEs, IOCs, subdomains, open ports. Updated continuously &mdash; no manual checking required.</div>
+      </div>
+      <div class="hline au d3"></div>
+
+      <div class="step au d4">
+        <div class="ring"><div class="rinner">&#9889;</div><div class="rnum">3</div></div>
+        <div class="stitle">Get Alerted Instantly</div>
+        <div class="sdesc">Sentinel flags what matters. Prioritized by severity so you act on criticals first, not noise.</div>
+      </div>
+      <div class="hline au d4"></div>
+
+      <div class="step au d5">
+        <div class="ring"><div class="rinner">&#128300;</div><div class="rnum">4</div></div>
+        <div class="stitle">Investigate in Context</div>
+        <div class="sdesc">Terminal, scanners, and AI chat &mdash; all connected to your findings. No context switching.</div>
+      </div>
+      <div class="hline au d5"></div>
+
+      <div class="step au d6">
+        <div class="ring"><div class="rinner">&#128176;</div><div class="rnum">5</div></div>
+        <div class="stitle">Report &amp; Get Paid</div>
+        <div class="sdesc">HackerOne / Bugcrowd format reports generated from your findings. Evidence attached. Submit fast.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S5 — WHAT YOU GET
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s5">
+  <div style="width:100%;max-width:980px">
+    <div class="kicker au">What you get</div>
+    <h2 class="med au d1">Everything you need.<br><span class="grad2">Nothing you don&rsquo;t.</span></h2>
+    <div class="ben-grid">
+      <div class="ben au d2">
+        <div class="ben-ico" style="background:rgba(168,85,247,.12)">&#129302;</div>
+        <h3>AI That Knows Your Ops</h3>
+        <p>Chat with 7 AI models that have full context on your targets, findings, and active operations. Not generic &mdash; actually useful.</p>
+      </div>
+      <div class="ben au d3">
+        <div class="ben-ico" style="background:rgba(239,68,68,.12)">&#128721;</div>
+        <h3>Never Miss a Critical CVE</h3>
+        <p>NVD + Shodan-enriched database, synced daily. Search by product, score, or keyword. Get alerted when your stack is vulnerable.</p>
+      </div>
+      <div class="ben au d4">
+        <div class="ben-ico" style="background:rgba(6,182,212,.12)">&#128225;</div>
+        <h3>Always-On Threat Intel</h3>
+        <p>262K+ indicators from 22 live feeds, refreshed every 30 minutes. IP, domain, hash lookup in one click &mdash; not 6 browser tabs.</p>
+      </div>
+      <div class="ben au d3">
+        <div class="ben-ico" style="background:rgba(34,197,94,.12)">&#127919;</div>
+        <h3>Full Op Management</h3>
+        <p>Track engagements from recon to report. Phase-based workflow, finding logs, evidence storage. Everything connected.</p>
+      </div>
+      <div class="ben au d4">
+        <div class="ben-ico" style="background:rgba(245,158,11,.12)">&#9889;</div>
+        <h3>Real-Time Monitoring</h3>
+        <p>Sentinel watches your infrastructure 24/7. Anomaly detection, fleet heartbeat, alert triage. Your AI-powered SOC, built in.</p>
+      </div>
+      <div class="ben au d5">
+        <div class="ben-ico" style="background:rgba(249,115,22,.12)">&#128203;</div>
+        <h3>One-Click Reports</h3>
+        <p>HackerOne and Bugcrowd format. Your findings, CVSS scores, and evidence automatically assembled. Submit the same day you find.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S6 — FOR WHO
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s6">
+  <div class="glow"></div>
+  <div style="width:100%;max-width:960px">
+    <div class="kicker au">Built for</div>
+    <h2 class="med au d1">Who <span class="grad2">wins with CrowByte?</span></h2>
+    <div class="who-grid">
+      <div class="who au d2">
+        <span class="who-ico">&#128081;</span>
+        <div class="who-title">Bug Bounty Hunters</div>
+        <div class="who-role">Find more. Earn more.</div>
+        <div class="who-desc">Spend less time on setup and more time on impact. Hit criticals before anyone else.</div>
+        <div class="who-wins">
+          <div class="wwin"><span class="wwin-dot" style="background:var(--p)"></span>CVE alerts the moment they drop</div>
+          <div class="wwin"><span class="wwin-dot" style="background:var(--p)"></span>142 tools ready, zero configuration</div>
+          <div class="wwin"><span class="wwin-dot" style="background:var(--p)"></span>Reports in minutes, not hours</div>
+        </div>
+      </div>
+      <div class="who au d3">
+        <span class="who-ico" style="animation-delay:-1.3s">&#128295;</span>
+        <div class="who-title">Pentest Teams</div>
+        <div class="who-role">Deliver. Document. Repeat.</div>
+        <div class="who-desc">Manage full engagements in one place. Evidence trails, client-ready reports, phase tracking.</div>
+        <div class="who-wins">
+          <div class="wwin"><span class="wwin-dot" style="background:var(--c)"></span>Phase-based operation management</div>
+          <div class="wwin"><span class="wwin-dot" style="background:var(--c)"></span>Multi-team finding coordination</div>
+          <div class="wwin"><span class="wwin-dot" style="background:var(--c)"></span>Client-ready report export</div>
+        </div>
+      </div>
+      <div class="who au d4">
+        <span class="who-ico" style="animation-delay:-2.6s">&#128737;</span>
+        <div class="who-title">Security Teams</div>
+        <div class="who-role">Protect. Detect. Respond.</div>
+        <div class="who-desc">Sentinel monitors your infrastructure 24/7 so your team focuses on response, not noise.</div>
+        <div class="who-wins">
+          <div class="wwin"><span class="wwin-dot" style="background:var(--g)"></span>Continuous IOC monitoring</div>
+          <div class="wwin"><span class="wwin-dot" style="background:var(--g)"></span>AI-powered alert triage</div>
+          <div class="wwin"><span class="wwin-dot" style="background:var(--g)"></span>Fleet health dashboard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S7 — THE NUMBERS
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s7">
+  <div class="glow"></div>
+  <div style="width:100%;max-width:860px;text-align:center">
+    <div class="kicker au" style="justify-content:center">By the numbers</div>
+    <h2 class="med au d1">Built at scale.<br><span class="grad2">Ready day one.</span></h2>
+    <div class="big-nums">
+      <div class="bnum au d2">
+        <div class="bnum-val"><span class="grad2">262K+</span></div>
+        <div class="bnum-text">
+          <div class="bnum-label">Threats Monitored</div>
+          <div class="bnum-desc">IPs, domains, hashes &amp; URLs from 22 live threat feeds. Updated every 30 minutes, automatically.</div>
+        </div>
+      </div>
+      <div class="bnum au d3">
+        <div class="bnum-val"><span class="grad2">142</span></div>
+        <div class="bnum-text">
+          <div class="bnum-label">Security Tools</div>
+          <div class="bnum-desc">nmap, nuclei, sqlmap, burp-style scanner, DNS recon, XSS payloads &mdash; all ready, zero setup required.</div>
+        </div>
+      </div>
+      <div class="bnum au d4">
+        <div class="bnum-val"><span class="grad3">7</span></div>
+        <div class="bnum-text">
+          <div class="bnum-label">AI Models</div>
+          <div class="bnum-desc">DeepSeek, Qwen3 480B, Mistral 675B, Claude, Kimi K2, and more. Auto-routed by task type.</div>
+        </div>
+      </div>
+      <div class="bnum au d5">
+        <div class="bnum-val"><span class="grad3">50+</span></div>
+        <div class="bnum-text">
+          <div class="bnum-label">Integrated Modules</div>
+          <div class="bnum-desc">CVE intel, red team ops, fleet management, threat intel, terminal, AI agents &mdash; one login, everything connected.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S8 — PRICING
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s8">
+  <div style="width:100%;max-width:960px;text-align:center">
+    <div class="kicker au" style="justify-content:center">Pricing</div>
+    <h2 class="med au d1">Start free.<br><span class="grad2">Scale when you&rsquo;re ready.</span></h2>
+    <div class="pg">
+      <div class="pc au d2">
+        <div class="ptier">Free</div>
+        <div class="pprice">$0</div>
+        <div class="pper">forever, no card needed</div>
+        <div class="pf"><span class="ck">&#10003;</span>CVE Database access</div>
+        <div class="pf"><span class="ck">&#10003;</span>Threat feed dashboard</div>
+        <div class="pf"><span class="ck">&#10003;</span>Knowledge base</div>
+        <div class="pf"><span class="ck">&#10003;</span>Mission planner</div>
+        <div class="pf px"><span>&#8212;</span>AI Chat &amp; models</div>
+        <div class="pf px"><span>&#8212;</span>Red team ops</div>
+        <button class="pc-cta cta-outline">Get Started Free</button>
+      </div>
+      <div class="pc hot au d3">
+        <div class="pop">MOST POPULAR</div>
+        <div class="ptier">Pro</div>
+        <div class="pprice" style="background:linear-gradient(135deg,var(--p),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">$19</div>
+        <div class="pper">per month &mdash; cancel anytime</div>
+        <div class="pf"><span class="ck">&#10003;</span>Everything in Free</div>
+        <div class="pf"><span class="ck">&#10003;</span>AI Chat &mdash; 7 models</div>
+        <div class="pf"><span class="ck">&#10003;</span>Red Team Operations</div>
+        <div class="pf"><span class="ck">&#10003;</span>Fleet Monitoring</div>
+        <div class="pf"><span class="ck">&#10003;</span>Terminal Access</div>
+        <div class="pf"><span class="ck">&#10003;</span>142 Security Tools</div>
+        <button class="pc-cta cta-filled">Start Pro Trial</button>
+      </div>
+      <div class="pc au d4">
+        <div class="ptier">Elite</div>
+        <div class="pprice">$49</div>
+        <div class="pper">per month &mdash; for serious operators</div>
+        <div class="pf"><span class="ck">&#10003;</span>Everything in Pro</div>
+        <div class="pf"><span class="ck">&#10003;</span>Sentinel SOC &mdash; 24/7 monitoring</div>
+        <div class="pf"><span class="ck">&#10003;</span>Custom AI Agents</div>
+        <div class="pf"><span class="ck">&#10003;</span>Priority support</div>
+        <div class="pf"><span class="ck">&#10003;</span>API access</div>
+        <div class="pf"><span class="ck">&#10003;</span>Custom integrations</div>
+        <button class="pc-cta cta-outline">Contact Us</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════
+     S9 — CLOSE / CTA
+══════════════════════════════════════════════════ -->
+<section class="slide" id="s9">
+  <div class="glow"></div>
+  <div style="text-align:center;max-width:680px">
+    <div class="kicker au" style="justify-content:center">Ready?</div>
+    <h1 class="big au d1">
+      <span class="grad">Your competitors<br>are already hunting.</span>
+    </h1>
+    <p class="sub au d2" style="text-align:center;margin:20px auto 0;font-size:1.05rem">
+      Join the security researchers and teams using CrowByte
+      to find vulnerabilities faster, report smarter, and stay ahead of every threat.
+    </p>
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:44px" class="au d3">
+      <button class="btn-p" style="font-size:15px;padding:16px 40px">
+        Start for Free &nbsp;&rarr;
+      </button>
+      <button class="btn-g" style="font-size:15px">
+        Book a Demo
+      </button>
+    </div>
+    <div class="close-logos au d4">
+      <span class="badge bp">crowbyte.io</span>
+      <span class="badge bc">support@crowbyte.io</span>
+      <span class="badge bg">v2.2.0</span>
+    </div>
+    <p style="margin-top:32px;font-size:.75rem;color:var(--m)" class="au d5">
+      No credit card required &nbsp;&middot;&nbsp; Cancel anytime &nbsp;&middot;&nbsp; Windows &middot; Web &middot; Linux
+    </p>
+  </div>
+</section>
+
+
+</div><!-- /deck -->
+
+<script>
+const N = 9;
+let cur = 0;
+const deck  = document.getElementById('deck');
+const pbar  = document.getElementById('pbar');
+const ctr   = document.getElementById('ctr');
+const dotsEl= document.getElementById('dots');
+
+for (let i = 0; i < N; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.onclick = () => go(i);
+  dotsEl.appendChild(d);
+}
+
+function go(n) {
+  cur = Math.max(0, Math.min(N - 1, n));
+  deck.style.transform = `translateX(-${cur * 100}vw)`;
+  pbar.style.width = ((cur + 1) / N * 100) + '%';
+  ctr.textContent = pad(cur + 1) + ' / ' + pad(N);
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+  const slide = deck.querySelectorAll('.slide')[cur];
+  slide.querySelectorAll('.au').forEach(el => {
+    el.style.animation = 'none';
+    void el.offsetHeight;
+    el.style.animation = '';
+  });
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key))         { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End')  go(N - 1);
+});
+
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+document.addEventListener('touchend',   e => {
+  const dx = tx - e.changedTouches[0].clientX;
+  if (Math.abs(dx) > 50) go(cur + (dx > 0 ? 1 : -1));
+}, {passive:true});
+
+go(0);
+</script>
+</body>
+</html>

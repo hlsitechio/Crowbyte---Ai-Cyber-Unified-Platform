@@ -5,7 +5,7 @@
 
 import { CustomAgent } from './custom-agents';
 import { tavilyService } from './tavily';
-import veniceAIElectron from './veniceai-electron';
+import { streamChat as veniceAIStream } from './ai';
 
 interface ToolFunction {
   type: string;
@@ -118,15 +118,7 @@ export class CustomAgentExecutor {
       // Check if we should use MCP (enables all MCP tools automatically)
       if (agent.enable_mcp) {
         // Use Venice AI Electron with MCP enabled
-        const stream = await veniceAIElectron.createStreamingChat({
-          model: agent.model,
-          messages: messages.map(m => ({ role: m.role, content: m.content })),
-          temperature: agent.temperature,
-          max_tokens: agent.max_tokens,
-          mcpEnabled: true,
-        });
-
-        for await (const chunk of stream) {
+        for await (const chunk of veniceAIStream(messages.map(m => ({ role: m.role, content: m.content })), agent.model, agent.temperature)) {
           yield chunk;
         }
       } else if (agent.enable_web_search) {
@@ -165,29 +157,11 @@ export class CustomAgentExecutor {
           }
         }
 
-        // Stream response without MCP
-        const stream = await veniceAIElectron.createStreamingChat({
-          model: agent.model,
-          messages: messages.map(m => ({ role: m.role, content: m.content })),
-          temperature: agent.temperature,
-          max_tokens: agent.max_tokens,
-          mcpEnabled: false,
-        });
-
-        for await (const chunk of stream) {
+        for await (const chunk of veniceAIStream(messages.map(m => ({ role: m.role, content: m.content })), agent.model, agent.temperature)) {
           yield chunk;
         }
       } else {
-        // No special features enabled, just stream
-        const stream = await veniceAIElectron.createStreamingChat({
-          model: agent.model,
-          messages: messages.map(m => ({ role: m.role, content: m.content })),
-          temperature: agent.temperature,
-          max_tokens: agent.max_tokens,
-          mcpEnabled: false,
-        });
-
-        for await (const chunk of stream) {
+        for await (const chunk of veniceAIStream(messages.map(m => ({ role: m.role, content: m.content })), agent.model, agent.temperature)) {
           yield chunk;
         }
       }

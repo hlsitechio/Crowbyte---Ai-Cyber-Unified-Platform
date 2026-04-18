@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UilRobot, UilSync } from "@iconscout/react-unicons";
+import { Badge } from "@/components/ui/badge";
+import { UilRobot, UilSync, UilShield, UilExclamationTriangle } from "@iconscout/react-unicons";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import type { WidgetProps } from "../types";
+import { sentinelCentral } from "@/services/sentinel-central";
+import { useNavigate } from "react-router-dom";
+import { IS_WEB } from "@/lib/platform";
 
 interface AgentActivity {
   agent: string;
@@ -15,7 +19,10 @@ interface AgentActivity {
 }
 
 export default function AgentActivityWidget(_props: WidgetProps) {
+  if (IS_WEB) return null;
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<AgentActivity[]>([]);
+  const [sentinelStats, setSentinelStats] = useState({ orgs: 0, decisions: 0, escalations: 0 });
 
   const fetchAgentActivity = async () => {
     try {
@@ -59,6 +66,16 @@ export default function AgentActivityWidget(_props: WidgetProps) {
   useEffect(() => {
     fetchAgentActivity();
     const interval = setInterval(fetchAgentActivity, 120000);
+
+    // Sentinel Central stats
+    Promise.all([
+      sentinelCentral.getOrgs(),
+      sentinelCentral.getDecisions(100),
+      sentinelCentral.getEscalations('pending'),
+    ]).then(([orgs, decisions, escalations]) => {
+      setSentinelStats({ orgs: orgs.length, decisions: decisions.length, escalations: escalations.length });
+    }).catch(() => {});
+
     return () => clearInterval(interval);
   }, []);
 
@@ -79,7 +96,29 @@ export default function AgentActivityWidget(_props: WidgetProps) {
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        {/* Sentinel Central quick stats */}
+        <div
+          className="flex items-center gap-2 p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/50 cursor-pointer hover:border-zinc-700 transition-colors"
+          onClick={() => navigate('/sentinel')}
+        >
+          <UilShield size={14} className="text-red-400 shrink-0" />
+          <span className="text-[11px] text-zinc-400 flex-1">Sentinel Agent</span>
+          <div className="flex items-center gap-3 text-[11px] font-mono">
+            <span className="text-zinc-300">{sentinelStats.orgs} <span className="text-zinc-600">orgs</span></span>
+            <span className="text-emerald-400">{sentinelStats.decisions} <span className="text-zinc-600">decisions</span></span>
+            {sentinelStats.escalations > 0 && (
+              <Badge
+                className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[9px] px-1.5 py-0 cursor-pointer animate-pulse"
+                onClick={e => { e.stopPropagation(); navigate('/alert-center'); }}
+              >
+                <UilExclamationTriangle size={9} className="mr-0.5" />
+                {sentinelStats.escalations} pending
+              </Badge>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           {agents.map(agent => (
             <div key={agent.agent} className="rounded-lg p-3 ring-1 ring-white/[0.06] transition-all hover:bg-primary/5 hover:ring-white/[0.1] min-w-0">

@@ -261,62 +261,7 @@ class SupabaseEdgeFunctionsService {
         reader.releaseLock();
       }
     },
-  };
-
-  /**
-   * Inoreader OAuth
-   */
-  inoreader = {
-    /**
-     * Get OAuth authorization URL
-     */
-    getAuthUrl: async (redirectUri?: string, scope?: string) => {
-      const params = new URLSearchParams({
-        action: 'authorize',
-      });
-      if (redirectUri) params.append('redirect_uri', redirectUri);
-      if (scope) params.append('scope', scope);
-
-      return this.callFunction(`inoreader-oauth?${params.toString()}`, {
-        method: 'GET',
-      });
-    },
-
-    /**
-     * Exchange authorization code for token
-     */
-    exchangeToken: async (code: string, redirectUri?: string) => {
-      return this.callFunction('inoreader-oauth?action=token', {
-        method: 'POST',
-        body: JSON.stringify({ code, redirect_uri: redirectUri }),
-      });
-    },
-
-    /**
-     * Refresh access token
-     */
-    refreshToken: async () => {
-      return this.callFunction('inoreader-oauth?action=refresh', {
-        method: 'GET',
-      });
-    },
-
-    /**
-     * Proxy Inoreader API request
-     */
-    proxy: async (endpoint: string, method: 'GET' | 'POST' = 'GET', body?: unknown) => {
-      const params = new URLSearchParams({
-        action: 'proxy',
-        endpoint,
-      });
-
-      return this.callFunction(`inoreader-oauth?${params.toString()}`, {
-        method,
-        body: body ? JSON.stringify(body) : undefined,
-      });
-    },
-  };
-}
+  };}
 
 // Export singleton instance
 export const edgeFunctions = new SupabaseEdgeFunctionsService();

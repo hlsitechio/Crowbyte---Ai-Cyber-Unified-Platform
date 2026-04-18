@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UilBrain, UilSync, UilCheckCircle, UilTimesCircle, UilHeartRate, UilSitemap, UilBolt, UilSave } from "@iconscout/react-unicons";
-import openClaw from "@/services/openclaw";
+import { testConnection as aiTestConnection } from "@/services/ai";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LLMSettings() {
@@ -23,8 +23,8 @@ export default function LLMSettings() {
 
   const checkOpenClaw = async () => {
     try {
-      const health = await openClaw.healthCheck();
-      setOpenClawConnected(health.ok);
+      const ok = await aiTestConnection();
+      setOpenClawConnected(ok);
     } catch {
       setOpenClawConnected(false);
     }
@@ -32,31 +32,23 @@ export default function LLMSettings() {
 
   const saveOpenClawEndpoint = async () => {
     localStorage.setItem('openclaw_endpoint', openClawEndpoint);
-    toast({
-      title: "Endpoint Saved",
-      description: "OpenClaw VPS endpoint has been saved",
-    });
+    toast({ title: "Endpoint Saved", description: "AI endpoint saved" });
     checkOpenClaw();
   };
 
   const testOpenClawConnection = async () => {
     setTestingConnection(true);
     try {
-      const health = await openClaw.healthCheck();
-      setOpenClawConnected(health.ok);
+      const ok = await aiTestConnection();
+      setOpenClawConnected(ok);
       toast({
-        title: health.ok ? "Connection Successful" : "Connection Failed",
-        description: health.ok ? "OpenClaw VPS is online and responding" : "VPS is not responding",
-        variant: health.ok ? "default" : "destructive",
+        title: ok ? "Connection Successful" : "Connection Failed",
+        description: ok ? "CrowByte AI is online" : "AI service unavailable",
+        variant: ok ? "default" : "destructive",
       });
     } catch (error) {
-      console.error('Connection test failed:', error);
       setOpenClawConnected(false);
-      toast({
-        title: "Connection Failed",
-        description: "OpenClaw VPS is unreachable",
-        variant: "destructive",
-      });
+      toast({ title: "Connection Failed", description: "AI service unreachable", variant: "destructive" });
     } finally {
       setTestingConnection(false);
     }
@@ -64,14 +56,10 @@ export default function LLMSettings() {
 
   const fetchModels = async () => {
     setLoadingModels(true);
-    try {
-      const data = openClaw.getModels();
-      setModels(data);
-    } catch (error) {
-      console.error('Failed to fetch models:', error);
-    } finally {
-      setLoadingModels(false);
-    }
+    setModels([
+      { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'CrowByte AI' },
+    ]);
+    setLoadingModels(false);
   };
 
   return (

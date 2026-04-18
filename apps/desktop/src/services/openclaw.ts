@@ -350,6 +350,7 @@ class OpenClawService {
     messages: OpenClawMessage[],
     model?: string,
     temperature: number = 0.7,
+    signal?: AbortSignal,
   ): AsyncGenerator<string> {
     const useModel = model || this.currentModel;
 
@@ -371,6 +372,7 @@ class OpenClawService {
         stream: true,
         max_tokens: 4096,
       }),
+      signal,
     });
 
     if (!response.ok) {

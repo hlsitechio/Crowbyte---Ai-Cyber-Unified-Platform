@@ -217,10 +217,37 @@ const markdownComponents = {
     }
     return <CodeBlock inline>{String(children)}</CodeBlock>;
   },
-  table({ children }: any) {
+  table({ children, node }: any) {
+    const copyCSV = () => {
+      try {
+        const rows = node?.children?.flatMap((section: any) =>
+          section.children?.map((row: any) =>
+            row.children?.map((cell: any) =>
+              cell.children?.map((c: any) => c.value || '').join('')
+            ).join(',')
+          )
+        ).filter(Boolean).join('\n') || '';
+        navigator.clipboard.writeText(rows);
+      } catch {}
+    };
     return (
-      <div className="overflow-x-auto my-3 rounded-lg ring-1 ring-white/[0.06]">
-        <table className="w-full text-sm">{children}</table>
+      <div className="my-3 rounded-xl overflow-hidden ring-1 ring-white/[0.08] bg-[#1a1a2e]">
+        <div className="flex items-center justify-between px-3 py-2 bg-white/[0.03] border-b border-white/[0.06]">
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
+            </div>
+            <span className="text-[11px] font-mono text-zinc-500">table</span>
+          </div>
+          <button onClick={copyCSV} className="flex items-center gap-1 px-2 py-1 rounded text-[10px] text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06] transition-all">
+            <UilCopy size={11} /><span>Copy CSV</span>
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">{children}</table>
+        </div>
       </div>
     );
   },

@@ -23,7 +23,6 @@ export function DashboardSection() {
             <div><span className="text-primary">systemMonitor</span>     <span className="text-zinc-500">CPU, RAM, disk, network — polled via Electron IPC</span></div>
             <div><span className="text-primary">ip-status.ts</span>      <span className="text-zinc-500">Public IP, VPN detection, geolocation (ipify + ipapi)</span></div>
             <div><span className="text-primary">pc-monitor.ts</span>     <span className="text-zinc-500">Process list, open connections, system info</span></div>
-            <div><span className="text-primary">inoreader.ts</span>      <span className="text-zinc-500">RSS feeds — security news aggregation</span></div>
             <div><span className="text-primary">openclaw.ts</span>       <span className="text-zinc-500">VPS health check, agent status</span></div>
             <div><span className="text-primary">endpointService</span>   <span className="text-zinc-500">Fleet device registry (auto-register on mount)</span></div>
             <div>&nbsp;</div>
@@ -41,7 +40,6 @@ export function DashboardSection() {
           { text: "IP status card — public IP, VPN detection, geolocation via ipify + ipapi.co", status: "done" },
           { text: "OpenClaw connection status — VPS agent swarm health with latency", status: "done" },
           { text: "Recent CVE alerts from Supabase (severity-colored, clickable)", status: "done" },
-          { text: "Security news feed via Inoreader RSS integration", status: "done" },
           { text: "Quick action buttons — navigate to Chat, Terminal, Red Team, etc.", status: "done" },
           { text: "Auto-monitoring toggle (5-minute interval AI scans via GHOST agent)", status: "done" },
           { text: "Endpoint registry — tracked devices from Fleet with auto-registration", status: "done" },

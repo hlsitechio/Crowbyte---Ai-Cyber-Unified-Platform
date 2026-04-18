@@ -16,7 +16,7 @@ import { RemoteControlDialog } from"@/components/fleet/RemoteControlDialog";
 import { VNCViewer } from"@/components/fleet/VNCViewer";
 import { endpointService, Endpoint } from"@/services/endpointService";
 import { toast } from"sonner";
-import { openClaw } from"@/services/openclaw";
+import { testConnection as aiTestConnection } from "@/services/ai";
 
 interface VPSStatus {
  ok: boolean;
@@ -114,17 +114,9 @@ const Fleet = () => {
  const checkVPS = async () => {
  setVpsLoading(true);
  try {
- // Health check via OpenClaw
- let health = await openClaw.healthCheck();
-
- // If renderer fetch fails, try via Electron curl
- if (!health.ok && window.electronAPI?.executeCommand) {
  const start = Date.now();
- const output = await window.electronAPI.executeCommand(
- `curl -sk -o /dev/null -w %{http_code} https://${import.meta.env.VITE_OPENCLAW_HOSTNAME || 'localhost'}/nvidia/v1/models --connect-timeout 5`
- );
- health = { ok: output.includes('200'), latencyMs: Date.now() - start };
- }
+ const aiOk = await aiTestConnection().catch(() => false);
+ const health = { ok: aiOk, latencyMs: Date.now() - start };
 
  // Get service status via SSH
  let services: { name: string; active: boolean }[] = [];
@@ -145,7 +137,7 @@ const Fleet = () => {
  setVpsStatus({
  ok: health.ok,
  latencyMs: health.latencyMs,
- agents: openClaw.getAgents(),
+ agents: [],
  services,
  });
  } catch {
@@ -717,7 +709,7 @@ const Fleet = () => {
  <div className="space-y-2">
  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Agents ({vpsStatus?.agents.length || 9})</p>
  <div className="flex flex-wrap gap-1">
- {(vpsStatus?.agents || openClaw.getAgents()).map((agent) => (
+ {(vpsStatus?.agents || []).map((agent) => (
  <span key={agent} className="text-xs text-primary">{agent}</span>
  ))}
  </div>
@@ -729,7 +721,7 @@ const Fleet = () => {
  <div className="space-y-1 text-xs">
  <div className="flex justify-between">
  <span className="text-muted-foreground">Model</span>
- <span className="font-mono text-primary">{openClaw.getModels().find(m => m.id === openClaw.getCurrentModel())?.name || 'GLM5'}</span>
+ <span className="font-mono text-primary">Gemini 2.5 Flash</span>
  </div>
  <div className="flex justify-between">
  <span className="text-muted-foreground">Inference</span>

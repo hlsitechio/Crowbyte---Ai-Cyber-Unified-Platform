@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   UilLock,
@@ -20,6 +21,8 @@ import {
 } from "@iconscout/react-unicons";
 import { supabase } from "@/integrations/supabase/client";
 import { verifyLicense, type LicenseStatus } from "@/services/license-guard";
+import { IS_ELECTRON } from "@/lib/platform";
+import { toast } from "sonner";
 
 interface Props {
   status: LicenseStatus;
@@ -27,6 +30,7 @@ interface Props {
 }
 
 export default function SubscriptionGate({ status, onRetry }: Props) {
+  const navigate = useNavigate();
   const [checking, setChecking] = useState(false);
 
   const handleRetry = async () => {
@@ -36,7 +40,7 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
     window.location.reload();
   };
 
@@ -157,7 +161,7 @@ export default function SubscriptionGate({ status, onRetry }: Props) {
 
           {isAuthIssue && (
             <button
-              onClick={() => { window.location.hash = '#/auth'; window.location.reload(); }}
+              onClick={() => navigate(IS_ELECTRON ? '/welcome' : '/auth')}
               className="w-full h-11 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2"
             >
               Sign In <UilArrowRight size={14} />

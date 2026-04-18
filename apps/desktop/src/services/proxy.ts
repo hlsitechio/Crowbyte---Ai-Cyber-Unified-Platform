@@ -28,7 +28,7 @@ export async function fetchIP(): Promise<any> {
  */
 export async function fetchOpenClaw(path: string, options: RequestInit = {}): Promise<Response> {
   if (isElectron) {
-    const base = 'https://srv1459982.hstgr.cloud';
+    const base = 'https://crowbyte.io';
     return fetch(`${base}/${path}`, options);
   }
   return fetch(`${PROXY_BASE}/openclaw/${path}`, {
