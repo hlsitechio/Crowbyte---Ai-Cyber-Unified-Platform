@@ -136,3 +136,9 @@ server/
 test-landing/
 SAAS-PLAN.md
 agent/__pycache__
+
+# Never track real env files
+apps/desktop/.env.production
+apps/desktop/.env.staging
+apps/desktop/.env.local
+
