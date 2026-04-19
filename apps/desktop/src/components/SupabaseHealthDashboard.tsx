@@ -147,10 +147,12 @@ export const SupabaseHealthDashboard = () => {
  </Card>
  );
 
+ const renderAPIUsageCard = (service: string) => {
  // Render API usage analytics
  if (!health) return null;
 
  const usage = health.apiUsage[service];
+ const title = service.charAt(0).toUpperCase() + service.slice(1);
  const icon = service === 'openclaw' ? <UilBolt size={16} className="text-violet-500" /> :
  <UilHeartRate size={16} className="text-cyan-500" />;
 
