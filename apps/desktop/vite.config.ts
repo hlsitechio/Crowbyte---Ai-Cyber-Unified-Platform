@@ -55,6 +55,7 @@ export default defineConfig(({ mode }) => {
           if (id.includes('/react-hook-form/') || id.includes('@hookform/') || id.includes('/zod/')) return 'form-vendor';
           if (id.includes('@dnd-kit/')) return 'dnd-vendor';
           if (id.includes('@supabase/') || id.includes('@tanstack/')) return 'supabase-vendor';
+          if (id.includes('@iconscout/react-unicons')) return 'icons-vendor';
         },
       },
     },
