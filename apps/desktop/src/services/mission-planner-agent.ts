@@ -1,3 +1,4 @@
+import { createChatCompletion } from './ai';
 /**
  * AI Mission Planner Agent
  * Autonomous strategic planning for offensive and defensive cyber operations
@@ -147,6 +148,7 @@ ${this.getTypeSpecificGuidance(request.type)}
 Output JSON only.`;
 
     try {
+      const response = await createChatCompletion({
         model: 'llama-3.3-70b',
         messages: [
           { role: 'system', content: this.systemPrompt },
@@ -198,6 +200,7 @@ ${modificationGuidance}
 Output the complete modified plan as JSON only.`;
 
     try {
+      const response = await createChatCompletion({
         model: 'llama-3.3-70b',
         messages: [
           { role: 'system', content: this.systemPrompt },
@@ -253,6 +256,7 @@ Output as JSON:
 }`;
 
     try {
+      const response = await createChatCompletion({
         model: 'llama-3.3-70b',
         messages: [
           { role: 'system', content: this.systemPrompt },
