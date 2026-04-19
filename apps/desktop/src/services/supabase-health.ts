@@ -22,20 +22,13 @@ export interface ServiceHealthStatus {
 
 export interface SupabaseHealth {
   overall: 'healthy' | 'degraded' | 'down';
-  services: ;
+  services: {
+    database: ServiceHealthStatus;
+    edgeFunctions: ServiceHealthStatus;
+    openClaw: ServiceHealthStatus;
+  };
   apiUsage: {
-      count: number;
-      limit: number;
-      remaining: number;
-      resetTime: Date;
-      percentUsed: number;
-    };
-      count: number;
-      limit: number;
-      remaining: number;
-      resetTime: Date;
-      percentUsed: number;
-    };
+    openclaw: {
       count: number;
       limit: number;
       remaining: number;
