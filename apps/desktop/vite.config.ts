@@ -56,6 +56,11 @@ export default defineConfig(({ mode }) => {
           if (id.includes('@dnd-kit/')) return 'dnd-vendor';
           if (id.includes('@supabase/') || id.includes('@tanstack/')) return 'supabase-vendor';
           if (id.includes('@iconscout/react-unicons')) return 'icons-vendor';
+          if (id.includes('/lucide-react/')) return 'icons-vendor';
+          // Bundle all shadcn/ui wrapper components into ui-vendor instead of micro-chunks
+          if (id.includes('/src/components/ui/')) return 'ui-components';
+          // Bundle framer-motion into its own stable chunk
+          if (id.includes('/framer-motion/')) return 'motion-vendor';
         },
       },
     },
