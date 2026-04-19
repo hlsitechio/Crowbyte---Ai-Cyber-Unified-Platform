@@ -150,3 +150,13 @@ docs/new_docs/VPS_FILES.md
 
 # npm auth (never commit tokens)
 .npmrc
+
+# ─── Secrets & Credentials ───────────────────────────────────────────────────
+*.credentials
+crowbyte-config.json
+*-config.json
+secrets.json
+credentials.json
+*.secret
+apps/desktop/.npmrc
+packages/cli/.npmrc
