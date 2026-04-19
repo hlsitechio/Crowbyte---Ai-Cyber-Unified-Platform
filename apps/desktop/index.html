@@ -118,9 +118,13 @@
       }
     }
     </script>
-    <!-- Console branding: fires before bundle -->
+    <!-- Console branding: fires once per session, tracks refresh count -->
     <script>
       (function(){
+        var key = '__cb_banner_shown';
+        var count = parseInt(sessionStorage.getItem(key) || '0', 10) + 1;
+        sessionStorage.setItem(key, String(count));
+        if (count > 1) return; // only print on first load per session
         console.clear();
         console.log(
           '%c\uD83D\uDC26 CrowByte',
