@@ -520,31 +520,8 @@ Be thorough and provide a complete response even if some tools fail.`,
               });
               console.log(`  ✅ Error summary: ${summary.total} total, ${summary.critical} critical`);
             }
-              console.log(`  🔍 Searching for: "${toolArgs.query}"`);
-              const searchResult = null;
-
-              // Format search results for AI
-              const formattedResults = {
-                query: toolArgs.query,
-                answer: searchResult.answer,
-                results: searchResult.results.map(r => ({
-                  title: r.title,
-                  url: r.url,
-                  content: r.content,
-                  score: r.score,
-                })),
-              };
-
-              currentMessages.push({
-                role: 'tool',
-                tool_call_id: toolCall.id,
-                content: JSON.stringify(formattedResults),
-              });
-
-              console.log(`  ✅ Found ${searchResult.results.length} results`);
-            }
             // Handle MCP monitor tools via Electron IPC
-            else if (typeof window !== 'undefined' && window.electronAPI) {
+            if (typeof window !== 'undefined' && window.electronAPI) {
               // Extract the actual tool name (remove mcp_monitor_ prefix)
               const actualToolName = toolName.replace(/^mcp_monitor_/, '');
 
