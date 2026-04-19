@@ -3,6 +3,7 @@
  */
 
 import { CustomAgent } from './custom-agents';
+import { streamChat } from './ai';
 
 interface ToolFunction {
   type: string;
@@ -110,46 +111,17 @@ export class CustomAgentExecutor {
         { role: 'user', content: userMessage }
       ];
 
-      // Check if we should use MCP (enables all MCP tools automatically)
-      if (agent.enable_mcp) {
-          yield chunk;
-        }
-      } else if (agent.enable_web_search) {
-        // If only web search is enabled, do preprocessing
+      // Note web search intent (Tavily removed; AI handles search queries natively)
+      if (agent.enable_web_search) {
         const needsSearch = /latest|recent|new|current|find|search|research|what is|tell me about/i.test(userMessage);
-
         if (needsSearch) {
-          yield '\n\n🔍 **Searching web...**\n\n';
-
-          try {
-            const searchResults = null;
-
-            if (searchResults.data.answer) {
-              yield `**Search Summary**: ${searchResults.data.answer}\n\n`;
-            }
-
-            // Add search context to messages
-            if (searchResults.data.results && searchResults.data.results.length > 0) {
-              let searchContext = '\n\n## Web Search Results\n\n';
-              searchResults.data.results.slice(0, 3).forEach((result, idx) => {
-                searchContext += `${idx + 1}. [${result.title}](${result.url})\n   ${result.content.substring(0, 200)}...\n\n`;
-              });
-
-              messages[messages.length - 1].content += searchContext;
-            }
-
-            yield '**Generating response...**\n\n';
-          } catch (error) {
-            console.error('Search error:', error);
-            yield '⚠️ Search failed, generating response without web results...\n\n';
-          }
+          yield '\n\n🔍 **Searching...**\n\n';
         }
+      }
 
-          yield chunk;
-        }
-      } else {
-          yield chunk;
-        }
+      // Stream AI response
+      for await (const chunk of streamChat(messages)) {
+        yield chunk;
       }
     } catch (error) {
       console.error('Custom agent execution error:', error);

@@ -136,224 +136,34 @@ class SupabaseHealthMonitor {
   }
 
   /**
-   */
-    try {
-      // Get usage stats from database
-      const { data, error } = await supabase.rpc('get_api_usage', {
-      });
-
-      if (error) {
-        return {
-          status: 'healthy',
-          lastChecked: new Date(),
-          usage: {
-            current: 0,
-            limit: 5000,
-            remaining: 5000,
-            percentUsed: 0,
-          },
-        };
-      }
-
-      const usage = data?.[0];
-      if (!usage) {
-        return {
-          status: 'healthy',
-          lastChecked: new Date(),
-          usage: {
-            current: 0,
-            limit: 5000,
-            remaining: 5000,
-            percentUsed: 0,
-          },
-        };
-      }
-
-      // Determine status based on usage
-      let status: 'healthy' | 'degraded' | 'down' = 'healthy';
-      if (usage.percent_used >= 90) {
-        status = 'degraded';
-      }
-      if (usage.remaining <= 0) {
-        status = 'down';
-      }
-
-      return {
-        status,
-        lastChecked: new Date(),
-        usage: {
-          current: usage.call_count,
-          limit: usage.daily_limit,
-          remaining: usage.remaining,
-          percentUsed: usage.percent_used,
-        },
-      };
-    } catch (error: unknown) {
-      return {
-        status: 'healthy',
-        lastChecked: new Date(),
-        usage: {
-          current: 0,
-          limit: 5000,
-          remaining: 5000,
-          percentUsed: 0,
-        },
-      };
-    }
-  }
-
-      const usage = data?.[0];
-      if (!usage) {
-        return {
-          status: 'healthy',
-          lastChecked: new Date(),
-          usage: {
-            current: 0,
-            limit: 5000,
-            remaining: 5000,
-            percentUsed: 0,
-          },
-        };
-      }
-
-      // Determine status based on usage
-      let status: 'healthy' | 'degraded' | 'down' = 'healthy';
-      if (usage.percent_used >= 90) {
-        status = 'degraded';
-      }
-      if (usage.remaining <= 0) {
-        status = 'down';
-      }
-
-      return {
-        status,
-        lastChecked: new Date(),
-        usage: {
-          current: usage.call_count,
-          limit: usage.daily_limit,
-          remaining: usage.remaining,
-          percentUsed: usage.percent_used,
-        },
-      };
-    } catch (error: unknown) {
-      return {
-        status: 'healthy',
-        lastChecked: new Date(),
-        usage: {
-          current: 0,
-          limit: 5000,
-          remaining: 5000,
-          percentUsed: 0,
-        },
-      };
-    }
-  }
-
-  /**
-   */
-    try {
-      // Get usage stats from database
-      const { data, error } = await supabase.rpc('get_api_usage', );
-
-      if (error) {
-        return {
-          status: 'healthy',
-          lastChecked: new Date(),
-          usage: {
-            current: 0,
-            limit: 1000,
-            remaining: 1000,
-            percentUsed: 0,
-          },
-        };
-      }
-
-      const usage = data?.[0];
-      if (!usage) {
-        return {
-          status: 'healthy',
-          lastChecked: new Date(),
-          usage: {
-            current: 0,
-            limit: 1000,
-            remaining: 1000,
-            percentUsed: 0,
-          },
-        };
-      }
-
-      // Determine status based on usage
-      let status: 'healthy' | 'degraded' | 'down' = 'healthy';
-      if (usage.percent_used >= 90) {
-        status = 'degraded';
-      }
-      if (usage.remaining <= 0) {
-        status = 'down';
-      }
-
-      return {
-        status,
-        lastChecked: new Date(),
-        usage: {
-          current: usage.call_count,
-          limit: usage.daily_limit,
-          remaining: usage.remaining,
-          percentUsed: usage.percent_used,
-        },
-      };
-    } catch (error: unknown) {
-      return {
-        status: 'healthy',
-        lastChecked: new Date(),
-        usage: {
-          current: 0,
-          limit: 1000,
-          remaining: 1000,
-          percentUsed: 0,
-        },
-      };
-    }
-  }
-
-  /**
    * Get API usage statistics
    */
-  private async getAPIUsage() {
+  private async getAPIUsage(): Promise<SupabaseHealth['apiUsage']> {
+    const defaultResetTime = new Date(Date.now() + 86400000);
     const defaultUsage = {
-      call_count: 0,
-      daily_limit: 5000,
+      count: 0,
+      limit: 5000,
       remaining: 5000,
-      reset_time: new Date(Date.now() + 86400000).toISOString(),
-      percent_used: 0,
+      resetTime: defaultResetTime,
+      percentUsed: 0,
     };
 
     try {
-        supabase.rpc('get_api_usage', ),
-      ]);
-
-      // Log errors if any
-      }
-      }
-
+      const { data } = await supabase.rpc('get_api_usage', {});
+      const usage = data?.[0];
+      if (!usage) return { openclaw: defaultUsage };
       return {
-        },
-    } catch (error) {
-      console.error('Failed to get API usage:', error);
-      const defaultResetTime = new Date(Date.now() + 86400000);
-      return {
-          count: 0,
-          limit: 5000,
-          remaining: 5000,
-          resetTime: defaultResetTime,
-          percentUsed: 0,
-        },
-          count: 0,
-          limit: 1000,
-          remaining: 1000,
-          resetTime: defaultResetTime,
-          percentUsed: 0,
+        openclaw: {
+          count: usage.call_count ?? 0,
+          limit: usage.daily_limit ?? 5000,
+          remaining: usage.remaining ?? 5000,
+          resetTime: new Date(usage.reset_time ?? defaultResetTime),
+          percentUsed: usage.percent_used ?? 0,
         },
       };
+    } catch (error) {
+      console.error('Failed to get API usage:', error);
+      return { openclaw: defaultUsage };
     }
   }
 
@@ -363,14 +173,14 @@ class SupabaseHealthMonitor {
   async checkHealth(): Promise<SupabaseHealth> {
     console.log('🏥 Running Supabase health check...');
 
+    const [dbStatus, edgeFunctionsStatus, apiUsage] = await Promise.all([
       this.checkDatabase(),
       this.checkEdgeFunctions(),
       this.getAPIUsage(),
     ]);
 
-    // Determine overall health
+    const statuses = [dbStatus.status, edgeFunctionsStatus.status];
     let overall: 'healthy' | 'degraded' | 'down' = 'healthy';
-
     if (statuses.includes('down')) {
       overall = 'down';
     } else if (statuses.includes('degraded')) {
@@ -379,7 +189,12 @@ class SupabaseHealthMonitor {
 
     this.healthData = {
       overall,
-      services:       apiUsage,
+      services: {
+        database: dbStatus,
+        edgeFunctions: edgeFunctionsStatus,
+        openClaw: { name: 'OpenClaw', status: 'unknown', lastChecked: new Date() },
+      },
+      apiUsage,
       lastUpdate: new Date(),
     };
 

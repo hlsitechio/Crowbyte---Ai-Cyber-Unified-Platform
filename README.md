@@ -18,6 +18,20 @@
 
 > **Start free at [crowbyte.io](https://crowbyte.io)** — no credit card required.
 
+## Install
+
+```bash
+# One command — auto-detects your OS
+npx crowbyte
+```
+
+| Platform | Direct Download |
+|----------|----------------|
+| **Windows** | [CrowByte-Setup-2.2.2.exe](https://crowbyte.io/downloads/CrowByte-Setup-2.2.2.exe) · [.msi](https://crowbyte.io/downloads/CrowByte-2.2.2-x64.msi) |
+| **Linux** | [AppImage](https://crowbyte.io/downloads/CrowByte-2.2.2.AppImage) · [.deb](https://crowbyte.io/downloads/crowbyte_2.2.2_amd64.deb) |
+| **PowerShell** | `iex (irm https://crowbyte.io/install.ps1)` |
+| **Bash** | `curl -fsSL https://crowbyte.io/install.sh \| bash` |
+
 ---
 
 ## The Problem

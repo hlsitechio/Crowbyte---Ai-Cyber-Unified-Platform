@@ -3,7 +3,7 @@
     "id": "overview",
     "title": "Overview",
     "section": "Getting Started",
-    "keywords": ["overview", "introduction", "what is crowbyte", "features", "about", "architecture", "feature map", "getting started", "command center", "electron app"],
+    "keywords": ["overview", "introduction", "what is crowbyte", "features", "about", "architecture", "feature map", "getting started", "command center", "electron app"]
   },
   {
     "id": "installation",
@@ -57,13 +57,13 @@
   {
     "id": "llm",
     "title": "LLM Models",
-    "section": "AI Operations",
+    "section": "AI Operations"
   },
   {
     "id": "redteam",
     "title": "Red Team",
     "section": "Red Team",
-    "keywords": ["red team", "offensive", "pentest", "penetration test", "bug bounty", "social engineering", "operation", "findings", "severity", "attack", "operation tracking", "vulnerability findings"],
+    "keywords": ["red team", "offensive", "pentest", "penetration test", "bug bounty", "social engineering", "operation", "findings", "severity", "attack", "operation tracking", "vulnerability findings"]
   },
   {
     "id": "cyber-ops",
@@ -194,7 +194,7 @@
   {
     "id": "ai-providers",
     "title": "AI Providers",
-    "section": "Integrations",
+    "section": "Integrations"
   },
   {
     "id": "nvd-shodan",
@@ -207,13 +207,13 @@
     "id": "tech-stack",
     "title": "Tech Stack",
     "section": "Development",
-    "keywords": ["tech stack", "technology", "framework", "react", "typescript", "electron", "vite", "tailwind", "radix", "shadcn", "recharts", "framer motion", "xterm", "supabase", "infrastructure"],
+    "keywords": ["tech stack", "technology", "framework", "react", "typescript", "electron", "vite", "tailwind", "radix", "shadcn", "recharts", "framer motion", "xterm", "supabase", "infrastructure"]
   },
   {
     "id": "electron-arch",
     "title": "Electron Architecture",
     "section": "Development",
-    "keywords": ["electron", "main process", "ipc", "ipc handlers", "node-pty", "window management", "cache manager", "sqlite", "preload", "browser window", "frameless", "titlebar"],
+    "keywords": ["electron", "main process", "ipc", "ipc handlers", "node-pty", "window management", "cache manager", "sqlite", "preload", "browser window", "frameless", "titlebar"]
   },
   {
     "id": "data-security",
@@ -233,6 +233,6 @@
     "id": "roadmap",
     "title": "Roadmap",
     "section": "Development",
-    "keywords": ["roadmap", "planned features", "future", "upcoming", "completed", "milestones", "todo", "feature requests", "development plan"],
+    "keywords": ["roadmap", "planned features", "future", "upcoming", "completed", "milestones", "todo", "feature requests", "development plan"]
   }
 ]

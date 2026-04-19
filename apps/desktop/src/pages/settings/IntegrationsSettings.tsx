@@ -188,17 +188,6 @@ export default function IntegrationsSettings() {
     }
   };
 
-    if (!key) return;
-    try {
-        headers: { Authorization: `Bearer ${key}` },
-        signal: AbortSignal.timeout(8000),
-      });
-      const ok = res.ok;
-    } catch {
-    } finally {
-      setTestingService(null);
-    }
-  };
 
   const handleSaveAll = async () => {
     localStorage.setItem("crowbyte_ai_providers", JSON.stringify(providers));
@@ -434,46 +423,6 @@ export default function IntegrationsSettings() {
             <p className="text-[11px] text-zinc-500">Network intelligence, CVE lookup, IP enrichment</p>
           </div>
 
-          <Separator />
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <UilShieldCheck size={16} className="text-amber-400" />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Input
-                type="password"
-                className="h-8 text-xs font-mono flex-1"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs gap-1.5"
-              >
-                  <UilSpinner size={12} className="animate-spin" />
-                ) : (
-                  <UilSync size={12} />
-                )}
-                Test
-              </Button>
-            </div>
-            <p className="text-[11px] text-zinc-500">Uncensored AI for offensive security analysis</p>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <UilKeySkeleton size={16} className="text-sky-400" />
-            </div>
-            <Input
-              type="password"
-              className="h-8 text-xs font-mono"
-            />
-            <p className="text-[11px] text-zinc-500">AI-powered cybersecurity search and threat intelligence</p>
-          </div>
         </CardContent>
       </Card>
 

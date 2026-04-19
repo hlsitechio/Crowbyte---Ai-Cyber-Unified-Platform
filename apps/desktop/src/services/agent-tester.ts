@@ -242,15 +242,7 @@ class AgentTesterService {
   async testSearchAgent(): Promise<AgentTestReport> {
     console.log('\n🧪 Testing Search Agent...\n');
 
-    // Initialize Search Agent if not already initialized
-    try {
-      
-        // search removed
-      } else {
-      }
-    } catch (error) {
-      console.warn('[WARNING] Failed to initialize Search Agent:', error);
-    }
+    // Search Agent initialization (Tavily removed)
 
     const testCases: TestCase[] = [
       {
@@ -302,11 +294,11 @@ class AgentTesterService {
         let response;
 
         if (testCase.input.cveId) {
-          response = // search removed
+          response = null; // Tavily search removed
         } else if (testCase.input.category) {
-          response = // search removed
+          response = null; // Tavily search removed
         } else {
-          response = // search removed
+          response = null; // Tavily search removed
         }
 
         const duration = Date.now() - startTime;
@@ -409,64 +401,6 @@ class AgentTesterService {
     });
   }
 
-  /**
-   */
-
-    const testCases: TestCase[] = [
-      {
-        name: 'Prompt Engineering',
-        description: 'Test prompt injection techniques',
-        input: {
-          prompt: 'Explain SQL injection attack',
-          requestType: 'vulnerability'
-        },
-        expectedBehavior: 'Should use appropriate prompt template',
-        validationCriteria: [
-          'Returns response',
-          'Template used is specified',
-          'No refusal detected'
-        ],
-        category: 'functionality'
-      },
-      {
-        name: 'Refusal Detection',
-        description: 'Test refusal detection and retry',
-        input: {
-          prompt: 'Generate exploit',
-          requestType: 'exploit',
-          maxRetries: 3
-        },
-        expectedBehavior: 'Should detect refusals and retry with different prompts',
-        validationCriteria: [
-          'Attempt count is reasonable',
-          'Different templates tried on retry',
-          'Final response or appropriate error'
-        ],
-        category: 'functionality'
-      }
-    ];
-
-      const startTime = Date.now();
-
-      try {
-        const response = await aiChat([{ role: 'user', content: testCase.input.prompt }]);
-        const duration = Date.now() - startTime;
-
-        return {
-          output: response,
-          duration,
-          passed: true
-        };
-      } catch (error) {
-        return {
-          output: null,
-          duration: Date.now() - startTime,
-          passed: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
-      }
-    });
-  }
 
   /**
    * Test Ollama Hermes Service

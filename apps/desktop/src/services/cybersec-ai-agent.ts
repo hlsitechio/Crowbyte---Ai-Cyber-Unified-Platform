@@ -3,6 +3,7 @@
  */
 
 import { edgeFunctions } from './supabase-edge-functions';
+import { streamChat } from './ai';
 
 export interface AgentMessage {
   role: 'user' | 'assistant' | 'system';
@@ -194,11 +195,14 @@ Be precise, technical, and security-focused in your responses.`;
     }
 
     try {
-        model: 'llama-3.3-70b',
-        messages: messages.map(m => ({ role: m.role, content: m.content })),
-        temperature: 0.7,
-        max_tokens: 2000,
-        stream: false,
+      const response = await edgeFunctions.callFunction('ai-chat', {
+        body: JSON.stringify({
+          model: 'deepseek-ai/deepseek-v3.2',
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          temperature: 0.7,
+          max_tokens: 2000,
+          stream: false,
+        }),
       });
 
       const assistantMessage = response.data?.choices?.[0]?.message?.content ||
@@ -336,11 +340,7 @@ Be precise, technical, and security-focused in your responses.`;
     }
 
     try {
-        model: 'llama-3.3-70b',
-        messages: messages.map(m => ({ role: m.role, content: m.content })),
-        temperature: 0.7,
-        max_tokens: 2000,
-      });
+      const stream = streamChat(messages.map(m => ({ role: m.role, content: m.content })));
 
       let fullResponse = '';
 

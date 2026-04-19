@@ -42,7 +42,7 @@ export function RedTeamSection() {
 
       <Card><CardHeader><CardTitle>AI Integration</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>The <code className="text-primary">hybrid-redteam-agent.ts</code> provides AI-powered analysis for red team operations.
+          <p>The <code className="text-primary">hybrid-redteam-agent.ts</code> provides AI-powered analysis for red team operations.</p>
           <FeatureList items={[
             { text: "Analyze findings for severity assessment and CVSS scoring", status: "done" },
             { text: "Suggest attack chains from discovered vulns", status: "done" },

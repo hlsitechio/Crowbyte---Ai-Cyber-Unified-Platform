@@ -32,26 +32,6 @@ export function AIProvidersSection() {
           </CodeBlock>
         </CardContent></Card>
 
-        <CardContent>
-          <CodeBlock>
-            <div className="text-zinc-500"># Privacy-focused AI — standard provider</div>
-            <div><span className="text-primary">Models</span>:  DeepSeek R1 671B, Llama 3.3 70B, Qwen 2.5 Coder</div>
-            <div><span className="text-primary">Features</span>: Streaming, system prompts, privacy-first</div>
-          </CodeBlock>
-        </CardContent></Card>
-
-        <CardContent>
-          <CodeBlock>
-            <div><span className="text-primary">Purpose</span>:  Security research requiring unrestricted responses</div>
-          </CodeBlock>
-        </CardContent></Card>
-
-        <CardContent>
-          <CodeBlock>
-            <div><span className="text-primary">Purpose</span>:  Bypass CORS restrictions in Electron renderer</div>
-          </CodeBlock>
-        </CardContent></Card>
-
       <Card className="border-transparent"><CardHeader><CardTitle className="text-orange-500">6. Ollama Hermes (ollama-hermes.ts)</CardTitle></CardHeader>
         <CardContent>
           <CodeBlock>
