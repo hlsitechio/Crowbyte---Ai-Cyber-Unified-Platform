@@ -201,7 +201,7 @@ async function checkSubscription(): Promise<LicenseStatus> {
   let s: { tier: string; status: string; expires_at: string | null } | null = null;
   if (rpcErr) {
     const { data: sub, error: subErr } = await supabase
-      .from('user_subscriptions' as 'user_subscriptions')
+      .from('user_subscriptions')
       .select('tier, status, expires_at')
       .eq('user_id', session.user.id)
       .eq('status', 'active')
@@ -267,7 +267,7 @@ async function verifyDevice(
   // Check existing activations
   type DeviceRow = { id: string; device_id: string; device_name: string; last_seen: string };
   const { data: activations } = await supabase
-    .from('device_activations' as 'device_activations')
+    .from('device_activations')
     .select('id, device_id, device_name, last_seen')
     .eq('user_id', userId)
     .order('last_seen', { ascending: false });
@@ -279,7 +279,7 @@ async function verifyDevice(
   if (existing) {
     // Update last_seen
     await supabase
-      .from('device_activations' as 'device_activations')
+      .from('device_activations')
       .update({ last_seen: new Date().toISOString() })
       .eq('id', existing.id);
     return { ok: true };
@@ -296,7 +296,7 @@ async function verifyDevice(
 
   // Register new device
   const { error } = await supabase
-    .from('device_activations' as 'device_activations')
+    .from('device_activations')
     .insert({
       user_id: userId,
       device_id: deviceId,
@@ -320,7 +320,7 @@ export async function getActiveDevices(): Promise<{ id: string; device_id: strin
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return [];
   const { data } = await supabase
-    .from('device_activations' as 'device_activations')
+    .from('device_activations')
     .select('id, device_id, device_name, last_seen')
     .eq('user_id', session.user.id)
     .order('last_seen', { ascending: false });
@@ -332,7 +332,7 @@ export async function getActiveDevices(): Promise<{ id: string; device_id: strin
  */
 export async function deactivateDevice(activationId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('device_activations' as 'device_activations')
+    .from('device_activations')
     .delete()
     .eq('id', activationId);
   return !error;
