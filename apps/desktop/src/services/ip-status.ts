@@ -748,6 +748,8 @@ class IPStatusService {
       /^169\./, // Some VPN providers
       /^198\./, // Some VPN providers
       /^162\./, // Some VPN providers
+      /^100\./, // Tailscale (100.x.x.x range including MagicDNS 100.100.100.100)
+      /^103\.86\./, // Mullvad DNS (103.86.96.x, 103.86.99.x)
     ];
 
     const leakServers: string[] = [];

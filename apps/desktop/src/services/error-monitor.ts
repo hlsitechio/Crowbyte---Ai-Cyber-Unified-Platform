@@ -1216,6 +1216,9 @@ class ErrorMonitor {
     // Use the original fetch to avoid self-interception
     const fetchFn = this.originalFetch ?? window.fetch;
 
+    // In dev (localhost), skip remote reporting — endpoint doesn't exist locally
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocalhost) return;
     const _apiBase = window.location.protocol === 'file:' ? 'https://crowbyte.io' : '';
     fetchFn(`${_apiBase}/api/errors`, {
       method: 'POST',
