@@ -4,7 +4,7 @@ import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { motion } from"framer-motion";
-import { UilMonitor, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilProcessor, UilServer, UilHeartRate, UilSync, UilSearch, UilFilter, UilShield, UilClock, UilMapPin, UilPlus, UilDesktopAlt, UilTrashAlt, UilEllipsisV, UilBolt, UilEye, UilMouseAlt, UilLock, UilHistory } from "@iconscout/react-unicons";
+import { UilMonitor, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilProcessor, UilServer, UilHeartRate, UilSync, UilSearch, UilFilter, UilShield, UilClock, UilMapPin, UilPlus, UilDesktopAlt, UilTrashAlt, UilEllipsisV, UilBolt, UilEye, UilLock } from "@iconscout/react-unicons";
 import {
  DropdownMenu,
  DropdownMenuContent,
@@ -16,7 +16,6 @@ import { RemoteControlDialog } from"@/components/fleet/RemoteControlDialog";
 import { VNCViewer } from"@/components/fleet/VNCViewer";
 import { endpointService, Endpoint } from"@/services/endpointService";
 import { toast } from"sonner";
-import { testConnection as aiTestConnection } from "@/services/ai";
 
 interface VPSStatus {
  ok: boolean;
@@ -96,7 +95,7 @@ const Fleet = () => {
  loadEndpoints();
  })
  .subscribe();
- } catch {}
+ } catch { /* empty */ }
  };
  setupRealtime();
  // Fallback poll every 60s (realtime handles most updates)

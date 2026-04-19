@@ -56,7 +56,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
    localStorage.setItem('crowbyte_prefs_wizard_done', 'true');
  });
  }
- }, [isAuthenticated, loading, navigate, IS_ELECTRON]);
+ }, [isAuthenticated, loading, navigate]);
 
  // Show loading state while checking auth
  if (loading) {

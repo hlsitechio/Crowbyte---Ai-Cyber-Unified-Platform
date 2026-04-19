@@ -23,7 +23,7 @@ function loadTargets(): { url: string; label: string }[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch { /* empty */ }
   return DEFAULT_TARGETS;
 }
 

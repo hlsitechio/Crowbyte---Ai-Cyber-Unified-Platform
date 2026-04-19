@@ -11,16 +11,14 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UilShield, UilShieldCheck, UilShieldExclamation, UilUserCheck, UilLaptop, UilRobot, UilFire, UilSearch, UilLayerGroup, UilEye, UilBug, UilPlug, UilAngleRight, UilCog, UilHeartRate, UilLock, UilLockOpenAlt, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilClock, UilBolt, UilArrowRight, UilExternalLinkAlt, UilKeySkeleton, UilGlobe, UilDesktopAlt, UilDatabase, UilChartBar, UilUsersAlt, UilFileTimes, UilFilter, UilGrid, UilListUl, UilMonitor, UilWindow, UilServer, UilSitemap, UilHardHat } from "@iconscout/react-unicons";
+import { UilShield, UilShieldCheck, UilShieldExclamation, UilUserCheck, UilLaptop, UilRobot, UilFire, UilSearch, UilLayerGroup, UilEye, UilBug, UilPlug, UilCog, UilHeartRate, UilLock, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilClock, UilBolt, UilArrowRight, UilExternalLinkAlt, UilKeySkeleton, UilGlobe, UilDesktopAlt, UilDatabase, UilFileTimes, UilFilter, UilGrid, UilListUl, UilMonitor, UilWindow, UilServer, UilSitemap, UilHardHat } from "@iconscout/react-unicons";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CONNECTOR_REGISTRY } from '../connectors/registry';
 import { getAgentsForConnector } from '../agents/soc/agent-registry';

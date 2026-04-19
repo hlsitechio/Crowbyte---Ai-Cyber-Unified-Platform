@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { bookmarksService, type Bookmark, type BookmarkCategory, DEFAULT_CATEGORIES } from "@/services/bookmarks";
-import { UilBookmark, UilSearch, UilPlus, UilTrashAlt, UilPen, UilExternalLinkAlt, UilTag, UilFolder, UilFolderPlus } from "@iconscout/react-unicons";
+import { UilBookmark, UilSearch, UilPlus, UilTrashAlt, UilExternalLinkAlt, UilFolder, UilFolderPlus } from "@iconscout/react-unicons";
 import { motion } from "framer-motion";
 
 const Bookmarks = () => {
@@ -41,7 +41,7 @@ const Bookmarks = () => {
  // Load bookmarks and categories
  useEffect(() => {
  loadData();
- }, []);
+ }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
  const loadData = async () => {
  try {

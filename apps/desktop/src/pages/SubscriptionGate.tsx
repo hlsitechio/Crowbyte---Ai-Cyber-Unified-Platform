@@ -20,9 +20,8 @@ import {
   UilShield,
 } from "@iconscout/react-unicons";
 import { supabase } from "@/integrations/supabase/client";
-import { verifyLicense, type LicenseStatus } from "@/services/license-guard";
+import { type LicenseStatus } from "@/services/license-guard";
 import { IS_ELECTRON } from "@/lib/platform";
-import { toast } from "sonner";
 
 interface Props {
   status: LicenseStatus;

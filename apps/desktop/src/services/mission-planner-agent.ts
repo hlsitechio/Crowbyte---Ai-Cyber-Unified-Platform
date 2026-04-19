@@ -123,8 +123,6 @@ No markdown, no code blocks, just raw JSON.
    * Generate a complete mission plan from objectives
    */
   async generatePlan(request: PlanningRequest): Promise<GeneratedPlan> {
-    console.log('🧠 AI Planner Agent: Generating mission plan...');
-    console.log('📋 Request:', request);
 
     const userPrompt = `Generate a comprehensive mission plan:
 
@@ -167,10 +165,6 @@ Output JSON only.`;
       const cleanContent = this.extractJSON(content);
       const plan: GeneratedPlan = JSON.parse(cleanContent);
 
-      console.log('✅ AI Planner Agent: Plan generated successfully');
-      console.log('📊 Feasibility:', plan.aiAssessment.feasibilityScore);
-      console.log('⚠️ Risk Score:', plan.aiAssessment.riskScore);
-      console.log('🎯 Success Probability:', plan.aiAssessment.successProbability);
 
       return plan;
     } catch (error) {
@@ -183,8 +177,6 @@ Output JSON only.`;
    * Modify an existing plan based on requirements
    */
   async modifyPlan(request: PlanModificationRequest): Promise<GeneratedPlan> {
-    console.log('🔧 AI Planner Agent: Modifying mission plan...');
-    console.log('🎯 Modification type:', request.modificationType);
 
     const modificationGuidance = this.getModificationGuidance(request.modificationType);
 
@@ -218,7 +210,6 @@ Output the complete modified plan as JSON only.`;
       const cleanContent = this.extractJSON(content);
       const plan: GeneratedPlan = JSON.parse(cleanContent);
 
-      console.log('✅ AI Planner Agent: Plan modified successfully');
       return plan;
     } catch (error) {
       console.error('❌ AI Planner Agent: Modification failed:', error);
@@ -235,7 +226,6 @@ Output the complete modified plan as JSON only.`;
     weaknesses: string[];
     recommendations: string[];
   }> {
-    console.log('📊 AI Planner Agent: Analyzing mission plan...');
 
     const userPrompt = `Analyze this mission plan and provide strategic feedback:
 
@@ -274,7 +264,6 @@ Output as JSON:
       const cleanContent = this.extractJSON(content);
       const analysis = JSON.parse(cleanContent);
 
-      console.log('✅ AI Planner Agent: Analysis complete, score:', analysis.score);
       return analysis;
     } catch (error) {
       console.error('❌ AI Planner Agent: Analysis failed:', error);

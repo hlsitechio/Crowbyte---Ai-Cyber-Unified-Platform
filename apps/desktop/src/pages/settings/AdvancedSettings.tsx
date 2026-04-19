@@ -25,7 +25,7 @@ export default function AdvancedSettings() {
 
   useEffect(() => {
     loadCacheStats();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSaveAdvanced = () => {
     localStorage.setItem('debug_mode', String(debugMode));

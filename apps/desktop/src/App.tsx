@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import '@/services/error-monitor';
 import { glitchTipService } from '@/services/glitchtip';
@@ -22,72 +22,73 @@ import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { QAAgent } from "@/components/QAAgent";
 import { SupportBanner } from "@/components/SupportBanner";
 import { useCacheCleanup } from "@/hooks/use-cache-cleanup";
-import Dashboard from "./pages/Dashboard";
-import Analytics from "./pages/Analytics";
-import {
-  SettingsLayout,
-  ProfileSettings,
-  BillingSettings,
-  GeneralSettings,
-  MCPSettings,
-  ToolsSettings,
-  MemorySettings,
-  AgentTestingSettings,
-  SecuritySettings,
-  IntegrationsSettings,
-  ConnectorsSettings,
-  AdvancedSettings,
-  OnboardingSettings,
-  DownloadSettings,
-} from "./pages/settings";
-import Chat from "./pages/Chat";
+// Lazy-loaded pages (code-split per route)
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const SettingsLayout = lazy(() => import("./pages/settings").then(m => ({ default: m.SettingsLayout })));
+const ProfileSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.ProfileSettings })));
+const BillingSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.BillingSettings })));
+const GeneralSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.GeneralSettings })));
+const MCPSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.MCPSettings })));
+const ToolsSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.ToolsSettings })));
+const MemorySettings = lazy(() => import("./pages/settings").then(m => ({ default: m.MemorySettings })));
+const AgentTestingSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.AgentTestingSettings })));
+const SecuritySettings = lazy(() => import("./pages/settings").then(m => ({ default: m.SecuritySettings })));
+const IntegrationsSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.IntegrationsSettings })));
+const ConnectorsSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.ConnectorsSettings })));
+const AdvancedSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.AdvancedSettings })));
+const OnboardingSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.OnboardingSettings })));
+const DownloadSettings = lazy(() => import("./pages/settings").then(m => ({ default: m.DownloadSettings })));
+const Chat = lazy(() => import("./pages/Chat"));
+const AIAgent = lazy(() => import("./pages/AIAgent"));
+const Tools = lazy(() => import("./pages/Tools"));
+const Knowledge = lazy(() => import("./pages/Knowledge"));
+const Bookmarks = lazy(() => import("./pages/Bookmarks"));
+const RedTeam = lazy(() => import("./pages/RedTeam"));
+const Terminal = lazy(() => import("./pages/Terminal"));
+const AgentBuilder = lazy(() => import("./pages/AgentBuilder"));
+const AgentTeams = lazy(() => import("./pages/AgentTeams"));
+const Memory = lazy(() => import("./pages/Memory"));
+const MissionPlanner = lazy(() => import("./pages/MissionPlanner"));
+const ISM = lazy(() => import("./pages/ISM"));
+const CVE = lazy(() => import("./pages/CVE"));
+const ThreatIntelligence = lazy(() => import("./pages/ThreatIntelligence"));
+const NetworkScanner = lazy(() => import("./pages/NetworkScanner"));
+const CyberOps = lazy(() => import("./pages/CyberOps"));
+const Documentation = lazy(() => import("./pages/Documentation"));
+const Fleet = lazy(() => import("./pages/Fleet"));
+const Connectors = lazy(() => import("./pages/Connectors"));
+const Findings = lazy(() => import("./pages/Findings"));
+const Reports = lazy(() => import("./pages/Reports"));
+const DetectionLab = lazy(() => import("./pages/DetectionLab"));
+// Missions merged into MissionPlanner — single unified page
+const AlertCenter = lazy(() => import("./pages/AlertCenter"));
+const CloudSecurity = lazy(() => import("./pages/CloudSecurity"));
+const Logs = lazy(() => import("./pages/Logs"));
+const SecurityMonitor = lazy(() => import("./pages/SecurityMonitor"));
+const Sentinel = lazy(() => import("./pages/Sentinel"));
+const Defender = lazy(() => import("./pages/Defender"));
+const Support = lazy(() => import("./pages/Support"));
+const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
+const BetaSignup = lazy(() => import("./pages/BetaSignup"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Downloads = lazy(() => import("./pages/Downloads"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const WebDocs = lazy(() => import("./pages/web-docs/WebDocs"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const PreferencesWizard = lazy(() => import("./pages/PreferencesWizard"));
+
+// Eager imports — must be synchronous (used on initial load / auth flow / tiny)
 import Auth from "./pages/Auth";
 import PasswordReset from "./pages/PasswordReset";
-import AIAgent from "./pages/AIAgent";
-import Tools from "./pages/Tools";
-import Knowledge from "./pages/Knowledge";
-import Bookmarks from "./pages/Bookmarks";
-import RedTeam from "./pages/RedTeam";
-import Terminal from "./pages/Terminal";
-import AgentBuilder from "./pages/AgentBuilder";
-import AgentTeams from "./pages/AgentTeams";
-import Memory from "./pages/Memory";
-import MissionPlanner from "./pages/MissionPlanner";
-import ISM from "./pages/ISM";
-import CVE from "./pages/CVE";
-import ThreatIntelligence from "./pages/ThreatIntelligence";
-import NetworkScanner from "./pages/NetworkScanner";
-import CyberOps from "./pages/CyberOps";
-import Documentation from "./pages/Documentation";
-import Fleet from "./pages/Fleet";
-import Connectors from "./pages/Connectors";
-import Findings from "./pages/Findings";
-import Reports from "./pages/Reports";
-import DetectionLab from "./pages/DetectionLab";
-// Missions merged into MissionPlanner — single unified page
-import AlertCenter from "./pages/AlertCenter";
-import CloudSecurity from "./pages/CloudSecurity";
-import Logs from "./pages/Logs";
-import SecurityMonitor from "./pages/SecurityMonitor";
-import Sentinel from "./pages/Sentinel";
-import Defender from "./pages/Defender";
-import Support from "./pages/Support";
-import OAuthCallback from "./pages/OAuthCallback";
-import NotFound from "./pages/NotFound";
-import LandingPage from "./pages/LandingPage";
-import BetaSignup from "./pages/BetaSignup";
-import Onboarding from "./pages/Onboarding";
-import Downloads from "./pages/Downloads";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import WebDocs from "./pages/web-docs/WebDocs";
-import RefundPolicy from "./pages/RefundPolicy";
-import Contact from "./pages/Contact";
-import Checkout from "./pages/Checkout";
-import PreferencesWizard from "./pages/PreferencesWizard";
 import SubscriptionGate from "./pages/SubscriptionGate";
 import Welcome from "./pages/Welcome";
 import OAuthConsent from "./pages/OAuthConsent";
+import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
 import { verifyLicense, needsRecheck, CHECK_INTERVAL_MS, type LicenseStatus } from "@/services/license-guard";
 import { needsPreferencesSetup } from "@/services/subscription";
 import { IS_ELECTRON } from "@/lib/platform";
@@ -183,6 +184,7 @@ const AppWithTitleBar = () => {
         </div>
       </div>
     )}
+    <Suspense fallback={<div className="h-screen bg-background flex items-center justify-center"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
     <Routes>
       {/* Auth routes without sidebar */}
       <Route path="/welcome" element={IS_ELECTRON ? <Welcome /> : <Navigate to="/landing" replace />} />
@@ -301,6 +303,7 @@ const AppWithTitleBar = () => {
         </ProtectedRoute>
       } />
     </Routes>
+    </Suspense>
   </>
   );
 };

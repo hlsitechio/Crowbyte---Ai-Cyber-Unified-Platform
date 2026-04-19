@@ -128,7 +128,6 @@ class CredentialStorageService {
       throw new Error(result.error || 'Failed to store credentials');
     }
 
-    console.log('✅ Credentials stored securely for device:', deviceId.substring(0, 8) + '...');
   }
 
   /**
@@ -167,7 +166,6 @@ class CredentialStorageService {
     const deviceId = await deviceFingerprint.getDeviceId();
     await window.electronAPI.deleteCredentials(deviceId);
 
-    console.log('🗑️  Deleted stored credentials');
   }
 
   /**

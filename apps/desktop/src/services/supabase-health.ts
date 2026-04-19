@@ -171,7 +171,6 @@ class SupabaseHealthMonitor {
    * Perform full health check
    */
   async checkHealth(): Promise<SupabaseHealth> {
-    console.log('🏥 Running Supabase health check...');
 
     const [dbStatus, edgeFunctionsStatus, apiUsage] = await Promise.all([
       this.checkDatabase(),
@@ -198,7 +197,6 @@ class SupabaseHealthMonitor {
       lastUpdate: new Date(),
     };
 
-    console.log(`🏥 Health check complete - Overall status: ${overall}`);
     return this.healthData;
   }
 
@@ -219,7 +217,6 @@ class SupabaseHealthMonitor {
     }
 
     this.updateInterval = intervalMs;
-    console.log(`🏥 Starting health monitoring (interval: ${intervalMs}ms)`);
 
     // Initial check
     this.checkHealth();
@@ -237,7 +234,6 @@ class SupabaseHealthMonitor {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('🏥 Health monitoring stopped');
     }
   }
 

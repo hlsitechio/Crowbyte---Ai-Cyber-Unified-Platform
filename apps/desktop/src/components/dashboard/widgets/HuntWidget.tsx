@@ -23,7 +23,7 @@ const HuntWidget = () => {
         try {
           const ps = await interceptProxy.getStatus();
           setProxyRunning(ps.running);
-        } catch {}
+        } catch { /* empty */ }
       }
     }, 2000);
 

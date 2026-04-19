@@ -67,7 +67,7 @@ export async function createSupportSession(): Promise<string | null> {
   if (!user) return null;
 
   const { data, error } = await supabase
-    .from(TABLE as any)
+    .from(TABLE as 'support_sessions')
     .insert({
       user_id: user.id,
       user_email: user.email,
@@ -79,7 +79,7 @@ export async function createSupportSession(): Promise<string | null> {
         route: window.location.hash,
         appVersion: "2.0.0",
       },
-    } as any)
+    })
     .select("id")
     .single();
 
@@ -88,7 +88,7 @@ export async function createSupportSession(): Promise<string | null> {
     return null;
   }
 
-  return (data as any).id;
+  return (data as { id: string }).id;
 }
 
 /**
@@ -134,13 +134,13 @@ export function startStreaming(
     // Persist snapshot to DB so AI can read it
     if (_sessionId) {
       supabase
-        .from(TABLE as any)
-        .update({ last_snapshot: state } as any)
+        .from(TABLE as 'support_sessions')
+        .update({ last_snapshot: state as Record<string, unknown> })
         .eq("id", _sessionId)
         .then(() => {});
     }
     // Capture screenshot if running in Electron
-    const api = (window as any).electronAPI;
+    const api = (window as Window & { electronAPI?: { invoke?: (ch: string) => Promise<string | null> } }).electronAPI;
     if (api?.invoke) {
       const dataUrl: string | null = await api.invoke('support:screenshot').catch(() => null);
       if (dataUrl) {
@@ -154,8 +154,8 @@ export function startStreaming(
 
   // Update session status to active
   supabase
-    .from(TABLE as any)
-    .update({ status: "active" } as any)
+    .from(TABLE as 'support_sessions')
+    .update({ status: "active" })
     .eq("id", sessionId)
     .then(() => {});
 }
@@ -176,8 +176,8 @@ export async function stopStreaming(): Promise<void> {
 
   if (_sessionId) {
     await supabase
-      .from(TABLE as any)
-      .update({ status: "closed", closed_at: new Date().toISOString() } as any)
+      .from(TABLE as 'support_sessions')
+      .update({ status: "closed", closed_at: new Date().toISOString() })
       .eq("id", _sessionId);
     _sessionId = null;
   }
@@ -315,7 +315,7 @@ function unhookErrorMonitor(): void {
 function _persistError(entry: object): void {
   if (!_sessionId) return;
   // Append to error_log array in DB (keep last 50)
-  supabase.rpc('append_support_error' as any, { session_id: _sessionId, entry }).then(() => {});
+  supabase.rpc('append_support_error', { session_id: _sessionId, entry }).then(() => {});
 }
 
 function _onGlobalError(e: ErrorEvent): void {
@@ -373,8 +373,8 @@ export function connectToSession(
       console.log("[support-agent] Connected to session:", sessionId);
       // Mark ourselves as support agent
       supabase
-        .from(TABLE as any)
-        .update({ support_agent_id: "admin" } as any)
+        .from(TABLE as 'support_sessions')
+        .update({ support_agent_id: "admin" })
         .eq("id", sessionId)
         .then(() => {});
     }
@@ -412,7 +412,7 @@ export function sendCommand(
  */
 export async function getActiveSessions(): Promise<SupportSession[]> {
   const { data, error } = await supabase
-    .from(TABLE as any)
+    .from(TABLE as 'support_sessions')
     .select("*")
     .in("status", ["pending", "active"])
     .order("created_at", { ascending: false });
@@ -421,15 +421,15 @@ export async function getActiveSessions(): Promise<SupportSession[]> {
     console.error("[support] Failed to fetch sessions:", error.message);
     return [];
   }
-  return (data || []).map((s: any) => ({
-    id: s.id,
-    userId: s.user_id,
-    userEmail: s.user_email,
-    supportAgentId: s.support_agent_id,
-    status: s.status,
-    createdAt: s.created_at,
-    closedAt: s.closed_at,
-    metadata: s.metadata || {},
+  return (data || []).map((s: Record<string, unknown>) => ({
+    id: s.id as string,
+    userId: s.user_id as string,
+    userEmail: s.user_email as string,
+    supportAgentId: s.support_agent_id as string | null,
+    status: s.status as SupportSession['status'],
+    createdAt: s.created_at as string,
+    closedAt: s.closed_at as string | null,
+    metadata: (s.metadata as Record<string, unknown>) || {},
   }));
 }
 
@@ -438,21 +438,21 @@ export async function getActiveSessions(): Promise<SupportSession[]> {
  */
 export async function getSessionHistory(limit = 50): Promise<SupportSession[]> {
   const { data, error } = await supabase
-    .from(TABLE as any)
+    .from(TABLE as 'support_sessions')
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) return [];
-  return (data || []).map((s: any) => ({
-    id: s.id,
-    userId: s.user_id,
-    userEmail: s.user_email,
-    supportAgentId: s.support_agent_id,
-    status: s.status,
-    createdAt: s.created_at,
-    closedAt: s.closed_at,
-    metadata: s.metadata || {},
+  return (data || []).map((s: Record<string, unknown>) => ({
+    id: s.id as string,
+    userId: s.user_id as string,
+    userEmail: s.user_email as string,
+    supportAgentId: s.support_agent_id as string | null,
+    status: s.status as SupportSession['status'],
+    createdAt: s.created_at as string,
+    closedAt: s.closed_at as string | null,
+    metadata: (s.metadata as Record<string, unknown>) || {},
   }));
 }
 
@@ -464,7 +464,7 @@ export async function getMyPendingSession(): Promise<SupportSession | null> {
   if (!user) return null;
 
   const { data, error } = await supabase
-    .from(TABLE as any)
+    .from(TABLE as 'support_sessions')
     .select("*")
     .eq("user_id", user.id)
     .in("status", ["pending", "active"])
@@ -473,16 +473,16 @@ export async function getMyPendingSession(): Promise<SupportSession | null> {
     .maybeSingle();
 
   if (error || !data) return null;
-  const s = data as any;
+  const s = data as Record<string, unknown>;
   return {
-    id: s.id,
-    userId: s.user_id,
-    userEmail: s.user_email,
-    supportAgentId: s.support_agent_id,
-    status: s.status,
-    createdAt: s.created_at,
-    closedAt: s.closed_at,
-    metadata: s.metadata || {},
+    id: s.id as string,
+    userId: s.user_id as string,
+    userEmail: s.user_email as string,
+    supportAgentId: s.support_agent_id as string | null,
+    status: s.status as SupportSession['status'],
+    createdAt: s.created_at as string,
+    closedAt: s.closed_at as string | null,
+    metadata: (s.metadata as Record<string, unknown>) || {},
   };
 }
 
@@ -505,9 +505,9 @@ export interface DebugAnalysis {
  */
 export function analyzeState(state: Record<string, unknown>): DebugAnalysis {
   const issues: DebugAnalysis["issues"] = [];
-  const errors = (state.errors as any[]) || [];
-  const network = (state.networkLog as any[]) || [];
-  const perf = (state.performance as any) || {};
+  const errors = (state.errors as Record<string, unknown>[]) || [];
+  const network = (state.networkLog as Record<string, unknown>[]) || [];
+  const perf = (state.performance as Record<string, unknown>) || {};
 
   // Check for JS errors
   for (const err of errors) {
@@ -521,7 +521,7 @@ export function analyzeState(state: Record<string, unknown>): DebugAnalysis {
   }
 
   // Check for failed network requests
-  const failedRequests = network.filter((n: any) => n.status >= 400 || n.status === 0);
+  const failedRequests = network.filter((n) => (n.status as number) >= 400 || n.status === 0);
   for (const req of failedRequests) {
     issues.push({
       severity: req.status === 0 ? "critical" : req.status >= 500 ? "high" : "medium",
@@ -556,7 +556,7 @@ export function analyzeState(state: Record<string, unknown>): DebugAnalysis {
   }
 
   // Check auth state
-  const session = state.session as any;
+  const session = state.session as Record<string, unknown> | undefined;
   if (session && !session.authenticated) {
     issues.push({
       severity: "low",

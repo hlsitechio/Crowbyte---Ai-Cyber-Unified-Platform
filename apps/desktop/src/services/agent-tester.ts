@@ -6,7 +6,7 @@
 import cyberSecAgent from './cybersec-ai-agent';
 import missionPlannerAgent from './mission-planner-agent';
 import hybridRedTeamAgent from './hybrid-redteam-agent';
-import { chat as aiChat, testConnection as aiTestConnection } from './ai';
+import { chat as aiChat } from './ai';
 
 export interface TestCase {
   id: string;
@@ -53,8 +53,6 @@ class AgentTesterService {
    * Test CyberSec AI Agent
    */
   async testCyberSecAgent(): Promise<AgentTestReport> {
-    console.log('\n🧪 Testing CyberSec AI Agent...\n');
-    console.log('[DEBUG] CyberSec AI Agent test started at:', new Date().toISOString());
 
     const testCases: TestCase[] = [
       {
@@ -137,7 +135,6 @@ class AgentTesterService {
    * Test Mission Planner Agent
    */
   async testMissionPlannerAgent(): Promise<AgentTestReport> {
-    console.log('\n🧪 Testing Mission Planner Agent...\n');
 
     const testCases: TestCase[] = [
       {
@@ -240,7 +237,6 @@ class AgentTesterService {
    * Test Search Agent
    */
   async testSearchAgent(): Promise<AgentTestReport> {
-    console.log('\n🧪 Testing Search Agent...\n');
 
     // Search Agent initialization (Tavily removed)
 
@@ -323,7 +319,6 @@ class AgentTesterService {
    * Test Hybrid Red Team Agent
    */
   async testHybridRedTeamAgent(): Promise<AgentTestReport> {
-    console.log('\n🧪 Testing Hybrid Red Team Agent...\n');
 
     const testCases: TestCase[] = [
       {
@@ -406,7 +401,6 @@ class AgentTesterService {
    * Test Ollama Hermes Service
    */
   async testOllamaHermes(): Promise<AgentTestReport> {
-    console.log('\n🧪 Testing Ollama Hermes Service...\n');
 
     const testCases: TestCase[] = [
       {
@@ -496,10 +490,8 @@ class AgentTesterService {
     const criticalIssues: string[] = [];
 
     for (const testCase of testCases) {
-      console.log(`\n  ▶ Running: ${testCase.name}...`);
 
       try {
-        console.log(`[DEBUG] Executing test: ${testCase.id} - ${testCase.name}`);
         const startTime = Date.now();
 
         // Add 30 second timeout to prevent hanging
@@ -510,15 +502,12 @@ class AgentTesterService {
         );
 
         const executionTime = Date.now() - startTime;
-        console.log(`[DEBUG] Test ${testCase.id} execution completed in ${executionTime}ms`);
 
-        console.log(`[DEBUG] Validating output for test: ${testCase.id}`);
         const validationResults = this.validateOutput(
           testCase,
           executionResult.output,
           executionResult.duration
         );
-        console.log(`[DEBUG] Validation completed for test: ${testCase.id}`);
 
         const passed = validationResults.every(v => v.passed) && executionResult.passed;
         const score = this.calculateScore(validationResults);
@@ -551,14 +540,12 @@ class AgentTesterService {
           suggestions
         });
 
-        console.log(`  ${passed ? '✅' : '❌'} ${testCase.name} - Score: ${score}/100`);
 
       } catch (error) {
         console.error(`[ERROR] Test ${testCase.id} failed:`, error);
         console.error(`[ERROR] Error type:`, error instanceof Error ? error.constructor.name : typeof error);
         console.error(`[ERROR] Error message:`, error instanceof Error ? error.message : String(error));
         console.error(`[ERROR] UilLayerGroup trace:`, error instanceof Error ? error.stack : 'No stack trace');
-        console.log(`  ❌ ${testCase.name} - FAILED`);
 
         results.push({
           testId: testCase.id,
@@ -729,10 +716,6 @@ class AgentTesterService {
       averageScore: number;
     };
   }> {
-    console.log('\n🚀 Starting Comprehensive Agent Testing...\n');
-    console.log('='.repeat(60));
-    console.log('[DEBUG] Test suite started at:', new Date().toISOString());
-    console.log('[DEBUG] Memory before tests:', process.memoryUsage ? process.memoryUsage() : 'N/A');
 
     const reports: AgentTestReport[] = [];
 
@@ -741,12 +724,8 @@ class AgentTesterService {
 
     // Test each agent with error handling and delays
     try {
-      console.log('📋 Testing CyberSec AI Agent (1/6)...');
-      console.log('[DEBUG] Starting CyberSec AI Agent test suite');
       const report = await this.testCyberSecAgent();
-      console.log('[DEBUG] CyberSec AI Agent test completed successfully');
       reports.push(report);
-      console.log('[DEBUG] Waiting 2 seconds before next test...');
       await delay(2000); // 2 second delay
     } catch (error) {
       console.error('❌ CyberSec AI Agent test crashed:', error);
@@ -759,12 +738,8 @@ class AgentTesterService {
     }
 
     try {
-      console.log('📋 Testing Mission Planner Agent (2/6)...');
-      console.log('[DEBUG] Starting Mission Planner test suite');
       const report = await this.testMissionPlannerAgent();
-      console.log('[DEBUG] Mission Planner test completed successfully');
       reports.push(report);
-      console.log('[DEBUG] Waiting 2 seconds before next test...');
       await delay(2000);
     } catch (error) {
       console.error('❌ Mission Planner test crashed:', error);
@@ -777,12 +752,8 @@ class AgentTesterService {
     }
 
     try {
-      console.log('📋 Testing Search Agent (3/6)...');
-      console.log('[DEBUG] Starting Search Agent test suite');
       const report = await this.testSearchAgent();
-      console.log('[DEBUG] Search Agent test completed successfully');
       reports.push(report);
-      console.log('[DEBUG] Waiting 2 seconds before next test...');
       await delay(2000);
     } catch (error) {
       console.error('❌ Search Agent test crashed:', error);
@@ -795,12 +766,8 @@ class AgentTesterService {
     }
 
     try {
-      console.log('📋 Testing Hybrid Red Team Agent (4/6)...');
-      console.log('[DEBUG] Starting Hybrid Red Team test suite');
       const report = await this.testHybridRedTeamAgent();
-      console.log('[DEBUG] Hybrid Red Team test completed successfully');
       reports.push(report);
-      console.log('[DEBUG] Waiting 2 seconds before next test...');
       await delay(2000);
     } catch (error) {
       console.error('❌ Hybrid Red Team test crashed:', error);
@@ -814,7 +781,6 @@ class AgentTesterService {
 
     try {
       reports.push(report);
-      console.log('[DEBUG] Waiting 2 seconds before next test...');
       await delay(2000);
     } catch (error) {
       console.error('[FATAL ERROR] Full error details:', {
@@ -825,10 +791,7 @@ class AgentTesterService {
     }
 
     try {
-      console.log('📋 Testing Ollama Hermes (6/6)...');
-      console.log('[DEBUG] Starting Ollama Hermes test suite');
       const report = await this.testOllamaHermes();
-      console.log('[DEBUG] Ollama Hermes test completed successfully');
       reports.push(report);
     } catch (error) {
       console.error('❌ Ollama Hermes test crashed:', error);
@@ -840,9 +803,6 @@ class AgentTesterService {
       reports.push(this.createFailedReport('Ollama Hermes Service', error));
     }
 
-    console.log('[DEBUG] All agent tests completed');
-    console.log('[DEBUG] Test suite ended at:', new Date().toISOString());
-    console.log('[DEBUG] Memory after tests:', process.memoryUsage ? process.memoryUsage() : 'N/A');
 
     const summary = {
       totalAgents: reports.length,
@@ -851,14 +811,6 @@ class AgentTesterService {
       averageScore: reports.reduce((sum, r) => sum + r.overallScore, 0) / reports.length
     };
 
-    console.log('\n' + '='.repeat(60));
-    console.log('\n📊 TESTING COMPLETE\n');
-    console.log('[DEBUG] Summary:', summary);
-    console.log(`Total Agents Tested: ${summary.totalAgents}`);
-    console.log(`Healthy (≥75%): ${summary.healthyAgents}`);
-    console.log(`Failing (<50%): ${summary.failingAgents}`);
-    console.log(`Average Score: ${summary.averageScore.toFixed(1)}/100`);
-    console.log('\n' + '='.repeat(60));
 
     return {
       timestamp: new Date().toISOString(),

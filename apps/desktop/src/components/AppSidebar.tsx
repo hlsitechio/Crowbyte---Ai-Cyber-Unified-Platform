@@ -241,7 +241,7 @@ export function AppSidebar() {
  // Track last visited page for Chat context badge
  const CHAT_CONTEXT_PAGES = ['/dashboard', '/alert-center', '/findings', '/sentinel', '/terminal', '/redteam', '/cyber-ops', '/network-scanner'];
  if (currentPath !== '/chat' && CHAT_CONTEXT_PAGES.includes(currentPath)) {
-   try { localStorage.setItem('cb_last_page', currentPath); } catch {}
+   try { localStorage.setItem('cb_last_page', currentPath); } catch { /* empty */ }
  }
  const [workspaceName, setWorkspaceName] = useState(localStorage.getItem('workspace_name') || 'CROWBYT_OPS');
  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);

@@ -58,7 +58,7 @@ export default function VPSHealthWidget(_props: WidgetProps) {
             cores: data.cpu_cores || 4,
           });
         }
-      } catch {}
+      } catch { /* empty */ }
     };
 
     check();

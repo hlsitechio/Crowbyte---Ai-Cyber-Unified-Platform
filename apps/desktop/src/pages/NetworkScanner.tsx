@@ -11,7 +11,7 @@
  * - UilWindowGrid algorithms (tree, radial, grid)
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
  ReactFlow, Controls, MiniMap, Background, BackgroundVariant,
  useNodesState, useEdgesState, addEdge, Panel,
@@ -22,11 +22,10 @@ import '@xyflow/react/dist/style.css';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UilSitemap, UilDesktopAlt, UilPlay, UilSquare, UilSpinner, UilWindow, UilClock, UilBolt, UilShield, UilExclamationTriangle, UilEye, UilCrosshair, UilWifi, UilFilter, UilPlus, UilTrashAlt, UilDownloadAlt, UilUpload, UilWindowGrid, UilGrid, UilCodeBranch, UilCopy, UilSearch, UilProcessor, UilLock, UilLockOpenAlt, UilExternalLinkAlt, UilMap, UilExpandArrows, UilAngleRight, UilSave, UilFolderOpen, UilHistory, UilExclamation, UilGlobe, UilLayerGroup } from "@iconscout/react-unicons";
+import { UilSitemap, UilDesktopAlt, UilPlay, UilSquare, UilSpinner, UilWindow, UilBolt, UilShield, UilExclamationTriangle, UilEye, UilCrosshair, UilFilter, UilPlus, UilDownloadAlt, UilUpload, UilWindowGrid, UilGrid, UilCodeBranch, UilCopy, UilLock, UilLockOpenAlt, UilMap, UilAngleRight, UilHistory, UilExclamation } from "@iconscout/react-unicons";
 import { useToast } from '@/hooks/use-toast';
 import { DeviceNode } from '@/components/network/DeviceNode';
 import { NodeEditor } from '@/components/network/NodeEditor';
@@ -399,7 +398,7 @@ export default function NetworkScanner() {
  } finally {
  setIsScanning(false);
  }
- }, [target, selectedProfile, customArgs, profile, toast]);
+ }, [target, selectedProfile, customArgs, profile, toast]); // eslint-disable-line react-hooks/exhaustive-deps
 
  // ─── Add scan results to map ─────────────────────────────────────────
 

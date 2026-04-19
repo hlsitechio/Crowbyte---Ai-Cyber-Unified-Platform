@@ -123,13 +123,6 @@ class SystemMonitorService {
   }
 
   /**
-   * Set hostname for this machine
-   */
-  setHostname(hostname: string): void {
-    localStorage.setItem('crowbyte-hostname', hostname);
-  }
-
-  /**
    * Get platform information from user agent
    */
   private getPlatformInfo(): { os: string; version: string; arch: string } {
@@ -163,48 +156,6 @@ class SystemMonitorService {
     }
 
     return { os, version, arch };
-  }
-
-  /**
-   * Get local IP address (requires WebRTC)
-   */
-  async getLocalIP(): Promise<string> {
-    return new Promise((resolve) => {
-      // This only works in some browsers with WebRTC
-      const RTCPeerConnection = (window as any).RTCPeerConnection ||
-                                (window as any).webkitRTCPeerConnection ||
-                                (window as any).mozRTCPeerConnection;
-
-      if (!RTCPeerConnection) {
-        resolve('127.0.0.1');
-        return;
-      }
-
-      const pc = new RTCPeerConnection({ iceServers: [] });
-      const noop = () => {};
-
-      pc.createDataChannel('');
-      pc.createOffer().then(pc.setLocalDescription.bind(pc)).catch(noop);
-
-      pc.onicecandidate = (ice: RTCPeerConnectionIceEvent) => {
-        if (!ice || !ice.candidate || !ice.candidate.candidate) {
-          resolve('127.0.0.1');
-          return;
-        }
-
-        const match = ice.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-        if (match) {
-          pc.close();
-          resolve(match[1]);
-        }
-      };
-
-      // Timeout after 2 seconds
-      setTimeout(() => {
-        pc.close();
-        resolve('127.0.0.1');
-      }, 2000);
-    });
   }
 
   /**

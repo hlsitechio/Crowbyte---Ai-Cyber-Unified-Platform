@@ -19,7 +19,6 @@ interface AgentActivity {
 }
 
 export default function AgentActivityWidget(_props: WidgetProps) {
-  if (IS_WEB) return null;
   const navigate = useNavigate();
   const [agents, setAgents] = useState<AgentActivity[]>([]);
   const [sentinelStats, setSentinelStats] = useState({ orgs: 0, decisions: 0, escalations: 0 });
@@ -64,6 +63,7 @@ export default function AgentActivityWidget(_props: WidgetProps) {
   };
 
   useEffect(() => {
+    if (IS_WEB) return;
     fetchAgentActivity();
     const interval = setInterval(fetchAgentActivity, 120000);
 
@@ -78,6 +78,8 @@ export default function AgentActivityWidget(_props: WidgetProps) {
 
     return () => clearInterval(interval);
   }, []);
+
+  if (IS_WEB) return null;
 
   return (
     <Card className="bg-card/50 backdrop-blur h-full overflow-hidden">

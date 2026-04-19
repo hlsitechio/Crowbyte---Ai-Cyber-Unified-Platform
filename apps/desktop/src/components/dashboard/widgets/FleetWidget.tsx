@@ -16,7 +16,7 @@ export default function FleetWidget({ size }: WidgetProps) {
       try {
         const data = await endpointService.getAll();
         setEndpoints(data);
-      } catch {}
+      } catch { /* empty */ }
       setLoading(false);
     };
     fetch();

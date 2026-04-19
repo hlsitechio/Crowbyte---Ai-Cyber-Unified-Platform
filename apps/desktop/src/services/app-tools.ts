@@ -38,7 +38,7 @@ function truncate(s: string, max = 200): string {
   return s.length > max ? s.slice(0, max) + '...' : s;
 }
 
-function jsonSafe(obj: any): string {
+function jsonSafe(obj: unknown): string {
   try { return JSON.stringify(obj, null, 2); } catch { return String(obj); }
 }
 
@@ -1578,8 +1578,8 @@ export async function executeAppTool(name: string, args: Record<string, string>)
     if (name === 'data_delete') return await toolDataDelete(args);
 
     return `Unknown app tool: ${name}`;
-  } catch (e: any) {
-    return `Error: ${e.message || 'App tool execution failed'}`;
+  } catch (e: unknown) {
+    return `Error: ${e instanceof Error ? e.message : 'App tool execution failed'}`;
   }
 }
 
@@ -1598,8 +1598,8 @@ async function toolCveDbSearch(args: Record<string, string>): Promise<string> {
   const { data, error } = await query;
   if (error) return `Error: ${error.message}`;
   if (!data?.length) return 'No CVEs found.';
-  return data.map((c: any) =>
-    `${c.cve_id} | ${c.severity} | CVSS: ${c.cvss_score || 'N/A'} | ${truncate(c.description || '')}`
+  return data.map((c: Record<string, unknown>) =>
+    `${c.cve_id} | ${c.severity} | CVSS: ${c.cvss_score || 'N/A'} | ${truncate(String(c.description || ''))}`
   ).join('\n');
 }
 
@@ -1629,8 +1629,8 @@ async function toolKnowledgeSearch(args: Record<string, string>): Promise<string
   const { data, error } = await query;
   if (error) return `Error: ${error.message}`;
   if (!data?.length) return 'No knowledge entries found.';
-  return data.map((k: any) =>
-    `[${k.category || 'uncategorized'}] ${k.title}\n  ID: ${k.id} | Tags: ${(k.tags || []).join(', ') || 'none'}\n  ${truncate(k.content || '', 150)}`
+  return data.map((k: Record<string, unknown>) =>
+    `[${k.category || 'uncategorized'}] ${k.title}\n  ID: ${k.id} | Tags: ${(Array.isArray(k.tags) ? k.tags : []).join(', ') || 'none'}\n  ${truncate(String(k.content || ''), 150)}`
   ).join('\n\n');
 }
 
@@ -1657,8 +1657,8 @@ async function toolBookmarksSearch(args: Record<string, string>): Promise<string
   const { data, error } = await query;
   if (error) return `Error: ${error.message}`;
   if (!data?.length) return 'No bookmarks found.';
-  return data.map((b: any) =>
-    `[${b.category}] ${b.title}\n  ${b.url}\n  ${b.description ? truncate(b.description, 100) : ''}`
+  return data.map((b: Record<string, unknown>) =>
+    `[${b.category}] ${b.title}\n  ${b.url}\n  ${b.description ? truncate(String(b.description), 100) : ''}`
   ).join('\n\n');
 }
 
@@ -1689,8 +1689,8 @@ async function toolFindingsSearch(args: Record<string, string>): Promise<string>
   const { data, error } = await query;
   if (error) return `Error: ${error.message}`;
   if (!data?.length) return 'No findings found.';
-  return data.map((f: any) =>
-    `[${f.severity?.toUpperCase()}] ${f.title}\n  Target: ${f.target_host}${f.target_port ? ':' + f.target_port : ''}\n  Source: ${f.source} | Status: ${f.status} | ID: ${f.id}`
+  return data.map((f: Record<string, unknown>) =>
+    `[${String(f.severity ?? '').toUpperCase()}] ${f.title}\n  Target: ${f.target_host}${f.target_port ? ':' + f.target_port : ''}\n  Source: ${f.source} | Status: ${f.status} | ID: ${f.id}`
   ).join('\n\n');
 }
 
@@ -1711,7 +1711,7 @@ async function toolFindingSave(args: Record<string, string>): Promise<string> {
 
 async function toolFindingUpdate(args: Record<string, string>): Promise<string> {
   const supabase = await getSupabase();
-  const updates: any = {};
+  const updates: Record<string, string> = {};
   if (args.status) updates.status = args.status;
   if (args.severity) updates.severity = args.severity;
   if (args.notes) updates.remediation_notes = args.notes;
@@ -1730,8 +1730,8 @@ async function toolRedteamList(args: Record<string, string>): Promise<string> {
   const { data, error } = await query;
   if (error) return `Error: ${error.message}`;
   if (!data?.length) return 'No red team operations found.';
-  return data.map((op: any) =>
-    `[${op.status?.toUpperCase()}] ${op.name}\n  Target: ${op.target} | Type: ${op.operation_type}\n  Findings: ${op.total_findings || 0} (C:${op.critical_findings||0} H:${op.high_findings||0})\n  ID: ${op.id}`
+  return data.map((op: Record<string, unknown>) =>
+    `[${String(op.status ?? '').toUpperCase()}] ${op.name}\n  Target: ${op.target} | Type: ${op.operation_type}\n  Findings: ${op.total_findings || 0} (C:${op.critical_findings||0} H:${op.high_findings||0})\n  ID: ${op.id}`
   ).join('\n\n');
 }
 
@@ -1751,7 +1751,7 @@ async function toolRedteamCreate(args: Record<string, string>): Promise<string> 
 
 async function toolRedteamUpdate(args: Record<string, string>): Promise<string> {
   const supabase = await getSupabase();
-  const updates: any = {};
+  const updates: Record<string, string | number> = {};
   if (args.status) updates.status = args.status;
   if (args.progress) updates.progress = parseInt(args.progress);
   const { error } = await supabase.from('red_team_ops').update(updates).eq('id', args.id);
@@ -1769,8 +1769,8 @@ async function toolFleetStatus(args: Record<string, string>): Promise<string> {
   const { data, error } = await query;
   if (error) return `Error: ${error.message}`;
   if (!data?.length) return 'No fleet endpoints registered.';
-  return data.map((e: any) =>
-    `[${e.status?.toUpperCase()}] ${e.hostname} (${e.ip_address})\n  OS: ${e.os_name} | CPU: ${e.cpu_usage}% | RAM: ${e.memory_usage}% | Disk: ${e.disk_usage}%\n  Threats: ${e.threats_detected || 0}${e.is_current_device ? ' [THIS MACHINE]' : ''}`
+  return data.map((e: Record<string, unknown>) =>
+    `[${String(e.status ?? '').toUpperCase()}] ${e.hostname} (${e.ip_address})\n  OS: ${e.os_name} | CPU: ${e.cpu_usage}% | RAM: ${e.memory_usage}% | Disk: ${e.disk_usage}%\n  Threats: ${e.threats_detected || 0}${e.is_current_device ? ' [THIS MACHINE]' : ''}`
   ).join('\n\n');
 }
 
@@ -1786,8 +1786,8 @@ async function toolThreatIntelSearch(args: Record<string, string>): Promise<stri
   const { data, error } = await query;
   if (error) return `Error: ${error.message}`;
   if (!data?.length) return 'No IOCs found.';
-  return data.map((ioc: any) =>
-    `[${ioc.severity?.toUpperCase()}] ${ioc.ioc_type}: ${ioc.value}\n  Feed: ${ioc.feed_name} | Confidence: ${ioc.confidence}%`
+  return data.map((ioc: Record<string, unknown>) =>
+    `[${String(ioc.severity ?? '').toUpperCase()}] ${ioc.ioc_type}: ${ioc.value}\n  Feed: ${ioc.feed_name} | Confidence: ${ioc.confidence}%`
   ).join('\n\n');
 }
 
@@ -1802,16 +1802,16 @@ async function toolReportList(args: Record<string, string>): Promise<string> {
   const rg = await getReportGenerator();
   const reports = await rg.getAll();
   if (!reports.length) return 'No reports found.';
-  return reports.map((r: any) =>
-    `[${r.status?.toUpperCase()}] ${r.title}\n  Type: ${r.report_type} | Template: ${r.template}\n  Findings: ${r.finding_ids?.length || 0} | ID: ${r.id}`
+  return reports.map((r: Record<string, unknown>) =>
+    `[${String(r.status ?? '').toUpperCase()}] ${r.title}\n  Type: ${r.report_type} | Template: ${r.template}\n  Findings: ${Array.isArray(r.finding_ids) ? r.finding_ids.length : 0} | ID: ${r.id}`
   ).join('\n\n');
 }
 
 async function toolReportCreate(args: Record<string, string>): Promise<string> {
   const rg = await getReportGenerator();
   const report = await rg.create({
-    title: args.title, report_type: args.report_type as any,
-    template: (args.template || 'custom') as any,
+    title: args.title, report_type: args.report_type as import('./report-generator').ReportType,
+    template: (args.template || 'custom') as import('./report-generator').ReportTemplate,
     target: args.target, executive_summary: args.executive_summary,
     scope: csvToArray(args.scope),
   });
@@ -1833,7 +1833,7 @@ async function toolReportGet(args: Record<string, string>): Promise<string> {
 
 async function toolReportUpdate(args: Record<string, string>): Promise<string> {
   const rg = await getReportGenerator();
-  const updates: any = {};
+  const updates: Record<string, string> = {};
   if (args.title) updates.title = args.title;
   if (args.status) updates.status = args.status;
   if (args.executive_summary) updates.executive_summary = args.executive_summary;
@@ -1855,8 +1855,8 @@ async function toolReportAutoPopulate(args: Record<string, string>): Promise<str
 
 async function toolReportExport(args: Record<string, string>): Promise<string> {
   const rg = await getReportGenerator();
-  const format = args.format as any;
-  let result: any;
+  const format = args.format;
+  let result: string | object;
   switch (format) {
     case 'markdown': result = await rg.exportMarkdown(args.report_id); break;
     case 'html': result = await rg.exportHTML(args.report_id); break;
@@ -1884,17 +1884,17 @@ async function getNetworkScans() {
 
 async function toolScanList(args: Record<string, string>): Promise<string> {
   const ns = await getNetworkScans();
-  const scans = args.status ? await ns.getScansByStatus(args.status as any) : await ns.getScans();
+  const scans = args.status ? await ns.getScansByStatus(args.status as Parameters<typeof ns.getScansByStatus>[0]) : await ns.getScans();
   if (!scans.length) return 'No network scans found.';
-  return scans.map((s: any) =>
-    `[${s.status?.toUpperCase()}] ${s.name}\n  Target: ${s.target} | Type: ${s.scan_type}\n  Hosts: ${s.hosts_up || 0}/${s.hosts_total || 0} | Ports: ${s.open_ports || 0} | ID: ${s.id}`
+  return scans.map((s: Record<string, unknown>) =>
+    `[${String(s.status ?? '').toUpperCase()}] ${s.name}\n  Target: ${s.target} | Type: ${s.scan_type}\n  Hosts: ${s.hosts_up || 0}/${s.hosts_total || 0} | Ports: ${s.open_ports || 0} | ID: ${s.id}`
   ).join('\n\n');
 }
 
 async function toolScanCreate(args: Record<string, string>): Promise<string> {
   const ns = await getNetworkScans();
   const scan = await ns.createScan({
-    name: args.name, target: args.target, scan_type: args.scan_type as any,
+    name: args.name, target: args.target, scan_type: args.scan_type as Parameters<typeof ns.createScan>[0]['scan_type'],
     ports: args.ports, options: args.options,
   });
   return `[+] Scan created: "${scan.name}" → ${scan.target} (ID: ${scan.id})`;
@@ -1909,7 +1909,7 @@ async function toolScanGet(args: Record<string, string>): Promise<string> {
     `Target: ${s.target} | Type: ${s.scan_type}`,
     `Hosts: ${s.hosts_up}/${s.hosts_total} up | Ports: ${s.open_ports} open`,
     '',
-    ...hosts.map((h: any) => `  ${h.ip_address} (${h.hostname || 'N/A'}) - ${h.status} - ${h.os_name || 'unknown OS'} - ${h.open_ports || 0} ports`),
+    ...hosts.map((h: Record<string, unknown>) => `  ${h.ip_address} (${h.hostname || 'N/A'}) - ${h.status} - ${h.os_name || 'unknown OS'} - ${h.open_ports || 0} ports`),
   ].join('\n');
 }
 
@@ -1929,7 +1929,7 @@ async function toolScanHosts(args: Record<string, string>): Promise<string> {
   const ns = await getNetworkScans();
   const hosts = await ns.getScanHosts(args.scan_id);
   if (!hosts.length) return 'No hosts discovered.';
-  return hosts.map((h: any) =>
+  return hosts.map((h: Record<string, unknown>) =>
     `${h.ip_address} | ${h.hostname || 'N/A'} | ${h.status} | OS: ${h.os_name || '?'} | Ports: ${h.open_ports || 0}`
   ).join('\n');
 }
@@ -1938,7 +1938,7 @@ async function toolScanPorts(args: Record<string, string>): Promise<string> {
   const ns = await getNetworkScans();
   const ports = await ns.getScanPorts(args.scan_id, args.host_id);
   if (!ports.length) return 'No ports discovered.';
-  return ports.map((p: any) =>
+  return ports.map((p: Record<string, unknown>) =>
     `${p.port}/${p.protocol} | ${p.state} | ${p.service_name || '?'} ${p.service_version || ''}`
   ).join('\n');
 }
@@ -1966,8 +1966,8 @@ async function toolAgentList(args: Record<string, string>): Promise<string> {
   const svc = await getCustomAgents();
   const agents = args.category ? await svc.getAgentsByCategory(args.category) : await svc.getAgents();
   if (!agents.length) return 'No custom agents found.';
-  return agents.map((a: any) =>
-    `[${a.status?.toUpperCase()}] ${a.name}\n  ${truncate(a.description || '', 80)}\n  Model: ${a.model} | Category: ${a.category} | ID: ${a.id}`
+  return agents.map((a: Record<string, unknown>) =>
+    `[${String(a.status ?? '').toUpperCase()}] ${a.name}\n  ${truncate(String(a.description || ''), 80)}\n  Model: ${a.model} | Category: ${a.category} | ID: ${a.id}`
   ).join('\n\n');
 }
 
@@ -1998,9 +1998,9 @@ async function toolAgentGet(args: Record<string, string>): Promise<string> {
 async function toolAgentUpdate(args: Record<string, string>): Promise<string> {
   const svc = await getCustomAgents();
   if (args.status) {
-    await svc.updateAgentStatus(args.id, args.status as any);
+    await svc.updateAgentStatus(args.id, args.status as Parameters<typeof svc.updateAgentStatus>[1]);
   }
-  const updates: any = {};
+  const updates: Record<string, string> = {};
   if (args.name) updates.name = args.name;
   if (args.instructions) updates.instructions = args.instructions;
   if (Object.keys(updates).length > 0) await svc.updateAgent(args.id, updates);
@@ -2036,8 +2036,8 @@ async function toolSentinelAssets(): Promise<string> {
   const svc = await getSentinel();
   const assets = await svc.getAssets();
   if (!assets.length) return 'No infrastructure assets monitored.';
-  return assets.map((a: any) =>
-    `[${a.status?.toUpperCase()}] ${a.hostname} (${a.ip_address})\n  Type: ${a.asset_type} | OS: ${a.os || 'N/A'} | Criticality: ${a.criticality}\n  ID: ${a.id}`
+  return assets.map((a: Record<string, unknown>) =>
+    `[${String(a.status ?? '').toUpperCase()}] ${a.hostname} (${a.ip_address})\n  Type: ${a.asset_type} | OS: ${a.os || 'N/A'} | Criticality: ${a.criticality}\n  ID: ${a.id}`
   ).join('\n\n');
 }
 
@@ -2045,9 +2045,9 @@ async function toolSentinelAddAsset(args: Record<string, string>): Promise<strin
   const svc = await getSentinel();
   const asset = await svc.addAsset({
     hostname: args.hostname, ip_address: args.ip_address,
-    asset_type: args.asset_type as any, os: args.os,
-    environment: (args.environment || 'production') as any,
-    criticality: (args.criticality || 'medium') as any,
+    asset_type: args.asset_type as Parameters<typeof svc.addAsset>[0]['asset_type'], os: args.os,
+    environment: (args.environment || 'production') as Parameters<typeof svc.addAsset>[0]['environment'],
+    criticality: (args.criticality || 'medium') as Parameters<typeof svc.addAsset>[0]['criticality'],
     status: 'active', services: [], software: [], tags: [],
   });
   return `[+] Asset added: ${asset.hostname} (ID: ${asset.id})`;
@@ -2055,10 +2055,10 @@ async function toolSentinelAddAsset(args: Record<string, string>): Promise<strin
 
 async function toolSentinelThreats(args: Record<string, string>): Promise<string> {
   const svc = await getSentinel();
-  const threats = await svc.getThreats(args.status as any);
+  const threats = await svc.getThreats(args.status as Parameters<typeof svc.getThreats>[0]);
   if (!threats.length) return 'No threats found.';
-  return threats.map((t: any) =>
-    `[${t.severity?.toUpperCase()}] ${t.title}\n  Type: ${t.threat_type} | Status: ${t.status}\n  ${truncate(t.description || '', 120)}\n  ID: ${t.id}`
+  return threats.map((t: Record<string, unknown>) =>
+    `[${String(t.severity ?? '').toUpperCase()}] ${t.title}\n  Type: ${t.threat_type} | Status: ${t.status}\n  ${truncate(String(t.description || ''), 120)}\n  ID: ${t.id}`
   ).join('\n\n');
 }
 
@@ -2066,17 +2066,17 @@ async function toolSentinelCreateThreat(args: Record<string, string>): Promise<s
   const svc = await getSentinel();
   const threat = await svc.createThreat({
     title: args.title, description: args.description || '',
-    severity: args.severity as any, threat_type: args.threat_type || 'unknown',
+    severity: args.severity as Parameters<typeof svc.createThreat>[0]['severity'], threat_type: args.threat_type || 'unknown',
     status: 'active', affected_asset_id: args.affected_asset_id || null,
     source: 'manual', confidence: 80, ioc_values: csvToArray(args.ioc_values),
     actions: [], mitre_tactics: [], mitre_techniques: [],
-  } as any);
+  });
   return `[+] Threat created: "${threat.title}" (ID: ${threat.id})`;
 }
 
 async function toolSentinelUpdateThreat(args: Record<string, string>): Promise<string> {
   const svc = await getSentinel();
-  await svc.updateThreatStatus(args.id, args.status as any);
+  await svc.updateThreatStatus(args.id, args.status as Parameters<typeof svc.updateThreatStatus>[1]);
   return `[+] Threat ${args.id} → ${args.status}`;
 }
 
@@ -2084,8 +2084,8 @@ async function toolSentinelScans(args: Record<string, string>): Promise<string> 
   const svc = await getSentinel();
   const scans = await svc.getScans(parseInt(args.limit) || 20);
   if (!scans.length) return 'No Sentinel scans.';
-  return scans.map((s: any) =>
-    `[${s.status?.toUpperCase()}] ${s.scan_type} scan\n  Target: ${s.target || 'all'} | Findings: ${s.findings_count || 0} | ${s.created_at}`
+  return scans.map((s: Record<string, unknown>) =>
+    `[${String(s.status ?? '').toUpperCase()}] ${s.scan_type} scan\n  Target: ${s.target || 'all'} | Findings: ${s.findings_count || 0} | ${s.created_at}`
   ).join('\n\n');
 }
 
@@ -2105,12 +2105,12 @@ async function getMissionPlans() {
 async function toolMissionList(args: Record<string, string>): Promise<string> {
   const svc = await getMissionPlans();
   let plans;
-  if (args.type) plans = await svc.getPlansByType(args.type as any);
+  if (args.type) plans = await svc.getPlansByType(args.type as Parameters<typeof svc.getPlansByType>[0]);
   else if (args.status === 'active') plans = await svc.getActivePlans();
   else plans = await svc.getPlans();
   if (!plans.length) return 'No mission plans found.';
-  return plans.map((p: any) =>
-    `[${p.status?.toUpperCase()}] ${p.name}\n  Type: ${p.type} | Priority: ${p.priority} | Progress: ${p.progress || 0}%\n  ID: ${p.id}`
+  return plans.map((p: Record<string, unknown>) =>
+    `[${String(p.status ?? '').toUpperCase()}] ${p.name}\n  Type: ${p.type} | Priority: ${p.priority} | Progress: ${p.progress || 0}%\n  ID: ${p.id}`
   ).join('\n\n');
 }
 
@@ -2118,7 +2118,7 @@ async function toolMissionCreate(args: Record<string, string>): Promise<string> 
   const svc = await getMissionPlans();
   const plan = await svc.createPlan({
     name: args.name, description: args.description || '',
-    type: args.type as any, priority: (args.priority || 'medium') as any,
+    type: args.type as Parameters<typeof svc.createPlan>[0]['type'], priority: (args.priority || 'medium') as Parameters<typeof svc.createPlan>[0]['priority'],
     target: args.target, objectives: csvToArray(args.objectives),
   });
   return `[+] Mission created: "${plan.name}" [${plan.type}] (ID: ${plan.id})`;
@@ -2140,8 +2140,8 @@ async function toolMissionGet(args: Record<string, string>): Promise<string> {
 
 async function toolMissionUpdate(args: Record<string, string>): Promise<string> {
   const svc = await getMissionPlans();
-  if (args.status) await svc.updateStatus(args.id, args.status as any);
-  const updates: any = {};
+  if (args.status) await svc.updateStatus(args.id, args.status as Parameters<typeof svc.updateStatus>[1]);
+  const updates: Record<string, string | number> = {};
   if (args.progress) updates.progress = parseInt(args.progress);
   if (args.notes) updates.notes = args.notes;
   if (Object.keys(updates).length > 0) await svc.updatePlan(args.id, updates);
@@ -2158,7 +2158,7 @@ async function toolMissionSearch(args: Record<string, string>): Promise<string> 
   const svc = await getMissionPlans();
   const plans = await svc.searchPlans(args.query);
   if (!plans.length) return 'No missions match query.';
-  return plans.map((p: any) => `[${p.status}] ${p.name} | ${p.type} | ID: ${p.id}`).join('\n');
+  return plans.map((p: Record<string, unknown>) => `[${p.status}] ${p.name} | ${p.type} | ID: ${p.id}`).join('\n');
 }
 
 async function toolMissionStats(): Promise<string> {
@@ -2178,15 +2178,15 @@ async function toolAlertSources(): Promise<string> {
   const svc = await getAlertIngestion();
   const sources = await svc.getSources();
   if (!sources.length) return 'No alert sources configured.';
-  return sources.map((s: any) =>
-    `[${s.status?.toUpperCase()}] ${s.name} (${s.source_type})\n  Alerts: ${s.alert_count || 0} | Last sync: ${s.last_sync_at || 'never'}\n  ID: ${s.id}`
+  return sources.map((s: Record<string, unknown>) =>
+    `[${String(s.status ?? '').toUpperCase()}] ${s.name} (${s.source_type})\n  Alerts: ${s.alert_count || 0} | Last sync: ${s.last_sync_at || 'never'}\n  ID: ${s.id}`
   ).join('\n\n');
 }
 
 async function toolAlertCreateSource(args: Record<string, string>): Promise<string> {
   const svc = await getAlertIngestion();
   const source = await svc.createSource({
-    name: args.name, source_type: args.source_type as any,
+    name: args.name, source_type: args.source_type as Parameters<typeof svc.createSource>[0]['source_type'],
     connection_config: { url: args.url || '', api_key: args.api_key || '', headers: {} },
   });
   return `[+] Alert source created: "${source.name}" [${source.source_type}] (ID: ${source.id})`;
@@ -2194,21 +2194,21 @@ async function toolAlertCreateSource(args: Record<string, string>): Promise<stri
 
 async function toolAlertList(args: Record<string, string>): Promise<string> {
   const svc = await getAlertIngestion();
-  const filters: any = {};
+  const filters: Record<string, string | number> = {};
   if (args.status) filters.status = args.status;
   if (args.severity) filters.severity = args.severity;
   if (args.source_type) filters.source_type = args.source_type;
   if (args.limit) filters.limit = parseInt(args.limit);
   const alerts = await svc.getAlerts(Object.keys(filters).length ? filters : undefined);
   if (!alerts.length) return 'No alerts found.';
-  return alerts.map((a: any) =>
-    `[${a.severity?.toUpperCase()}] ${a.title}\n  Source: ${a.source_type} | Status: ${a.status}\n  ${truncate(a.description || '', 100)}\n  ID: ${a.id}`
+  return alerts.map((a: Record<string, unknown>) =>
+    `[${String(a.severity ?? '').toUpperCase()}] ${a.title}\n  Source: ${a.source_type} | Status: ${a.status}\n  ${truncate(String(a.description || ''), 100)}\n  ID: ${a.id}`
   ).join('\n\n');
 }
 
 async function toolAlertUpdate(args: Record<string, string>): Promise<string> {
   const svc = await getAlertIngestion();
-  const updates: any = {};
+  const updates: Record<string, string> = {};
   if (args.status) updates.status = args.status;
   if (args.assignee) updates.assignee = args.assignee;
   if (args.notes) updates.notes = args.notes;
@@ -2226,8 +2226,8 @@ async function toolAlertCorrelate(args: Record<string, string>): Promise<string>
   const svc = await getAlertIngestion();
   const groups = await svc.correlateAlerts(parseInt(args.time_window) || 15);
   if (!groups.length) return 'No correlated alert groups found.';
-  return groups.map((g: any) =>
-    `Group: ${g.key || 'unknown'}\n  Alerts: ${g.alert_ids?.length || 0} | Severity: ${g.severity}`
+  return groups.map((g: Record<string, unknown>) =>
+    `Group: ${g.key || 'unknown'}\n  Alerts: ${Array.isArray(g.alert_ids) ? g.alert_ids.length : 0} | Severity: ${g.severity}`
   ).join('\n\n');
 }
 
@@ -2244,8 +2244,8 @@ async function toolAlertTimelines(): Promise<string> {
   const svc = await getAlertIngestion();
   const timelines = await svc.getTimelines();
   if (!timelines.length) return 'No investigation timelines.';
-  return timelines.map((t: any) =>
-    `[${t.status?.toUpperCase()}] ${t.title}\n  Events: ${t.events?.length || 0} | Created: ${t.created_at}\n  ID: ${t.id}`
+  return timelines.map((t: Record<string, unknown>) =>
+    `[${String(t.status ?? '').toUpperCase()}] ${t.title}\n  Events: ${Array.isArray(t.events) ? t.events.length : 0} | Created: ${t.created_at}\n  ID: ${t.id}`
   ).join('\n\n');
 }
 
@@ -2262,8 +2262,8 @@ async function toolCloudAccounts(): Promise<string> {
   const { getCloudAccounts } = await import('./cloud-security');
   const accounts = await getCloudAccounts(userId);
   if (!accounts.length) return 'No cloud accounts configured.';
-  return accounts.map((a: any) =>
-    `[${a.status?.toUpperCase()}] ${a.name} (${a.provider})\n  Account: ${a.account_id} | Region: ${a.region || 'N/A'}\n  Resources: ${a.resource_count || 0} | Findings: ${a.finding_count || 0}\n  ID: ${a.id}`
+  return accounts.map((a: Record<string, unknown>) =>
+    `[${String(a.status ?? '').toUpperCase()}] ${a.name} (${a.provider})\n  Account: ${a.account_id} | Region: ${a.region || 'N/A'}\n  Resources: ${a.resource_count || 0} | Findings: ${a.finding_count || 0}\n  ID: ${a.id}`
   ).join('\n\n');
 }
 
@@ -2271,23 +2271,23 @@ async function toolCloudAddAccount(args: Record<string, string>): Promise<string
   const userId = await getUserId();
   const { createCloudAccount } = await import('./cloud-security');
   const account = await createCloudAccount({
-    user_id: userId, name: args.name, provider: args.provider as any,
+    user_id: userId, name: args.name, provider: args.provider, // TODO: type as CloudProvider enum
     account_id: args.account_id, region: args.region || 'us-east-1',
     credentials: { access_key: args.access_key || '', secret_key: args.secret_key || '' },
     status: 'connected',
-  } as any);
+  });
   return `[+] Cloud account added: "${account.name}" [${account.provider}] (ID: ${account.id})`;
 }
 
 async function toolCloudResources(args: Record<string, string>): Promise<string> {
   const userId = await getUserId();
   const { getCloudResources } = await import('./cloud-security');
-  const filters: any = { userId };
+  const filters: Record<string, string> = { userId };
   if (args.account_id) filters.accountId = args.account_id;
   if (args.resource_type) filters.resourceType = args.resource_type;
   const resources = await getCloudResources(userId, args.account_id, args.resource_type);
   if (!resources.length) return 'No cloud resources found.';
-  return resources.map((r: any) =>
+  return resources.map((r: Record<string, unknown>) =>
     `${r.resource_type}: ${r.name || r.resource_id}\n  Region: ${r.region} | Account: ${r.account_id}\n  Tags: ${jsonSafe(r.tags || {})}`
   ).join('\n\n');
 }
@@ -2296,12 +2296,14 @@ async function toolCloudFindings(args: Record<string, string>): Promise<string> 
   const userId = await getUserId();
   const { getCloudFindings } = await import('./cloud-security');
   const findings = await getCloudFindings(userId, {
-    severity: args.severity as any, category: args.category as any,
-    status: args.status as any, limit: parseInt(args.limit) || 20,
+    severity: args.severity as Parameters<typeof getCloudFindings>[1]['severity'],
+    category: args.category as Parameters<typeof getCloudFindings>[1]['category'],
+    status: args.status as Parameters<typeof getCloudFindings>[1]['status'],
+    limit: parseInt(args.limit) || 20,
   });
   if (!findings.length) return 'No cloud findings.';
-  return findings.map((f: any) =>
-    `[${f.severity?.toUpperCase()}] ${f.title}\n  Category: ${f.category} | Status: ${f.status}\n  Resource: ${f.resource_id} | ${truncate(f.description || '', 100)}\n  ID: ${f.id}`
+  return findings.map((f: Record<string, unknown>) =>
+    `[${String(f.severity ?? '').toUpperCase()}] ${f.title}\n  Category: ${f.category} | Status: ${f.status}\n  Resource: ${f.resource_id} | ${truncate(String(f.description || ''), 100)}\n  ID: ${f.id}`
   ).join('\n\n');
 }
 
@@ -2310,7 +2312,7 @@ async function toolCloudSbomList(): Promise<string> {
   const { getSBOMImports } = await import('./cloud-security');
   const sboms = await getSBOMImports(userId);
   if (!sboms.length) return 'No SBOM imports.';
-  return sboms.map((s: any) =>
+  return sboms.map((s: Record<string, unknown>) =>
     `${s.name} (${s.format})\n  Components: ${s.component_count || 0} | Vulns: ${s.vulnerability_count || 0}\n  ID: ${s.id}`
   ).join('\n\n');
 }
@@ -2332,11 +2334,11 @@ async function getDetectionEngine() {
 async function toolDetectionList(args: Record<string, string>): Promise<string> {
   const de = await getDetectionEngine();
   const rules = await de.getAll({
-    format: args.format as any, status: args.status as any, search: args.search,
+    format: args.format as Parameters<typeof de.getAll>[0]['format'], status: args.status as Parameters<typeof de.getAll>[0]['status'], search: args.search,
   });
   if (!rules.length) return 'No detection rules found.';
-  return rules.map((r: any) =>
-    `[${r.status?.toUpperCase()}] ${r.name}\n  Format: ${r.format} | Severity: ${r.severity}\n  MITRE: ${(r.mitre_tactics || []).join(', ') || 'N/A'}\n  ID: ${r.id}`
+  return rules.map((r: Record<string, unknown>) =>
+    `[${String(r.status ?? '').toUpperCase()}] ${r.name}\n  Format: ${r.format} | Severity: ${r.severity}\n  MITRE: ${(Array.isArray(r.mitre_tactics) ? r.mitre_tactics : []).join(', ') || 'N/A'}\n  ID: ${r.id}`
   ).join('\n\n');
 }
 
@@ -2344,8 +2346,8 @@ async function toolDetectionCreate(args: Record<string, string>): Promise<string
   const de = await getDetectionEngine();
   const rule = await de.create({
     name: args.name, description: args.description || '',
-    format: args.format as any, content: args.content,
-    severity: (args.severity || 'medium') as any,
+    format: args.format as Parameters<typeof de.create>[0]['format'], content: args.content,
+    severity: (args.severity || 'medium') as Parameters<typeof de.create>[0]['severity'],
     mitre_tactics: csvToArray(args.mitre_tactics),
     mitre_techniques: csvToArray(args.mitre_techniques),
     tags: csvToArray(args.tags),
@@ -2356,8 +2358,8 @@ async function toolDetectionCreate(args: Record<string, string>): Promise<string
 async function toolDetectionGenerate(args: Record<string, string>): Promise<string> {
   const de = await getDetectionEngine();
   const rule = await de.generateAndSave({
-    description: args.description, format: args.format as any,
-    severity: (args.severity || 'medium') as any, log_source: args.log_source,
+    description: args.description, format: args.format as Parameters<typeof de.generateAndSave>[0]['format'],
+    severity: (args.severity || 'medium') as Parameters<typeof de.generateAndSave>[0]['severity'], log_source: args.log_source,
   });
   return `[+] AI-generated rule: "${rule.name}" [${rule.format}]\n\n${truncate(rule.content || '', 1000)}\n\nID: ${rule.id}`;
 }
@@ -2402,10 +2404,10 @@ async function getToolsService() {
 
 async function toolToolsList(args: Record<string, string>): Promise<string> {
   const svc = await getToolsService();
-  const tools = args.category ? await svc.getToolsByCategory(args.category as any) : await svc.getTools();
+  const tools = args.category ? await svc.getToolsByCategory(args.category as Parameters<typeof svc.getToolsByCategory>[0]) : await svc.getTools();
   if (!tools.length) return 'No tools registered.';
-  return tools.map((t: any) =>
-    `[${t.status?.toUpperCase() || 'ACTIVE'}] ${t.name}\n  Category: ${t.category} | Command: ${t.command || 'N/A'}\n  ${truncate(t.description || '', 80)}\n  ID: ${t.id}`
+  return tools.map((t: Record<string, unknown>) =>
+    `[${String(t.status ?? 'ACTIVE').toUpperCase()}] ${t.name}\n  Category: ${t.category} | Command: ${t.command || 'N/A'}\n  ${truncate(String(t.description || ''), 80)}\n  ID: ${t.id}`
   ).join('\n\n');
 }
 
@@ -2413,7 +2415,7 @@ async function toolToolsCreate(args: Record<string, string>): Promise<string> {
   const svc = await getToolsService();
   const tool = await svc.createTool({
     name: args.name, description: args.description || '',
-    category: args.category as any, command: args.command,
+    category: args.category as Parameters<typeof svc.createTool>[0]['category'], command: args.command,
     install_command: args.install_command, documentation_url: args.documentation_url,
   });
   return `[+] Tool registered: "${tool.name}" [${tool.category}] (ID: ${tool.id})`;
@@ -2446,8 +2448,8 @@ async function toolAnalyticsActivity(args: Record<string, string>): Promise<stri
   const svc = await getAnalytics();
   const activity = await svc.getRecentActivity(parseInt(args.limit) || 50);
   if (!activity.length) return 'No recent activity.';
-  return activity.map((a: any) =>
-    `${a.created_at} | ${a.action} | ${a.category || 'general'} | ${truncate(a.details || '', 80)}`
+  return activity.map((a: Record<string, unknown>) =>
+    `${a.created_at} | ${a.action} | ${a.category || 'general'} | ${truncate(String(a.details || ''), 80)}`
   ).join('\n');
 }
 
@@ -2476,7 +2478,7 @@ async function toolConversationList(args: Record<string, string>): Promise<strin
   const convos = await svc.getUserConversations(userId);
   if (!convos.length) return 'No conversations.';
   const limited = convos.slice(0, parseInt(args.limit) || 20);
-  return limited.map((c: any) =>
+  return limited.map((c: Record<string, unknown>) =>
     `${c.title || 'Untitled'}\n  Provider: ${c.provider} | Messages: ${c.message_count || 0}\n  ${c.updated_at} | ID: ${c.id}`
   ).join('\n\n');
 }
@@ -2486,7 +2488,7 @@ async function toolConversationSearch(args: Record<string, string>): Promise<str
   const userId = await getUserId();
   const results = await svc.searchConversations(userId, args.query);
   if (!results.length) return 'No conversations match query.';
-  return results.map((c: any) =>
+  return results.map((c: Record<string, unknown>) =>
     `${c.title || 'Untitled'} | Messages: ${c.message_count || 0} | ID: ${c.id}`
   ).join('\n');
 }
@@ -2496,7 +2498,7 @@ async function toolConversationExport(args: Record<string, string>): Promise<str
   const userId = await getUserId();
   const ids = csvToArray(args.conversation_ids);
   const exported = await svc.exportConversations(userId, {
-    format: (args.format || 'json') as any,
+    format: (args.format || 'json') as Parameters<typeof svc.exportConversations>[1]['format'],
     conversationIds: ids.length ? ids : undefined,
   });
   return truncate(typeof exported === 'string' ? exported : jsonSafe(exported), 3000);
@@ -2526,8 +2528,8 @@ async function toolTriageAuto(): Promise<string> {
   const te = await getTriageEngine();
   const results = await te.triageOpenFindings();
   if (!results.length) return 'No open findings to triage.';
-  return results.map((r: any) =>
-    `${r.finding_id}: ${r.verdict} (confidence: ${r.confidence}%)\n  ${r.reasoning ? truncate(r.reasoning, 100) : ''}`
+  return results.map((r: Record<string, unknown>) =>
+    `${r.finding_id}: ${r.verdict} (confidence: ${r.confidence}%)\n  ${r.reasoning ? truncate(String(r.reasoning), 100) : ''}`
   ).join('\n\n');
 }
 
@@ -2539,7 +2541,7 @@ async function toolTriageApprove(args: Record<string, string>): Promise<string> 
 
 async function toolTriageReject(args: Record<string, string>): Promise<string> {
   const te = await getTriageEngine();
-  await te.rejectVerdict(args.finding_id, args.verdict as any, args.notes);
+  await te.rejectVerdict(args.finding_id, args.verdict as Parameters<typeof te.rejectVerdict>[1], args.notes);
   return `[+] Triage verdict rejected for ${args.finding_id} → ${args.verdict}`;
 }
 
@@ -2553,7 +2555,7 @@ async function toolTriageHistory(args: Record<string, string>): Promise<string> 
   const te = await getTriageEngine();
   const history = await te.getTriageHistory(args.finding_id);
   if (!history.length) return 'No triage history.';
-  return history.map((h: any) =>
+  return history.map((h: Record<string, unknown>) =>
     `${h.created_at} | ${h.event_type} | ${h.verdict || 'N/A'} | ${h.actor || 'system'}`
   ).join('\n');
 }
@@ -2562,8 +2564,8 @@ async function toolTriagePlaybooks(): Promise<string> {
   const te = await getTriageEngine();
   const playbooks = await te.getPlaybooks();
   if (!playbooks.length) return 'No playbooks configured.';
-  return playbooks.map((p: any) =>
-    `${p.name}\n  Steps: ${p.steps?.length || 0} | Success: ${p.success_count || 0}\n  ID: ${p.id}`
+  return playbooks.map((p: Record<string, unknown>) =>
+    `${p.name}\n  Steps: ${Array.isArray(p.steps) ? p.steps.length : 0} | Success: ${p.success_count || 0}\n  ID: ${p.id}`
   ).join('\n\n');
 }
 
@@ -2615,12 +2617,12 @@ async function toolAppStatus(): Promise<string> {
     `  Red Team Ops:      ${ops.count ?? 0}`,
     `  Fleet Endpoints:   ${endpoints.count ?? 0}`,
     `  Threat IOCs:       ${iocs.count ?? 0}`,
-    `  Reports:           ${(reports as any).count ?? 0}`,
-    `  Network Scans:     ${(scans as any).count ?? 0}`,
-    `  Custom Agents:     ${(agents as any).count ?? 0}`,
-    `  Detection Rules:   ${(rules as any).count ?? 0}`,
-    `  Mission Plans:     ${(missions as any).count ?? 0}`,
-    `  Alerts:            ${(alerts as any).count ?? 0}`,
+    `  Reports:           ${(reports as { count: number | null }).count ?? 0}`,
+    `  Network Scans:     ${(scans as { count: number | null }).count ?? 0}`,
+    `  Custom Agents:     ${(agents as { count: number | null }).count ?? 0}`,
+    `  Detection Rules:   ${(rules as { count: number | null }).count ?? 0}`,
+    `  Mission Plans:     ${(missions as { count: number | null }).count ?? 0}`,
+    `  Alerts:            ${(alerts as { count: number | null }).count ?? 0}`,
   ].join('\n');
 }
 

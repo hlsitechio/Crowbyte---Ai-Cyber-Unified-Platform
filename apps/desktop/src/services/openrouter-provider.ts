@@ -429,9 +429,6 @@ class OpenRouterProvider {
     this.active = false;
   }
 
-  private getModelName(): string {
-    return OPENROUTER_MODELS.find(m => m.id === this.currentModel)?.name || this.currentModel;
-  }
 }
 
 export const openRouterProvider = new OpenRouterProvider();

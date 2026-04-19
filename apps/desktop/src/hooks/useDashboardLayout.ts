@@ -44,7 +44,7 @@ function loadLayout(): DashboardLayout {
 function saveLayout(layout: DashboardLayout) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
-  } catch {}
+  } catch { /* empty */ }
 }
 
 /** Sync layout to Supabase (fire-and-forget) */
@@ -59,7 +59,7 @@ async function syncLayoutToCloud(layout: DashboardLayout): Promise<void> {
         dashboard_layout: JSON.stringify(layout),
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
-  } catch {}
+  } catch { /* empty */ }
 }
 
 /** Load layout from cloud on init */
@@ -79,7 +79,7 @@ async function loadLayoutFromCloud(): Promise<DashboardLayout | null> {
         return parsed;
       }
     }
-  } catch {}
+  } catch { /* empty */ }
   return null;
 }
 

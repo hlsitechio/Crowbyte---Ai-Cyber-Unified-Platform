@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from"react";
 import { useLocation } from "react-router-dom";
 import { IS_WEB } from "@/lib/platform";
-import { Card } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
-import { UilWindow, UilPlus, UilTimes, UilAngleDown, UilBrain, UilDesktopAlt, UilBracketsCurly, UilBoltAlt, UilHeartRate, UilSearch, UilExpandArrows, UilCompressArrows, UilColumns, UilSubject, UilGrid, UilAngleRight, UilAngleLeft, UilArrowUp, UilArrowDown, UilHistory, UilSync, UilText, UilBolt, UilCog } from "@iconscout/react-unicons";
+import { UilWindow, UilPlus, UilTimes, UilAngleDown, UilBrain, UilDesktopAlt, UilBracketsCurly, UilBoltAlt, UilHeartRate, UilSearch, UilExpandArrows, UilCompressArrows, UilColumns, UilSubject, UilGrid, UilAngleRight, UilAngleLeft, UilArrowUp, UilArrowDown, UilHistory, UilSync, UilBolt } from "@iconscout/react-unicons";
 import {
  DropdownMenu,
  DropdownMenuContent,
@@ -65,6 +64,7 @@ const TAB_ICON_MAP: Record<string, React.ReactNode> = {
  tmux: <UilWindow size={12} className="text-emerald-500" />,
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 const Terminal = () => {
  const [terminals, setTerminals] = useState<TerminalInstance[]>([]);
  const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
@@ -294,7 +294,7 @@ const Terminal = () => {
  }
  }, 80);
 
- }, [availableShells, toast]);
+ }, [availableShells]);
 
  // Close terminal
  const closeTerminal = useCallback(async (terminalId: string) => {
@@ -327,7 +327,7 @@ const Terminal = () => {
  const handleResize = () => {
  const active = terminalsRef.current.find(t => t.id === activeTerminalId);
  if (active) {
- try { active.fitAddon.fit(); } catch {}
+ try { active.fitAddon.fit(); } catch { /* empty */ }
  }
  };
  window.addEventListener('resize', handleResize);
@@ -346,7 +346,7 @@ const Terminal = () => {
  const observer = new ResizeObserver(() => {
  const active = terminalsRef.current.find(t => t.id === activeTerminalId);
  if (active) {
- try { active.fitAddon.fit(); } catch {}
+ try { active.fitAddon.fit(); } catch { /* empty */ }
  }
  });
 
@@ -360,7 +360,7 @@ const Terminal = () => {
  setTimeout(() => {
  const t = terminalsRef.current.find(t => t.id === id);
  if (t) {
- try { t.fitAddon.fit(); } catch {}
+ try { t.fitAddon.fit(); } catch { /* empty */ }
  t.xterm.focus();
  }
  }, 50);
@@ -646,6 +646,7 @@ const TERM_WS_URL = 'wss://crowbyte.io/terminal/ws';
 const TERM_TOKEN = 'cb-term-2026-r41n';
 const TERM_MODE = 'shell'; // 'shell' for zsh, 'cb' for CrowByte CLI (requires crowbyte-cli installed)
 
+// eslint-disable-next-line react-refresh/only-export-components
 const WebTerminalInner = ({ connectKey }: { connectKey: number }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
@@ -797,7 +798,7 @@ const WebTerminalInner = ({ connectKey }: { connectKey: number }) => {
     });
 
     // Window resize → fit
-    const handleResize = () => { try { fitAddon.fit(); } catch {} };
+    const handleResize = () => { try { fitAddon.fit(); } catch { /* empty */ } };
     window.addEventListener('resize', handleResize);
 
     const resizeObserver = new ResizeObserver(handleResize);
@@ -949,6 +950,7 @@ const WebTerminalInner = ({ connectKey }: { connectKey: number }) => {
 };
 
 // Wrapper that remounts the terminal on every sidebar click (location.key changes)
+// eslint-disable-next-line react-refresh/only-export-components
 const WebTerminalPage = () => {
   const location = useLocation();
   return <WebTerminalInner key={location.key} connectKey={0} />;

@@ -93,6 +93,18 @@ export interface H1Report {
   supporting_material?: string[];
 }
 
+/** Shape of the evidence field on Finding records used in reports. */
+interface FindingEvidence {
+  request?: string;
+  response?: string;
+  curl?: string;
+  payload?: string;
+  screenshot?: string;
+  parameter?: string;
+  technique?: string;
+  [key: string]: unknown;
+}
+
 export interface BugcrowdReport {
   title: string;
   description: string;
@@ -330,7 +342,7 @@ ${html}
       steps_to_reproduce: this.buildStepsToReproduce(f),
       impact: this.buildImpactStatement(f),
       url: f.target_url || undefined,
-      http_request: (f.evidence as any)?.request || undefined,
+      http_request: (f.evidence as FindingEvidence | undefined)?.request || undefined,
     }));
   }
 
@@ -375,17 +387,17 @@ ${html}
 
       if (finding.evidence) {
         parts.push(`\n## Evidence\n`);
-        if ((finding.evidence as any).request) {
-          parts.push('### HTTP Request\n```http\n' + (finding.evidence as any).request + '\n```');
+        if ((finding.evidence as FindingEvidence).request) {
+          parts.push('### HTTP Request\n```http\n' + (finding.evidence as FindingEvidence).request + '\n```');
         }
-        if ((finding.evidence as any).response) {
-          parts.push('### HTTP Response\n```http\n' + String((finding.evidence as any).response).slice(0, 2000) + '\n```');
+        if ((finding.evidence as FindingEvidence).response) {
+          parts.push('### HTTP Response\n```http\n' + String((finding.evidence as FindingEvidence).response).slice(0, 2000) + '\n```');
         }
-        if ((finding.evidence as any).curl) {
-          parts.push('### cURL\n```bash\n' + (finding.evidence as any).curl + '\n```');
+        if ((finding.evidence as FindingEvidence).curl) {
+          parts.push('### cURL\n```bash\n' + (finding.evidence as FindingEvidence).curl + '\n```');
         }
-        if ((finding.evidence as any).payload) {
-          parts.push('### Payload\n```\n' + (finding.evidence as any).payload + '\n```');
+        if ((finding.evidence as FindingEvidence).payload) {
+          parts.push('### Payload\n```\n' + (finding.evidence as FindingEvidence).payload + '\n```');
         }
       }
 
@@ -525,14 +537,14 @@ ${this.buildImpactStatement(f)}
 
       if (f.evidence) {
         md += '#### Evidence\n\n';
-        if ((f.evidence as any).request) {
-          md += '**HTTP Request:**\n```http\n' + (f.evidence as any).request + '\n```\n\n';
+        if ((f.evidence as FindingEvidence).request) {
+          md += '**HTTP Request:**\n```http\n' + (f.evidence as FindingEvidence).request + '\n```\n\n';
         }
-        if ((f.evidence as any).response) {
-          md += '**HTTP Response:**\n```http\n' + String((f.evidence as any).response).slice(0, 2000) + '\n```\n\n';
+        if ((f.evidence as FindingEvidence).response) {
+          md += '**HTTP Response:**\n```http\n' + String((f.evidence as FindingEvidence).response).slice(0, 2000) + '\n```\n\n';
         }
-        if ((f.evidence as any).curl) {
-          md += '**cURL:**\n```bash\n' + (f.evidence as any).curl + '\n```\n\n';
+        if ((f.evidence as FindingEvidence).curl) {
+          md += '**cURL:**\n```bash\n' + (f.evidence as FindingEvidence).curl + '\n```\n\n';
         }
       }
 
@@ -578,18 +590,18 @@ ${report.recommendations || findings.filter(f => f.severity === 'critical' || f.
     steps.push(`1. Navigate to \`${finding.target_url || finding.target_host + (finding.target_port ? ':' + finding.target_port : '')}\``);
 
     if (finding.source === 'sqlmap' && finding.evidence) {
-      const ev = finding.evidence as any;
+      const ev = finding.evidence as FindingEvidence;
       steps.push(`2. Inject the following payload in the \`${ev.parameter || 'vulnerable'}\` parameter:`);
       steps.push(`   \`\`\`\n   ${ev.payload || 'See evidence'}\n   \`\`\``);
       steps.push(`3. Observe the ${ev.technique || 'SQL injection'} response`);
     } else if (finding.source === 'nuclei') {
       steps.push(`2. The vulnerability was detected by Nuclei template`);
-      if ((finding.evidence as any)?.curl) {
-        steps.push(`3. Reproduce with:\n   \`\`\`bash\n   ${(finding.evidence as any).curl}\n   \`\`\``);
+      if ((finding.evidence as FindingEvidence)?.curl) {
+        steps.push(`3. Reproduce with:\n   \`\`\`bash\n   ${(finding.evidence as FindingEvidence).curl}\n   \`\`\``);
       }
     } else if (finding.evidence) {
-      if ((finding.evidence as any).request) {
-        steps.push(`2. Send the following HTTP request:\n   \`\`\`http\n   ${(finding.evidence as any).request}\n   \`\`\``);
+      if ((finding.evidence as FindingEvidence).request) {
+        steps.push(`2. Send the following HTTP request:\n   \`\`\`http\n   ${(finding.evidence as FindingEvidence).request}\n   \`\`\``);
       }
       steps.push(`${steps.length + 1}. Observe the vulnerability in the response`);
     } else {
@@ -656,8 +668,8 @@ ${report.recommendations || findings.filter(f => f.severity === 'critical' || f.
   private buildSupportingMaterial(finding: Finding): string[] {
     const materials: string[] = [];
     if (finding.evidence) {
-      if ((finding.evidence as any).screenshot) materials.push((finding.evidence as any).screenshot);
-      if ((finding.evidence as any).curl) materials.push(`cURL command: ${(finding.evidence as any).curl}`);
+      if ((finding.evidence as FindingEvidence).screenshot) materials.push((finding.evidence as FindingEvidence).screenshot);
+      if ((finding.evidence as FindingEvidence).curl) materials.push(`cURL command: ${(finding.evidence as FindingEvidence).curl}`);
     }
     if (finding.cve_ids?.length) {
       materials.push(...finding.cve_ids.map(c => `https://nvd.nist.gov/vuln/detail/${c}`));

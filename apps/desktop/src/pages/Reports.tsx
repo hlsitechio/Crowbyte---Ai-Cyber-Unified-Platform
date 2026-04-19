@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,9 +26,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -42,7 +39,7 @@ import {
   type ReportTemplateConfig,
 } from "@/services/report-generator";
 import { findingsEngine, type Finding } from "@/services/findings-engine";
-import { UilFileAlt, UilPlus, UilSearch, UilTrashAlt, UilEllipsisV, UilCopy, UilDownloadAlt, UilEye, UilPen, UilCrosshair, UilClipboard, UilSync, UilCheckCircle, UilClock, UilFocusTarget, UilTag, UilAngleDown, UilTimes, UilExclamationTriangle, UilShieldCheck, UilBolt, UilFileExport } from "@iconscout/react-unicons";
+import { UilFileAlt, UilPlus, UilSearch, UilTrashAlt, UilEllipsisV, UilCopy, UilDownloadAlt, UilEye, UilPen, UilCrosshair, UilSync, UilCheckCircle, UilClock, UilFocusTarget, UilAngleDown, UilTimes, UilExclamationTriangle, UilBolt, UilFileExport } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 

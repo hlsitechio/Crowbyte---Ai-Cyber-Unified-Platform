@@ -79,7 +79,6 @@ export class CustomAgentExecutor {
     // Add file access tools if enabled
     if (agent.enable_file_access) {
       // File access uses MCP filesystem tools, which are available when MCP is enabled
-      console.log('File access enabled (uses MCP filesystem tools)');
     }
 
     // UilBracketsCurly execution would be added here if implemented

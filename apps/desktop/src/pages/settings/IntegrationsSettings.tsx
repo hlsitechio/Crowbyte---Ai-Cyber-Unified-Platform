@@ -63,7 +63,7 @@ function loadProviders(): Record<string, ProviderConfig> {
   try {
     const saved = localStorage.getItem("crowbyte_ai_providers");
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { /* empty */ }
   return { ...DEFAULT_PROVIDERS };
 }
 
@@ -102,10 +102,10 @@ export default function IntegrationsSettings() {
             setServiceKeys(prev => ({ ...prev, shodan: data.shodan_api_key }));
             localStorage.setItem('shodan_api_key', data.shodan_api_key); // CodeQL[js/clear-text-storage-of-sensitive-data] — Electron app: sandboxed localStorage
           }
-        } catch {}
+        } catch { /* empty */ }
       })();
     }
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Supabase status
   const [supabaseStatus, setSupabaseStatus] = useState<ConnectionStatus>("testing");
@@ -205,7 +205,7 @@ export default function IntegrationsSettings() {
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id' });
       }
-    } catch {}
+    } catch { /* empty */ }
 
     window.dispatchEvent(new CustomEvent("crowbyte:integrations-updated", { detail: { providers, serviceKeys } }));
 

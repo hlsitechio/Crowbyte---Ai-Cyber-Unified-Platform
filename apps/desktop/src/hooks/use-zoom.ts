@@ -70,7 +70,7 @@ function loadSavedZoom(): number {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return Math.max(25, Math.min(200, parseInt(saved, 10)));
-  } catch {}
+  } catch { /* empty */ }
   return DEFAULT_ZOOM;
 }
 
@@ -87,7 +87,7 @@ export function useZoom() {
     zoomRef.current = pct;
     applyZoom(pct / 100);
     showZoomToast(pct);
-    try { localStorage.setItem(STORAGE_KEY, String(pct)); } catch {}
+    try { localStorage.setItem(STORAGE_KEY, String(pct)); } catch { /* empty */ }
   }, []);
 
   useEffect(() => {

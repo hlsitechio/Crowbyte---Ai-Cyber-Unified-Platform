@@ -4,14 +4,13 @@
  * Everything flows through here.
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -26,7 +25,7 @@ import {
   type ISMCase, type CaseType, type CaseStatus, type CasePriority,
   type CaseSeverity, type CreateCaseData, type CaseStats,
 } from "@/services/ism-case";
-import { UilShieldCheck, UilPlus, UilSearch, UilFilter, UilClock, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilArrowUp, UilArrowRight, UilFocusTarget, UilBolt, UilHeartRate, UilTachometerFast, UilFire, UilEye, UilUser, UilAngleRight, UilTicket, UilListOlAlt, UilChartBar, UilSync } from "@iconscout/react-unicons";
+import { UilShieldCheck, UilPlus, UilSearch, UilClock, UilExclamationTriangle, UilHeartRate, UilFire, UilUser, UilAngleRight, UilTicket, UilChartBar, UilSync } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 

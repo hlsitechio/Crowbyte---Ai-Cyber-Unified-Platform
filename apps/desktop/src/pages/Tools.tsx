@@ -7,7 +7,7 @@ import { Input } from"@/components/ui/input";
 import { Label } from"@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
 import { Textarea } from"@/components/ui/textarea";
-import { UilWrench, UilPlay, UilCog, UilPlus, UilTrashAlt, UilHeartRate, UilCheckCircle } from "@iconscout/react-unicons";
+import { UilWrench, UilPlay, UilPlus, UilTrashAlt, UilHeartRate, UilCheckCircle } from "@iconscout/react-unicons";
 import { useToast } from"@/hooks/use-toast";
 import { toolsService, type Tool, type CreateToolData } from"@/services/tools";
 import { motion } from"framer-motion";

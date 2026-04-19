@@ -10,7 +10,7 @@ import { Switch } from"@/components/ui/switch";
 import { Badge } from"@/components/ui/badge";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
-import { UilPlus, UilUpload, UilTrashAlt, UilCog, UilPlaneFly, UilRobot, UilBracketsCurly, UilSearch, UilImage, UilDatabase, UilShield } from "@iconscout/react-unicons";
+import { UilPlus, UilUpload, UilTrashAlt, UilCog, UilPlaneFly, UilRobot, UilBracketsCurly, UilSearch, UilDatabase, UilShield } from "@iconscout/react-unicons";
 import { Separator } from"@/components/ui/separator";
 import { useToast } from"@/hooks/use-toast";
 import { customAgentsService, type CustomAgent } from"@/services/custom-agents";

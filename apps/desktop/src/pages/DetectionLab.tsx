@@ -34,7 +34,7 @@ import {
   type GenerateRuleRequest, type TestResults,
   MITRE_TACTICS, COMMON_TECHNIQUES,
 } from "@/services/detection-engine";
-import { UilBolt, UilPlus, UilSearch, UilTrashAlt, UilEllipsisV, UilCopy, UilDownloadAlt, UilPen, UilPlay, UilSync, UilCheckCircle, UilClock, UilTag, UilAngleDown, UilTimes, UilExclamationTriangle, UilShieldCheck, UilBracketsCurly, UilSave, UilFlask, UilRocket, UilListUl, UilEye, UilFocusTarget, UilFilter, UilSitemap, UilAngleRight, UilExchange } from "@iconscout/react-unicons";
+import { UilBolt, UilPlus, UilSearch, UilTrashAlt, UilEllipsisV, UilCopy, UilDownloadAlt, UilPen, UilPlay, UilSync, UilCheckCircle, UilClock, UilAngleDown, UilTimes, UilExclamationTriangle, UilBracketsCurly, UilSave, UilFlask, UilRocket, UilListUl, UilFocusTarget, UilFilter, UilSitemap, UilAngleRight, UilExchange } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 

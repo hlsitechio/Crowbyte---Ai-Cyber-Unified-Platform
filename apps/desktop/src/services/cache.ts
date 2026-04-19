@@ -207,12 +207,10 @@ class CacheService {
     // Try to get from cache
     const cached = await this.get<TOutput>(key, cacheType, options);
     if (cached !== null) {
-      console.log(`✅ Cache HIT: ${cacheType}/${key.substring(0, 8)}...`);
       return cached;
     }
 
     // Cache miss - fetch data
-    console.log(`❌ Cache MISS: ${cacheType}/${key.substring(0, 8)}... - fetching...`);
     const result = await fetcher();
 
     // Store in cache

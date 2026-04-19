@@ -51,7 +51,7 @@ export default function AlertCenterWidget({ size }: WidgetProps) {
             recentAlerts: (size === "4x1" ? alerts.slice(0, 6) : alerts.slice(0, 4)) as any[],
           });
         }
-      } catch {}
+      } catch { /* empty */ }
       setLoading(false);
     };
     fetch();

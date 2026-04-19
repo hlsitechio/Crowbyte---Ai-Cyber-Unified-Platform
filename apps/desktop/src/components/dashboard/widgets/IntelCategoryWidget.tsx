@@ -84,7 +84,7 @@ export default function IntelCategoryWidget({ config }: WidgetProps) {
       const data = await resp.json();
       setItems(data.data || []);
       setTotal(data.total || 0);
-    } catch {} finally {
+    } catch { /* empty */ } finally {
       setLoading(false);
     }
   };
@@ -93,7 +93,7 @@ export default function IntelCategoryWidget({ config }: WidgetProps) {
     fetchData();
     intervalRef.current = setInterval(fetchData, 5 * 60 * 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [categoryKey]);
+  }, [categoryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (

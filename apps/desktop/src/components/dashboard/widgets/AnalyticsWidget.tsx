@@ -36,7 +36,7 @@ export default function AnalyticsWidget({ size }: WidgetProps) {
           }));
 
         setStats({ todayEvents, topServices, weekSummary: weekData });
-      } catch {}
+      } catch { /* empty */ }
       setLoading(false);
     };
     fetch();

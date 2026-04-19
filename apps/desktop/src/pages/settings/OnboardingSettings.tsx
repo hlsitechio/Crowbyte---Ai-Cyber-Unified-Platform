@@ -164,7 +164,7 @@ export default function OnboardingSettings() {
           if (prefs.monitor_domains) setMonitorDomains(prefs.monitor_domains.join("\n"));
           if (prefs.monitor_ports) setMonitorPorts(prefs.monitor_ports);
         }
-      } catch {}
+      } catch { /* empty */ }
       setLoading(false);
     })();
   }, []);

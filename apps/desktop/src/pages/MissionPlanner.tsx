@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { UilFocusTarget, UilPlus, UilBrain, UilExclamationTriangle, UilCheckCircle, UilClock, UilShield, UilBoltAlt, UilTrashAlt, UilAngleDown, UilAngleRight, UilBolt, UilEye, UilSync, UilCalendarAlt, UilSitemap, UilSpinner, UilRobot, UilTachometerFast, UilShieldCheck, UilArrowLeft, UilCrosshair, UilListOlAlt, UilTimes, UilListUl, UilColumns, UilSearch, UilPlaneFly, UilDollarSign, UilSearchAlt, UilBug, UilFileAlt, UilArrowRight, UilDraggabledots, UilRocket, UilPlay, UilTimesCircle, UilHeartRate, UilWrench, UilInfoCircle, UilHardHat, UilAward, UilPause, UilStopCircle, UilSkipForwardCircle } from "@iconscout/react-unicons";
+import { UilFocusTarget, UilPlus, UilBrain, UilExclamationTriangle, UilCheckCircle, UilClock, UilShield, UilBoltAlt, UilTrashAlt, UilAngleDown, UilAngleRight, UilBolt, UilEye, UilSync, UilCalendarAlt, UilSitemap, UilSpinner, UilRobot, UilTachometerFast, UilShieldCheck, UilArrowLeft, UilCrosshair, UilTimes, UilListUl, UilColumns, UilSearch, UilPlaneFly, UilDollarSign, UilSearchAlt, UilBug, UilFileAlt, UilArrowRight, UilDraggabledots, UilRocket, UilPlay, UilTimesCircle, UilHeartRate, UilWrench, UilInfoCircle, UilHardHat, UilAward, UilPause, UilStopCircle, UilSkipForwardCircle } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -80,7 +80,7 @@ const PIPELINE_PHASE_ORDER: PhaseType[] = [
   "recon", "enumerate", "vuln_scan", "exploit", "post_exploit", "report",
 ];
 
-const PIPELINE_PHASE_ICONS: Record<PhaseType, React.ComponentType<any>> = {
+const PIPELINE_PHASE_ICONS: Record<PhaseType, React.ComponentType<{ size?: number; className?: string }>> = {
   recon: UilSearch,
   enumerate: UilSitemap,
   vuln_scan: UilBug,
@@ -135,7 +135,7 @@ const PIPELINE_PHASE_STATUS_BADGE: Record<string, { className: string; label: st
   skipped: { className: "bg-zinc-500/20 text-zinc-600 border border-zinc-700/30", label: "Skipped" },
 };
 
-const PIPELINE_EVENT_ICONS: Record<string, React.ComponentType<any>> = {
+const PIPELINE_EVENT_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   mission_created: UilRocket, mission_started: UilPlay, mission_paused: UilPause,
   mission_resumed: UilSync, mission_completed: UilCheckCircle,
   mission_aborted: UilStopCircle, phase_start: UilBolt, phase_complete: UilCheckCircle,
@@ -438,8 +438,8 @@ const MissionPlanner = () => {
       setLoading(true);
       const fetchedPlans = await missionPlannerService.getPlans();
       setPlans(fetchedPlans);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to load plans", variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to load plans", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -486,8 +486,8 @@ const MissionPlanner = () => {
       }
       // Refresh linked missions
       await loadLinkedMissions();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to launch pipeline", variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to launch pipeline", variant: "destructive" });
     } finally {
       setLaunchingPipeline(null);
     }
@@ -566,16 +566,16 @@ const MissionPlanner = () => {
     }
 
     try {
-      await missionPlannerService.updatePlan(planId, { status: targetStatus as any });
+      await missionPlannerService.updatePlan(planId, { status: targetStatus as MissionPlan['status'] });
       const conf = getStatusConfig(targetStatus);
       toast({ title: `Moved to ${conf.label}`, description: plan.name });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Rollback to previous status
       setPlans(prev => prev.map(p => p.id === planId ? { ...p, status: previousStatus } : p));
       if (selectedPlan?.id === planId) {
         setSelectedPlan(prev => prev ? { ...prev, status: previousStatus } : null);
       }
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     }
 
     setDraggedPlanId(null);
@@ -594,14 +594,14 @@ const MissionPlanner = () => {
         type: newPlan.type,
         objective: newPlan.objective,
         target_scope: newPlan.target_scope || undefined,
-        status: newPlan.status as any,
+        status: newPlan.status as MissionPlan['status'],
       });
       setPlans(prev => [created, ...prev]);
       setCreateDialogOpen(false);
       setNewPlan({ name: '', type: 'bug_bounty', objective: '', target_scope: '', status: 'draft' });
       toast({ title: "Mission Created", description: created.name });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     }
   };
 
@@ -611,18 +611,18 @@ const MissionPlanner = () => {
       setPlans(prev => prev.filter(p => p.id !== id));
       if (selectedPlan?.id === id) setSelectedPlan(null);
       toast({ title: "Deleted", description: "Mission removed" });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     }
   };
 
   const handleStatusChange = async (id: string, status: PlanStatus) => {
     try {
-      const updated = await missionPlannerService.updatePlan(id, { status: status as any });
+      const updated = await missionPlannerService.updatePlan(id, { status: status as MissionPlan['status'] });
       setPlans(prev => prev.map(p => p.id === id ? updated : p));
       if (selectedPlan?.id === id) setSelectedPlan(updated);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     }
   };
 
@@ -644,8 +644,8 @@ const MissionPlanner = () => {
       };
       const generated = await missionPlannerAgent.generatePlan(request);
       setAiPreview(generated);
-    } catch (err: any) {
-      toast({ title: "AI Generation Failed", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "AI Generation Failed", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     } finally {
       setAiGenerating(false);
     }
@@ -675,8 +675,8 @@ const MissionPlanner = () => {
       setAiForm({ objective: '', type: 'pentest', targetScope: '', constraints: '' });
       setSelectedPlan(created);
       toast({ title: "AI Plan Saved", description: created.name });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     }
   };
 
@@ -711,8 +711,8 @@ const MissionPlanner = () => {
       setPlans(prev => prev.map(p => p.id === updated.id ? updated : p));
       setSelectedPlan(updated);
       toast({ title: "Plan Modified", description: `${modificationType} applied` });
-    } catch (err: any) {
-      toast({ title: "Modify Failed", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Modify Failed", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     } finally {
       setModifying(null);
     }
@@ -1718,7 +1718,7 @@ const MissionPlanner = () => {
               Phases ({phases.length})
             </h2>
             <div className="space-y-2">
-              {phases.map((phase: any, idx: number) => {
+              {phases.map((phase: Record<string, unknown>, idx: number) => {
                 const isOpen = expandedPhases.has(idx);
                 const tasks = Array.isArray(phase.tasks) ? phase.tasks : [];
                 const tools = Array.isArray(phase.tools) ? phase.tools : [];
@@ -1754,7 +1754,7 @@ const MissionPlanner = () => {
                             )}
                             {tasks.length > 0 && (
                               <div className="space-y-1 mt-1">
-                                {tasks.map((task: any, ti: number) => (
+                                {tasks.map((task: Record<string, unknown>, ti: number) => (
                                   <div key={ti} className="flex items-center gap-2 text-xs pl-4">
                                     <span className={`w-1 h-1 rounded-full ${
                                       task.priority === 'critical' ? 'bg-red-500' :
@@ -1786,7 +1786,7 @@ const MissionPlanner = () => {
               Risks ({risks.length})
             </h2>
             <div className="space-y-2">
-              {risks.map((risk: any, idx: number) => (
+              {risks.map((risk: Record<string, unknown>, idx: number) => (
                 <div key={idx} className="flex items-start gap-2 text-sm">
                   <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${SEVERITY_COLORS[risk.severity] || 'bg-zinc-500'}`} />
                   <div className="flex-1">
@@ -1811,7 +1811,7 @@ const MissionPlanner = () => {
               Success Criteria
             </h2>
             <ul className="space-y-1">
-              {criteria.map((c: any, idx: number) => (
+              {criteria.map((c: unknown, idx: number) => (
                 <li key={idx} className="text-sm text-zinc-300 flex items-start gap-2">
                   <UilCrosshair size={12} className="text-emerald-500 mt-1 shrink-0" />
                   {typeof c === 'string' ? c : JSON.stringify(c)}

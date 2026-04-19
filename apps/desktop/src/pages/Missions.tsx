@@ -27,7 +27,7 @@ import {
   type PhaseType, type CreateMissionData,
   PHASE_CONFIG,
 } from "@/services/mission-pipeline";
-import { UilRocket, UilPlus, UilPlay, UilSearch, UilSitemap, UilBug, UilCrosshair, UilAward, UilFileAlt, UilBolt, UilFocusTarget, UilClock, UilCheckCircle, UilTimesCircle, UilExclamationTriangle, UilArrowRight, UilAngleRight, UilAngleDown, UilTrashAlt, UilEye, UilHeartRate, UilShieldCheck, UilTachometerFast, UilWrench, UilCalendarAlt, UilSync, UilTimes, UilSpinner, UilInfoCircle, UilHardHat, UilPause, UilStopCircle, UilSkipForwardCircle } from "@iconscout/react-unicons";
+import { UilRocket, UilPlus, UilPlay, UilSearch, UilSitemap, UilBug, UilCrosshair, UilAward, UilFileAlt, UilBolt, UilFocusTarget, UilClock, UilCheckCircle, UilTimesCircle, UilExclamationTriangle, UilArrowRight, UilTrashAlt, UilHeartRate, UilShieldCheck, UilTachometerFast, UilWrench, UilCalendarAlt, UilSync, UilTimes, UilSpinner, UilInfoCircle, UilHardHat, UilPause, UilStopCircle, UilSkipForwardCircle } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 

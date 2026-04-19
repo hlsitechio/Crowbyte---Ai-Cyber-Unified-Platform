@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { motion, AnimatePresence } from "framer-motion";
-import { threatIntelCollector, type SyncProgress, type SyncResult } from "@/services/threat-intel-collector";
+import { threatIntelCollector, type SyncProgress } from "@/services/threat-intel-collector";
 
 // ── Types ──
 

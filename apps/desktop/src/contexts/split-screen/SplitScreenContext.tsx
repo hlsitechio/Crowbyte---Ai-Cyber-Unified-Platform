@@ -81,12 +81,14 @@ export interface SplitScreenContextValue extends SplitScreenState {
 
 const SplitScreenContext = createContext<SplitScreenContextValue | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSplitScreen() {
   const ctx = useContext(SplitScreenContext);
   if (!ctx) throw new Error("useSplitScreen must be used within SplitScreenProvider");
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSplitScreenSafe() {
   return useContext(SplitScreenContext);
 }

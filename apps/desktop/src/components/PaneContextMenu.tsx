@@ -24,6 +24,7 @@ interface ContextMenuState {
 type ContextMenuTrigger = (e: React.MouseEvent, pane: PanePosition, panePath: string | null) => void;
 let globalTrigger: ContextMenuTrigger | null = null;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function triggerPaneContextMenu(e: React.MouseEvent, pane: PanePosition, panePath: string | null) {
   if (globalTrigger) globalTrigger(e, pane, panePath);
 }

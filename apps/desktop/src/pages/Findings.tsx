@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,10 +23,6 @@ import {
   DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -42,7 +38,7 @@ import {
   type CreateFindingData,
 } from "@/services/findings-engine";
 import { triageEngine } from "@/services/triage-engine";
-import { UilCrosshair, UilSearch, UilPlus, UilDownloadAlt, UilSitemap, UilDatabase, UilBug, UilEye, UilPen, UilWindow, UilFilter, UilTimes, UilAngleDown, UilAngleRight, UilAngleLeft, UilCheckSquare, UilSquare, UilMinusSquare, UilTrashAlt, UilShieldCheck, UilShieldSlash, UilShieldExclamation, UilCheckCircle, UilLink, UilClock, UilTag, UilArrowsV, UilSortAmountUp, UilSortAmountDown, UilCopy, UilFileAlt, UilExclamationTriangle, UilExternalLinkAlt, UilEllipsisV, UilFocusTarget, UilBolt } from "@iconscout/react-unicons";
+import { UilCrosshair, UilSearch, UilPlus, UilDownloadAlt, UilSitemap, UilDatabase, UilBug, UilEye, UilPen, UilWindow, UilFilter, UilTimes, UilAngleDown, UilAngleRight, UilAngleLeft, UilTrashAlt, UilShieldCheck, UilShieldSlash, UilShieldExclamation, UilCheckCircle, UilLink, UilClock, UilArrowsV, UilSortAmountUp, UilSortAmountDown, UilFileAlt, UilFocusTarget, UilBolt } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 import { formatDistanceToNow } from "date-fns";

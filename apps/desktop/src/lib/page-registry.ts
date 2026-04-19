@@ -12,35 +12,33 @@ export interface PageEntry {
   section: "command" | "ai" | "operations" | "intel" | "system";
 }
 
-// Eager imports for pages that are already loaded in the main bundle
-// (avoids double-loading overhead for the most common pages)
-import Dashboard from "@/pages/Dashboard";
-import Analytics from "@/pages/Analytics";
-import AlertCenter from "@/pages/AlertCenter";
-import Chat from "@/pages/Chat";
-import Terminal from "@/pages/Terminal";
-import AgentBuilder from "@/pages/AgentBuilder";
-import AgentTeams from "@/pages/AgentTeams";
-import Sentinel from "@/pages/Sentinel";
-import MissionPlanner from "@/pages/MissionPlanner";
-import CVE from "@/pages/CVE";
-import Knowledge from "@/pages/Knowledge";
-import Reports from "@/pages/Reports";
-import DetectionLab from "@/pages/DetectionLab";
-import CloudSecurity from "@/pages/CloudSecurity";
-import ThreatIntelligence from "@/pages/ThreatIntelligence";
-import Findings from "@/pages/Findings";
-import SecurityMonitor from "@/pages/SecurityMonitor";
-import RedTeam from "@/pages/RedTeam";
-import CyberOps from "@/pages/CyberOps";
-import NetworkScanner from "@/pages/NetworkScanner";
-import Fleet from "@/pages/Fleet";
-import Bookmarks from "@/pages/Bookmarks";
-import Memory from "@/pages/Memory";
-import Logs from "@/pages/Logs";
-import Tools from "@/pages/Tools";
-import Connectors from "@/pages/Connectors";
-import AIAgent from "@/pages/AIAgent";
+const Dashboard         = lazy(() => import("@/pages/Dashboard"));
+const Analytics         = lazy(() => import("@/pages/Analytics"));
+const AlertCenter       = lazy(() => import("@/pages/AlertCenter"));
+const Chat              = lazy(() => import("@/pages/Chat"));
+const Terminal          = lazy(() => import("@/pages/Terminal"));
+const AgentBuilder      = lazy(() => import("@/pages/AgentBuilder"));
+const AgentTeams        = lazy(() => import("@/pages/AgentTeams"));
+const Sentinel          = lazy(() => import("@/pages/Sentinel"));
+const MissionPlanner    = lazy(() => import("@/pages/MissionPlanner"));
+const CVE               = lazy(() => import("@/pages/CVE"));
+const Knowledge         = lazy(() => import("@/pages/Knowledge"));
+const Reports           = lazy(() => import("@/pages/Reports"));
+const DetectionLab      = lazy(() => import("@/pages/DetectionLab"));
+const CloudSecurity     = lazy(() => import("@/pages/CloudSecurity"));
+const ThreatIntelligence = lazy(() => import("@/pages/ThreatIntelligence"));
+const Findings          = lazy(() => import("@/pages/Findings"));
+const SecurityMonitor   = lazy(() => import("@/pages/SecurityMonitor"));
+const RedTeam           = lazy(() => import("@/pages/RedTeam"));
+const CyberOps          = lazy(() => import("@/pages/CyberOps"));
+const NetworkScanner    = lazy(() => import("@/pages/NetworkScanner"));
+const Fleet             = lazy(() => import("@/pages/Fleet"));
+const Bookmarks         = lazy(() => import("@/pages/Bookmarks"));
+const Memory            = lazy(() => import("@/pages/Memory"));
+const Logs              = lazy(() => import("@/pages/Logs"));
+const Tools             = lazy(() => import("@/pages/Tools"));
+const Connectors        = lazy(() => import("@/pages/Connectors"));
+const AIAgent           = lazy(() => import("@/pages/AIAgent"));
 
 export const PAGE_REGISTRY: PageEntry[] = [
   // Command Center

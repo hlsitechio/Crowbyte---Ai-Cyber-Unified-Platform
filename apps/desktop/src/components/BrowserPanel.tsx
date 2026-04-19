@@ -105,7 +105,7 @@ function WebBrowserPanel() {
 
   const handleReload = () => {
     const iframe = iframeRefs.current[activeTabId];
-    if (iframe) { try { iframe.contentWindow?.location.reload(); } catch {} }
+    if (iframe) { try { iframe.contentWindow?.location.reload(); } catch { /* empty */ } }
   };
 
   const handleHome = () => {
@@ -118,7 +118,7 @@ function WebBrowserPanel() {
     setTabs(prev => prev.map(t => {
       if (t.id !== tabId) return t;
       let title = "New Tab";
-      try { title = new URL(t.url).hostname; } catch {}
+      try { title = new URL(t.url).hostname; } catch { /* empty */ }
       return { ...t, isLoading: false, title };
     }));
   };
@@ -243,7 +243,7 @@ function WebBrowserPanel() {
                   <button type="button" onClick={() => navigator.clipboard.writeText(activeTab?.url || "")} className="absolute right-2 p-0.5 rounded text-zinc-500 hover:text-zinc-300 transition-colors" title="Copy URL"><UilCopy size={12} /></button>
                 </div>
               </form>
-              <button onClick={() => { try { window.open(activeTab?.url, '_blank'); } catch {} }} className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="Open in new window"><UilExternalLinkAlt size={14} /></button>
+              <button onClick={() => { try { window.open(activeTab?.url, '_blank'); } catch { /* empty */ } }} className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="Open in new window"><UilExternalLinkAlt size={14} /></button>
               <button onClick={toggleMaximize} className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title={isMaximized ? "Restore" : "Maximize"}>
                 {isMaximized ? <UilCompressArrows size={14} /> : <UilExpandArrows size={14} />}
               </button>
@@ -664,7 +664,7 @@ function DesktopBrowserPanel() {
  <button onClick={handleDevTools} className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="DevTools">
  <UilShield size={14} />
  </button>
- <button onClick={() => { try { window.open(activeTab?.url, '_blank'); } catch {} }}
+ <button onClick={() => { try { window.open(activeTab?.url, '_blank'); } catch { /* empty */ } }}
  className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="Open in external browser">
  <UilExternalLinkAlt size={14} />
  </button>

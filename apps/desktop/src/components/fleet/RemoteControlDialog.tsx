@@ -67,7 +67,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
       remoteControl.disconnect();
       if (connectionTimer.current) clearInterval(connectionTimer.current);
     };
-  }, [open, endpoint]);
+  }, [open, endpoint]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Event Listeners ───────────────────────────────────────────────────
 
@@ -131,7 +131,7 @@ export function RemoteControlDialog({ open, onOpenChange, endpoint }: RemoteCont
       remoteControl.off('session:ended', onEnded);
       remoteControl.off('cursor:update', onCursor);
     };
-  }, [endpoint]);
+  }, [endpoint]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Frame Rendering ──────────────────────────────────────────────────
 

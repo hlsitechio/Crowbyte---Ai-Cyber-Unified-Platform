@@ -16,11 +16,8 @@ import {
   UilClock,
   UilUser,
   UilMonitor,
-  UilProcessor,
-  UilServer,
   UilSync,
   UilPlaneFly,
-  UilShield,
   UilTimes,
   UilAngleDown,
   UilAngleRight,
@@ -71,8 +68,8 @@ interface TicketRow {
   user_id: string;
   admin_notes: string | null;
   assigned_to: string | null;
-  conversation: any;
-  diagnostics: any;
+  conversation: Array<{ role: string; content: string; timestamp?: string }> | null;
+  diagnostics: { checks?: Array<{ name: string; status: string; message?: string }> } | null;
   resolved_at: string | null;
   created_at: string;
   updated_at: string;
@@ -262,7 +259,7 @@ function TicketDetail({
             {convo.length === 0 ? (
               <div className="text-xs text-zinc-600 text-center py-4">No messages</div>
             ) : (
-              convo.map((msg: any, i: number) => (
+              convo.map((msg: { role: string; content: string; timestamp?: string }, i: number) => (
                 <div
                   key={i}
                   className={`p-3 rounded-lg text-xs ${
@@ -301,7 +298,7 @@ function TicketDetail({
                   Health Score: {diag.score}/100
                 </div>
               )}
-              {Array.isArray(diag.checks) && diag.checks.map((c: any, i: number) => (
+              {Array.isArray(diag.checks) && diag.checks.map((c: { name: string; status: string; message?: string }, i: number) => (
                 <div key={i} className="flex items-center gap-2 text-[11px] py-0.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${
                     c.status === "ok" ? "bg-green-500" : c.status === "warning" ? "bg-amber-500" : "bg-red-500"
@@ -341,7 +338,7 @@ function SessionCard({
   isActive: boolean;
   onConnect: () => void;
 }) {
-  const meta = session.metadata as any;
+  const meta = session.metadata as Record<string, unknown>;
   const timeAgo = getTimeAgo(session.createdAt);
 
   return (
@@ -416,7 +413,7 @@ function LogViewer({ logs }: { logs: SessionFrame[] }) {
   return (
     <div className="h-full overflow-y-auto font-mono text-[11px] space-y-0.5 p-2">
       {logs.map((log, i) => {
-        const d = log.data as any;
+        const d = log.data as Record<string, unknown>;
         const level = d?.level || log.type;
         const color = level === "error" ? "text-red-400" :
                       level === "warn" ? "text-amber-400" :
@@ -482,7 +479,7 @@ function StateInspector({ state }: { state: Record<string, unknown> | null }) {
               )}
               {isObj && !expanded && (
                 <span className="text-zinc-600 ml-1">
-                  {Array.isArray(value) ? `[${(value as any[]).length}]` : `{${Object.keys(value).length}}`}
+                  {Array.isArray(value) ? `[${(value as unknown[]).length}]` : `{${Object.keys(value as object).length}}`}
                 </span>
               )}
             </button>
@@ -626,7 +623,7 @@ export default function Support() {
       // Refresh
       const data = await supportAgent.getAllTickets();
       setTickets(data);
-      const updated = data.find((t: any) => t.id === selectedTicket.id);
+      const updated = data.find((t: TicketRow) => t.id === selectedTicket.id);
       if (updated) setSelectedTicket(updated);
       toast({ title: `Ticket ${status.replace("_", " ")}`, description: "User notified." });
     } catch (err) {
@@ -675,7 +672,7 @@ export default function Support() {
             updated.latestState = frame.data as Record<string, unknown>;
           }
           if (frame.type === "action") {
-            const d = frame.data as any;
+            const d = frame.data as Record<string, unknown>;
             if (d?.screenshot) updated.latestScreenshot = d.screenshot;
           }
           if (frame.type === "error") {
@@ -935,7 +932,7 @@ export default function Support() {
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
                       <UilExclamationTriangle size={11} />
-                      <span className="text-zinc-300">{((activeSession.latestState.errors as any[]) || []).length} errors</span>
+                      <span className="text-zinc-300">{((activeSession.latestState.errors as unknown[]) || []).length} errors</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
                       <UilHeartbeat size={11} />

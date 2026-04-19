@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/
 import { useToast } from"@/hooks/use-toast";
 import { knowledgeService, type KnowledgeEntry, type CreateKnowledgeInput } from"@/services/knowledge";
 import { supabase } from "@/lib/supabase";
-import { UilBookOpen, UilSearch, UilPlus, UilStar, UilEye, UilExternalLinkAlt, UilTag, UilClock, UilFolder, UilTrashAlt, UilPen, UilBook, UilFilter, UilChartGrowth, UilTimes, UilCheckSquare, UilSquare, UilMinusSquare, UilShieldCheck, UilLink, UilCalendarAlt, UilUser, UilChannel, UilArrowLeft, UilCopy, UilCheck } from "@iconscout/react-unicons";
+import { UilBookOpen, UilSearch, UilPlus, UilStar, UilEye, UilExternalLinkAlt, UilTag, UilClock, UilFolder, UilTrashAlt, UilBook, UilChartGrowth, UilTimes, UilCheckSquare, UilSquare, UilMinusSquare, UilShieldCheck, UilCalendarAlt, UilUser, UilChannel, UilCopy, UilCheck } from "@iconscout/react-unicons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from"framer-motion";
@@ -85,7 +85,7 @@ export default function Knowledge() {
 
  useEffect(() => {
  loadEntries();
- }, []);
+ }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
  /**
  * Filter entries based on search, category, and favorites
@@ -208,7 +208,7 @@ export default function Knowledge() {
    try {
      await supabase.from('knowledge_base').update({ view_count: (entry.view_count || 0) + 1 }).eq('id', entry.id);
      setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, view_count: (e.view_count || 0) + 1 } : e));
-   } catch {}
+   } catch { /* empty */ }
  };
 
  const handleCopyContent = () => {

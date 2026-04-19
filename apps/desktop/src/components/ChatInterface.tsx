@@ -49,7 +49,7 @@ export function ChatInterface() {
  };
 
  initConversation();
- }, []);
+ }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
  useEffect(() => {
  if (scrollRef.current) {

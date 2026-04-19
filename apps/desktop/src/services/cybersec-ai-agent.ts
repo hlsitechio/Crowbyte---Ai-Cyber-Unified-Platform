@@ -95,11 +95,9 @@ Be precise, technical, and security-focused in your responses.`;
     try {
       // Only available in Electron environment
       if (typeof window === 'undefined' || !window.electronAPI) {
-        console.log('💡 System context not available in web mode');
         return null;
       }
 
-      console.log('🔍 Gathering local system context...');
 
       // Get host info (OS, hostname, uptime)
       const hostInfo = await window.electronAPI.mcpCall('get_host_info', {});
@@ -130,7 +128,6 @@ Be precise, technical, and security-focused in your responses.`;
         });
       }
 
-      console.log('✅ System context gathered');
       return context;
     } catch (error: unknown) {
       console.error('Failed to get system context:', error);
@@ -142,7 +139,6 @@ Be precise, technical, and security-focused in your responses.`;
    */
   private async performSearch(query: string): Promise<any | null> {
     try {
-      console.log('🔍 Agent performing search for:', query);
       const response = null;
 
       return response;
@@ -219,7 +215,6 @@ Be precise, technical, and security-focused in your responses.`;
    * Process user query with optional search and system context
    */
   async chat(userQuery: string): Promise<AgentResponse> {
-    console.log('💬 Agent received query:', userQuery);
 
     // Add user message to history
     this.conversationHistory.push({
@@ -238,14 +233,12 @@ Be precise, technical, and security-focused in your responses.`;
       if (searchResults && searchResults.success) {
         searchContext = this.formatSearchContext(searchResults);
         researchPerformed = true;
-        console.log('✅ Search completed successfully');
       }
     }
 
     // Check if local system context is needed
     let systemContext: string | null = null;
     if (this.isLocalSecurityQuery(userQuery)) {
-      console.log('🖥️ Local security query detected, gathering system context...');
       systemContext = await this.getSystemContext();
     }
 
@@ -258,7 +251,6 @@ Be precise, technical, and security-focused in your responses.`;
     }
 
     // Generate AI response
-    console.log('🤖 Generating AI response...');
     const aiResponse = await this.generateResponse(userQuery, combinedContext);
 
     // Add assistant response to history
@@ -285,7 +277,6 @@ Be precise, technical, and security-focused in your responses.`;
    * Stream response for real-time chat
    */
   async* chatStream(userQuery: string): AsyncGenerator<string, void, unknown> {
-    console.log('💬 Agent streaming response for:', userQuery);
 
     // Add user message to history
     this.conversationHistory.push({
@@ -297,7 +288,6 @@ Be precise, technical, and security-focused in your responses.`;
 
     // Perform search if needed
     if (this.needsSearch(userQuery)) {
-      console.log('🔍 Search required...');
       yield '\n\n🔍 **Researching latest information...**\n\n';
 
       const searchResults = await this.performSearch(userQuery);
@@ -311,7 +301,6 @@ Be precise, technical, and security-focused in your responses.`;
     // Check if local system context is needed
     let systemContext: string | null = null;
     if (this.isLocalSecurityQuery(userQuery)) {
-      console.log('🖥️ Local security query detected...');
       yield '🖥️ **Checking local system...**\n\n';
       systemContext = await this.getSystemContext();
       if (systemContext) {

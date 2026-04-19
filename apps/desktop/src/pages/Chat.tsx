@@ -4,17 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import {
-  UilRobot, UilBolt, UilStar, UilCog, UilTimes, UilPlus, UilSearch,
+  UilRobot, UilBolt, UilCog, UilTimes, UilPlus, UilSearch,
   UilTrashAlt, UilPen, UilShield, UilFilter, UilHeartRate, UilBell,
-  UilWindow, UilFlask, UilCrosshair, UilBoltAlt, UilAngleRight,
+  UilWindow, UilFlask, UilCrosshair, UilBoltAlt,
 } from "@iconscout/react-unicons";
 import { useToast } from '@/hooks/use-toast';
-import { IS_WEB } from '@/lib/platform';
-import { analyticsService } from '@/services/analytics';
 import { memoryEngine } from '@/services/memory-engine';
 import { streamChat, DEFAULT_MODEL } from '@/services/ai';
 import { AssistantMessage, UserMessage, TypingIndicator, type Message } from '@/components/chat/ChatMessage';
@@ -48,7 +45,7 @@ function getLastPageContext() {
   try {
     const last = localStorage.getItem('cb_last_page');
     if (last && PAGE_CONTEXT[last]) return { path: last, ...PAGE_CONTEXT[last] };
-  } catch {}
+  } catch { /* empty */ }
   return null;
 }
 
@@ -155,7 +152,7 @@ export default function Chat() {
     init();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => { if (!s) navigate('/auth'); });
     return () => { subscription.unsubscribe(); abortRef.current?.abort(); };
-  }, [navigate]);
+  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -177,7 +174,7 @@ export default function Chat() {
     if (!prefill.includes('XXXXX') && !prefill.includes('// paste')) {
       setTimeout(() => handleSend(prefill), 150);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Supabase ────────────────────────────────────────────────────────────
 
@@ -279,7 +276,7 @@ export default function Chat() {
     setMessages(prev => { const n = [...prev]; n[n.length - 1] = { ...n[n.length - 1], content, isStreaming: false, timestamp: Date.now() }; return n; });
     if (content) await saveMessage('assistant', content);
     return content;
-  }, [messages, conversationId]);
+  }, [messages, conversationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Send handler ─────────────────────────────────────────────────────────
 

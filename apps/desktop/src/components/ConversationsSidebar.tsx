@@ -94,7 +94,7 @@ export function ConversationsSidebar({
 
  // Folders feature disabled until table is created via migration
  // TODO: Enable after running: CREATE TABLE folders (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users, name text, created_at timestamptz default now());
- let foldersData: any[] | null = null;
+ const foldersData: any[] | null = null;
 
  // Fetch all conversations — try with folder_id, fall back without
  let conversationsData: any[] | null = null;

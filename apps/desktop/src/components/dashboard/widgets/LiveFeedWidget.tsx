@@ -21,7 +21,7 @@ const getStoredSpeed = (): number => {
   try {
     const stored = localStorage.getItem("crowbyte-ticker-speed");
     if (stored) return parseInt(stored, 10);
-  } catch {}
+  } catch { /* empty */ }
   return 300;
 };
 
@@ -64,7 +64,7 @@ export default function LiveFeedWidget(_props: WidgetProps) {
             };
           }));
         }
-      } catch {}
+      } catch { /* empty */ }
     };
     fetchNews();
     const interval = setInterval(fetchNews, 120000);

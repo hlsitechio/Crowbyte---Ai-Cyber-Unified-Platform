@@ -468,27 +468,6 @@ async function toolFetchUrl(url: string, method = 'GET', headersJson?: string, b
   }
 }
 
-// ─── DNS Lookup (DNS-over-HTTPS) ─────────────────────────────────────────────
-
-async function toolDnsLookup(domain: string, type: string): Promise<string> {
-  const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=${type}`;
-  const res = await fetch(url, { headers: { 'Accept': 'application/dns-json' } });
-  const data = await res.json();
-
-  if (data.Status !== 0) return `DNS lookup failed for ${domain} (status: ${data.Status})`;
-
-  const typeMap: Record<number, string> = { 1: 'A', 28: 'AAAA', 15: 'MX', 2: 'NS', 16: 'TXT', 5: 'CNAME', 6: 'SOA' };
-  const results: string[] = [`DNS ${type} records for ${domain}:`];
-  if (data.Answer) {
-    for (const a of data.Answer) {
-      results.push(`  ${a.name}  ${typeMap[a.type] || a.type}  ${a.data}  TTL:${a.TTL}`);
-    }
-  } else {
-    results.push('  No records found');
-  }
-  return results.join('\n');
-}
-
 // ─── WHOIS Lookup ────────────────────────────────────────────────────────────
 
 async function toolWhois(domain: string): Promise<string> {

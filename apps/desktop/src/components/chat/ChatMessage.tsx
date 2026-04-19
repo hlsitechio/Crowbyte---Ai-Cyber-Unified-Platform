@@ -35,7 +35,7 @@ const parseThinkingAndTools = (content: string): ParsedMessage => {
 
   let cleanContent = content.replace(thinkingRegex, '').trim();
 
-  const toolCallRegex = /\n?`\[\*\] Running (\w+)\((\{[^}]*\})\)\.\.\.\`\n?/g;
+  const toolCallRegex = /\n?`\[\*\] Running (\w+)\((\{[^}]*\})\)\.\.\.`\n?/g;
   const toolCalls: { name: string; args: string }[] = [];
   let match;
   while ((match = toolCallRegex.exec(cleanContent)) !== null) {
@@ -228,7 +228,7 @@ const markdownComponents = {
           )
         ).filter(Boolean).join('\n') || '';
         navigator.clipboard.writeText(rows);
-      } catch {}
+      } catch { /* empty */ }
     };
     return (
       <div className="my-3 rounded-xl overflow-hidden ring-1 ring-white/[0.08] bg-[#1a1a2e]">

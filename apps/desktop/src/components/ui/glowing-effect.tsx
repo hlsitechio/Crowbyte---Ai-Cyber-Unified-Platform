@@ -64,7 +64,7 @@ export const GlowingEffect = memo(function GlowingEffect({
 
         const currentStart = parseFloat(containerRef.current.style.getPropertyValue("--start")) || 0;
         const targetAngle = (180 * Math.atan2(y - center[1], x - center[0])) / Math.PI + 90;
-        let delta = ((targetAngle - currentStart + 180) % 360) - 180;
+        const delta = ((targetAngle - currentStart + 180) % 360) - 180;
         const finalAngle = currentStart + delta;
 
         animate(currentStart, finalAngle, {

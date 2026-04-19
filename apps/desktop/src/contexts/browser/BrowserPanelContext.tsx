@@ -24,6 +24,7 @@ interface BrowserPanelContextType extends BrowserPanelState {
 
 const BrowserPanelContext = createContext<BrowserPanelContextType | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBrowserPanel() {
   const ctx = useContext(BrowserPanelContext);
   if (!ctx) throw new Error("useBrowserPanel must be used within BrowserPanelProvider");
@@ -31,6 +32,7 @@ export function useBrowserPanel() {
 }
 
 // Safe version that returns null if not within provider
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBrowserPanelSafe() {
   return useContext(BrowserPanelContext);
 }
@@ -42,7 +44,7 @@ function loadState(): Partial<BrowserPanelState> {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { /* empty */ }
   return {};
 }
 
@@ -54,7 +56,7 @@ function saveState(state: Partial<BrowserPanelState>) {
       isOpen: state.isOpen,
       side: state.side,
     }));
-  } catch {}
+  } catch { /* empty */ }
 }
 
 export function BrowserPanelProvider({ children }: { children: ReactNode }) {

@@ -12,14 +12,13 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UilShield, UilKeySkeleton, UilDatabase, UilDesktopAlt, UilBuilding, UilRocket, UilAngleRight, UilAngleLeft, UilCheck, UilTimes, UilSpinner, UilExternalLinkAlt, UilCopy, UilEye, UilEyeSlash, UilBolt, UilAward, UilUsersAlt, UilWindow, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilInfoCircle, UilArrowRight, UilStar } from "@iconscout/react-unicons";
+import { UilShield, UilKeySkeleton, UilDatabase, UilDesktopAlt, UilBuilding, UilRocket, UilAngleRight, UilAngleLeft, UilCheck, UilTimes, UilSpinner, UilEye, UilEyeSlash, UilBolt, UilAward, UilUsersAlt, UilWindow, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilInfoCircle, UilStar } from "@iconscout/react-unicons";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { setupService, type SetupConfig } from '@/services/setupService';
 

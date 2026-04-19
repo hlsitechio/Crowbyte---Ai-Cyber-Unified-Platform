@@ -195,13 +195,13 @@ async function checkSubscription(): Promise<LicenseStatus> {
   }
 
   // Query subscription via RPC (SECURITY DEFINER — bypasses RLS edge cases)
-  const { data: rpcData, error: rpcErr } = await supabase.rpc('get_my_subscription' as any);
+  const { data: rpcData, error: rpcErr } = await supabase.rpc('get_my_subscription');
 
   // Fallback to direct query if RPC doesn't exist
-  let s: any = null;
+  let s: { tier: string; status: string; expires_at: string | null } | null = null;
   if (rpcErr) {
     const { data: sub, error: subErr } = await supabase
-      .from('user_subscriptions' as any)
+      .from('user_subscriptions' as 'user_subscriptions')
       .select('tier, status, expires_at')
       .eq('user_id', session.user.id)
       .eq('status', 'active')
@@ -209,7 +209,7 @@ async function checkSubscription(): Promise<LicenseStatus> {
     if (subErr || !sub) s = null;
     else s = sub;
   } else {
-    const rows = rpcData as any[];
+    const rows = rpcData as Array<{ tier: string; status: string; expires_at: string | null }>;
     s = rows?.length > 0 ? rows[0] : null;
   }
 
@@ -265,28 +265,29 @@ async function verifyDevice(
   maxDevices: number = 3,
 ): Promise<{ ok: boolean; reason?: string }> {
   // Check existing activations
+  type DeviceRow = { id: string; device_id: string; device_name: string; last_seen: string };
   const { data: activations } = await supabase
-    .from('device_activations' as any)
+    .from('device_activations' as 'device_activations')
     .select('id, device_id, device_name, last_seen')
     .eq('user_id', userId)
     .order('last_seen', { ascending: false });
 
-  const acts = (activations || []) as any[];
+  const acts = (activations || []) as DeviceRow[];
 
   // Is this device already registered?
-  const existing = acts.find((a: any) => a.device_id === deviceId);
+  const existing = acts.find((a) => a.device_id === deviceId);
   if (existing) {
     // Update last_seen
     await supabase
-      .from('device_activations' as any)
-      .update({ last_seen: new Date().toISOString() } as any)
+      .from('device_activations' as 'device_activations')
+      .update({ last_seen: new Date().toISOString() })
       .eq('id', existing.id);
     return { ok: true };
   }
 
   // New device — check limit
   if (acts.length >= maxDevices) {
-    const deviceList = acts.map((a: any) => a.device_name || a.device_id).join(', ');
+    const deviceList = acts.map((a) => a.device_name || a.device_id).join(', ');
     return {
       ok: false,
       reason: `Device limit reached (${maxDevices} max for your plan). Active devices: ${deviceList}. Deactivate a device at crowbyte.io/settings to add this one.`,
@@ -295,13 +296,13 @@ async function verifyDevice(
 
   // Register new device
   const { error } = await supabase
-    .from('device_activations' as any)
+    .from('device_activations' as 'device_activations')
     .insert({
       user_id: userId,
       device_id: deviceId,
       device_name: `${navigator.platform} - ${navigator.userAgent.split('(')[1]?.split(')')[0] || 'Unknown'}`,
       last_seen: new Date().toISOString(),
-    } as any);
+    });
 
   if (error) {
     console.warn('[license-guard] Failed to register device:', error.message);
@@ -319,11 +320,11 @@ export async function getActiveDevices(): Promise<{ id: string; device_id: strin
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return [];
   const { data } = await supabase
-    .from('device_activations' as any)
+    .from('device_activations' as 'device_activations')
     .select('id, device_id, device_name, last_seen')
     .eq('user_id', session.user.id)
     .order('last_seen', { ascending: false });
-  return (data || []) as any[];
+  return (data || []) as { id: string; device_id: string; device_name: string; last_seen: string }[];
 }
 
 /**
@@ -331,7 +332,7 @@ export async function getActiveDevices(): Promise<{ id: string; device_id: strin
  */
 export async function deactivateDevice(activationId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('device_activations' as any)
+    .from('device_activations' as 'device_activations')
     .delete()
     .eq('id', activationId);
   return !error;

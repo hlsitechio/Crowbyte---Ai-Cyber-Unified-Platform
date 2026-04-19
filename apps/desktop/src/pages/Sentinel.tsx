@@ -10,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
 import { UilShield, UilPlus, UilTrashAlt, UilPen, UilDesktop, UilGlobe, UilCloud, UilCog, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilBolt, UilEye, UilSync, UilAngleDown, UilAngleRight, UilCopy, UilCrosshair, UilHeartRate, UilRobot, UilFocusTarget, UilHistory, UilPlay, UilQrcodeScan, UilWindow } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from 'framer-motion';
 import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";

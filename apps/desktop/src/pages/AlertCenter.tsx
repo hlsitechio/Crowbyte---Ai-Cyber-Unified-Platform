@@ -5,7 +5,7 @@
  * "87% of incidents require 2+ data sources. We unify them all."
  */
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,6 @@ import {
   type SourceType,
   type SourceStatus,
   type InvestigationTimeline,
-  type TimelineEvent,
   type CorrelationGroup,
 } from "@/services/alert-ingestion";
 
@@ -221,7 +220,7 @@ export default function AlertCenter() {
     });
 
     return () => { clearInterval(interval); unsubEsc(); };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Feed filters
   const [searchQuery, setSearchQuery] = useState("");

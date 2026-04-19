@@ -45,7 +45,7 @@ export function SupportBanner() {
         }
       }
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Elapsed timer when active
   useEffect(() => {

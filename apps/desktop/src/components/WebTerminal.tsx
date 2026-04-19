@@ -515,7 +515,7 @@ export const WebTerminal = forwardRef<WebTerminalHandle, WebTerminalProps>(funct
                 if (tc.function?.arguments) toolCallsMap[idx].arguments += tc.function.arguments;
               }
             }
-          } catch {}
+          } catch { /* empty */ }
         }
       }
 
@@ -594,7 +594,7 @@ export const WebTerminal = forwardRef<WebTerminalHandle, WebTerminalProps>(funct
           // Execute each tool call
           for (const tc of toolCalls) {
             let parsedArgs: Record<string, string> = {};
-            try { parsedArgs = JSON.parse(tc.arguments); } catch {}
+            try { parsedArgs = JSON.parse(tc.arguments); } catch { /* empty */ }
             const argsDisplay = Object.entries(parsedArgs).map(([k,v]) => `${k}=${v}`).join(' ');
 
             wl('');
@@ -931,7 +931,6 @@ export const WebTerminal = forwardRef<WebTerminalHandle, WebTerminalProps>(funct
 
   // --- Init terminal (runs ONCE) ---
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!termRef.current) return;
 
@@ -1167,7 +1166,7 @@ export const WebTerminal = forwardRef<WebTerminalHandle, WebTerminalProps>(funct
 
     // Resize
     const observer = new ResizeObserver(() => {
-      try { fit.fit(); } catch {}
+      try { fit.fit(); } catch { /* empty */ }
     });
     observer.observe(termRef.current);
 

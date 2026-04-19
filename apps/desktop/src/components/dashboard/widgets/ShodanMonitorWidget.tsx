@@ -51,7 +51,7 @@ export default function ShodanMonitorWidget({ size }: WidgetProps) {
             timestamp: a.alert_time,
           })));
         }
-      } catch {}
+      } catch { /* empty */ }
       setLoading(false);
     };
     fetch();

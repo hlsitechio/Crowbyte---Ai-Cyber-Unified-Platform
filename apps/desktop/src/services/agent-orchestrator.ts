@@ -1,4 +1,3 @@
-import { createChatCompletion } from './ai';
 /**
  * Agent Orchestrator — Task queue, team provisioning, agent dispatch
  *
@@ -1173,7 +1172,6 @@ class AgentOrchestrator {
   start(intervalMs = 5000): void {
     if (this.pollInterval) return;
 
-    console.log(`[orchestrator] Starting queue processor (${intervalMs}ms interval)`);
 
     this.pollInterval = setInterval(async () => {
       let dispatched = 0;
@@ -1192,7 +1190,6 @@ class AgentOrchestrator {
       }
 
       if (dispatched > 0 || scheduled > 0) {
-        console.log(`[orchestrator] Dispatched: ${dispatched} tasks, Scheduled: ${scheduled} jobs`);
       }
     }, intervalMs);
 
@@ -1208,7 +1205,6 @@ class AgentOrchestrator {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
       this.pollInterval = null;
-      console.log('[orchestrator] Queue processor stopped');
     }
   }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from"react";
-import { UilPlus, UilTrashAlt, UilShield, UilSearch, UilExternalLinkAlt, UilClock, UilTag, UilCheckSquare, UilSquare, UilMinusSquare, UilTimes, UilExclamationTriangle, UilShieldExclamation, UilShieldCheck, UilShieldSlash, UilAngleDown, UilAngleRight, UilCopy, UilBookmark, UilGrid, UilListUl, UilArrowsV, UilFire, UilBug, UilFileAlt, UilSortAmountUp, UilSortAmountDown } from "@iconscout/react-unicons";
+import { UilPlus, UilTrashAlt, UilShield, UilSearch, UilExternalLinkAlt, UilClock, UilCheckSquare, UilSquare, UilMinusSquare, UilTimes, UilExclamationTriangle, UilShieldExclamation, UilShieldCheck, UilShieldSlash, UilAngleDown, UilAngleRight, UilCopy, UilBookmark, UilGrid, UilListUl, UilArrowsV, UilFire, UilBug, UilFileAlt, UilSortAmountUp, UilSortAmountDown } from "@iconscout/react-unicons";
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
 import { Textarea } from"@/components/ui/textarea";
@@ -99,7 +99,8 @@ const CVEPage = () => {
  reference_urls:"", cwe_ids:"", tags:"", notes:"", nvd_uuid:"",
  });
 
- useEffect(() => { fetchCVEs(); }, []);
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => { fetchCVEs(); }, []);
 
  const fetchCVEs = async () => {
  try {

@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { UilShield, UilExclamationTriangle, UilHeartRate, UilBrain, UilSignalAlt, UilEye, UilSync, UilCheckCircle, UilTimesCircle, UilInfoCircle } from "@iconscout/react-unicons";
+import { UilShield, UilExclamationTriangle, UilHeartRate, UilBrain, UilSignalAlt, UilEye, UilSync, UilCheckCircle, UilInfoCircle } from "@iconscout/react-unicons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -68,7 +68,7 @@ const extractRecommendations = (text: string): string[] => {
     }
     if (inSection) {
       // Numbered or bulleted items
-      const match = trimmed.match(/^(?:\d+[\.\)]\s*|[-*]\s+)(.+)/);
+      const match = trimmed.match(/^(?:\d+[.)]\s*|[-*]\s+)(.+)/);
       if (match) {
         recs.push(match[1].replace(/\*\*/g, ""));
       }

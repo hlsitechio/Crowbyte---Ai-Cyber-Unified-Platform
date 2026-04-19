@@ -2,6 +2,7 @@ import { createContext, useState, useEffect } from 'react';
 import { loggingService } from '@/services/logging';
 import { LogLevel, LogTag, LogEntry, LogsContextType } from './types';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const LogsContext = createContext<LogsContextType | undefined>(undefined);
 
 export function LogsProvider({ children }: { children: React.ReactNode }) {

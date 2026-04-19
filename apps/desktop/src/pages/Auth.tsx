@@ -64,7 +64,7 @@ export default function Auth() {
      }
    }, 300);
    return () => clearInterval(interval);
- }, [IS_ELECTRON]);
+ }, []);
 
  useEffect(() => {
  // Redirect if already authenticated
@@ -79,7 +79,7 @@ export default function Auth() {
 
  // Listen for OAuth callback
  handleOAuthCallback();
- }, []);
+ }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
  // OAuth callback is handled globally in App.tsx via supabase.auth.onAuthStateChange
  // Nothing to do here — session will be set automatically and isAuthenticated will flip
@@ -132,7 +132,7 @@ export default function Auth() {
    return !xssPatterns.some(p => p.test(value));
  };
 
- const isValidEmail = (e: string): boolean => /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(e) && e.length <= 254;
+ const isValidEmail = (e: string): boolean => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(e) && e.length <= 254;
 
  const isStrongPassword = (p: string): { ok: boolean; reason?: string } => {
    if (p.length < 8) return { ok: false, reason: 'Password must be at least 8 characters' };

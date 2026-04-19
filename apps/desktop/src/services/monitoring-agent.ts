@@ -129,21 +129,17 @@ REMEMBER: You are the guardian of this system. Be vigilant.`;
           const { mcpClient: client } = await import('./mcp-client');
           mcpClient = client;
           await mcpClient.initialize();
-          console.log(`📊 MCP Tools: ${mcpClient.getStats().totalTools} available`);
         } else {
-          console.log('💡 Running in web mode - MCP tools not available');
+          // web mode - MCP tools not available
         }
       } catch (mcpError) {
-        console.warn('⚠️ MCP client initialization skipped or failed:', mcpError);
-        console.log('💡 Continuing without MCP - some features may be limited');
+        // MCP client initialization skipped or failed - continuing without MCP
       }
 
       // Load incident memory from localStorage
       this.loadIncidentMemory();
 
       this.isInitialized = true;
-      console.log('✅ AI Monitoring Agent initialized');
-      console.log(`🧠 Model: ${OLLAMA_MODEL} (671B parameters)`);
     } catch (error) {
       console.error('❌ Failed to initialize Monitoring Agent:', error);
       throw error;
@@ -155,12 +151,10 @@ REMEMBER: You are the guardian of this system. Be vigilant.`;
    */
   startAutoMonitoring(): void {
     if (this.isMonitoring) {
-      console.log('⚠️ Auto-monitoring already running');
       return;
     }
 
     this.isMonitoring = true;
-    console.log('🚀 Starting auto-monitoring (every 5 minutes)');
 
     // Run initial scan immediately
     this.performMonitoringScan();
@@ -180,7 +174,6 @@ REMEMBER: You are the guardian of this system. Be vigilant.`;
       this.monitoringInterval = null;
     }
     this.isMonitoring = false;
-    console.log('🛑 Auto-monitoring stopped');
   }
 
   /**
@@ -191,12 +184,9 @@ REMEMBER: You are the guardian of this system. Be vigilant.`;
       await this.initialize();
     }
 
-    console.log('🔍 Starting monitoring scan...');
-
     try {
       // Check if PC monitoring is available
       if (!pcMonitor.isMonitoringAvailable()) {
-        console.warn('⚠️ PC monitoring not available - run in Electron desktop mode');
         return this.createMockReport();
       }
 
@@ -204,11 +194,8 @@ REMEMBER: You are the guardian of this system. Be vigilant.`;
       const monitoringTools = await this.getMonitoringTools();
 
       if (monitoringTools.length === 0) {
-        console.warn('⚠️ No monitoring tools available');
         return this.createMockReport();
       }
-
-      console.log(`🔧 Using ${monitoringTools.length} MCP monitoring tools`);
 
       // Prepare monitoring context
       const context = this.buildMonitoringContext();
@@ -263,8 +250,6 @@ Be thorough and provide a complete response even if some tools fail.`,
           criticalInfo: report.securityThreats.join('; '),
         });
       }
-
-      console.log(`✅ Monitoring scan complete - Status: ${report.status.toUpperCase()}`);
 
       return report;
     } catch (error) {
@@ -423,7 +408,6 @@ Be thorough and provide a complete response even if some tools fail.`,
 
     while (iterationCount < maxIterations) {
       iterationCount++;
-      console.log(`🔄 Tool calling iteration ${iterationCount}/${maxIterations}`);
 
       // Call Ollama API
       const response = await fetch(`${OLLAMA_API_URL}/chat/completions`, {
@@ -450,25 +434,15 @@ Be thorough and provide a complete response even if some tools fail.`,
       const data = await response.json();
       const assistantMessage = data.choices[0].message;
 
-      console.log(`📨 Assistant response:`, {
-        hasContent: !!assistantMessage.content,
-        hasToolCalls: !!assistantMessage.tool_calls,
-        toolCount: assistantMessage.tool_calls?.length || 0
-      });
-
       // Add assistant's response to conversation
       currentMessages.push(assistantMessage);
 
       // Check if assistant wants to use tools
       if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-        console.log(`🔧 Agent using ${assistantMessage.tool_calls.length} tool(s)...`);
-
         // Execute all tool calls
         for (const toolCall of assistantMessage.tool_calls) {
           const toolName = toolCall.function.name;
           const toolArgs = JSON.parse(toolCall.function.arguments);
-
-          console.log(`  → Executing: ${toolName}`);
 
           try {
             // Handle GlitchTip error monitoring tools
@@ -491,7 +465,6 @@ Be thorough and provide a complete response even if some tools fail.`,
                   })),
                 }),
               });
-              console.log(`  ✅ Found ${issues.length} GlitchTip issues`);
             } else if (toolName === 'glitchtip_get_issue_events') {
               const events = await glitchTipService.getIssueEvents(toolArgs.issueId);
               currentMessages.push({
@@ -510,7 +483,6 @@ Be thorough and provide a complete response even if some tools fail.`,
                   })),
                 }),
               });
-              console.log(`  ✅ Found ${events.length} events for issue ${toolArgs.issueId}`);
             } else if (toolName === 'glitchtip_error_summary') {
               const summary = await glitchTipService.getErrorSummary();
               currentMessages.push({
@@ -518,7 +490,6 @@ Be thorough and provide a complete response even if some tools fail.`,
                 tool_call_id: toolCall.id,
                 content: JSON.stringify(summary),
               });
-              console.log(`  ✅ Error summary: ${summary.total} total, ${summary.critical} critical`);
             }
             // Handle MCP monitor tools via Electron IPC
             if (typeof window !== 'undefined' && window.electronAPI) {
@@ -564,11 +535,9 @@ Be thorough and provide a complete response even if some tools fail.`,
       }
 
       // No more tool calls - return final response
-      console.log(`✅ Final AI response received (length: ${assistantMessage.content?.length || 0})`);
       return assistantMessage.content || 'No response from AI';
     }
 
-    console.warn(`⚠️ Max iterations (${maxIterations}) reached without final response`);
     throw new Error('Max tool calling iterations reached - AI may be stuck in loop');
   }
 
@@ -708,8 +677,6 @@ Be thorough and provide a complete response even if some tools fail.`,
 
     // Save to localStorage
     this.saveIncidentMemory();
-
-    console.log(`📝 Incident stored: ${incident.type} - ${incident.description}`);
   }
 
   /**
@@ -724,7 +691,6 @@ Be thorough and provide a complete response even if some tools fail.`,
           ...inc,
           timestamp: new Date(inc.timestamp),
         }));
-        console.log(`📚 Loaded ${this.incidentMemory.length} incidents from memory`);
       }
     } catch (error) {
       console.error('Failed to load incident memory:', error);

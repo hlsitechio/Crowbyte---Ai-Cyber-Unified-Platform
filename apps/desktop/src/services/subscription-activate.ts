@@ -67,7 +67,6 @@ export async function activateSubscription(opts: {
   if (!rpcErr && rpcData) {
     const rows = rpcData as any[];
     const sub = rows?.[0] || rpcData;
-    console.log(`[+] Subscription activated via RPC: ${sub.tier} until ${sub.expires_at}`);
     return {
       success: true,
       tier: sub.tier,
@@ -124,7 +123,6 @@ export async function activateSubscription(opts: {
   }
 
   const sub = result.data as any;
-  console.log(`[+] Subscription activated: ${sub.tier} until ${sub.expires_at}`);
 
   return {
     success: true,

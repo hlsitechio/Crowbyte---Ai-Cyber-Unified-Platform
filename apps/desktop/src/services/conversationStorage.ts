@@ -11,7 +11,7 @@
  */
 
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
-import { encryptionService, EncryptedData, EncryptedMessage, EncryptedConversation } from './encryption';
+import { encryptionService, EncryptedData, EncryptedConversation } from './encryption';
 import { supabase } from '@/lib/supabase';
 
 // Namespace UUID for deterministic conversation IDs

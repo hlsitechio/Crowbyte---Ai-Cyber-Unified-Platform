@@ -144,7 +144,7 @@ export function FeedPanel() {
           const data = await resp.json();
           setIntelItems(data.data || []);
         }
-      } catch {}
+      } catch { /* empty */ }
       setLoading(false);
       return;
     }
@@ -158,7 +158,7 @@ export function FeedPanel() {
     setItems(feedItems);
     setUnreadCount(count);
     setLoading(false);
-  }, [filter]);
+  }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initial load + filter change
   useEffect(() => {

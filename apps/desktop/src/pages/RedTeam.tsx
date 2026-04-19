@@ -40,7 +40,7 @@ import {
   type CreateFindingData,
 } from "@/services/red-team";
 import { motion, AnimatePresence } from "framer-motion";
-import { UilShield, UilFocusTarget, UilHeartRate, UilExclamationTriangle, UilPlus, UilTrashAlt, UilPlay, UilCheckCircle, UilAngleDown, UilAngleUp, UilPen, UilBug, UilTimesCircle, UilPause } from "@iconscout/react-unicons";
+import { UilShield, UilFocusTarget, UilPlus, UilTrashAlt, UilPlay, UilCheckCircle, UilAngleDown, UilAngleUp, UilPen, UilTimesCircle, UilPause } from "@iconscout/react-unicons";
 import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 // --- Status / Severity helpers ---
 

@@ -109,7 +109,7 @@ export default function ConnectorsSettings() {
         setLoading(false);
       }
     })();
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Group by category
   const grouped = useMemo(() => {

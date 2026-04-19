@@ -17,7 +17,6 @@ import {
   UilGlobe,
   UilExclamationTriangle,
   UilBolt,
-  UilAngleDown,
   UilNewspaper,
   UilFocusTarget,
 } from "@iconscout/react-unicons";
@@ -30,7 +29,6 @@ import {
   NEWS_SOURCES,
   TIER_LIMITS,
   type Tier,
-  type UserPreferences,
 } from "@/services/subscription";
 
 // ─── Types ──────────────────────────────────────────────────────────────────

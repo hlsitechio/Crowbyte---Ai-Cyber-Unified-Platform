@@ -18,7 +18,7 @@ export default function ProfileSettings() {
   useEffect(() => {
     loadProfilePicture();
     loadLicenseKey();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadLicenseKey = async () => {
     if (!user) return;

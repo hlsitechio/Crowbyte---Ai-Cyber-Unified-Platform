@@ -5,13 +5,19 @@
 import { chat as aiChat, testConnection as aiTestConnection } from './ai';
 import { toast } from '@/hooks/use-toast';
 
+interface ToolParameter {
+  type: string;
+  description?: string;
+  enum?: string[];
+}
+
 interface AttackTool {
   name: string;
   description: string;
-  execute: (args: any) => Promise<any>;
+  execute: (args: Record<string, unknown>) => Promise<Record<string, unknown>>;
   parameters: {
     type: string;
-    properties: Record<string, any>;
+    properties: Record<string, ToolParameter>;
     required: string[];
   };
 }
@@ -84,7 +90,7 @@ class HybridRedTeamAgent {
   ): Promise<{
     response: string;
     success: boolean;
-    toolCalls?: any[];
+    toolCalls?: Record<string, unknown>[];
   }> {
     const {
       requestType = 'general',
@@ -98,7 +104,6 @@ class HybridRedTeamAgent {
       ? { primary: forceProvider, fallback: 'none' as const, reason: 'User forced provider' }
       : this.selectStrategy(requestType, requiresUncensored);
 
-    console.log(`[Hybrid Agent] Strategy: ${strategy.primary} → ${strategy.fallback} (${strategy.reason})`);
 
     // Prepare tools if needed
     const tools = useTools ? this.getToolsArray() : undefined;
@@ -111,14 +116,6 @@ class HybridRedTeamAgent {
       console.error('[Hybrid Agent] AI provider failed:', error);
     }
 
-  }
-
-  /**
-   * Execute with Ollama
-   */
-  private async executeWithOllama(prompt: string): Promise<{ response: string; provider: 'ollama'; success: boolean; toolCalls?: any[] }> {
-    const response = await aiChat([{ role: 'user', content: prompt }]);
-    return { response, provider: 'ollama', success: true };
   }
 
   /**
@@ -140,7 +137,7 @@ class HybridRedTeamAgent {
     target: string,
   ): Promise<{
     analysis: string;
-    toolCalls: any[];
+    toolCalls: Record<string, unknown>[];
   }> {
     const tools = this.getToolsArray();
 
@@ -177,8 +174,7 @@ class HybridRedTeamAgent {
         required: ['target']
       },
       execute: async (args) => {
-        console.log('[Tool] Port scan:', args);
-        const ipc = (window as any).electronAPI;
+        const ipc = (window as Window & { electronAPI?: { executeCommand?: (cmd: string) => Promise<string> } }).electronAPI;
         if (!ipc?.executeCommand) {
           return { error: 'executeCommand not available (web mode)' };
         }
@@ -210,8 +206,7 @@ class HybridRedTeamAgent {
         required: ['domain']
       },
       execute: async (args) => {
-        console.log('[Tool] Subdomain enumeration:', args);
-        const ipc = (window as any).electronAPI;
+        const ipc = (window as Window & { electronAPI?: { executeCommand?: (cmd: string) => Promise<string> } }).electronAPI;
         if (!ipc?.executeCommand) {
           return { error: 'executeCommand not available (web mode)' };
         }
@@ -238,8 +233,7 @@ class HybridRedTeamAgent {
         required: ['target']
       },
       execute: async (args) => {
-        console.log('[Tool] Vulnerability scan:', args);
-        const ipc = (window as any).electronAPI;
+        const ipc = (window as Window & { electronAPI?: { executeCommand?: (cmd: string) => Promise<string> } }).electronAPI;
         if (!ipc?.executeCommand) {
           return { error: 'executeCommand not available (web mode)' };
         }
@@ -247,7 +241,7 @@ class HybridRedTeamAgent {
         const raw: string = await ipc.executeCommand(
           `nuclei -u ${args.target} -severity ${severity} -silent -json 2>&1`
         );
-        const vulnerabilities: any[] = [];
+        const vulnerabilities: Record<string, unknown>[] = [];
         for (const line of raw.split('\n')) {
           try {
             const obj = JSON.parse(line);
@@ -276,18 +270,17 @@ class HybridRedTeamAgent {
         required: ['cve_id']
       },
       execute: async (args) => {
-        console.log('[Tool] Exploit search:', args);
-        const ipc = (window as any).electronAPI;
+        const ipc = (window as Window & { electronAPI?: { executeCommand?: (cmd: string) => Promise<string> } }).electronAPI;
         if (!ipc?.executeCommand) {
           return { error: 'executeCommand not available (web mode)' };
         }
         const raw: string = await ipc.executeCommand(
-          `searchsploit ${args.cve_id} --json 2>&1`
+          `searchsploit ${String(args.cve_id)} --json 2>&1`
         );
-        let exploits: any[] = [];
+        let exploits: Record<string, unknown>[] = [];
         try {
-          const parsed = JSON.parse(raw);
-          exploits = (parsed.RESULTS_EXPLOIT || []).map((e: any) => ({
+          const parsed = JSON.parse(raw) as { RESULTS_EXPLOIT?: Record<string, unknown>[] };
+          exploits = (parsed.RESULTS_EXPLOIT || []).map((e) => ({
             name: e.Title,
             path: e.Path,
             type: e.Type,
@@ -318,7 +311,7 @@ class HybridRedTeamAgent {
   /**
    * Get tools as array for API calls (OpenAI format)
    */
-  private getToolsArray(): any[] {
+  private getToolsArray(): { type: string; function: { name: string; description: string; parameters: AttackTool['parameters'] } }[] {
     return Array.from(this.tools.values()).map(t => ({
       type: 'function',
       function: {
@@ -332,7 +325,7 @@ class HybridRedTeamAgent {
   /**
    * Execute tool by name
    */
-  async executeTool(name: string, args: any): Promise<any> {
+  async executeTool(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
     const tool = this.tools.get(name);
     if (!tool) {
       throw new Error(`Tool ${name} not found`);

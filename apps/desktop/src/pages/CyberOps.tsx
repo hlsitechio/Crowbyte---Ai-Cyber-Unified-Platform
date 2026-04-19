@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from"react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from"@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
@@ -8,7 +8,7 @@ import { Badge } from"@/components/ui/badge";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { UilBoltAlt, UilShield, UilSearch, UilWindow, UilBolt, UilLock, UilLockOpenAlt, UilEye, UilSitemap, UilDatabase, UilWifi, UilGlobe, UilDesktopAlt, UilKeySkeleton, UilFileAlt, UilHeartRate, UilExclamationTriangle, UilCheckCircle, UilPlaneFly, UilSpinner, UilClock, UilStar, UilTrashAlt, UilCopy, UilQrcodeScan } from "@iconscout/react-unicons";
 import { motion } from"framer-motion";
-import { chat as aiChat, streamChat as aiStreamChat } from "@/services/ai";
+import { streamChat as aiStreamChat } from "@/services/ai";
 import { useToast } from"@/hooks/use-toast";
 import { cacheService } from"@/services/cache";
 import { analyticsService } from"@/services/analytics";
