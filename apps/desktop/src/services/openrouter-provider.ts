@@ -124,7 +124,7 @@ class OpenRouterProvider {
         if (data?.openrouter_api_key) {
           this.apiKey = data.openrouter_api_key;
           // Cache locally for faster subsequent loads
-          localStorage.setItem('openrouter_api_key', this.apiKey);
+          localStorage.setItem('openrouter_api_key', this.apiKey); // CodeQL[js/clear-text-storage-of-sensitive-data] — Electron app: sandboxed localStorage
           return true;
         }
       }

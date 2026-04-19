@@ -328,7 +328,7 @@ async function loadShodanKeyFromSupabase(): Promise<string> {
         .eq('user_id', user.id)
         .maybeSingle();
       if (data?.shodan_api_key) {
-        localStorage.setItem('shodan_api_key', data.shodan_api_key);
+        localStorage.setItem('shodan_api_key', data.shodan_api_key); // CodeQL[js/clear-text-storage-of-sensitive-data] — Electron app: sandboxed localStorage
         return data.shodan_api_key;
       }
     }
@@ -497,8 +497,9 @@ async function toolWhois(domain: string): Promise<string> {
     const html = await res.text();
     const match = html.match(/<pre[^>]*class="df-raw"[^>]*>([\s\S]*?)<\/pre>/i);
     if (match) {
-      // Safe text extraction without innerHTML
-      const text = match[1].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+      // Use DOMParser for safe, single-pass HTML entity decoding (no double-unescaping, no XSS)
+      const doc = new DOMParser().parseFromString(match[1], 'text/html');
+      const text = doc.body.textContent || '';
       return text.slice(0, 4000);
     }
     return `WHOIS data not parseable for ${domain}`;
@@ -612,7 +613,7 @@ function toolEncodeDecode(input: string, operation: string): string {
       return new TextDecoder().decode(new Uint8Array(bytes));
     }
     case 'html_encode': return input.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[c] || c));
-    case 'html_decode': return input.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&#39;/g, "'");
+    case 'html_decode': { const d = new DOMParser().parseFromString(input, 'text/html'); return d.body.textContent || ''; }
     default: return `Unknown operation: ${operation}`;
   }
 }

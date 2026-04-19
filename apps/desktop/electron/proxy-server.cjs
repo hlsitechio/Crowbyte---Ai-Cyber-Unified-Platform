@@ -495,7 +495,7 @@ class CrowByteProxy extends EventEmitter {
       path: clientReq.url,
       method: clientReq.method,
       headers: { ...clientReq.headers, host: hostname },
-      rejectUnauthorized: false,
+      rejectUnauthorized: true, // CodeQL[js/disabling-certificate-validation] — re-enabled; proxy captures traffic for security testing only
     };
 
     const proxyReq = https.request(proxyOpts, async (proxyRes) => {
@@ -599,7 +599,7 @@ class CrowByteProxy extends EventEmitter {
         path: url.pathname + url.search,
         method,
         headers,
-        rejectUnauthorized: false,
+        rejectUnauthorized: true, // CodeQL[js/disabling-certificate-validation] — re-enabled; proxy is for local traffic capture only
       };
 
       const req = httpModule.request(opts, async (res) => {

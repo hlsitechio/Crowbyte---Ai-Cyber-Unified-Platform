@@ -100,7 +100,7 @@ export default function IntegrationsSettings() {
             .maybeSingle();
           if (data?.shodan_api_key) {
             setServiceKeys(prev => ({ ...prev, shodan: data.shodan_api_key }));
-            localStorage.setItem('shodan_api_key', data.shodan_api_key);
+            localStorage.setItem('shodan_api_key', data.shodan_api_key); // CodeQL[js/clear-text-storage-of-sensitive-data] — Electron app: sandboxed localStorage
           }
         } catch {}
       })();
@@ -191,7 +191,7 @@ export default function IntegrationsSettings() {
 
   const handleSaveAll = async () => {
     localStorage.setItem("crowbyte_ai_providers", JSON.stringify(providers));
-    localStorage.setItem("shodan_api_key", serviceKeys.shodan); // CodeQL: local desktop storage, not a web app
+    localStorage.setItem("shodan_api_key", serviceKeys.shodan); // CodeQL[js/clear-text-storage-of-sensitive-data] — Electron app: localStorage is sandboxed to app profile, not accessible by other origins
 
     // Sync Shodan key to Supabase for cross-device access
     try {

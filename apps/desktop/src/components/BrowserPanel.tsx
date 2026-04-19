@@ -46,9 +46,13 @@ function proxyUrl(url: string): string {
   if (url.includes('/api/proxy/browse')) return url;
   try {
     const u = new URL(url);
+    // Only allow http/https schemes to prevent javascript: or data: XSS via iframe src
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return 'about:blank';
     if (u.hostname === window.location.hostname) return url;
-  } catch {}
-  return `/api/proxy/browse?url=${encodeURIComponent(url)}`;
+    return `/api/proxy/browse?url=${encodeURIComponent(u.href)}`;
+  } catch {
+    return 'about:blank';
+  }
 }
 
 function WebBrowserPanel() {
