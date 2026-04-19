@@ -205,7 +205,7 @@ What other indicators should we look for?`,
 
 Alert: ${a.title}
 Severity: ${a.severity}
-Time: ${a.ingested_at}
+Time: ${a.alert_time}
 Description: ${a.description || 'N/A'}
 
 Write a concise escalation message for a security manager. Include: what happened, potential impact, recommended immediate action.`,
@@ -437,7 +437,7 @@ export async function getProactiveContext(path: string): Promise<ProactiveContex
     if (path === '/findings') {
       const { data, count } = await supabase
         .from('findings')
-        .select('id, title, severity, status, target_host, cve_id', { count: 'exact' })
+        .select('id, title, severity, status, affected_host, cve_ids', { count: 'exact' })
         .eq('status', 'open')
         .order('severity', { ascending: true })
         .limit(20);
@@ -461,9 +461,9 @@ export async function getProactiveContext(path: string): Promise<ProactiveContex
     if (path === '/alert-center') {
       const { data, count } = await supabase
         .from('alerts')
-        .select('id, title, severity, source, ingested_at', { count: 'exact' })
+        .select('id, title, severity, source_type, alert_time', { count: 'exact' })
         .in('status', ['new', 'investigating'])
-        .order('ingested_at', { ascending: false })
+        .order('alert_time', { ascending: false })
         .limit(20);
 
       if (!data || !count) return null;

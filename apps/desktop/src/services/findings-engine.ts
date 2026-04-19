@@ -645,7 +645,7 @@ class FindingsEngine {
   async getUniqueHosts(): Promise<string[]> {
     const { data, error } = await supabase
       .from('findings')
-      .select('target_host')
+      .select('affected_host')
       .order('target_host');
 
     if (error) throw new Error(`Failed to fetch hosts: ${error.message}`);

@@ -32,8 +32,8 @@ export default function AgentActivityWidget(_props: WidgetProps) {
       const [intelRes, alertsRes, reportsRes, cveRes] = await Promise.all([
         supabase.from("intel_reports").select("created_at", { count: "exact", head: false })
           .gte("created_at", oneDayAgo).order("created_at", { ascending: false }).limit(1),
-        supabase.from("alerts").select("ingested_at", { count: "exact", head: false })
-          .gte("ingested_at", oneDayAgo).order("ingested_at", { ascending: false }).limit(1),
+        supabase.from("alerts").select("alert_time", { count: "exact", head: false })
+          .gte("alert_time", oneDayAgo).order("alert_time", { ascending: false }).limit(1),
         supabase.from("reports").select("created_at", { count: "exact", head: false })
           .gte("created_at", oneDayAgo).order("created_at", { ascending: false }).limit(1),
         supabase.from("cves").select("created_at", { count: "exact", head: false })
