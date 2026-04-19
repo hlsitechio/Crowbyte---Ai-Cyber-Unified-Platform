@@ -2,10 +2,6 @@
  * Global TypeScript declarations for Electron API
  */
 
-  success: boolean;
-  error?: string;
-}
-
 interface StreamChatRequest {
   messages: Array<{ role: string; content: string }>;
   model?: string;

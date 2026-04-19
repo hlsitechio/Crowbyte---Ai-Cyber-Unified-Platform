@@ -199,6 +199,7 @@ const MCP = () => {
  const [qnaAnswer, setQnaAnswer] = useState("");
  const [qnaQuery, setQnaQuery] = useState("");
  const [isAsking, setIsAsking] = useState(false);
+ const [searchResults, setSearchResults] = useState<any[]>([]);
 
  // Bookmark state
  const [bookmarkDialogOpen, setBookmarkDialogOpen] = useState(false);
@@ -250,14 +251,9 @@ const MCP = () => {
 
  setIsSearching(true);
  try {
- const response = null;
-
- setSearchResults(response.data.results);
- setSearchAnswer(response.data.answer ||"");
- toast.success("Search completed successfully");
+ toast.error("Web search is not available");
  } catch (error: unknown) {
- toast.error(error instanceof Error ? error.message :"Search failed");
- console.error("Tavily search error:", error);
+ toast.error(error instanceof Error ? error.message : "Search failed");
  } finally {
  setIsSearching(false);
  }
@@ -271,15 +267,9 @@ const MCP = () => {
 
  setIsAsking(true);
  try {
- query: qnaQuery,
- search_depth: 'advanced',
- });
-
- setQnaAnswer(response.data.answer);
- toast.success("Answer retrieved successfully");
+ toast.error("Q&A search is not available");
  } catch (error: unknown) {
- toast.error(error instanceof Error ? error.message :"Q&A failed");
- console.error("Tavily Q&A error:", error);
+ toast.error(error instanceof Error ? error.message : "Q&A failed");
  } finally {
  setIsAsking(false);
  }
@@ -289,11 +279,9 @@ const MCP = () => {
  setIsSearching(true);
  setSearchQuery(cveId);
  try {
- setSearchResults(response.data.results);
- setSearchAnswer(response.data.answer ||"");
- toast.success(`CVE ${cveId} information retrieved`);
+ toast.error("CVE search is not available");
  } catch (error: unknown) {
- toast.error(error instanceof Error ? error.message :"CVE search failed");
+ toast.error(error instanceof Error ? error.message : "CVE search failed");
  } finally {
  setIsSearching(false);
  }
@@ -311,6 +299,7 @@ const MCP = () => {
  };
 
  // Handle opening bookmark dialog with pre-filled data
+ const handleBookmarkResult = (result: any) => {
  setNewBookmark({
  title: result.title,
  url: result.url,
