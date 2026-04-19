@@ -291,7 +291,7 @@ const Analytics = () => {
       } else {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 8000);
-        const res = await fetch('/api/proxy/nvd/rest/json/cves/2.0/?resultsPerPage=1', { signal: controller.signal });
+        const res = await fetch('https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=1', { signal: controller.signal });
         clearTimeout(timer);
         ok = res.ok;
       }
