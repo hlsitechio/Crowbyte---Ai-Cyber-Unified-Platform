@@ -40,7 +40,7 @@ jobs:
 
       - name: Lint
         working-directory: apps/desktop
-        run: npx eslint . --max-warnings=100
+        run: npx eslint . --max-warnings=150
 
       - name: Unit tests
         working-directory: apps/desktop

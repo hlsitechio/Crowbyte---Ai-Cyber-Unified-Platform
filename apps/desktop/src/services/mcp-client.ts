@@ -115,8 +115,7 @@ class MCPClientService {
     console.log(`🧠 Memory MCP server connected with ${toolsList.tools.length} tools`);
   }
 
-  /**
-   */
+  getToolsForOpenAI(): any[] {
     const tools: any[] = [];
 
     for (const [serverName, server] of this.servers.entries()) {

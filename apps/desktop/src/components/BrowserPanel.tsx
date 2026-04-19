@@ -105,7 +105,7 @@ function WebBrowserPanel() {
 
   const handleReload = () => {
     const iframe = iframeRefs.current[activeTabId];
-    if (iframe) { try { iframe.src = iframe.src; } catch {} }
+    if (iframe) { try { iframe.contentWindow?.location.reload(); } catch {} }
   };
 
   const handleHome = () => {

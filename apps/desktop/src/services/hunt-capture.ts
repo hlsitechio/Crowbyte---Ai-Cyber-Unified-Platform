@@ -390,6 +390,7 @@ class HuntCaptureService {
     if (!this.activeHunt) return;
 
     // Strip ANSI escape codes
+    // eslint-disable-next-line no-control-regex
     const clean = raw.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').replace(/\x1b\][^\x07]*\x07/g, '');
 
     const { entities, tool } = await huntGraph.processTerminalStream(this.activeHunt.id, clean);
