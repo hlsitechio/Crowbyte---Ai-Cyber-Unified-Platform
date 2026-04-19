@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { forwardRef, useState } from "react";
 import { UilTimes, UilExpandArrowsAlt, UilCompressArrows, UilExpandArrows, UilDraggabledots } from "@iconscout/react-unicons";
 import { motion } from "framer-motion";
 import type { WidgetSize } from "./types";
@@ -22,7 +22,7 @@ interface WidgetShellProps {
   index?: number;
 }
 
-export default function WidgetShell({
+const WidgetShell = forwardRef<HTMLDivElement, WidgetShellProps>(function WidgetShell({
   children,
   size,
   allowedSizes,
@@ -36,7 +36,7 @@ export default function WidgetShell({
   onDragOver,
   onDragEnd,
   index = 0,
-}: WidgetShellProps) {
+}: WidgetShellProps, ref) {
   const span = sizeToGridSpan[size];
   const [dragOver, setDragOver] = useState(false);
 
@@ -81,6 +81,7 @@ export default function WidgetShell({
 
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -143,4 +144,6 @@ export default function WidgetShell({
       {children}
     </motion.div>
   );
-}
+});
+
+export default WidgetShell;

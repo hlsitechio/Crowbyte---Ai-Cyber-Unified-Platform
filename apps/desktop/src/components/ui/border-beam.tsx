@@ -15,8 +15,9 @@ export function BorderBeam({
   delay = 0,
   colorFrom = "#3b82f6",
   colorTo = "#f97316",
+  borderWidth: _borderWidth, // consumed here — not a valid DOM attribute
   ...props
-}: BorderBeamProps) {
+}: BorderBeamProps & { borderWidth?: number }) {
   return (
     <div
       className={cn(

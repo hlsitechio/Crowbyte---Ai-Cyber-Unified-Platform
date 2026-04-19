@@ -777,11 +777,12 @@ class IPStatusService {
         continue;
       }
 
-      // If ISP name is available, check if DNS owner matches ISP
-      if (isp) {
-        // This would require reverse DNS lookup or ASN lookup
-        // For now, we'll mark unknown DNS as potential leak
+      // Unknown DNS — only warn if no VPN DNS found yet (avoids false positives on VPN gateways)
+      const hasVPNDNS = dnsServers.some(s => vpnDNSPatterns.some(p => p.test(s)));
+      if (!hasVPNDNS) {
         debugWarn(`⚠️  ${dnsServer} - Unknown DNS (possible leak)`);
+      } else {
+        debugLog(`ℹ️  ${dnsServer} - Unknown DNS (VPN active, likely VPN gateway)`);
       }
     }
 
