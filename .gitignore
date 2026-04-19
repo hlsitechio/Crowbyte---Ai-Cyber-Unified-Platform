@@ -160,3 +160,11 @@ credentials.json
 *.secret
 apps/desktop/.npmrc
 packages/cli/.npmrc
+
+# ─── Internal / Operational Dirs ─────────────────────────────────────────────
+agent/
+central/
+docs/
+legal/
+marketing/
+sentinel/
