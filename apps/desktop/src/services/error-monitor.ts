@@ -1478,7 +1478,4 @@ if (typeof window !== 'undefined') {
     },
   };
 
-  if (import.meta.env.DEV) {
-    console.log('[QA Bridge] __qaAgent ready — status(), errors(), verify(pattern), recheck(), report()');
-  }
 }
