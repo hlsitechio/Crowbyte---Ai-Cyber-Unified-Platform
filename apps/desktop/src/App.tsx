@@ -185,7 +185,7 @@ const AppWithTitleBar = () => {
     )}
     <Routes>
       {/* Auth routes without sidebar */}
-      <Route path="/welcome" element={<Welcome />} />
+      <Route path="/welcome" element={IS_ELECTRON ? <Welcome /> : <Navigate to="/landing" replace />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/auth" element={<Navigate to="/auth/signin" replace />} />
       <Route path="/auth/signin" element={<div className={IS_ELECTRON ? "pt-8" : ""}><Auth /></div>} />

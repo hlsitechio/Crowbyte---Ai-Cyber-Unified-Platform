@@ -130,8 +130,8 @@ jobs:
 
       - name: Deploy to production
         run: |
-          rsync -avz --delete apps/desktop/dist/web/ /opt/crowbyte/src/apps/desktop/dist/
-          systemctl reload nginx
+          rsync -avz --delete --exclude=version.json apps/desktop/dist/web/ /opt/crowbyte/web/
+          nginx -s reload
 
       - name: Smoke test production
         run: |
