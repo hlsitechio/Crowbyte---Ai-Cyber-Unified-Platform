@@ -1,3 +1,4 @@
+import { createChatCompletion } from './ai';
 /**
  * Knowledge Base Service
  * Manages cybersecurity knowledge entries in Supabase
@@ -319,6 +320,7 @@ class KnowledgeService {
    */
   private async generateSummary(content: string): Promise<string> {
     try {
+        const response = await createChatCompletion({
         messages: [
           {
             role: 'system',
@@ -344,6 +346,8 @@ class KnowledgeService {
    */
   async generateTags(title: string, content: string): Promise<string[]> {
     try {
+
+        const response = await createChatCompletion({
 
         messages: [
           {

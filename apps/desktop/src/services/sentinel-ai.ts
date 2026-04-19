@@ -1,3 +1,4 @@
+import { createChatCompletion } from './ai';
 /**
  * Sentinel AI UilBrain — LLM-powered threat analysis
  *

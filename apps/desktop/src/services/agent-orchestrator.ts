@@ -1,3 +1,4 @@
+import { createChatCompletion } from './ai';
 /**
  * Agent Orchestrator — Task queue, team provisioning, agent dispatch
  *
