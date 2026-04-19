@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://crowbyte.io"><img src="https://img.shields.io/badge/crowbyte.io-Launch_App-f97316?style=for-the-badge" alt="Launch App" /></a>
-  <a href="https://github.com/hlsitechio/Crowbyte---Ai-Cyber-Unified-Platform/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/hlsitechio/crowbyte/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=for-the-badge" alt="License" /></a>
 </p>
 
 <p align="center">
