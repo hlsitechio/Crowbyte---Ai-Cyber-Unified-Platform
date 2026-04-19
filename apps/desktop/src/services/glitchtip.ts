@@ -53,7 +53,7 @@ interface ParsedDSN {
   publicKey: string;
   host: string;
   projectId: string;
-  storeUrl: string;
+  envelopeUrl: string;
 }
 
 function parseDSN(dsn: string): ParsedDSN | null {
@@ -67,7 +67,7 @@ function parseDSN(dsn: string): ParsedDSN | null {
       publicKey,
       host,
       projectId,
-      storeUrl: `${url.protocol}//${host}/api/${projectId}/store/?sentry_key=${publicKey}&sentry_version=7`,
+      envelopeUrl: `${url.protocol}//${host}/api/${projectId}/envelope/?sentry_key=${publicKey}`,
     };
   } catch {
     return null;
@@ -252,10 +252,16 @@ class GlitchTipService {
     if (!this.dsn) return;
 
     // Fire-and-forget — don't block the UI
-    fetch(this.dsn.storeUrl, {
+    // GlitchTip uses Sentry envelope format: 3 newline-separated JSON lines
+    const envelopeHeader = JSON.stringify({ event_id: event.event_id, sdk: { name: 'crowbyte.js', version: '1.0.0' } });
+    const itemHeader = JSON.stringify({ type: 'event' });
+    const itemPayload = JSON.stringify(event);
+    const body = `${envelopeHeader}\n${itemHeader}\n${itemPayload}`;
+
+    fetch(this.dsn.envelopeUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(event),
+      headers: { 'Content-Type': 'application/x-sentry-envelope' },
+      body,
     }).catch(() => {
       // Silent fail — error reporting shouldn't cause errors
     });
