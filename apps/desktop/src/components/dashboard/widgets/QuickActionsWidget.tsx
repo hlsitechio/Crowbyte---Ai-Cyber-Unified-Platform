@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { UilWindow, UilCommentDots, UilBoltAlt, UilWifi, UilDatabase } from "@iconscout/react-unicons";
 import { IS_WEB } from "@/lib/platform";
 import type { WidgetProps } from "../types";
@@ -20,11 +19,10 @@ export default function QuickActionsWidget(_props: WidgetProps) {
   return (
     <div className="flex items-center gap-6 flex-wrap">
       {visibleActions.map((action, i) => (
-        <motion.div
+        <div
           key={action.path}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: i * 0.05 }}
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both"
+          style={{ animationDelay: `${i * 50}ms` }}
         >
           <div
             className="flex items-center gap-2.5 cursor-pointer group"
@@ -35,7 +33,7 @@ export default function QuickActionsWidget(_props: WidgetProps) {
               {action.label}
             </span>
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
   );

@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { UilSignalAlt, UilEye, UilExternalLinkAlt, UilSync } from "@iconscout/react-unicons";
-import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { WidgetProps } from "../types";
 
@@ -75,12 +74,10 @@ export default function ThreatIntelWidget(_props: WidgetProps) {
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
             {news.map((item, idx) => (
-              <motion.div
+              <div
                 key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: idx * 0.1 }}
-                className="rounded-lg p-4 ring-1 ring-white/[0.06] transition-all hover:bg-primary/5 hover:ring-white/[0.1] cursor-pointer active:scale-[0.98]"
+                className="rounded-lg p-4 ring-1 ring-white/[0.06] transition-all hover:bg-primary/5 hover:ring-white/[0.1] cursor-pointer active:scale-[0.98] animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both"
+                style={{ animationDelay: `${idx * 60}ms` }}
                 onClick={() => {
                   const text = `${item.title}\nCategory: ${item.category}\nSource: ${item.source}\n${item.url}`;
                   navigator.clipboard.writeText(text);
@@ -102,7 +99,7 @@ export default function ThreatIntelWidget(_props: WidgetProps) {
                     <UilExternalLinkAlt size={12} className="mr-1" /> Read
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </ScrollArea>

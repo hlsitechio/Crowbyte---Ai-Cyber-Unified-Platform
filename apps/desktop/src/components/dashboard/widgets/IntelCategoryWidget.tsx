@@ -11,7 +11,6 @@ import {
   UilLink, UilDatabase, UilServer, UilLock, UilSearch, UilEnvelope,
   UilBolt,
 } from "@iconscout/react-unicons";
-import { motion } from "framer-motion";
 import type { WidgetProps } from "../types";
 
 interface IOCItem {
@@ -130,12 +129,10 @@ export default function IntelCategoryWidget({ config }: WidgetProps) {
               </div>
             ) : (
               items.map((item, i) => (
-                <motion.div
+                <div
                   key={`${item.ioc_value}-${i}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.02 }}
-                  className="flex items-center gap-1.5 px-1.5 py-1 rounded hover:bg-zinc-800/50 transition-colors group min-w-0"
+                  className="flex items-center gap-1.5 px-1.5 py-1 rounded hover:bg-zinc-800/50 transition-colors group min-w-0 animate-in fade-in-0 duration-200 fill-mode-both"
+                  style={{ animationDelay: `${i * 20}ms` }}
                 >
                   <div className={`w-1 h-1 rounded-full shrink-0 ${
                     item.severity === "high" ? "bg-red-500" :
@@ -150,7 +147,7 @@ export default function IntelCategoryWidget({ config }: WidgetProps) {
                   <span className="text-[9px] text-zinc-700 shrink-0 tabular-nums">
                     {timeAgo(item.last_seen)}
                   </span>
-                </motion.div>
+                </div>
               ))
             )}
           </div>

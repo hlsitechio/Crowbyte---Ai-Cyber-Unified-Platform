@@ -1,6 +1,5 @@
 import { forwardRef, useState } from "react";
-import { UilTimes, UilExpandArrowsAlt, UilCompressArrows, UilExpandArrows, UilDraggabledots } from "@iconscout/react-unicons";
-import { motion } from "framer-motion";
+import { UilTimes, UilCompressArrows, UilExpandArrows, UilDraggabledots } from "@iconscout/react-unicons";
 import type { WidgetSize } from "./types";
 import { sizeToGridSpan } from "./types";
 
@@ -80,17 +79,13 @@ const WidgetShell = forwardRef<HTMLDivElement, WidgetShellProps>(function Widget
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      layout
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12, scale: 0.95 }}
-      transition={{ duration: 0.3, delay: index * 0.04 }}
-      className={`relative ${editMode ? "ring-1 ring-dashed ring-blue-500/30 rounded-xl" : ""} ${dragOver && editMode ? "ring-2 ring-blue-400 bg-blue-500/5" : ""}`}
+      className={`relative animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both ${editMode ? "ring-1 ring-dashed ring-blue-500/30 rounded-xl" : ""} ${dragOver && editMode ? "ring-2 ring-blue-400 bg-blue-500/5" : ""}`}
       style={{
         gridColumn: `span ${span.col}`,
         gridRow: `span ${span.row}`,
+        animationDelay: `${index * 40}ms`,
         ...(compact ? { alignSelf: "start" } : {}),
       }}
       onDragOver={editMode ? handleDragOver : undefined}
@@ -142,7 +137,7 @@ const WidgetShell = forwardRef<HTMLDivElement, WidgetShellProps>(function Widget
       )}
 
       {children}
-    </motion.div>
+    </div>
   );
 });
 

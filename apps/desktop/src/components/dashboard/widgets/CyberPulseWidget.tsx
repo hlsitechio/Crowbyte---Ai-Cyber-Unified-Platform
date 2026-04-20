@@ -11,7 +11,6 @@ import {
   UilSync, UilArrowUp, UilBolt, UilDatabase, UilServer,
   UilEnvelope, UilLock, UilArrowDown,
 } from "@iconscout/react-unicons";
-import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import type { WidgetProps } from "../types";
 
@@ -212,10 +211,8 @@ export default function CyberPulseWidget(_props: WidgetProps) {
         </div>
 
         {/* Threat Level Badge */}
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className={`flex items-center justify-between px-2 py-1.5 rounded-lg border min-w-0 gap-2 ${THREAT_BG[level]}`}
+        <div
+          className={`flex items-center justify-between px-2 py-1.5 rounded-lg border min-w-0 gap-2 animate-in fade-in-0 zoom-in-95 duration-300 fill-mode-both ${THREAT_BG[level]}`}
         >
           <div className="flex items-center gap-1.5 shrink-0">
             <div className={`w-2 h-2 rounded-full ${level === "CRITICAL" || level === "HIGH" ? "animate-pulse" : ""} ${THREAT_COLORS[level].replace("text-", "bg-")}`} />
@@ -235,22 +232,20 @@ export default function CyberPulseWidget(_props: WidgetProps) {
             {pulse.trend === "rising" && <UilArrowUp size={12} className="text-red-400 shrink-0" />}
             {pulse.trend === "declining" && <UilArrowDown size={12} className="text-emerald-400 shrink-0" />}
           </div>
-        </motion.div>
+        </div>
 
         {/* Metric bars — auto-wrap responsive grid */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1 flex-1 min-w-0">
           {metrics.slice(0, 6).map((m, i) => (
-            <motion.div
+            <div
               key={m.key}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="flex flex-col items-center gap-0.5 p-1 rounded-md bg-zinc-900/50 hover:bg-zinc-800/50 transition-colors min-w-0"
+              className="flex flex-col items-center gap-0.5 p-1 rounded-md bg-zinc-900/50 hover:bg-zinc-800/50 transition-colors min-w-0 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both"
+              style={{ animationDelay: `${i * 50}ms` }}
             >
               <m.icon size={12} className={m.color} />
               <span className="text-xs font-bold text-zinc-200 tabular-nums">{formatNumber(m.value)}</span>
               <span className="text-[7px] text-zinc-500 text-center leading-tight truncate w-full">{m.label}</span>
-            </motion.div>
+            </div>
           ))}
         </div>
 

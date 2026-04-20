@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { UilExclamationTriangle, UilClock, UilExternalLinkAlt, UilSync } from "@iconscout/react-unicons";
-import { motion } from "framer-motion";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { useToast } from "@/hooks/use-toast";
 import type { WidgetProps } from "../types";
@@ -83,12 +82,10 @@ export default function CVEAlertsWidget(_props: WidgetProps) {
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
             {cves.map((cve, idx) => (
-              <motion.div
+              <div
                 key={cve.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: idx * 0.1 }}
-                className="rounded-lg p-4 ring-1 ring-white/[0.06] transition-all hover:bg-primary/5 hover:ring-white/[0.1] cursor-pointer active:scale-[0.98]"
+                className="rounded-lg p-4 ring-1 ring-white/[0.06] transition-all hover:bg-primary/5 hover:ring-white/[0.1] cursor-pointer active:scale-[0.98] animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both"
+                style={{ animationDelay: `${idx * 60}ms` }}
                 onClick={() => {
                   const text = `${cve.id} | ${cve.severity} | CVSS ${cve.cvssScore}\n${cve.description}\nPublished: ${new Date(cve.publishedDate).toLocaleDateString()}\nhttps://nvd.nist.gov/vuln/detail/${cve.id}`;
                   navigator.clipboard.writeText(text);
@@ -115,7 +112,7 @@ export default function CVEAlertsWidget(_props: WidgetProps) {
                     <UilExternalLinkAlt size={12} className="mr-1" /> View
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </ScrollArea>
