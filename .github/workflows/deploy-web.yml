@@ -1,11 +1,10 @@
 ###############################################################################
-# CrowByte — Web Deployment
+# CrowByte — Web Deployment to Cloudflare Pages
 #
 # Triggers:
-#   push to main → deploy to staging (staging.crowbyte.io)
-#   v* tags      → deploy to production (crowbyte.io)
-#
-# Runs on self-hosted VPS runner (147.93.44.58)
+#   push to main → deploy to Cloudflare Pages (production branch)
+#   v* tags      → same, Pages uses branch=main as production
+#   workflow_dispatch → manual trigger
 ###############################################################################
 
 name: Deploy Web
@@ -15,23 +14,11 @@ on:
     branches: [main]
     tags: ['v*']
   workflow_dispatch:
-    inputs:
-      target:
-        description: 'Deploy target'
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
 
 jobs:
-  # ─── Staging (push to main) ───────────────────────────────────────────────
-  deploy-staging:
-    if: >
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'staging')
-    runs-on: [self-hosted, linux, x64, crowbyte]
-    name: Deploy to Staging
+  deploy:
+    name: Build & Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -48,106 +35,41 @@ jobs:
         working-directory: apps/desktop
         run: npm install --legacy-peer-deps
 
-      - name: Build web (staging)
+      - name: Build web
         working-directory: apps/desktop
-        run: npm run build:web:staging
+        run: npm run build:web
         env:
           VITE_BUILD_TARGET: web
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_GLITCHTIP_DSN: ${{ secrets.VITE_GLITCHTIP_DSN }}
+          VITE_MCP_CLOUD_URL: ${{ secrets.VITE_MCP_CLOUD_URL }}
 
       - name: Strip source maps
         working-directory: apps/desktop
         run: find dist/web/ -name '*.map' -delete
 
-      - name: Security audit
+      - name: Security audit — no service key in bundle
         working-directory: apps/desktop
         run: |
           if grep -r "service_role" dist/web/; then
-            echo "::error::Service key found in web bundle!"
+            echo "::error::Service role key found in web bundle!"
             exit 1
           fi
 
-      - name: Deploy to staging
-        run: |
-          rsync -avz --delete apps/desktop/dist/web/ /opt/crowbyte/staging/
-
-      - name: Smoke test staging
-        run: |
-          sleep 2
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://staging.crowbyte.io/ || echo "000")
-          if [ "$STATUS" != "200" ]; then
-            echo "::warning::Staging health check returned $STATUS"
-          else
-            echo "[+] Staging is live — HTTP $STATUS"
-          fi
-
-      - name: Backup staging build
-        run: |
-          BACKUP_DIR="/opt/crowbyte/releases/staging-$(date +%Y%m%d-%H%M%S)"
-          mkdir -p "${BACKUP_DIR}/web"
-          cp -r apps/desktop/dist/web/* "${BACKUP_DIR}/web/"
-          echo "[+] Staging build backed up to ${BACKUP_DIR}"
-
-  # ─── Production (v* tag) ──────────────────────────────────────────────────
-  deploy-production:
-    if: >
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'production')
-    runs-on: [self-hosted, linux, x64, crowbyte]
-    name: Deploy to Production
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/desktop/package.json
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/desktop/dist/web --project-name=crowbyte --branch=main
 
-      - name: Install dependencies
-        working-directory: apps/desktop
-        run: npm install --legacy-peer-deps
-
-      - name: Build web (production)
-        working-directory: apps/desktop
-        run: npm run build:web:production
-        env:
-          VITE_BUILD_TARGET: web
-
-      - name: Strip source maps
-        working-directory: apps/desktop
-        run: find dist/web/ -name '*.map' -delete
-
-      - name: Security audit
-        working-directory: apps/desktop
+      - name: Smoke test
         run: |
-          if grep -r "service_role" dist/web/; then
-            echo "::error::Service key found in web bundle!"
-            exit 1
-          fi
-
-      - name: Deploy to production
-        run: |
-          rsync -avz --delete --exclude=version.json apps/desktop/dist/web/ /opt/crowbyte/web/
-          nginx -s reload
-
-      - name: Smoke test production
-        run: |
-          sleep 2
+          sleep 5
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://crowbyte.io/ || echo "000")
           if [ "$STATUS" != "200" ]; then
-            echo "::error::Production health check FAILED — HTTP $STATUS"
-            exit 1
+            echo "::warning::Smoke test returned HTTP $STATUS (DNS may still be propagating)"
+          else
+            echo "[+] crowbyte.io live — HTTP $STATUS"
           fi
-          echo "[+] Production is live — HTTP $STATUS"
-
-      - name: Backup web build
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          BACKUP_DIR="/opt/crowbyte/releases/${RELEASE_TAG}/web"
-          mkdir -p "${BACKUP_DIR}"
-          cp -r apps/desktop/dist/web/* "${BACKUP_DIR}/"
-          echo "[+] Web build backed up to ${BACKUP_DIR}"
