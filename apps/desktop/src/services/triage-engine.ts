@@ -930,7 +930,8 @@ Return ONLY a JSON object (no markdown, no explanation):
     actionsTaken?: Record<string, unknown>
   ): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
       await supabase.from('triage_events').insert({
         finding_id: findingId,
         event_type: eventType,

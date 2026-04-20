@@ -42,7 +42,8 @@ class AnalyticsService {
   private async getUserId(): Promise<string | null> {
     if (this.userId) return this.userId;
     try {
-      const { data } = await supabase.auth.getUser();
+      const { data: { session: _s } } = await supabase.auth.getSession();
+      const data = { user: _s?.user ?? null };
       this.userId = data.user?.id || null;
       return this.userId;
     } catch {

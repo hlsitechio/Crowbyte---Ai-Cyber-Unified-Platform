@@ -546,7 +546,8 @@ class HuntCaptureService {
     if (hostEntities.length === 0) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
       if (!user) return;
 
       for (const entity of hostEntities) {

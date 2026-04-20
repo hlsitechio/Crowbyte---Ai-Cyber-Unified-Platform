@@ -261,7 +261,9 @@ class ShieldService {
   }
 
   async createThreat(threatData: CreateThreatData): Promise<ShieldThreat> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -309,7 +311,9 @@ class ShieldService {
   }
 
   async createVerdict(verdictData: CreateVerdictData): Promise<ShieldVerdict> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const defaultConfig: SandboxConfig = {
@@ -366,7 +370,9 @@ class ShieldService {
   }
 
   async createRule(ruleData: CreateRuleData): Promise<ShieldRule> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -425,7 +431,9 @@ class ShieldService {
   }
 
   async createIOC(iocData: CreateIOCData): Promise<ShieldIOC> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const now = new Date().toISOString();
@@ -448,7 +456,9 @@ class ShieldService {
   }
 
   async bulkImportIOCs(iocs: CreateIOCData[]): Promise<number> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const now = new Date().toISOString();

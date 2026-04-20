@@ -179,7 +179,8 @@ export function applyTheme(id: string): void {
 /** Sync theme preference to Supabase user_settings */
 async function syncThemeToCloud(themeId: string): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return;
 
     await supabase
@@ -213,7 +214,8 @@ export function initTheme(): void {
 /** Background cloud sync — only overrides if cloud has a DIFFERENT theme */
 async function syncThemeFromCloud(): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return;
 
     const { data } = await supabase

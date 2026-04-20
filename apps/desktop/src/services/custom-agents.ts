@@ -88,7 +88,8 @@ class CustomAgentsService {
       .order('created_at', { ascending: false });
 
     if (!includePublic) {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
       if (user) {
         query = query.eq('user_id', user.id);
       }
@@ -144,7 +145,9 @@ class CustomAgentsService {
    * Create a new agent
    */
   async createAgent(agentData: CreateAgentData): Promise<CustomAgent> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');
@@ -266,7 +269,9 @@ class CustomAgentsService {
    * Create a new conversation
    */
   async createConversation(conversationData: CreateConversationData): Promise<AgentConversation> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');

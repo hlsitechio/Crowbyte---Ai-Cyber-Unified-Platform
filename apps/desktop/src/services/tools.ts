@@ -117,7 +117,9 @@ class ToolsService {
    * Create a new tool
    */
   async createTool(toolData: CreateToolData): Promise<Tool> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');
@@ -182,7 +184,9 @@ class ToolsService {
    * Execute a tool
    */
   async executeTool(data: ExecuteToolData): Promise<ToolExecution> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');

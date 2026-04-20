@@ -48,7 +48,8 @@ export async function activateSubscription(opts: {
   orderId: string;
   status?: ActivateStatus;
 }): Promise<ActivationResult> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
   if (!user) {
     return { success: false, error: "Not authenticated. Please sign in first." };
   }
@@ -136,7 +137,8 @@ export async function activateSubscription(opts: {
  * Quick check: does current user have ANY subscription row?
  */
 export async function hasSubscription(): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
   if (!user) return false;
 
   const { data } = await supabase
@@ -156,7 +158,8 @@ export async function getSubscriptionStatus(): Promise<{
   status: string;
   expiresAt: string | null;
 } | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase

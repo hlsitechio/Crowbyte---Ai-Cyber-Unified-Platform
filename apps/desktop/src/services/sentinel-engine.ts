@@ -120,7 +120,7 @@ class SentinelEngine {
     }
 
     // Record scan
-    const userId = (await supabase.auth.getUser()).data.user?.id;
+    const userId = ((await supabase.auth.getSession()).data.session?.user)?.id;
     if (userId) {
       await sentinelService.createScan({
         scan_type: 'cve_match',

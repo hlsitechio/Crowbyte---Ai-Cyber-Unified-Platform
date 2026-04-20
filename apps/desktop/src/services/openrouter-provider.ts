@@ -114,7 +114,8 @@ class OpenRouterProvider {
 
     // 2. Supabase user_settings (syncs across web + desktop)
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
       if (user) {
         const { data } = await supabase
           .from('user_settings')
@@ -148,7 +149,8 @@ class OpenRouterProvider {
 
     // Save to Supabase (cross-device sync)
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
       if (user) {
         await supabase
           .from('user_settings')

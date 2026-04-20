@@ -109,7 +109,8 @@ class SentinelService {
 
   private async getUserId(): Promise<string> {
     if (this.userId) return this.userId;
-    const { data } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+      const data = { user: _s?.user ?? null };
     if (!data.user) throw new Error('Not authenticated');
     this.userId = data.user.id;
     return this.userId;

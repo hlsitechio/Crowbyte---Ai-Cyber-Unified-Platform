@@ -89,7 +89,8 @@ export function ConversationsSidebar({
  }, []);
 
  const fetchData = async () => {
- const { data: { user } } = await supabase.auth.getUser();
+ const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
  if (!user) return;
 
  // Folders feature disabled until table is created via migration
@@ -188,7 +189,8 @@ export function ConversationsSidebar({
  const handleCreateFolder = async () => {
  if (!newFolderName.trim()) return;
 
- const { data: { user } } = await supabase.auth.getUser();
+ const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
  if (!user) return;
 
  const { error } = await supabase

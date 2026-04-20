@@ -83,7 +83,8 @@ class CacheService {
    * Get current user ID
    */
   private async getUserId(): Promise<string | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     return user?.id || null;
   }
 

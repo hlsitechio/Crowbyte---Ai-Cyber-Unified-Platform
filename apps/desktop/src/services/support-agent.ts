@@ -330,7 +330,8 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
   // ── Escalation ───────────────────────────────────────────────────────────
 
   async escalate(ticket: EscalationTicket): Promise<string> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     const row = {
       subject: ticket.subject,
       priority: ticket.priority,
@@ -386,7 +387,8 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
   // ── Notifications ────────────────────────────────────────────────────────
 
   async getNotifications(): Promise<UserNotification[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return [];
 
     const { data, error } = await supabase
@@ -413,7 +415,8 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
     let userId: string | null = null;
 
     const setup = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
       userId = user?.id || null;
     };
     setup();
@@ -434,7 +437,8 @@ When diagnostic results are provided, analyze them and suggest fixes.${ragContex
   // ── Tickets ──────────────────────────────────────────────────────────────
 
   async getTickets(): Promise<EscalationTicket[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return [];
 
     const { data } = await supabase

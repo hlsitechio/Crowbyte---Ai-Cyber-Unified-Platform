@@ -130,7 +130,9 @@ class BookmarksService {
    * Create a new bookmark
    */
   async createBookmark(bookmarkData: CreateBookmarkData): Promise<Bookmark> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');
@@ -209,7 +211,9 @@ class BookmarksService {
    * Create a new category
    */
   async createCategory(categoryData: CreateCategoryData): Promise<BookmarkCategory> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');
@@ -270,7 +274,9 @@ class BookmarksService {
    * Initialize default categories for a new user
    */
   async initializeDefaultCategories(): Promise<void> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');
@@ -302,7 +308,9 @@ class BookmarksService {
    * Initialize default bookmarks for a new user
    */
   async initializeDefaultBookmarks(): Promise<void> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
 
     if (userError || !user) {
       throw new Error('User not authenticated');

@@ -50,7 +50,8 @@ function saveLayout(layout: DashboardLayout) {
 /** Sync layout to Supabase (fire-and-forget) */
 async function syncLayoutToCloud(layout: DashboardLayout): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
     if (!user) return;
     await supabase
       .from('user_settings')
@@ -65,7 +66,8 @@ async function syncLayoutToCloud(layout: DashboardLayout): Promise<void> {
 /** Load layout from cloud on init */
 async function loadLayoutFromCloud(): Promise<DashboardLayout | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
     if (!user) return null;
     const { data } = await supabase
       .from('user_settings')

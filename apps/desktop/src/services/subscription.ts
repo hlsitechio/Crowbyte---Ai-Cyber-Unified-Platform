@@ -113,7 +113,8 @@ export const TIER_LIMITS: Record<Tier, Record<string, number | null>> = {
 // ─── Subscription ───────────────────────────────────────────────────────────
 
 export async function getSubscription(): Promise<UserSubscription | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase
@@ -132,7 +133,8 @@ export async function getSubscription(): Promise<UserSubscription | null> {
 export async function updateSubscription(
   updates: Partial<Pick<UserSubscription, "tier" | "status" | "expires_at">>
 ): Promise<UserSubscription | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase
@@ -152,7 +154,8 @@ export async function updateSubscription(
 // ─── Preferences ────────────────────────────────────────────────────────────
 
 export async function getPreferences(): Promise<UserPreferences | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase
@@ -171,7 +174,8 @@ export async function getPreferences(): Promise<UserPreferences | null> {
 export async function updatePreferences(
   updates: Partial<Omit<UserPreferences, "id" | "user_id" | "created_at" | "updated_at">>
 ): Promise<UserPreferences | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase
@@ -196,7 +200,8 @@ export async function getFeedItems(opts?: {
   limit?: number;
   offset?: number;
 }): Promise<FeedItem[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return [];
 
   let query = supabase
@@ -220,7 +225,8 @@ export async function getFeedItems(opts?: {
 }
 
 export async function getUnreadCount(): Promise<number> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return 0;
 
   const { count, error } = await supabase
@@ -242,7 +248,8 @@ export async function markFeedRead(itemId: string): Promise<void> {
 }
 
 export async function markAllFeedRead(): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return;
 
   await supabase
@@ -262,7 +269,8 @@ export async function archiveFeedItem(itemId: string): Promise<void> {
 // ─── Usage Tracking ─────────────────────────────────────────────────────────
 
 export async function getUsage(resource: string): Promise<UsageRecord | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return null;
 
   const today = new Date().toISOString().slice(0, 10); // 2026-03-28

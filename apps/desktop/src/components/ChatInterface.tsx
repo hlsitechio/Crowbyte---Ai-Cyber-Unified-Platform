@@ -23,7 +23,8 @@ export function ChatInterface() {
  // Initialize conversation on mount
  useEffect(() => {
  const initConversation = async () => {
- const { data: { user } } = await supabase.auth.getUser();
+ const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
  if (!user) {
  toast({
  title: "Authentication Required",

@@ -465,7 +465,9 @@ class FindingsEngine {
   // ─── CRUD ───────────────────────────────────────────────────────────────────
 
   async create(data: CreateFindingData): Promise<Finding> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const { data: finding, error } = await supabase
@@ -489,7 +491,9 @@ class FindingsEngine {
   async bulkCreate(items: CreateFindingData[]): Promise<Finding[]> {
     if (items.length === 0) return [];
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const rows = items.map(item => ({
@@ -655,7 +659,9 @@ class FindingsEngine {
   // ─── Attack Chains ──────────────────────────────────────────────────────────
 
   async createChain(name: string, target: string, findingIds: string[]): Promise<AttackChain> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -707,7 +713,9 @@ class FindingsEngine {
   // ─── Scans ──────────────────────────────────────────────────────────────────
 
   async createScan(tool: FindingSource, target: string, command?: string, options?: Record<string, unknown>): Promise<Scan> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase

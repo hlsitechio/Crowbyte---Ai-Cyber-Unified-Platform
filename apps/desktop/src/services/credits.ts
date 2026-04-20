@@ -108,7 +108,8 @@ export async function getPacks(): Promise<CreditPack[]> {
 /** Purchase a credit pack — returns Stripe checkout URL */
 export async function purchasePack(packId: string): Promise<string | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return null;
 
     const headers = await authHeaders();

@@ -271,7 +271,9 @@ class AlertIngestion {
   // ─── Source CRUD ────────────────────────────────────────────────────────────
 
   async createSource(data: { name: string; source_type: SourceType; connection_config: ConnectionConfig }): Promise<AlertSource> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('Not authenticated');
 
     const { data: source, error } = await supabase
@@ -353,7 +355,9 @@ class AlertIngestion {
   // ─── Alert Ingestion ───────────────────────────────────────────────────────
 
   async ingestAlert(sourceType: SourceType, rawData: Record<string, unknown>, sourceId?: string): Promise<Alert> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('Not authenticated');
 
     const normalizer = NORMALIZERS[sourceType] || NORMALIZERS.manual;
@@ -539,7 +543,9 @@ class AlertIngestion {
     finding_ids?: string[];
     severity?: string;
   }): Promise<InvestigationTimeline> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
+    const userError = user ? null : new Error("Not authenticated");
     if (userError || !user) throw new Error('Not authenticated');
 
     // Build initial events from alerts

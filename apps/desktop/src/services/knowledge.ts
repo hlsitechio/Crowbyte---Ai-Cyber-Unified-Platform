@@ -72,7 +72,8 @@ class KnowledgeService {
     is_favorite?: boolean;
     search?: string;
   }): Promise<KnowledgeEntry[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     let query = supabase
@@ -108,7 +109,8 @@ class KnowledgeService {
    * Get a single knowledge entry by ID
    */
   async getById(id: string): Promise<KnowledgeEntry | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase
@@ -133,7 +135,8 @@ class KnowledgeService {
    * Create a new knowledge entry
    */
   async create(input: CreateKnowledgeInput): Promise<KnowledgeEntry> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     console.log('📝 Creating knowledge entry:', input.title);
@@ -210,7 +213,8 @@ class KnowledgeService {
    * Update a knowledge entry
    */
   async update(input: UpdateKnowledgeInput): Promise<KnowledgeEntry> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     const { id, ...updates } = input;
@@ -234,7 +238,8 @@ class KnowledgeService {
    * Delete a knowledge entry
    */
   async delete(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     const { error } = await supabase
@@ -250,7 +255,8 @@ class KnowledgeService {
    * Get category statistics
    */
   async getCategoryStats(): Promise<KnowledgeCategoryStats[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase
@@ -282,7 +288,8 @@ class KnowledgeService {
    * Toggle favorite status
    */
   async toggleFavorite(id: string, is_favorite: boolean): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     const { error } = await supabase
@@ -298,7 +305,8 @@ class KnowledgeService {
    * Increment view count for an entry
    */
   private async incrementViewCount(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (!user) return;
 
     await supabase.rpc('increment_knowledge_view', {

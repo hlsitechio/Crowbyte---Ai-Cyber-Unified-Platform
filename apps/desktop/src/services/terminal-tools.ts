@@ -320,7 +320,8 @@ let _shodanKeyCache: string | null = null;
 async function loadShodanKeyFromSupabase(): Promise<string> {
   try {
     const { supabase } = await import('@/integrations/supabase/client');
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
     if (user) {
       const { data } = await supabase
         .from('user_settings')

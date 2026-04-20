@@ -45,7 +45,8 @@ export default function OAuthConsent() {
   const scopes = consentParams.scope.split(/[\s,]+/).filter(Boolean);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const data = { user: session?.user ?? null };
       setUser(data.user ? { email: data.user.email, id: data.user.id } : null);
       setLoading(false);
     });

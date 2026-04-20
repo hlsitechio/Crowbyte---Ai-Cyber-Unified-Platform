@@ -93,7 +93,8 @@ class SupabaseHealthMonitor {
 
     try {
       // Check if user is authenticated first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const { data: { session: _s }, error: authError } = await supabase.auth.getSession();
+      const user = _s?.user ?? null;
 
       if (authError || !user) {
         return {

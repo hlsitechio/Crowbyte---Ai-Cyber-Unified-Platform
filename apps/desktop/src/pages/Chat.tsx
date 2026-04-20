@@ -179,7 +179,8 @@ export default function Chat() {
   // ─── Supabase ────────────────────────────────────────────────────────────
 
   const loadConversations = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+      const user = _authSession?.user ?? null;
     if (!user) return;
     const { data } = await supabase
       .from('conversations')
@@ -210,7 +211,8 @@ export default function Chat() {
   };
 
   const createNewConversation = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+      const user = _authSession?.user ?? null;
     if (!user) return;
     const { data, error } = await supabase
       .from('conversations')
@@ -237,7 +239,8 @@ export default function Chat() {
 
   const saveMessage = async (role: string, content: string) => {
     if (!conversationId) return;
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+      const user = _authSession?.user ?? null;
     await supabase.from('messages').insert({
       conversation_id: conversationId, user_id: user?.id, role, content, provider,
       model: 'gemini-2.5-flash',

@@ -343,7 +343,8 @@ class HuntGraphService {
   // ── Hunt CRUD ───────────────────────────────────────────────────────────
 
   async createHunt(data: { name: string; program?: string; scope: string[]; exclude_scope?: string[] }): Promise<Hunt> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) throw new Error('Not authenticated');
 
     const { data: hunt, error } = await supabase

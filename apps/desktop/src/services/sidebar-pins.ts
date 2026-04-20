@@ -39,7 +39,8 @@ export function reorderPins(urls: string[]): void {
 
 async function syncPinsToCloud(pins: string[]): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return;
     await supabase
       .from('user_settings')
@@ -53,7 +54,8 @@ async function syncPinsToCloud(pins: string[]): Promise<void> {
 
 export async function initPins(): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return;
     const { data } = await supabase
       .from('user_settings')

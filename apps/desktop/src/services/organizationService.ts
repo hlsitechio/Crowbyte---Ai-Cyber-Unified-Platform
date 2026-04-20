@@ -259,7 +259,8 @@ class OrganizationService {
 
   /** Invite a user to the org */
   async inviteMember(orgId: string, email: string, role: MemberRole, message?: string): Promise<Invitation> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     const { data, error } = await supabase
       .from('invitations')
       .insert({
@@ -323,7 +324,8 @@ class OrganizationService {
 
   /** Create a new workspace */
   async createWorkspace(orgId: string, name: string, environment: string = 'production'): Promise<Workspace> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     const { data, error } = await supabase
       .from('workspaces')
       .insert({ org_id: orgId, name, environment, created_by: user?.id })
@@ -354,7 +356,8 @@ class OrganizationService {
 
   /** Log an action */
   async logAction(orgId: string, action: string, category: string, description?: string, metadata?: Record<string, unknown>): Promise<void> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     await supabase.from('audit_log').insert({
       org_id: orgId,
       user_id: user?.id,
@@ -398,7 +401,8 @@ class OrganizationService {
 
   /** Save onboarding progress */
   async saveOnboardingProgress(orgId: string, step: number, stepsCompleted: string[], config: Record<string, unknown>): Promise<void> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     const { error } = await supabase
       .from('onboarding')
       .upsert({
@@ -414,7 +418,8 @@ class OrganizationService {
 
   /** Mark onboarding complete */
   async completeOnboarding(orgId: string, eulaVersion: string): Promise<void> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     await supabase
       .from('onboarding')
       .upsert({

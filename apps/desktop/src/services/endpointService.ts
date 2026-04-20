@@ -55,7 +55,8 @@ class EndpointService {
    * Get all endpoints for current user
    */
   async getAll(): Promise<Endpoint[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) {
       console.warn('No user logged in');
       return [];
@@ -110,7 +111,8 @@ class EndpointService {
    * Create endpoint from current machine
    */
   async createFromCurrentMachine(customName?: string): Promise<Endpoint> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -249,7 +251,8 @@ class EndpointService {
    * Find current device endpoint
    */
   async findCurrentDevice(): Promise<Endpoint | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
     if (!user) return null;
 
     const { data, error } = await supabase

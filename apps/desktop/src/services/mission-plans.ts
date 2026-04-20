@@ -88,7 +88,8 @@ class MissionPlansService {
    * Create a new mission plan
    */
   async createPlan(planData: CreateMissionPlanData): Promise<MissionPlan> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
 
     if (!user) {
       throw new Error('User not authenticated');

@@ -214,7 +214,9 @@ class ISMCaseService {
   // ─── Case CRUD ──────────────────────────────────────────────────────────────
 
   async create(data: CreateCaseData): Promise<ISMCase> {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session: _authSession } } = await supabase.auth.getSession();
+    const user = _authSession?.user ?? null;
+    const userError = user ? null : new Error('Not authenticated');
     if (userError || !user) throw new Error('Not authenticated');
 
     // Get SLA policy for priority

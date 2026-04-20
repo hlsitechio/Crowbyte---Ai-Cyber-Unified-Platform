@@ -63,7 +63,8 @@ let _onCommand: ((cmd: SupportCommand) => void) | null = null;
  * Returns the session ID for sharing.
  */
 export async function createSupportSession(): Promise<string | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase
@@ -460,7 +461,8 @@ export async function getSessionHistory(limit = 50): Promise<SupportSession[]> {
  * Check if this user has a pending support request (shown in their UI).
  */
 export async function getMyPendingSession(): Promise<SupportSession | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: _s } } = await supabase.auth.getSession();
+    const user = _s?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase

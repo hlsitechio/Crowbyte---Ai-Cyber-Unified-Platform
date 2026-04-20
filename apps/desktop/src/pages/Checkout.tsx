@@ -165,7 +165,8 @@ export default function Checkout() {
     setError('');
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: _authSession } } = await supabase.auth.getSession();
+      const user = _authSession?.user ?? null;
 
       const res = await fetch(`${API_BASE}/api/stripe/create-checkout`, {
         method: 'POST',
