@@ -313,7 +313,8 @@ useEffect(() => { fetchCVEs(); }, []);
  const sev = getSevConfig(cve.severity);
  const isExpanded = expandedId === cve.id;
  return (
- <motion.div key={cve.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+ <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
  <div className={`border rounded-lg transition-all group relative ${selectedIds.has(cve.id) ?"ring-1 ring-primary border-primary/50 bg-primary/5" :"ring-1 ring-white/[0.04] hover:ring-white/[0.08] bg-card/30"}`}>
  {/* UilTimes delete on hover */}
  <button
@@ -401,7 +402,8 @@ useEffect(() => { fetchCVEs(); }, []);
 
  {/* Expanded details */}
  {isExpanded && (
- <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height:"auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-white/[0.04]">
+ <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both border-t border-white/[0.04]">
  <div className="px-4 py-3 space-y-3">
  {cve.description && (
  <div>
@@ -476,10 +478,10 @@ useEffect(() => { fetchCVEs(); }, []);
  )}
  </div>
  </div>
- </motion.div>
+ </div>
  )}
  </div>
- </motion.div>
+ </div>
  );
  };
 

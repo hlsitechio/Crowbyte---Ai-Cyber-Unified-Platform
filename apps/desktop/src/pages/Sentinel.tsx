@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UilShield, UilPlus, UilTrashAlt, UilPen, UilDesktop, UilGlobe, UilCloud, UilCog, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilBolt, UilEye, UilSync, UilAngleDown, UilAngleRight, UilCopy, UilCrosshair, UilHeartRate, UilRobot, UilFocusTarget, UilHistory, UilPlay, UilQrcodeScan, UilWindow } from "@iconscout/react-unicons";
-import { motion, AnimatePresence } from 'framer-motion';
 import { InlineAIMenu, SectionAIBar } from "@/components/ai/InlineAI";
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -258,12 +257,8 @@ function AssetCard({ asset, onDelete, expanded, onToggle }: {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      className="bg-zinc-900/60 border border-zinc-800 rounded-lg overflow-hidden"
-    >
+    <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both bg-zinc-900/60 border border-zinc-800 rounded-lg overflow-hidden">
       {/* Header */}
       <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-zinc-800/80">
@@ -302,13 +297,8 @@ function AssetCard({ asset, onDelete, expanded, onToggle }: {
       {/* Expanded Details */}
       <AnimatePresence>
         {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="border-t border-zinc-800"
-          >
+          <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both border-t border-zinc-800">
             <div className="px-4 py-3 space-y-3">
               {/* Services */}
               {asset.services && asset.services.length > 0 && (
@@ -378,10 +368,10 @@ function AssetCard({ asset, onDelete, expanded, onToggle }: {
                 </Button>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
@@ -399,11 +389,8 @@ function ThreatCard({ threat, onExecuteAction, onStatusChange }: {
   const statusColor = THREAT_STATUS_COLORS[threat.status] || THREAT_STATUS_COLORS.new;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      className={`border rounded-lg overflow-hidden ${sevColor.split(' ')[2]}`}
-    >
+    <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
       <button onClick={() => setExpanded(!expanded)} className="w-full text-left px-4 py-3 hover:bg-white/[0.02] transition-colors">
         <div className="flex items-start gap-3">
           <UilExclamationTriangle size={18} className={sevColor.split(' ')[0]} />
@@ -447,12 +434,8 @@ function ThreatCard({ threat, onExecuteAction, onStatusChange }: {
 
       <AnimatePresence>
         {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="border-t border-zinc-800 px-4 py-3 space-y-3"
-          >
+          <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both border-t border-zinc-800 px-4 py-3 space-y-3">
             <p className="text-xs text-zinc-400">{threat.summary}</p>
 
             {/* Action Items */}
@@ -525,10 +508,10 @@ function ThreatCard({ threat, onExecuteAction, onStatusChange }: {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
@@ -844,12 +827,8 @@ export default function Sentinel() {
         {/* Pipeline Result Banner */}
         <AnimatePresence>
           {pipelineResult && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 rounded-lg p-3"
-            >
+            <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 rounded-lg p-3">
               <div className="flex items-center gap-4 text-xs">
                 <UilShield size={16} className="text-red-400" />
                 <span className="text-zinc-300 font-medium">Pipeline Complete:</span>
@@ -862,7 +841,7 @@ export default function Sentinel() {
                   <UilTimesCircle size={14} />
                 </button>
               </div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
@@ -926,9 +905,10 @@ export default function Sentinel() {
 
             <AnimatePresence>
               {showAddForm && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
                   <AddAssetForm onAdd={handleAddAsset} onCancel={() => setShowAddForm(false)} />
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
 

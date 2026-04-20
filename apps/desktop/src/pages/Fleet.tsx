@@ -333,11 +333,8 @@ const Fleet = () => {
  return (
  <div className="space-y-6 p-6">
  {/* Header */}
- <motion.div
- initial={{ opacity: 0, y: -20 }}
- animate={{ opacity: 1, y: 0 }}
- className="flex items-center justify-between"
- >
+ <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both flex items-center justify-between">
  <div>
  <h1 className="text-4xl font-bold text-gradient-silver flex items-center gap-3">
  <UilMonitor size={40} className="text-primary" />
@@ -357,11 +354,11 @@ const Fleet = () => {
  Add Endpoint
  </Button>
  </div>
- </motion.div>
+ </div>
 
  {/* Stats Cards */}
  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "100ms" }}>
  <Card>
  <CardContent className="p-4">
  <div className="flex items-center justify-between">
@@ -373,9 +370,9 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
 
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "150ms" }}>
  <Card>
  <CardContent className="p-4">
  <div className="flex items-center justify-between">
@@ -387,9 +384,9 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
 
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "200ms" }}>
  <Card>
  <CardContent className="p-4">
  <div className="flex items-center justify-between">
@@ -401,9 +398,9 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
 
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "250ms" }}>
  <Card>
  <CardContent className="p-4">
  <div className="flex items-center justify-between">
@@ -415,9 +412,9 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
 
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "300ms" }}>
  <Card>
  <CardContent className="p-4">
  <div className="flex items-center justify-between">
@@ -429,9 +426,9 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
 
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "350ms" }}>
  <Card>
  <CardContent className="p-4">
  <div className="flex items-center justify-between">
@@ -443,7 +440,7 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
  </div>
 
  {/* Filters */}
@@ -504,7 +501,7 @@ const Fleet = () => {
  </Card>
 
  {/* Host Server — This Machine */}
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "400ms" }}>
  <Card className="ring-1 ring-white/[0.06] bg-gradient-to-br from-card/80 to-emerald-500/5">
  <CardHeader className="pb-3">
  <div className="flex items-center justify-between">
@@ -629,10 +626,10 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
 
  {/* VPS Infrastructure */}
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+ <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "500ms" }}>
  <Card className={`ring-1 ring-white/[0.06] ${vpsStatus?.ok ? '' : ''} bg-gradient-to-br from-card/80 to-primary/5`}>
  <CardHeader className="pb-3">
  <div className="flex items-center justify-between">
@@ -739,7 +736,7 @@ const Fleet = () => {
  </div>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
 
  {/* Endpoints Grid or Empty State */}
  <ScrollArea className="h-[calc(100vh-500px)]">
@@ -748,11 +745,8 @@ const Fleet = () => {
  <UilSync size={32} className="animate-spin text-primary" />
  </div>
  ) : filteredEndpoints.length === 0 ? (
- <motion.div
- initial={{ opacity: 0, scale: 0.95 }}
- animate={{ opacity: 1, scale: 1 }}
- className="flex flex-col items-center justify-center py-20"
- >
+ <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both flex flex-col items-center justify-center py-20">
  <div className="p-6 rounded-full bg-muted/20 mb-6">
  <UilDesktopAlt size={64} className="text-muted-foreground" />
  </div>
@@ -765,16 +759,12 @@ const Fleet = () => {
  <UilPlus size={16} className="mr-2" />
  Add Your First Endpoint
  </Button>
- </motion.div>
+ </div>
  ) : (
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
  {filteredEndpoints.map((endpoint, index) => (
- <motion.div
- key={endpoint.id}
- initial={{ opacity: 0, scale: 0.9 }}
- animate={{ opacity: 1, scale: 1 }}
- transition={{ delay: index * 0.05 }}
- >
+ <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
  <Card className={`ring-1 ring-white/[0.06] hover:ring-white/[0.1] transition-all`}>
  <CardHeader className="pb-3">
  <div className="flex items-start justify-between">
@@ -941,7 +931,7 @@ const Fleet = () => {
  </Button>
  </CardContent>
  </Card>
- </motion.div>
+ </div>
  ))}
  </div>
  )}

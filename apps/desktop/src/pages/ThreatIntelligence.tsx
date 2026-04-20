@@ -10,7 +10,6 @@ import { UilShield, UilSearch, UilSync, UilExclamationTriangle, UilChartGrowth, 
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { motion, AnimatePresence } from "framer-motion";
 import { threatIntelCollector, type SyncProgress } from "@/services/threat-intel-collector";
 
 // ── Types ──
@@ -426,7 +425,8 @@ const ThreatIntelligence = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-[1800px] mx-auto space-y-6">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3">
@@ -458,10 +458,10 @@ const ThreatIntelligence = () => {
                 : 'Sync All Feeds'}
             </Button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Quick Stats */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "100ms" }}>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
             <Card className="bg-card/50">
               <CardContent className="pt-4 pb-3 px-4">
@@ -518,16 +518,13 @@ const ThreatIntelligence = () => {
               </CardContent>
             </Card>
           </div>
-        </motion.div>
+        </div>
 
         {/* Sync Progress Bar */}
         <AnimatePresence>
           {syncing && syncProgress && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-            >
+            <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
               <Card className="border-blue-500/30">
                 <CardContent className="py-3 px-4">
                   <div className="flex items-center gap-3">
@@ -566,7 +563,7 @@ const ThreatIntelligence = () => {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
@@ -871,7 +868,8 @@ const ThreatIntelligence = () => {
             {/* Check Result */}
             <AnimatePresence>
               {checkResult !== null && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
                   {checkResult.length === 0 ? (
                     <Card>
                       <CardContent className="flex items-center gap-4 py-8 justify-center">
@@ -919,7 +917,7 @@ const ThreatIntelligence = () => {
                       </CardContent>
                     </Card>
                   )}
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
           </TabsContent>
@@ -949,7 +947,8 @@ const ThreatIntelligence = () => {
             ) : (
               <div className="grid gap-3">
                 {feeds.map((feed) => (
-                  <motion.div key={feed.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
                     <Card className={`border-border hover:border-zinc-600 transition-colors ${!feed.enabled ? 'opacity-60' : ''}`}>
                       <CardContent className="py-3 px-4">
                         <div className="flex items-center gap-4">
@@ -1004,7 +1003,7 @@ const ThreatIntelligence = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             )}

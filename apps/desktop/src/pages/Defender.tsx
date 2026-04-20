@@ -77,11 +77,8 @@ function StatCard({ title, value, subtitle, icon: Icon, color = "text-primary" }
 
 function ThreatRow({ threat }: { threat: ShieldThreat }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.03] transition-colors group"
-    >
+    <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.03] transition-colors group">
       <span className={`h-2 w-2 rounded-full ${SEVERITY_DOT[threat.severity]} shrink-0`} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -102,7 +99,7 @@ function ThreatRow({ threat }: { threat: ShieldThreat }) {
       <span className="text-[10px] text-muted-foreground font-mono">
         {new Date(threat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       </span>
-    </motion.div>
+    </div>
   );
 }
 
@@ -293,7 +290,8 @@ const Defender = () => {
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+      <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -315,7 +313,7 @@ const Defender = () => {
             </Button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -332,12 +330,8 @@ const Defender = () => {
         {/* ── Overview Tab ── */}
         <TabsContent value="overview" className="space-y-6 mt-4">
           {/* Stats Grid */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-3"
-          >
+          <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both grid grid-cols-2 md:grid-cols-4 gap-3" style={{ animationDelay: "100ms" }}>
             <StatCard
               title="Threats Detected"
               value={stats?.threats_total || 0}
@@ -366,11 +360,12 @@ const Defender = () => {
               icon={UilDatabase}
               color="text-purple-400"
             />
-          </motion.div>
+          </div>
 
           {/* Severity Breakdown */}
           {stats && (stats.threats_by_severity.critical > 0 || stats.threats_by_severity.high > 0) && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+            <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "200ms" }}>
               <Card className="bg-card/50 border-white/[0.06]">
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground font-['JetBrains_Mono'] uppercase tracking-wider mb-3">Threat Distribution</p>
@@ -387,17 +382,13 @@ const Defender = () => {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           )}
 
           {/* Two Column: Recent Threats + Sentinel Status */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="lg:col-span-2"
-            >
+            <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both lg:col-span-2" style={{ animationDelay: "200ms" }}>
               <Card className="bg-card/50 border-white/[0.06]">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-['JetBrains_Mono'] flex items-center gap-2">
@@ -423,19 +414,16 @@ const Defender = () => {
                   </ScrollArea>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "300ms" }}>
               <SentinelStatus stats={stats || { sentinel_status: 'inactive' } as ShieldStats} />
-            </motion.div>
+            </div>
           </div>
 
           {/* Recent Events */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both" style={{ animationDelay: "400ms" }}>
             <Card className="bg-card/50 border-white/[0.06]">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -462,7 +450,7 @@ const Defender = () => {
                 </ScrollArea>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ── Threats Tab ── */}
@@ -616,7 +604,7 @@ function SandboxTab() {
             className="mb-4"
           >
             <UilAnalysis size={48} className={`${dragOver ? 'text-primary' : 'text-muted-foreground/30'} transition-colors`} />
-          </motion.div>
+          </div>
           <p className="text-sm font-medium">{submitting ? 'Submitting...' : 'Drop files here to detonate'}</p>
           <p className="text-xs text-muted-foreground mt-1">
             PE, ELF, PDF, Office, scripts, archives — any suspicious file

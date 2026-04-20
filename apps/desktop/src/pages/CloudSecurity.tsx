@@ -24,7 +24,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { UilShield, UilShieldCheck, UilShieldExclamation, UilCloud, UilDatabase, UilLock, UilEye, UilExclamationTriangle, UilCheckCircle, UilTimesCircle, UilPlus, UilTrashAlt, UilSync, UilDownloadAlt, UilPlug, UilSitemap, UilBox, UilBug, UilWrench, UilAngleRight, UilAngleDown, UilCopy, UilBolt, UilFilter, UilGlobe, UilWifi, UilServer, UilKeySkeleton, UilScroll, UilProcessor, UilTimes, UilHardHat, UilUpload, UilFileAlt } from "@iconscout/react-unicons";
-import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Types (local, matching service) ──────────────────────────────────────────
 
@@ -684,17 +683,6 @@ function scoreRingColor(score: number): string {
   return "stroke-red-500";
 }
 
-const fadeIn = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -12 },
-  transition: { duration: 0.2 },
-};
-
-const stagger = {
-  animate: { transition: { staggerChildren: 0.04 } },
-};
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ScoreDonut({ score, size = 120 }: { score: number; size?: number }) {
@@ -722,7 +710,7 @@ function StatCard({ label, value, icon: Icon, color = "text-zinc-400" }: {
   label: string; value: string | number; icon: typeof UilShield; color?: string;
 }) {
   return (
-    <motion.div {...fadeIn}>
+    <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
       <Card className="bg-zinc-900/50 border-zinc-800">
         <CardContent className="p-4 flex items-center gap-3">
           <div className={`p-2 rounded-lg bg-zinc-800/80 ${color}`}>
@@ -734,7 +722,7 @@ function StatCard({ label, value, icon: Icon, color = "text-zinc-400" }: {
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
@@ -871,16 +859,16 @@ export default function CloudSecurity() {
   // ─── Tab: Dashboard ───────────────────────────────────────────────────────
 
   const renderDashboard = () => (
-    <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+    <div className="space-y-6">
       <div className="grid grid-cols-12 gap-4">
-        <motion.div className="col-span-3" {...fadeIn}>
+        <div className="col-span-3 animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
           <Card className="bg-zinc-900/50 border-zinc-800 h-full">
             <CardContent className="p-6 flex flex-col items-center justify-center h-full">
               <ScoreDonut score={securityScore} size={140} />
               <p className="text-xs text-zinc-500 mt-2">Security Posture</p>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
         <div className="col-span-9 grid grid-cols-3 gap-4">
           <StatCard label="UilCloud Accounts" value={accounts.length} icon={UilCloud} color="text-blue-400" />
           <StatCard label="Total Resources" value={totalResources} icon={UilServer} color="text-cyan-400" />
@@ -892,7 +880,7 @@ export default function CloudSecurity() {
       </div>
 
       <div className="grid grid-cols-12 gap-4">
-        <motion.div className="col-span-4" {...fadeIn}>
+        <div className="col-span-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
@@ -907,9 +895,9 @@ export default function CloudSecurity() {
               <SeverityBar label="Info" count={sevCounts.info} max={maxSev} color="bg-zinc-500" />
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
-        <motion.div className="col-span-4" {...fadeIn}>
+        <div className="col-span-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
@@ -933,9 +921,9 @@ export default function CloudSecurity() {
               })}
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
-        <motion.div className="col-span-4" {...fadeIn}>
+        <div className="col-span-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
@@ -964,10 +952,10 @@ export default function CloudSecurity() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
 
-      <motion.div {...fadeIn}>
+      <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
@@ -998,14 +986,14 @@ export default function CloudSecurity() {
             </ScrollArea>
           </CardContent>
         </Card>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 
   // ─── Tab: Accounts ────────────────────────────────────────────────────────
 
   const renderAccounts = () => (
-    <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-zinc-100">UilCloud Accounts</h2>
@@ -1017,7 +1005,7 @@ export default function CloudSecurity() {
         </Button>
       </div>
 
-      <motion.div {...fadeIn}>
+      <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-6">
@@ -1037,14 +1025,14 @@ export default function CloudSecurity() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {accounts.map(acc => {
           const pCfg = PROVIDER_COLORS[acc.provider];
           const connected = acc.status === "connected";
           return (
-            <motion.div key={acc.id} {...fadeIn}>
+            <div key={acc.id} className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
               <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between">
@@ -1115,7 +1103,7 @@ export default function CloudSecurity() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -1169,15 +1157,15 @@ export default function CloudSecurity() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </div>
   );
 
   // ─── Tab: Findings ────────────────────────────────────────────────────────
 
   const renderFindings = () => (
-    <motion.div className="space-y-4" variants={stagger} initial="initial" animate="animate">
+    <div className="space-y-4">
       {/* Filters */}
-      <motion.div {...fadeIn}>
+      <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardContent className="p-3">
             <div className="flex items-center gap-2 flex-wrap">
@@ -1234,13 +1222,13 @@ export default function CloudSecurity() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Bulk Actions */}
       <AnimatePresence>
         {selectedFindings.size > 0 && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}>
+          <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both">
             <Card className="bg-cyan-900/20 border-cyan-800/40">
               <CardContent className="p-2 flex items-center gap-2">
                 <span className="text-xs text-cyan-400">{selectedFindings.size} selected</span>
@@ -1257,7 +1245,7 @@ export default function CloudSecurity() {
                 </Button>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -1317,8 +1305,8 @@ export default function CloudSecurity() {
         {/* Detail Panel */}
         <AnimatePresence>
           {selectedFinding && (
-            <motion.div className="col-span-5" initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+            <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both col-span-5">
               <Card className="bg-zinc-900/50 border-zinc-800">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -1431,17 +1419,17 @@ export default function CloudSecurity() {
                   )}
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 
   // ─── Tab: SBOM ────────────────────────────────────────────────────────────
 
   const renderSBOM = () => (
-    <motion.div className="space-y-4" variants={stagger} initial="initial" animate="animate">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-zinc-100">Software Bill of Materials</h2>
@@ -1455,7 +1443,7 @@ export default function CloudSecurity() {
         </Button>
       </div>
 
-      <motion.div className="grid grid-cols-4 gap-4" {...fadeIn}>
+      <div className="grid grid-cols-4 gap-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
         <StatCard label="Total Components"
           value={sboms.reduce((s, b) => s + b.total_deps, 0)} icon={UilBox} color="text-cyan-400" />
         <StatCard label="Vulnerable Deps"
@@ -1467,13 +1455,13 @@ export default function CloudSecurity() {
             (sboms.reduce((s, b) => s + b.reachable_vulns, 0) /
               Math.max(sboms.reduce((s, b) => s + b.vuln_deps, 0), 1)) * 100
           )}%`} icon={UilEye} color="text-yellow-400" />
-      </motion.div>
+      </div>
 
       <div className="grid grid-cols-12 gap-4">
         <div className={selectedSBOM ? "col-span-5" : "col-span-12"}>
           <div className="space-y-3">
             {sboms.map(sbom => (
-              <motion.div key={sbom.id} {...fadeIn}>
+              <div key={sbom.id} className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
                 <Card className={`bg-zinc-900/50 border-zinc-800 cursor-pointer transition-colors ${
                   selectedSBOM?.id === sbom.id ? "border-cyan-500/50" : "hover:border-zinc-700"
                 }`} onClick={() => setSelectedSBOM(selectedSBOM?.id === sbom.id ? null : sbom)}>
@@ -1510,7 +1498,7 @@ export default function CloudSecurity() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -1518,8 +1506,8 @@ export default function CloudSecurity() {
         {/* Component Tree */}
         <AnimatePresence>
           {selectedSBOM && (
-            <motion.div className="col-span-7" initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+            <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both col-span-7">
               <Card className="bg-zinc-900/50 border-zinc-800">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -1596,7 +1584,7 @@ export default function CloudSecurity() {
                   </ScrollArea>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>
@@ -1648,7 +1636,7 @@ export default function CloudSecurity() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </div>
   );
 
   // ─── Tab: Compliance ──────────────────────────────────────────────────────
@@ -1660,8 +1648,8 @@ export default function CloudSecurity() {
     const totalFailed = data.sections.reduce((s, sec) => s + sec.failed, 0);
 
     return (
-      <motion.div className="space-y-4" variants={stagger} initial="initial" animate="animate">
-        <motion.div {...fadeIn}>
+      <div className="space-y-4">
+        <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
@@ -1693,10 +1681,10 @@ export default function CloudSecurity() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-12 gap-4">
-          <motion.div className="col-span-4" {...fadeIn}>
+          <div className="col-span-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
             <Card className="bg-zinc-900/50 border-zinc-800 h-full">
               <CardContent className="p-6 flex flex-col items-center justify-center h-full gap-4">
                 <ScoreDonut score={data.score} size={160} />
@@ -1723,10 +1711,10 @@ export default function CloudSecurity() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
           <div className="col-span-8 space-y-4">
-            <motion.div {...fadeIn}>
+            <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
               <div className="grid grid-cols-6 gap-2">
                 {FRAMEWORK_LABELS.map(fw => {
                   const s = COMPLIANCE_DATA[fw].score;
@@ -1742,9 +1730,9 @@ export default function CloudSecurity() {
                   );
                 })}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div {...fadeIn}>
+            <div className="animate-in fade-in-0 slide-in-from-bottom-3 duration-200 fill-mode-both">
               <Card className="bg-zinc-900/50 border-zinc-800">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm text-zinc-400">
@@ -1781,11 +1769,8 @@ export default function CloudSecurity() {
                             </div>
                             <AnimatePresence>
                               {isExpanded && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  className="overflow-hidden">
+                                <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both overflow-hidden">
                                   <div className="bg-zinc-900/50 px-4 py-2 space-y-1">
                                     {section.checks.map((check, ci) => (
                                       <div key={ci} className="flex items-center gap-2 py-1">
@@ -1808,7 +1793,7 @@ export default function CloudSecurity() {
                                       </div>
                                     ))}
                                   </div>
-                                </motion.div>
+                                </div>
                               )}
                             </AnimatePresence>
                           </div>
@@ -1818,10 +1803,10 @@ export default function CloudSecurity() {
                   </ScrollArea>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   };
 
@@ -1830,9 +1815,8 @@ export default function CloudSecurity() {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <motion.div
-        className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50"
-        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+      <div
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 fill-mode-both flex items-center justify-between px-6 py-4 border-b border-zinc-800/50">
         <div className="flex items-center gap-3">
           <UilShield size={22} className="text-cyan-400" />
           <div>
@@ -1853,7 +1837,7 @@ export default function CloudSecurity() {
             {criticalCount} critical
           </Badge>
         </div>
-      </motion.div>
+      </div>
 
       {/* Preview Banner */}
       <div className="mx-6 mt-4 mb-0 rounded-lg border bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
