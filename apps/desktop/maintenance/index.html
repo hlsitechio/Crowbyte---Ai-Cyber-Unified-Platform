@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrowByte — Coming Back Soon</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #09090b;
+      color: #fafafa;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+    }
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: #a855f7;
+    }
+    .crow { font-size: 3rem; }
+    .line {
+      width: 280px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #a855f7, transparent);
+    }
+    .title {
+      font-size: 1.1rem;
+      color: #71717a;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .message {
+      max-width: 480px;
+      text-align: center;
+      color: #a1a1aa;
+      font-family: system-ui, sans-serif;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+    .message strong { color: #e4e4e7; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border: 1px solid #a855f720;
+      border-radius: 999px;
+      background: #a855f710;
+      color: #c084fc;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #a855f7;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .contact {
+      color: #52525b;
+      font-size: 0.8rem;
+      font-family: system-ui, sans-serif;
+    }
+    .contact a { color: #71717a; text-decoration: none; }
+    .contact a:hover { color: #a855f7; }
+  </style>
+</head>
+<body>
+  <div class="crow">🐦‍⬛</div>
+  <div class="logo">CROWBYTE</div>
+  <div class="line"></div>
+  <div class="badge">
+    <div class="dot"></div>
+    Maintenance in progress
+  </div>
+  <p class="message">
+    Thank you for your interest in CrowByte.<br/><br/>
+    We're currently <strong>upgrading the platform</strong> to bring you something significantly better — a unified enterprise security experience built for real teams.<br/><br/>
+    We'll be back shortly.
+  </p>
+  <div class="line"></div>
+  <p class="contact">
+    Questions? <a href="mailto:support@crowbyte.io">support@crowbyte.io</a>
+  </p>
+</body>
+</html>
