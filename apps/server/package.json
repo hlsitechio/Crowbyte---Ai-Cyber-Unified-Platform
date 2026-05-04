@@ -27,7 +27,7 @@
     "systeminformation": "^5.23.5",
     "dockerode": "^4.0.4",
     "express-rate-limit": "^7.4.1",
-    "uuid": "^10.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
